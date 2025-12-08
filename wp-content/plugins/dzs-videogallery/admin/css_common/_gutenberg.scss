@@ -1,0 +1,42 @@
+.dzs--gutenberg-block {
+  .components-base-control__label {
+    display: block;
+    font-weight: bold;
+  }
+}
+
+.dzs--gutenberg--extra-options--trigger {
+  cursor: pointer;
+}
+
+.force-pre{
+  white-space: pre!important;
+}
+.dzs--react-setting-container .block-editor-rich-text__editable, .zoomsounds-inspector-setting.type-attach .block-editor-plain-text {
+
+  background-color: #eeeeee7a;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 5px;
+  white-space: pre;
+
+  white-space: pre;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+}
+
+.zoomsounds-inspector-setting {
+  & + .zoomsounds-inspector-setting {
+    margin-top: 5px;
+  }
+
+  .sidenote {
+    margin-top: 3px;
+  }
+
+  .components-base-control {
+    margin-bottom: 5px;
+  }
+}

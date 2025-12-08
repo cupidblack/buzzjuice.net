@@ -1,0 +1,75 @@
+.cardTitle {
+	padding: 4rem 2rem;
+	margin: 0;
+	font-size: 2rem;
+	font-weight: 600;
+	line-height: 1.2;
+	text-align: center;
+	color: #333;
+}
+
+.leaderboard {
+	display: flex;
+	flex-direction: column;
+	padding: 2.25rem;
+	background-size: cover;
+	background-position: center;
+}
+
+.leaderboardHeader {
+	display: grid;
+	justify-items: center;
+	margin-bottom: 1.6875rem;
+	gap: 1rem;
+
+	@media screen and (min-width: 64rem) {
+		display: grid;
+		grid-auto-flow: column;
+		align-items: baseline;
+		justify-items: normal;
+		gap: 2rem;
+	}
+}
+
+.leaderboardTitle {
+	margin: 0;
+	color: #fff;
+	font-weight: 600;
+	font-size: 1.625rem;
+	text-shadow: 0 0.07em 0.15em rgba(0, 0, 0, 0.25);
+	text-align: center;
+	line-height: 1.2;
+
+	@media screen and (min-width: 64rem) {
+		text-align: left;
+	}
+}
+
+.results {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 1.375rem 1.25rem;
+
+	@media screen and (min-width: 48rem) {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	@media screen and (min-width: 64rem) {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+.loadingIndicator {
+	min-height: 17.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-grow: 1;
+	color: #fff;
+	font-size: 1.5rem;
+	font-weight: 600;
+	text-shadow: 0 0.07em 0.15em rgba(0, 0, 0, 0.25);
+	text-align: center;
+}

@@ -1,0 +1,349 @@
+/* 
+
+Add here your custom css styles Example: p { text-align: center; color: red; } 
+
+*/
+
+/************ Modified by Blue Crown R&D Custom CSS ************/
+
+/* ================================================================================*/
+/* ===== ****HEADER**** ===== @media (max-width: 840px) {
+    .container, .header-fixed1000, .header-fixed1200 {
+        width: fit-content;
+        min-width: -webkit-fill-available;
+    }
+}
+/* ================================================================================*/
+
+
+/* ================================================================================*/
+/* ===== ****HEADER**** ===== */
+/* ================================================================================*/
+.header-brand img {
+    padding: 10px 0;
+}
+
+.wow_hdr_innr_left .header-brand img {
+    max-height: 60px;
+}
+
+.side_slide_menu {
+    margin-right: 10px;
+}
+
+.navbar.navbar-default.navbar-fixed-top a#wo_home_btns {
+    padding: 0 8px;
+}
+
+.navbar.navbar-default.navbar-fixed-top .head_name_links {
+    margin-left: 5px;
+}
+
+.navbar.navbar-default.navbar-fixed-top li.dropdown {
+    padding-left: 5px;
+}
+
+.navbar.navbar-default.navbar-fixed-top a.dropdown-toggle.sixteen-font-size {
+    padding-left: 5px;
+}
+
+@media (max-width: 985px) {
+    #head_menu_rght .sixteen-font-size {
+        padding: 20px 5px;
+    }
+}
+
+.navbar-default {
+    height: 60px !important;
+}
+
+.navbar.navbar-default.navbar-fixed-top .container-fluid {
+    max-height: 60px;
+}
+
+.navbar.navbar-default.navbar-fixed-top ul#head_menu_rght {
+    max-height: 60px;
+}
+
+
+
+nav.header-fixed1000 .container-fluid ul#head_menu_rght li {
+    align-self: center;
+}
+
+
+
+
+
+/* ================================================================================*/
+/* ===== ****RIGHT SIDEBAR**** ===== */
+/* ================================================================================*/
+
+.chat-container.full {
+    min-height: calc(100% - 45px);
+}
+
+.chat-container {
+    max-height: calc(100% - 45px);
+    padding-top: 60px;
+}
+
+@media (max-width: 1140px) {
+    .chat-container {
+        top: 0;
+    }
+}
+
+
+
+
+/* ================================================================================*/
+/* ===== ****LEFT SIDEBAR**** ===== */
+/* ================================================================================*/
+.left-sidebar.wo_new_left_side {
+    margin-bottom: 45px;
+}
+
+/* ================================================================================*/
+/* ===== ****RIGGHT SIDEBAR**** ===== */
+/* ================================================================================*/
+ul.list-inline.wo_pro_users {
+    display: flex;
+    justify-content: center;
+}
+
+/* ================================================================================*/
+/* ===== ****TIMELINE**** ===== */
+/* ================================================================================*/
+
+
+body:not(.pub-focus) .publisher-box textarea.postText {
+    height: 64px !important;
+}
+
+
+/* ================================================================================*/
+/* ===== ****MESSAGES**** ===== */
+/* ================================================================================*/
+
+
+.message-contnaier.outgoing.pull-right .cont_innr .messages-wrapper.messages-text.message-model.pull-right {
+    margin: 20px;
+}
+
+.message-contnaier.outgoing.pull-right .cont_innr {
+    display: flex;
+    /*justify-content: flex-end;*/
+    min-width: 350px;
+}
+
+.message-chat-info-options-btns .dropdown-menu-right, .dropdown-menu.pull-right {
+    right: auto;
+    left: auto;
+}
+
+.message-chat-info-options-btns .dropdown-menu {
+    min-width: 210px;
+}
+
+#wo_msg_right_prt .text-sender-container .sendMessages .input-group {
+    margin: 10px 10px 60px !important;
+}
+
+#wo_nw_msg_page .messages-users-list {
+    padding: 0px;
+}
+
+.messages-recipients-list {
+    border-radius: 12px;
+    padding: 10px 10px;
+}
+
+.message-chat-info-options-btns {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+}
+
+#wo_msg_right_prt .msg_write_combo {
+
+    flex-direction: column;
+}
+.wo_kb_msg_page {
+    padding: 65px 10px 0px;
+}
+
+
+@media (max-width: 992px) {
+    .text-sender-container .messagejoint {
+        bottom: 45px;
+    }
+}
+
+@media (max-width: 992px) {
+    #wo_msg_right_prt .text-sender-container .sendMessages .input-group {
+        margin: 20px 20px 60px;
+}
+}
+
+
+
+
+
+.bottom-footer-menu li a i.fa {
+    font-size: 24px;
+}
+
+.bottom-footer-menu li a:not(.fa) {
+    font-size: 10px;
+}
+
+
+
+/* ================================================================================*/
+/* ===== ****GO PRO PAGE**** ===== */
+/* ================================================================================*/
+
+h5#restricted_access {
+    margin: 0px;
+    padding: 100px 10px;
+    background: white;
+    border-radius: 20px;
+    font-size: 20px;
+}
+
+h5#restricted_access a {
+    background: transparent linear-gradient(90deg, #F5D143 0%, #E8B826 18%, #E19724 69%, #E39C2D 100%) 0% 0% no-repeat padding-box;
+    padding: 10px;
+    border-radius: 20px;
+    animation: skel_animation 1.7s ease infinite;
+    transition: all .15s ease-in-out;
+    background-size: 200% 200%;
+    border: 1px solid #E39C2D;
+    color: white;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/*
+#contnet > div.wow_content.wow_price_plans > div > div:nth-child(1) {
+    display: none;
+}
+
+#contnet > div.wow_content.wow_price_plans > div > div:nth-child(2) {
+    display: none;
+}
+
+#contnet > div.wow_content.wow_price_plans > div > div:nth-child(3) {
+    display: none;
+}
+
+.wow_price_plan_row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+h3.pick_plan_main {
+    display: none;
+}
+*/
+
+
+/* ================================================================================*/
+/* ===== ****POPUPS**** ===== */
+/* ================================================================================*/
+.btn-buzzjuice {
+    display: flex;
+    padding: 20px 25px;
+}
+
+.btn-buzzjuice svg {
+    max-width: 30px;
+}
+
+.alert {
+    margin-bottom: 5px;
+}
+
+          .btn-main:hover {
+              color: #2c2c2c;
+          }
+          span.woo-payment-please-wait {
+              min-width: -webkit-fill-available;
+              text-align: -webkit-center;
+          }
+          span.woo-payment-please-wait {
+              font-size: 24px;
+          }
+          div#pay_modal_wallet .popup-modal-header {
+              text-align: -webkit-center;
+          }
+          
+          div#bank_transfer_modal {
+              z-index: 1051;
+          }
+          
+          .inserted-wallet-transactions .row .col-md-12.ads_col_12 {
+              display: none;
+          }
+
+.modal-dialog.payment_box .popup-modal-header {
+    justify-items: center;
+}
+/* ================================================================================*/
+/* ===== ****FOOTER**** ===== */
+/* ================================================================================*/
+
+.bottom-footer-menu {
+    height: 45px;
+    background-color: white;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.bottom-footer-menu ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 100%; /* Important for aligning items vertically */
+}
+
+.bottom-footer-menu a {
+    color: #004000; /* Adjust color as needed */
+    text-decoration: none;
+    display: flex;  /* Add this */
+    flex-direction: column; /* Add this */
+    align-items: center;      /* Add this */
+	font-size: 10px;
+	font-family: Segoe UI Historic, Segoe UI, Helvetica, Arial, sans-serif;
+/*	font-weight: 550; */
+}
+
+.bottom-footer-menu .fa {
+   font-size :24px; /* Ensure this class is correctly applied if needed */
+}
+
+
+/* Example Media Query for Mobile */
+/*@media (max-width: 600px) {
+    .bottom-footer-menu .fa {
+        font-size: 18px; /* Smaller icons on mobile */
+/*
+    }
+    .bottom-footer-menu a {
+        font-size: 10px;  /* Smaller text on mobile */
+/*    }
+}
+*/
+
+/*
+.bottom-footer-menu a:hover {
+    color: #007000;
+}
+*/

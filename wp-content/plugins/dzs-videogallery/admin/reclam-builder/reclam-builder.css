@@ -1,0 +1,74 @@
+.dzsvg-reclam-builder {
+  position: relative;
+}
+.dzsvg-reclam-builder .scrubbar-con {
+  position: relative;
+}
+.dzsvg-reclam-builder .scrub-bg {
+  width: 100%;
+  height: 22px;
+  background-color: #444444;
+}
+.dzsvg-reclam-builder .reclam-marker {
+  top: 6px;
+  left: 0;
+  position: absolute;
+  height: 10px;
+  width: 10px;
+}
+.dzsvg-reclam-builder .reclam-marker .icon {
+  position: absolute;
+  height: 10px;
+  width: 10px;
+  background-color: yellow;
+  transform: rotate(45deg);
+}
+.dzsvg-reclam-builder .reclam-marker .delete-ad-btn {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  font-size: 15px;
+  line-height: 1;
+  color: #9b3e3e;
+}
+.dzsvg-reclam-builder .reclam-marker .close-ad-btn {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  font-size: 15px;
+  color: #ffffff;
+  background-color: #444;
+  border-radius: 50%;
+  line-height: 1;
+  width: 20px;
+  height: 20px;
+  transition-property: width, height;
+  transition-timing-function: ease-out;
+  transition-duration: 0.15s;
+  cursor: pointer;
+}
+.dzsvg-reclam-builder .reclam-marker .close-ad-btn:hover {
+  width: 25px;
+  height: 25px;
+}
+.dzsvg-reclam-builder .dzstooltip {
+  pointer-events: auto !important;
+}
+.dzsvg-reclam-builder .dzstooltip .dzstooltip--inner {
+  transition-property: box-shadow;
+  transition-timing-function: ease-out;
+  transition-duration: 0.15s;
+}
+
+.center-it {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.dzstooltip.active .dzstooltip--inner {
+  box-shadow: 0 0 10px purple !important;
+}
+
+/*# sourceMappingURL=reclam-builder.css.map */

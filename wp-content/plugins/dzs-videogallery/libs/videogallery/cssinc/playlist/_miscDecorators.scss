@@ -1,0 +1,12 @@
+
+.has-play-button-inside{
+  &:before {
+    content: '\25BA';
+    @include centerit();
+    font-size: 13px;
+  }
+}
+
+.layout-builder--item{
+  transition: all 0.3s ease-out;
+}

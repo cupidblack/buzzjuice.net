@@ -1,0 +1,17 @@
+{
+  "id": "rest-api-extension",
+  "type": "extension",
+  "name": "Rest API",
+  "description": "Explore and interact with your polls through a RESTful API.",
+  "author": {
+    "name": "TotalSuite",
+    "url": "https://totalsuite.net/"
+  },
+  "permalink": "https://totalsuite.net/product/totalpoll/add-ons/rest-api-extension/",
+  "images": {
+    "icon": "https://totalsuite.net/content/uploads/2019/02/rest-api-extension.png",
+    "cover": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAEsCAMAAAAo4z2kAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAABGlBMVEUAc6p4tdL///9EmMEUfrFLnMPW6PHz+PsghbWSw9v7/f4ihrUkh7b9/v6p0OKs0eM4kr3H4OxWosfh7/UEdatwsM90s9Hv9voMeq4Neq6Lv9geg7T6/P3m8ffS5vCKv9j1+vzg7vXJ4e211uahy+CNwNliqctOnsQ6k70miLcQfK/c7PMri7gqirjx9/pKnMP8/f5zstCdyd4Hd6zD3usWf7Hf7fQtjLl3tNKjzOAId62y1eWkzeFlqsxmq8wniLcoibfn8vfo8vdqrc1rrs4si7m82ulIm8Lr9PgBdKq31+fs9fmu0+SMwNmv0+RvsM8Ddatprc0CdKsxjrpAlr/O5O8fhLS01uaEu9b2+vy/3Oq+2+m72ug3kbzHbpRaAAAAAWJLR0QCZgt8ZAAAAAd0SU1FB+EMHxALJB+XViUAAAP4SURBVHja7dtrV1RlGMfhmZ1GUpLHIAHPiGKIZ/JQVnZAo6LU1Mrv/zVChFm1Gmb2Wj1/WGs/1/WK2Tz3vofN7+VMrwcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABDTb5L6+/3nsV+ERYSwiBAWEcIiQlhECIsIYREhLCKERYSwiBAWEcIiQlhECIsIYREhLCKERYSwaOm9Ng7snN6jsA60elf7/egYpdV//ODO6T0K62Cr4/v96BhFWEQIiwhhESEsIoRFhLCIEBYRwiJCWEQIiwhhESEsIoRFhLCIEBYRwiJCWEQIiwhhESEsIoRFhLCIEBYRwiJCWEQIiwhhESEsIoRFhLCIEBYR0bDeF1a1kmFNfDAhrFolwzrUOySsWgXDmvyw99FhYVUqGNbU5sDHwqpUMKwjmwNHhFWpXFhHtyaOCqtOubCObU0cE1adYmEdP7E1ceK4sKoUC+vk9sgnwqpSKqzpme2RT6eFVaNUWKcGG04Jq0ahsCZnBxtmJ4VVoURYc/Onz/xjxZnT83PCqk2psM6eO3/h4kL/0uLlK0tD1ixdubx4qb9w8cL5c2eFVYNSYV39rOXC5avCqkGpsJprK632rVzb/RbC6pBiYTXXb7RYd+P6iDsIq0PKhdU0N2+NWXbr5sh5YXVIybCa23dG7rpze/S4sDqkaFjN3dURq1bvjpkWVoeUDauZWNx10+LYD8ALq0MKh9Uc/nyXRf3xn1IWVoeUDqtp7t0fsub+vRaTwuqQ8mE1D4asedBmUFgdEgjr4ZA1D4VVmUBYXwxZ86WwKhMI69GQNV8JqzLlw/p66J5vhFWX8mFNDd0zJay6lA/r8dA93wqrLuXD+m5w75Xvfxj8vCqsuhQPa+3J9tnlp5uvni5vv3ryo7CqUjys9XcnlxbefYdi7qftTyr/LKyqFA/rl7fnNh6vDS6s/frb20snhVWV4mE92zz2/MW/Lr14vnntmbCqUjqs6Y3e7+v/ubo+29sY/41oYXVI6bBezrx6PeTy61czL4VVk9Jh/TG/yy/m/xRWTUqH9X8Iq0OERYSwiBAWEcIiQlhECIsIYREhLCKERYSwiBAWEcIiQlhECIsIYREhLCKERYSwiBAWEcIiQlhECIsIYREhLCKERYSwiBAWEcIiQlhECIsIYREhLCKERYSwiBAWEX+18Wbn9B6F9abVu9rvR0c5exQWtREWEcIiQlhECIsIYREhLCKERYSwiBAWEcIiQlhECIsIYREhLCKERYSwiBAWEcICAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGAP/A2cNuIlHCHuiAAAAABJRU5ErkJggg=="
+  },
+  "version": "1.0.0",
+  "requires": "4.0.0"
+}

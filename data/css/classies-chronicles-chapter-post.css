@@ -1,0 +1,155 @@
+.postid-6293 .dating-rules-results-backlink {
+    display: none !important;
+}
+
+.postid-6293 .dating-rules-results-voted {
+    display: none !important;
+}
+
+/* Sticky CTA for mobile */
+@media (min-width: 800px) { 
+    .bj-sticky-cta { display:none; } 
+}
+.bj-sticky-cta { 
+    position:fixed;
+    bottom:45px;
+    left:0;
+    width:100%;
+    background:#00A3A3;
+    color:#fff;
+    text-align:center;
+    padding:12px;
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    z-index:999;
+    box-shadow:0 -2px 6px rgba(0,0,0,0.15);
+    border-radius:8px; 
+}
+.bj-sticky-cta a { color:#fff; text-decoration:none; font-weight:400; }
+
+/* Health & Safety CTA cards */
+.health-safety-cta { 
+    border-radius:10px; 
+    background-color:#eeeeee;
+    padding:20px 0;
+    text-align:center;
+}
+.health-safety-cta h2 { margin:0 0 10px; }
+.health-safety-cta p { margin:0 0 20px; }
+
+/* Poll container */
+div#totalpoll-poll-3223 .totalpoll-question-choices {
+    max-height: calc((84.2px + 20px)*10);
+    overflow: clip;
+}
+
+/* classies-chronicles-card padding */
+.wp-block-column.classies-chronicles-card-grid.is-layout-flow.wp-block-column-is-layout-flow {
+    border: #ccc solid 1px;
+    border-radius: 10px;
+}
+
+.wp-block-columns.is-layout-flex.wp-container-core-columns-is-layout-9d6595d7.wp-block-columns-is-layout-flex {
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.classies-chronicles-card-grid p { 
+    margin-bottom: 0px !important; 
+}
+.classies-chronicles-card-grid h2 {
+    margin-bottom:10px; 
+}
+
+/* Micro-testimonials alignment */
+section#micro-testimonials { 
+    text-align:left; 
+    margin-top:18px; 
+    border-radius:8px; 
+    padding:12px; 
+    border:1px dashed #e6e6e6;
+}
+section#micro-testimonials h3 { margin-top:0; }
+section#micro-testimonials p { margin:6px 0; }
+
+/* Public video container */
+.buzzjuice-post-wrap {
+    max-width:1100px;
+    margin:0 auto;
+    padding:0px!important;
+    box-sizing:border-box;
+    font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    color:#222;
+    line-height:1.5;
+}
+#bj-video-wrap {
+    position:relative;
+    width:100%;
+    padding-bottom:56.25%;
+    height:0;
+    border-radius:10px;
+    overflow:hidden;
+    background:#000;
+    margin-top:14px;
+}
+#bj-play-btn {
+    position:absolute;
+    inset:0;
+    border:0;
+    background:url('https://buzzjuice.net/wp-content/uploads/2025/11/TheClasscies3.jpg') center/cover no-repeat;
+    cursor:pointer;
+}
+#bj-play-btn span {
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    background:rgba(0,0,0,0.6);
+    color:#fff;
+    padding:10px 14px;
+    border-radius:32px;
+    font-weight:600;
+}
+#bj-video-overlay-cta {
+    display:none;
+    position:absolute;
+    right:14px;
+    bottom:14px;
+    background:#00A3A3;
+    color:#fff;
+    padding:8px 12px;
+    border-radius:8px;
+    z-index:20;
+    cursor:pointer;
+    font-weight:600;
+}
+
+/* Collapsible details */
+.buzzjuice-post-wrap details {
+    margin-bottom:14px;
+}
+.buzzjuice-post-wrap details summary {
+    cursor:pointer;
+    font-weight:600;
+}
+.buzzjuice-post-wrap details ul {
+    margin-top:8px;
+    margin-left:20px;
+}
+
+/* Buttons */
+.wp-block-button__link {
+    border-radius:10px;
+    text-align:left;
+    display:inline-block;
+    padding:10px 16px;
+    font-weight:600;
+    text-decoration:none;
+}
+.wp-block-button__link.has-background { color:#fff; }
+.wp-block-button__link[href*="health-safety"] { background-color:#005eb8; }
+.wp-block-button__link[href*="contribute"] { background-color:#00a3a3; }
+
+/* Footer spacing for sticky CTA pages */
+.has-sticky-cta .footer-bottom { margin-bottom:80px; }

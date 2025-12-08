@@ -1,0 +1,135 @@
+
+
+/* --- skin-overlay BEGIN */
+.zfolio.skin-overlay{
+  $offset_for_border: 10px;
+  .zfolio-item{
+
+
+    .the-feature-con:after{
+
+      content: "";
+
+      width: 100%;
+      height: 70px;
+
+      position: absolute;
+      bottom:0;
+      left:0;
+
+      /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0+0,1+100;BG1 */
+      background: -webkit-linear-gradient(top,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.8) 100%); /* Chrome10-25,Safari5.1-6 */
+      background: linear-gradient(to bottom,  rgba(0,0,0,0) 0%,rgba(0,0,0,.8) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+
+    }
+
+
+
+
+
+    .the-overlay{
+      background-color: rgba(0,0,0,0);
+
+
+      $transition-property: background;
+      $transition-duration: .3s;
+      $transition-timing: ease-out;
+
+
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+    }
+    .item-meta{
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      left:0%; top:50%; bottom: auto;
+
+      text-align: center;
+      transform: translate3d(0%,-75%,0);
+
+      padding-left: 15px;
+      padding-right: 15px;
+
+
+      color: #FFFFFF;
+
+
+
+      opacity: 0;
+      visibility: hidden;
+
+      $transition-property: all;
+      $transition-duration: .3s;
+      $transition-timing: ease-out;
+
+
+
+
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+
+      .the-title{
+        font-size: 21px;
+        line-height: 1.4;
+
+
+        font-weight: bold;
+
+        margin-bottom: 15px;
+
+      }
+
+      .the-title:after{
+
+      }
+
+    }
+  }
+  .zfolio-item:hover{
+
+
+    .item-meta{
+
+      opacity:1;
+
+
+
+      visibility: visible;
+    }
+
+    .zfolio-item--inner{
+
+    }
+
+
+
+
+    .the-overlay{
+
+      background-color: rgba(0,0,0,0.7);
+    }
+    .item-meta{
+
+      transform: translate3d(0%,-50%,0);
+      color: #FFFFFF;
+      text-shadow: 0 0 0px rgba(255,255,255,0.5);
+      opacity:1;
+
+    }
+
+    .the-title:after{
+
+    }
+  }
+
+  .zfolio-item.under-300{
+    .the-title{
+
+    }
+  }
+
+
+
+}
+
+/* --- skin-overlay END */

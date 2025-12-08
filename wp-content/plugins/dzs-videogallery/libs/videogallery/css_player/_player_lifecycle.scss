@@ -1,0 +1,25 @@
+
+.vplayer {
+  opacity: 0;
+}
+
+.vplayer .infoText {
+  position: absolute;
+  opacity: 0;
+}
+
+.vplayer.safe, .vplayer.dzsvp-loaded {
+  opacity: 1;
+  visibility: visible;
+}
+
+.vplayer.dzsvp-really-loaded {
+  .dzsvg-preloader {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.vplayer.currItem {
+  opacity: 1;
+}

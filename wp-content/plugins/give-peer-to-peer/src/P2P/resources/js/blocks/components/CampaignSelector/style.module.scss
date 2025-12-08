@@ -1,0 +1,43 @@
+.campaignSelectorLabel {
+    display: grid;
+    justify-items: center;
+    row-gap: 1rem;
+    padding: 2rem 4rem;
+    background: #f6f6f6;
+    color: #4f4f4f;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px 0 rgb(0 0 0 / 10%);
+
+
+    > span {
+        text-align: left;
+        width: 500px;
+        font-weight: 400;
+        transform: translateY(.9rem);
+    }
+
+    input[type="text"] {
+        border: 0 !important;
+        margin: 0;
+        padding: 0;
+        box-shadow: none !important;
+    }
+}
+
+
+.campaignSelector {
+    border: 1px solid lightgrey;
+    border-radius: 5px;
+
+    * {
+        cursor: pointer !important
+    }
+}
+
+.btnContainer {
+    width: 500px;
+
+    button {
+        width: 100%;
+    }
+}

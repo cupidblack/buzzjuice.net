@@ -1,0 +1,27 @@
+@use '../../css/functions' as *;
+
+.rankingbadge {
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    height: fit-content;
+    padding: 2px 10px;
+    border-radius: 67.1773px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    color: #424242;
+    font-size: safe-rem(0.6875);
+    font-weight: 500;
+    line-height: 1;
+
+    svg {
+        margin-right: 5px;
+        height: 19px;
+    }
+}
+
+
+@media only screen and (max-width: 33rem) {
+    .rankingbadge {
+        box-shadow: none;
+    }
+}

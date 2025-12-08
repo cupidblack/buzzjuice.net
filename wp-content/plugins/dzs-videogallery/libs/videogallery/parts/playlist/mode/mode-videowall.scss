@@ -1,0 +1,56 @@
+@import "../../../TOKENS";
+
+$transition-property: opacity, height;
+$transition-duration: 0.3s;
+$transition-timing: ease-out;
+
+
+$layoutPadding: 10px;
+
+.videogallery.mode-videowall {
+
+
+  $transition-property: opacity, height;
+  $transition-duration: 0.3s;
+  $transition-timing: ease-out;
+  @include apply_transition($transition-property, $transition-duration, $transition-timing);
+
+
+  background-color: transparent;
+  padding-bottom: 0;
+
+
+  .main-navigation:not(.a) {
+    display: none;
+  }
+
+  .sliderMain {
+    overflow: visible;
+    height: auto;
+  }
+
+
+  .navigation-and-main-area {
+    padding-bottom: 0;
+    display: block;
+    height: auto;
+  }
+
+
+  .media--main-area{
+    >.sliderCon:not(.a){
+
+      position: relative;
+      width: auto;
+      height: auto;
+      @include apply_transition($transition-property, $transition-duration, $transition-timing);
+    }
+  }
+
+  .sliderCon:not(.a) {
+  }
+
+  .embed-button {
+    display: none;
+  }
+}

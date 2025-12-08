@@ -1,0 +1,24 @@
+
+.opener-listbuttons-2-cols:not(.a):not(.a) {
+  .opener-listbuttons-wrap {
+    font-size: 0;
+    margin-left: -3px;
+
+    .bigoption {
+      display: inline-block;
+      width: 50%;
+      vertical-align: top;
+      margin: 0;
+
+      padding: 3px;
+
+      img {
+        width: 100%;
+      }
+    }
+  }
+}
+
+.dzssa--sample-shortcode-area--readonly{
+  width: 100%;
+}

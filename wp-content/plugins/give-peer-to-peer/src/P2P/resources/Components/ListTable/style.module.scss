@@ -1,0 +1,117 @@
+.listtablerow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 17px;
+    padding-bottom: 17px;
+    margin: 0;
+
+    font-size: 16px;
+    font-weight: 500;
+    color: #555;
+
+    &:not(:last-child) {
+        border-bottom: 1px solid #c4c4c4;
+    }
+}
+
+.donorName,
+.donationType,
+.donationAmount,
+.teamOrFundraiserName {
+    font-weight: 700;
+}
+
+.donationAmount,
+.teamOrFundraiserName {
+    color: var(--give-campaign-primary, #28c77b);
+}
+
+.donorName {
+    color: #333;
+}
+
+.donationAmount {
+    font-size: 22px;
+}
+
+.teamOrFundraiserName {
+    text-decoration: none;
+}
+
+@media only screen and (max-width: 768px) {
+    .emptylisttable {
+        h3 {
+            font-size: 20px;
+        }
+    }
+
+    .listtablerow {
+        font-size: 14px;
+        padding: 15px 0;
+        font-weight: normal;
+        line-height: 1.4;
+    }
+
+    .donorName,
+    .donationType,
+    .donationAmount,
+    .teamOrFundraiserName {
+        font-weight: 600;
+    }
+
+    .donorName {
+        margin-right: 0;
+    }
+
+    .donationAmount {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
+
+/** Empty state */
+
+.empty {
+    padding: 150px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.emptyTitle {
+    color: #333;
+    font-size: 1.375rem;
+    font-weight: 600;
+    margin-bottom: 0;
+    max-width: 20ch;
+}
+
+.emptyContent {
+    margin-top: 0.25rem;
+
+    > :first-child {
+        margin-top: 0;
+    }
+
+    > :last-child {
+        margin-bottom: 0;
+    }
+
+    p {
+        color: #555;
+        font-size: 0.9375rem;
+        font-weight: 500;
+    }
+
+    a:not([class]) {
+        color: var(--give-campaign-primary, #28c77b);
+        font-weight: 700;
+        text-decoration: none;
+    }
+}
+
+.emptyButton {
+    margin-top: 1.5rem;
+}

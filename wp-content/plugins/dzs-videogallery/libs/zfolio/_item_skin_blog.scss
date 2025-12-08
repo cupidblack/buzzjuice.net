@@ -1,0 +1,137 @@
+.zfolio.skin-blog{
+  .zfolio-item{
+
+    .zfolio-item--inner--inner--inner{
+      overflow: hidden;
+
+      position: relative;
+    }
+
+    .the-desc{
+      line-height: 1.7;
+      font-size: 13px;
+    }
+    .item-meta{
+
+      .blog-meta-con-con{
+
+        position: relative;
+        top:0;
+
+        transform: translate(0,0);
+
+        $transition-property: padding,top,transform;
+        $transition-duration: .3s;
+        $transition-timing: ease-out;
+
+
+
+
+        @include apply_transition($transition-property,$transition-duration,$transition-timing);
+      }
+      position: absolute;
+
+      width: 100%;
+      text-align: left;
+
+
+      padding: 15px;
+      top : 72%;
+
+
+      height: 100%;
+
+      background-color: rgba(43, 28, 41, 0.3);
+
+
+      color: #FFFFFF;
+
+      $transition-property: all;
+      $transition-duration: .3s;
+      $transition-timing: ease-out;
+
+
+
+
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+
+      .the-title{
+        font-size:14px;
+        line-height: 1.4;
+
+        text-transform: uppercase;
+
+        font-weight: bold;
+
+        margin-bottom: 7px;
+
+
+      }
+
+
+    }
+
+    .one-meta-con{
+      display: inline-block;
+      vertical-align: middle;
+
+      font-size: 11px;
+
+      margin-right: 10px;
+      .fa{
+        margin-right: 5px;
+        display: inline-block;
+        vertical-align: middle;
+
+      }
+      a{
+        color: #ffffff;
+      }
+    }
+
+    .the-desc{
+      margin-top: 30px;
+      white-space: normal;
+    }
+
+    &:hover{
+
+      .blog-meta-con-con {
+
+        top: 50%;
+
+        transform: translate(0,-50%);
+      }
+
+
+      .item-meta{
+        opacity: 1;
+
+        visibility: visible;
+
+        top:0%;
+        background-color: rgba(43, 28, 41, 0.7);
+      }
+
+
+      .the-title:after{
+
+      }
+    }
+  }
+
+
+
+  .zfolio-item--inner{
+    width: 100%; height: 100%;
+    display: block;
+
+    >.the-feature-con{
+      height: 100%!important;;
+    }
+
+  }
+
+
+
+}

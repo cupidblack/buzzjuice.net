@@ -1,0 +1,649 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: dzsvg\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-03-01 00:22+0200\n"
+"PO-Revision-Date: 2013-03-01 00:22+0200\n"
+"Last-Translator: Michael Uno <michael@michaeluno.jp>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: __;_e;gettext_noop\n"
+"X-Poedit-Basepath: .\n"
+"X-Generator: Poedit 1.5.5\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+#: ../vg.php:108
+msgid "Select Feed Mode"
+msgstr ""
+
+#: ../vg.php:111 ../vg.php:119
+#, fuzzy
+msgid "Normal"
+msgstr "型"
+
+#: ../vg.php:112 ../vg.php:129
+#, fuzzy
+msgid "Youtube User Channel"
+msgstr "ユーチューブユーザー"
+
+#: ../vg.php:113 ../vg.php:139 ../vg.php:519
+msgid "YouTube Playlist"
+msgstr "ユーチューブプレイリスト"
+
+#: ../vg.php:114 ../vg.php:149
+#, fuzzy
+msgid "Vimeo User Channel"
+msgstr "VimeoユーザーID"
+
+#: ../vg.php:122
+msgid "Feed from custom items you set below."
+msgstr ""
+
+#: ../vg.php:132
+msgid " Feed videos from your YouTube User channel."
+msgstr ""
+
+#: ../vg.php:142
+msgid ""
+"Feed videos from the YouTube Playlist you create on their site. Just input "
+"the Playlist ID below."
+msgstr ""
+
+#: ../vg.php:152
+msgid "Feed videos from your Vimeo User channel."
+msgstr ""
+
+#: ../vg.php:159 ../vg.php:2034
+msgid "General Options"
+msgstr "一般設定"
+
+#: ../vg.php:161 ../vg.php:2148
+msgid "ID"
+msgstr "ID"
+
+#: ../vg.php:163
+msgid "Choose an unique id."
+msgstr ""
+
+#: ../vg.php:166
+msgid "Width"
+msgstr "幅"
+
+#: ../vg.php:168
+msgid "Width in pixels."
+msgstr ""
+
+#: ../vg.php:171
+msgid "Height"
+msgstr "高さ"
+
+#: ../vg.php:175
+msgid "Display Mode"
+msgstr "ディスプレイモード"
+
+#: ../vg.php:186
+msgid "Video Gallery Skin"
+msgstr "ビデオギャラリースキン"
+
+#: ../vg.php:194
+#, fuzzy
+msgid "Video Player Skin"
+msgstr "ビデオギャラリースキン"
+
+#: ../vg.php:203
+#, fuzzy
+msgid "Flash Gallery Skin"
+msgstr "ビデオギャラリースキン"
+
+#: ../vg.php:211
+msgid "Navigation Style"
+msgstr ""
+
+#: ../vg.php:216
+msgid "Choose a navigation style for the normal display mode."
+msgstr ""
+
+#: ../vg.php:219
+msgid "Menu Position"
+msgstr "メニューポジション"
+
+#: ../vg.php:229
+msgid "Autoplay"
+msgstr "オートプレイ"
+
+#: ../vg.php:231 ../vg.php:238 ../vg.php:245 ../vg.php:267 ../vg.php:274
+#: ../vg.php:281 ../vg.php:303 ../vg.php:319 ../vg.php:338 ../vg.php:374
+#: ../vg.php:397 ../vg.php:456 ../vg.php:464 ../vg.php:472 ../vg.php:480
+#: ../vg.php:488 ../vg.php:496 ../vg.php:504 ../vg.php:895
+msgid "on"
+msgstr ""
+
+#: ../vg.php:232 ../vg.php:239 ../vg.php:246 ../vg.php:266 ../vg.php:273
+#: ../vg.php:280 ../vg.php:302 ../vg.php:318 ../vg.php:337 ../vg.php:375
+#: ../vg.php:396 ../vg.php:455 ../vg.php:463 ../vg.php:471 ../vg.php:479
+#: ../vg.php:487 ../vg.php:503 ../vg.php:895
+msgid "off"
+msgstr ""
+
+#: ../vg.php:236
+msgid "Autoplay Next"
+msgstr "オートプレイ 次"
+
+#: ../vg.php:243
+msgid "Cue First Video"
+msgstr "最初のビデオキュー"
+
+#: ../vg.php:248
+msgid ""
+"Choose if the video should load at start or it should activate on click ( if "
+"a <strong>Cover Image</strong> is set )."
+msgstr ""
+
+#: ../vg.php:252
+msgid "Cover Image"
+msgstr "カバー画像"
+
+#: ../vg.php:257
+msgid "Default Gallery"
+msgstr "デフォルトギャラリー"
+
+#: ../vg.php:264
+msgid "Disable Non-Default"
+msgstr ""
+
+#: ../vg.php:271
+msgid "Randomize / Shuffle Elements"
+msgstr ""
+
+#: ../vg.php:278
+msgid "Enable Switch Button"
+msgstr "スイッチボタンを有効にする"
+
+#: ../vg.php:285
+msgid "HTML5 Gallery Inits on"
+msgstr "HTML5 ギャラリー Inits on"
+
+#: ../vg.php:288
+msgid ""
+"Select window.load if you want the slider to init when all the images are "
+"loaded, or the other when the document is ready"
+msgstr ""
+
+#: ../vg.php:296
+msgid "Background"
+msgstr "背景"
+
+#: ../vg.php:300
+msgid "Enable Shadow"
+msgstr "影を有効にする"
+
+#: ../vg.php:307
+msgid "Logo"
+msgstr "ロゴ"
+
+#: ../vg.php:311
+msgid "Logo Link"
+msgstr "ロゴリンク"
+
+#: ../vg.php:316
+msgid "Share Button"
+msgstr "共有ボタン"
+
+#: ../vg.php:323
+msgid "Facebook Link"
+msgstr "フェイスブックリンク"
+
+#: ../vg.php:327
+msgid "Twitter Link"
+msgstr "ツイッターリンク"
+
+#: ../vg.php:331
+msgid "Google Plus Link"
+msgstr "グーグルプラスリンク"
+
+#: ../vg.php:335
+msgid "Embed Button"
+msgstr "埋め込みボタン"
+
+#: ../vg.php:344
+#, fuzzy
+msgid "YouTube Options"
+msgstr "ユーチューブユーザー"
+
+#: ../vg.php:347
+msgid "SD Quality"
+msgstr "SDクオリティ"
+
+#: ../vg.php:355
+msgid "HD Quality"
+msgstr "HDクオリティ"
+
+#: ../vg.php:365
+msgid "Default Quality"
+msgstr "デフォルトクオリティ"
+
+#: ../vg.php:367
+msgid "HD"
+msgstr ""
+
+#: ../vg.php:368
+msgid "SD"
+msgstr ""
+
+#: ../vg.php:372
+msgid "Enable Custom Skin"
+msgstr ""
+
+#: ../vg.php:377
+msgid ""
+"Choose if the custom skin you set in the Video Player Skin is how YouTube "
+"videos should show ( on )\r\n"
+"                 or if the default YouTube skin should show ( off )"
+msgstr ""
+
+#: ../vg.php:384
+msgid "HTML5 Gallery Options"
+msgstr "HTML5ギャラリー設定"
+
+#: ../vg.php:387
+msgid "Transition"
+msgstr "トランジション"
+
+#: ../vg.php:394
+msgid "Responsive"
+msgstr "レスポンス"
+
+#: ../vg.php:404
+#, fuzzy
+msgid "Design Options"
+msgstr "詳細"
+
+#: ../vg.php:406
+msgid "Only for the html5 gallery"
+msgstr ""
+
+#: ../vg.php:408
+msgid "Design Menu Item Width"
+msgstr "デザインメニュー項目幅"
+
+#: ../vg.php:412
+msgid "Design Menu Item Height"
+msgstr "デザインメニュー項目高さ"
+
+#: ../vg.php:416
+#, fuzzy
+msgid "Design Menu Item Space"
+msgstr "デザインメニュー項目高さ"
+
+#: ../vg.php:420
+msgid "Normal Controls Opacity"
+msgstr ""
+
+#: ../vg.php:422
+msgid "Choose an opacity from 0 to 1"
+msgstr ""
+
+#: ../vg.php:425
+msgid "Roll Out Controls Opacity"
+msgstr ""
+
+#: ../vg.php:427
+msgid ""
+"Choose an opacity from 0 to 1 for when the mouse is not on the video player"
+msgstr ""
+
+#: ../vg.php:433
+#, fuzzy
+msgid "Flash Gallery Options"
+msgstr "HTML5ギャラリー設定"
+
+#: ../vg.php:436
+msgid "Default Volume"
+msgstr "デフォルトボリューム"
+
+#: ../vg.php:440 ../vg.php:655
+msgid "Thumbnail"
+msgstr "サムネイル"
+
+#: ../vg.php:444
+msgid "Window Mode"
+msgstr "ウィンドウモード"
+
+#: ../vg.php:452
+msgid "Disable Description"
+msgstr "詳細を無効にする"
+
+#: ../vg.php:453
+msgid "Only for the flash version"
+msgstr ""
+
+#: ../vg.php:460
+msgid "Enable Deeplinking"
+msgstr "ディープリンキングを有効にする"
+
+#: ../vg.php:461 ../vg.php:469 ../vg.php:477 ../vg.php:485 ../vg.php:493
+#: ../vg.php:501
+msgid "Only for the flash version."
+msgstr ""
+
+#: ../vg.php:468
+msgid "HD Button"
+msgstr "HDボタン"
+
+#: ../vg.php:476
+msgid "Disable Big Play Button"
+msgstr "ビッグプレイボタンを無効にする"
+
+#: ../vg.php:484
+msgid "Leave Only Big Play Button"
+msgstr "ビッグプレイボタンのみを残す"
+
+#: ../vg.php:492
+msgid "Let Flash Handle Feeds"
+msgstr "フラッシュにフィードを処理させる"
+
+#: ../vg.php:493
+msgid "Deprecated."
+msgstr ""
+
+#: ../vg.php:500
+msgid "Scrollbar"
+msgstr "スクロールバー"
+
+#: ../vg.php:515
+msgid "YouTube User"
+msgstr "ユーチューブユーザー"
+
+#: ../vg.php:522
+msgid ""
+"You need to set the playlist ID there not the playlist Name. For example for "
+"this playlist http://www.youtube.com/my_playlists?p=PL08BACDB761A0C52A the "
+"id is 08BACDB761A0C52A. Remember that if you have the characters PL at the "
+"beggining of the ID they should not be included here.</div>"
+msgstr ""
+
+#: ../vg.php:528
+msgid "YouTube Max Videos"
+msgstr "ユーチューブマックスビデオ"
+
+#: ../vg.php:532
+msgid "Vimeo User ID"
+msgstr "VimeoユーザーID"
+
+#: ../vg.php:550
+msgid "Type"
+msgstr "種類"
+
+#: ../vg.php:565
+#, fuzzy
+msgid "YouTube"
+msgstr "ユーチューブユーザー"
+
+#: ../vg.php:568
+msgid ""
+"Input in the <strong>Source</strong> field below the youtube video ID. You "
+"can find the id contained in the link to \r\n"
+"                    the video - http://www.youtube.com/watch?"
+"v=<strong>ZdETx2j6bdQ</strong> ( for example )"
+msgstr ""
+
+#: ../vg.php:575
+msgid "Self-hosted Video"
+msgstr ""
+
+#: ../vg.php:578
+msgid ""
+"Stream videos your own hosted videos. You just have to include two formats "
+"of the video you are streaming. In the <strong>Source</strong>\r\n"
+"                    field you need to include the path to your mp4 formatted "
+"video. And in the OGG field there should be the ogg / ogv path, this is not "
+"mandatory, \r\n"
+"                    but recommended."
+msgstr ""
+
+#: ../vg.php:586
+#, fuzzy
+msgid "Vimeo Video"
+msgstr "Vimeo設定"
+
+#: ../vg.php:589
+msgid ""
+"Insert in the <strong>Source</strong> field the ID of the Vimeo video you "
+"want to stream. You can identify the ID easy from the link of the video,\r\n"
+"                     for example, here see the bolded part"
+msgstr ""
+
+#: ../vg.php:596
+msgid "Self-hosted Audio File"
+msgstr ""
+
+#: ../vg.php:599
+msgid ""
+"You need a MP3 format of your audio file and an OGG format. You put their "
+"paths in the Source and Html5 Ogg Format fields"
+msgstr ""
+
+#: ../vg.php:605
+msgid "Self-hosted Image File"
+msgstr ""
+
+#: ../vg.php:608
+msgid "Just put in the <strong>Source</strong> field the path to your image."
+msgstr ""
+
+#: ../vg.php:614
+msgid "A link"
+msgstr ""
+
+#: ../vg.php:617
+msgid "Link where the visitor should go when clicking the menu item."
+msgstr ""
+
+#: ../vg.php:623
+msgid "Inline Content"
+msgstr ""
+
+#: ../vg.php:626
+msgid ""
+"Insert in the <strong>Source</strong> field custom content ( ie. embed from "
+"a custom site )."
+msgstr ""
+
+#: ../vg.php:633
+msgid "Source"
+msgstr "ソース"
+
+#: ../vg.php:636
+msgid ""
+"Below you will enter your video address. If it is a video from YouTube or "
+"Vimeo you just need to enter \r\n"
+"                the id of the video in the \"Video:\" field. The ID is the "
+"bolded part http://www.youtube.com/watch?v=<strong>j_w4Bi0sq_w</strong>. \r\n"
+"                If it is a local video you just need to write its location "
+"there or upload it through the Upload button ( .mp4 / .flv format )."
+msgstr ""
+
+#: ../vg.php:646
+msgid "Format"
+msgstr "型"
+
+#: ../vg.php:647
+msgid "Optional ogg / ogv file"
+msgstr "任意の ogg / ogv ファイル"
+
+#: ../vg.php:647
+msgid "Only for the Video or Audio type"
+msgstr ""
+
+#: ../vg.php:652
+msgid "Appearance Settings"
+msgstr ""
+
+#: ../vg.php:659
+msgid "Title"
+msgstr "タイトル"
+
+#: ../vg.php:663
+msgid "Description"
+msgstr "詳細"
+
+#: ../vg.php:667
+msgid "Menu Description"
+msgstr "メニュー詳細"
+
+#: ../vg.php:673
+msgid "Preview Image"
+msgstr "プレビュー画像"
+
+#: ../vg.php:675
+msgid "will be used as the background image for audio type too"
+msgstr "オーディオタイプにも背景画像が使われます"
+
+#: ../vg.php:678
+msgid "Tags"
+msgstr ""
+
+#: ../vg.php:680
+msgid "use the tag editor to generate tags at given times of the video"
+msgstr ""
+
+#: ../vg.php:686
+msgid "Advertising Settings"
+msgstr ""
+
+#: ../vg.php:689
+msgid "Ad  Source"
+msgstr "広告　　ソース"
+
+#: ../vg.php:690
+#, fuzzy
+msgid ""
+"if you host the video yourself, input here the mp4 / m4v source and have a "
+"file named the same but with .ogv extension\r\n"
+"            format in the same folder"
+msgstr ""
+"もし、ビデオをご自身でホストする場合、mp4 / m4v ソースをここに入力し、.orv 拡"
+"張子で同じファイル名\r\n"
+"            のファイルを同フォルダに配置してください。"
+
+#: ../vg.php:695
+msgid "Ad  Type"
+msgstr "広告  種類"
+
+#: ../vg.php:703
+msgid "Ad  Link"
+msgstr "広告  リンク"
+
+#: ../vg.php:811
+msgid "categories"
+msgstr ""
+
+#: ../vg.php:898
+msgid "Feed From"
+msgstr "フィード From"
+
+#: ../vg.php:1414
+msgid "Share on Facebook"
+msgstr "フェイスブックで共有"
+
+#: ../vg.php:1422
+msgid "Share on Twitter"
+msgstr "ツイッターで共有"
+
+#: ../vg.php:1430
+msgid "Share on Google Plus"
+msgstr "グーグルプラスで共有"
+
+#: ../vg.php:1729
+msgid "Switch to"
+msgstr "切り替え: "
+
+#: ../vg.php:1946 ../vg.php:1948
+msgid "DZS Video Gallery"
+msgstr "DZSビデオギャラリー"
+
+#: ../vg.php:2035
+msgid "Use WordPress Uploader ?"
+msgstr ""
+
+#: ../vg.php:2056
+msgid "Embed PrettyPhoto ?"
+msgstr ""
+
+#: ../vg.php:2079
+msgid "Use External wp-content Upload Directory ?"
+msgstr ""
+
+#: ../vg.php:2112
+msgid "Video Gallery Admin"
+msgstr "ビデオギャラリー管理"
+
+#: ../vg.php:2113
+msgid "You need javascript for this."
+msgstr "これにはjavascriptが必要です"
+
+#: ../vg.php:2115
+msgid "Documentation"
+msgstr "マニュアル"
+
+#: ../vg.php:2116
+msgid "Go to Designer Center"
+msgstr "デザイナーセンターへ行く"
+
+#: ../vg.php:2159
+msgid "Add Slider"
+msgstr "スライダーを追加する"
+
+#: ../vg.php:2164
+msgid "Import"
+msgstr "インポート"
+
+#: ../vg.php:2167
+msgid ""
+"Import here feed from a YT Playlist, YT User Channel or Vimeo User Channel - "
+"you just have to enter the \r\n"
+"                        id of the playlist / user id in the box below and "
+"select the correct type from below"
+msgstr ""
+"ユーチューブプレイリスト、ユーチューブユーザーチャンネルまたはVimeoユーザー"
+"チャンネルのフィードをここにインポートして下さい - プレイリストかユーザーID"
+"を \r\n"
+"                         下のボックスに入力し下から正しい種類を選択してくださ"
+"い"
+
+#: ../vg.php:2195
+msgid ""
+"If neither of these are enabled, only normal feed will work. \r\n"
+"                    Contact your host provider on how to enable these "
+"services to use the YouTube User Channel \r\n"
+"                    or YouTube Playlist feed."
+msgstr ""
+"もし、これらのいずれも有効でない場合、通常のフィードのみが作動します。 \r\n"
+"                    これらのユーチューブユーザーチャンネルのサービスを有効に"
+"するには、ホストプロバイダーに \r\n"
+"                    お問い合せ下さい。"
+
+#: ../vg.php:2200
+msgid "Loading..."
+msgstr "読込中..."
+
+#: ../vg.php:2201
+msgid "Save Changes"
+msgstr "変更を保存する"
+
+#~ msgid "Disable Flash Gallery"
+#~ msgstr "フラッシュギャラリーを無効にする"
+
+#~ msgid "drag & drop files here"
+#~ msgstr "ファイルをここにドラッグ＆ドロップします"
+
+#~ msgid "The Preupload List"
+#~ msgstr "事前のアップロードリスト"
+
+#~ msgid "add files here from the button or drag them above"
+#~ msgstr "ファイルを上にドラッグするか、ファイルをボタンから追加して下さい"
+
+#~ msgid "Confirm Upload"
+#~ msgstr "アップロードを確認する"

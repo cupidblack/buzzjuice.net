@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAaE,gEAA2B;EACzB,gBAAgB,EAAE,OAAO",
+"sources": ["admin-for-cornerstone.scss"],
+"names": [],
+"file": "admin-for-cornerstone.css"
+}

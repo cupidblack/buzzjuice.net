@@ -1,0 +1,44 @@
+.layout-builder--layers{
+  list-style: none;
+  .layout-builder--builder-item, .dd-placeholder{
+    //todo: temp
+    height: auto;
+    //height: 30px;
+
+
+    margin-bottom: 6px;
+
+
+    .fa-bars{
+
+      font-size: 15px;
+    }
+  }
+
+  .layout-builder--builder-item{
+    cursor: pointer;
+    position: relative;
+
+    .builder-layer--head{
+
+      display: flex;
+      align-items: center;
+    }
+    .builder-layer--content{
+      display: block;
+    }
+
+    .sortable-handle-con{
+      position: absolute;
+      top:50%;
+      right: 5px;
+      transform: translate3d(0,-50%,0);
+    }
+  }
+  .dd-placeholder{
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px dashed rgba(239, 239, 239, 0.3);
+  }
+
+
+}

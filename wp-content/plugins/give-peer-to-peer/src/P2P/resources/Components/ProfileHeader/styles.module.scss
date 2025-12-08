@@ -1,0 +1,207 @@
+@use 'src/P2P/resources/css/functions' as *;
+
+.container {
+    max-width: 1115px;
+    margin: auto;
+    background-color: #fff;
+    box-shadow: 0 1.22202px 3.05505px rgba(0, 0, 0, 0.305862);
+    border-radius: 8px;
+}
+
+.profileInfo {
+    padding: 40px;
+    text-align: center;
+    margin: 0 0 20px;
+}
+
+.avatar {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.header {
+    max-width: 600px;
+    margin: 15px auto;
+    padding: 0;
+}
+
+.pillWrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin: 0 0 35px;
+}
+
+.fundraiserpill {
+    color: #555;
+    font-size: safe-rem(1);
+    font-weight: 500;
+    line-height: 18px;
+    margin: 0;
+    padding: 5px 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+
+    svg {
+        fill: #1e8cbe;
+        padding: 0;
+        margin-right: 10px;
+    }
+}
+
+.campaignlink {
+    color: var(--give-campaign-primary, #28c77b);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.buttongroup {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    max-width: 600px;
+    margin: auto;
+}
+
+.story {
+    padding: 0 20px 20px;
+}
+
+.storyContainer {
+    text-align: left;
+    padding: 20px 25px;
+    color: #555;
+    font-size: 16px;
+    background-color: #f1f1f1;
+    border-radius: 5px;
+    max-width: 1000px;
+    margin: 0 auto 20px;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        margin: 0 0 15px;
+        line-height: 1.3;
+    }
+
+    h1 {
+        font-size: safe-rem(1.375);
+    }
+
+    h2,
+    h3 {
+        font-size: safe-rem(1.125);
+    }
+
+    h4,
+    h5,
+    h6 {
+        font-size: 16px;
+    }
+
+    p {
+        margin: 0 0 15px;
+    }
+
+    ul li,
+    ol li {
+        margin: 0 0 10px;
+    }
+
+    img {
+        height: auto;
+        max-width: 100%;
+    }
+
+	iframe {
+		width: 100% !important;
+		height: auto !important;
+		min-height: 500px !important;
+	}
+}
+
+.storyButton {
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    font-family: var(--p2p-font);
+    font-size: safe-rem(1.125);
+    font-weight: 600;
+    color: var(--give-campaign-primary, #28c77b);
+
+    svg {
+        fill: var(--give-campaign-primary, #28c77b);
+        transform: rotate(90deg);
+    }
+}
+
+.subtitle {
+    font-style: normal;
+    font-weight: 600;
+    font-size: safe-rem(1.75);
+    line-height: 34px;
+    margin: 30px 0;
+    padding: 0;
+    color: #333;
+    text-align: center;
+}
+
+@media only screen and (max-width: 768px) {
+    .avatar {
+        width: 150px;
+        height: 150px;
+    }
+
+    .header {
+        font-size: 26px;
+    }
+
+    .storyContainer {
+        font-size: safe-rem(0.875);
+
+        h2 {
+            font-size: safe-rem(1);
+        }
+    }
+
+    .fundraiserpill {
+        display: block;
+        width: 100%;
+        font-size: safe-rem(0.875);
+        text-align: left;
+        padding: 10px 10px 7px 10px;
+
+        svg {
+            float: left;
+            margin-top: -4px;
+            margin-right: 10px;
+        }
+    }
+
+    .buttongroup {
+        flex-direction: column;
+
+        width: 100%;
+        margin: auto;
+
+        a {
+            min-width: unset !important;
+            padding: 14px;
+            font-size: safe-rem(1.125);
+        }
+    }
+
+    .subtitle {
+        font-size: safe-rem(1.375);
+    }
+}

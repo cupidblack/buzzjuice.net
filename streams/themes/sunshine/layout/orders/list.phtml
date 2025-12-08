@@ -1,0 +1,72 @@
+<div class="col-lg-4 col-md-6" data-orders-id="<?php echo $wo['order']->id; ?>">
+	<div class="wow_content my_purchased">
+		<div class="id received-orders-status-bar">
+			<div> #<?php echo $wo['order']->id; ?>
+			</div>
+
+			<div>
+			<?php echo $wo['lang']['status'] ?>: <span class="badge"><?php echo ucfirst($wo['lang'][$wo['order']->status]) ?></span>
+			<?php if ($wo['order']->status == 'shipped') { ?>
+				<select class="border-bottom" id="cart_product_qty" onchange="ChangeStatus(this,'<?php echo $wo['hash_id'] ?>')">
+					<?php if ($wo['order']->status == 'shipped') { ?>
+						<option value="shipped" <?php if ($wo['order']->status == 'shipped') {echo "selected";} ?>><?php echo $wo['lang']['shipped']; ?></option>
+						<option value="delivered" <?php if ($wo['order']->status == 'delivered') {echo "selected";} ?>><?php echo $wo['lang']['delivered']; ?></option>
+					<?php } ?>
+				</select>
+			<?php } ?>
+			</div>
+				
+			<style>
+			.id.received-orders-status-bar {
+				display: flex;
+				justify-content: space-between;
+			}
+			</style>
+
+		</div>
+			<a href="<?php echo Wo_SeoLink('index.php?link1=order&id='.$wo['order']->hash_id); ?>" class="title">
+				<?php echo(!empty($wo['product']) && !empty($wo['product']->name) ? $wo['product']->name : '') ?></a>
+
+	<?php echo 'PID'; ?>: <?php echo isset($wo['order']->product_id) ? $wo['order']->product_id : 'null'; ?>,
+		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M11,13.5V21.5H3V13.5H11M12,2L17.5,11H6.5L12,2M17.5,13C20,13 22,15 22,17.5C22,20 20,22 17.5,22C15,22 13,20 13,17.5C13,15 15,13 17.5,13Z"></path></svg>
+	<?php echo $wo['lang']['qty']; ?>: <?php echo $wo['items_count']; ?>
+
+	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 12C22 17.52 17.52 22 12 22C6.48 22 2 17.52 2 12C2 6.48 6.48 2 12 2C17.52 2 22 6.48 22 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path class="icon_main" d="M15.7099 15.1798L12.6099 13.3298C12.0699 13.0098 11.6299 12.2398 11.6299 11.6098V7.50977" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+	<?php 
+		if (isset($wo['order']->time)) {
+			$order_time = $wo['order']->time;
+			$current_time = time();
+			$time_difference = $current_time - $order_time;
+
+			// Calculate time elapsed
+			if ($time_difference < 60) {
+				$time_elapsed = $time_difference . ' seconds ago';
+			} elseif ($time_difference < 3600) {
+				$time_elapsed = floor($time_difference / 60) . ' minutes ago';
+			} elseif ($time_difference < 86400) {
+				$time_elapsed = floor($time_difference / 3600) . ' hours ago';
+			} elseif ($time_difference < 604800) {
+				$time_elapsed = floor($time_difference / 86400) . ' days ago';
+			} else {
+				$time_elapsed = date('Y/m/d g:ia', $order_time); // Fallback to formatted date
+			}
+			echo $time_elapsed;
+		} else {
+			echo 'Time not available';
+		}
+	?>
+
+		<div class="price">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M5,6H23V18H5V6M14,9A3,3 0 0,1 17,12A3,3 0 0,1 14,15A3,3 0 0,1 11,12A3,3 0 0,1 14,9M9,8A2,2 0 0,1 7,10V14A2,2 0 0,1 9,16H19A2,2 0 0,1 21,14V10A2,2 0 0,1 19,8H9M1,10H3V20H19V22H1V10Z"></path></svg> 
+			
+			<?php echo $wo['config']['currency_symbol_array'][$wo['config']['currency']].$wo['price']; ?>
+		</div>
+		<div class="price">
+
+		</div>
+		<div class="id">#<?php echo $wo['order']->hash_id; ?></div>
+		<div class="foot">
+			<a class="btn btn-main btn-sm" href="<?php echo Wo_SeoLink('index.php?link1=order&id='.$wo['order']->hash_id); ?>"> <?php echo $wo['lang']['details'] ?></a>
+		</div>
+	</div>
+</div>

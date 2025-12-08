@@ -1,0 +1,292 @@
+# Copyright (C) 2023 Give-Funds
+# This file is distributed under the same license as the Give-Funds package.
+msgid ""
+msgstr ""
+"Project-Id-Version: Give-Funds\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Team: GiveWP <info@givewp.com>\n"
+"Report-Msgid-Bugs-To: https://github.com/impress-org/give-funds/issues/new\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.js\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/DonationHandler.php:89, src/Admin/FundsExport.php:57, src/Routes/DonationsRoute.php:68, src/Routes/FundOverviewRoute.php:85, src/Routes/ReassignFundRoute.php:61, src/Routes/ReportsRoute.php:83, src/Routes/ReportsRoute.php:87, src/resources/views/admin/reports/options.php:16
+msgid "Fund ID"
+msgstr ""
+
+#: src/Admin/AddFundPage.php:86, src/Admin/EditFundPage.php:103
+msgid "Enter fund title"
+msgstr ""
+
+#: src/Admin/AddFundPage.php:103
+msgid "Fund added"
+msgstr ""
+
+#: src/Admin/DonationFormsOptions.php:46, src/Admin/DonationOptions.php:79, src/Admin/FundsListTable.php:152
+msgid "Reassign Revenue to Fund"
+msgstr ""
+
+#: src/Admin/DonationOptions.php:174, src/Admin/FundOptions.php:92, src/Admin/FundsListTable.php:61, src/Receipt/UpdateDonationReceipt.php:84, src/Admin/ListTable/Columns/FundColumn.php:35, src/resources/views/admin/donation-options.php:4, src/resources/views/receipt/fund-row.php:3
+msgid "Fund"
+msgstr ""
+
+#: src/Admin/DonationOptions.php:197, src/Admin/ListTable/Columns/FundColumn.php:51
+msgid "Unassigned"
+msgstr ""
+
+#: src/Admin/EditFundPage.php:119
+msgid "Fund updated"
+msgstr ""
+
+#: src/Admin/FundOptions.php:36
+msgid "Fund Options"
+msgstr ""
+
+#: src/Admin/FundOptions.php:66, src/resources/views/admin/funds-row-actions.php:5, src/resources/views/admin/select-fund.php:14
+msgid "Default fund"
+msgstr ""
+
+#: src/Admin/FundOptions.php:73
+msgid "Designation"
+msgstr ""
+
+#: src/Admin/FundOptions.php:81
+msgid "Admin's choice"
+msgstr ""
+
+#: src/Admin/FundOptions.php:82
+msgid "Automatically assign revenue from this form to one fund."
+msgstr ""
+
+#: src/Admin/FundOptions.php:85
+msgid "Donor's choice"
+msgstr ""
+
+#: src/Admin/FundOptions.php:86
+msgid "Allow donor to designate one fund from a set of funds."
+msgstr ""
+
+#: src/Admin/FundOptions.php:97
+msgid "All future revenue from this form will be assigned to this fund."
+msgstr ""
+
+#: src/Admin/FundOptions.php:101
+msgid "Designation Label"
+msgstr ""
+
+#: src/Admin/FundOptions.php:103
+msgid "Where can we designate your gift?"
+msgstr ""
+
+#: src/Admin/FundOptions.php:108, src/Admin/FundsListTable.php:62, src/Admin/FundsPage.php:47, src/resources/views/admin/funds-page.php:5, src/resources/views/admin/reports-page.php:10, src/resources/views/admin/reports-page.php:18
+msgid "Funds"
+msgstr ""
+
+#: src/Admin/FundOptions.php:114
+msgid "Select which funds are available for designation within this donation form. You can drag-n-drop the funds in the desired order."
+msgstr ""
+
+#: src/Admin/FundsExport.php:60, src/resources/views/admin/reports/options.php:26
+msgid "Fund Title"
+msgstr ""
+
+#: src/Admin/FundsExport.php:63, src/resources/views/admin/reports/options.php:35
+msgid "Fund Description"
+msgstr ""
+
+#: src/Admin/FundsListTable.php:113, src/resources/views/admin/add-fund-page.php:24, src/resources/views/admin/edit-fund-page.php:31
+msgid "Title"
+msgstr ""
+
+#: src/Admin/FundsListTable.php:114, src/resources/views/admin/add-fund-page.php:41, src/resources/views/admin/edit-fund-page.php:47
+msgid "Description"
+msgstr ""
+
+#: src/Admin/FundsListTable.php:115, src/Routes/FundPercentages.php:147
+msgid "Revenue"
+msgstr ""
+
+#: src/Admin/FundsListTable.php:116
+msgid "Donations"
+msgstr ""
+
+#: src/Admin/FundsListTable.php:153, src/resources/views/admin/edit-fund-page.php:75, src/resources/views/admin/funds-row-actions.php:27
+msgid "Delete"
+msgstr ""
+
+#: src/Admin/FundsPage.php:46
+msgid "Give Funds"
+msgstr ""
+
+#: src/Admin/FundsPage.php:105
+msgid "Fund deleted"
+msgstr ""
+
+#: src/Admin/FundsPage.php:107
+msgid "Something went wrong, fund is not deleted"
+msgstr ""
+
+#: src/Email/Tags.php:52
+msgid "The fund name which this donation is designated to"
+msgstr ""
+
+#: src/Email/Tags.php:58
+msgid "The fund description which this donation is designated to"
+msgstr ""
+
+#: src/Migrations/AddGeneralFund.php:29
+msgid "General"
+msgstr ""
+
+#: src/Migrations/AddPositionColumnToFundFormRelationshipTable.php:32
+msgid "Add position column to give_fund_form_relationship table"
+msgstr ""
+
+#: src/Routes/DonationsRoute.php:72, src/Routes/FundOverviewRoute.php:93, src/Routes/FundPercentages.php:64, src/Routes/ReportsRoute.php:91
+msgid "Start Date"
+msgstr ""
+
+#: src/Routes/DonationsRoute.php:76, src/Routes/FundOverviewRoute.php:97, src/Routes/FundPercentages.php:68, src/Routes/ReportsRoute.php:95
+msgid "End Date"
+msgstr ""
+
+#: src/Routes/DonationsRoute.php:122
+msgid "Donation"
+msgstr ""
+
+#: src/Routes/DonationsRoute.php:123
+msgid "Amount"
+msgstr ""
+
+#: src/Routes/DonationsRoute.php:124
+msgid "Donation Form"
+msgstr ""
+
+#: src/Routes/DonationsRoute.php:125
+msgid "Date"
+msgstr ""
+
+#: src/Routes/DonationsRoute.php:229
+msgid "Untitled (#%s)"
+msgstr ""
+
+#: src/Routes/DonationsRoute.php:282
+msgid "donor missing"
+msgstr ""
+
+#: src/Routes/DonationsRoute.php:318
+msgid "(unknown)"
+msgstr ""
+
+#: src/Routes/DonationsRoute.php:323
+msgid "Email donor"
+msgstr ""
+
+#: src/Routes/Endpoint.php:89
+msgid "You cannot view the reports resource."
+msgstr ""
+
+#: src/Routes/FundOverviewRoute.php:89, src/Routes/FundPercentages.php:72
+msgid "Currency"
+msgstr ""
+
+#: src/Routes/FundOverviewRoute.php:201, src/Routes/ReportsRoute.php:209
+msgid "Donors"
+msgstr ""
+
+#: src/Routes/ReassignFundRoute.php:65
+msgid "Donations IDs"
+msgstr ""
+
+#: src/resources/views/admin/add-fund-page.php:7
+msgid "Add Fund"
+msgstr ""
+
+#: src/resources/views/admin/add-fund-page.php:9
+msgid "Go back"
+msgstr ""
+
+#: src/resources/views/admin/add-fund-page.php:35, src/resources/views/admin/edit-fund-page.php:41
+msgid "The name of the fund displayed when making a designation."
+msgstr ""
+
+#: src/resources/views/admin/add-fund-page.php:51, src/resources/views/admin/edit-fund-page.php:56
+msgid "Additional context displayed if the fund is currently designated."
+msgstr ""
+
+#: src/resources/views/admin/add-fund-page.php:62
+msgid "Add fund"
+msgstr ""
+
+#: src/resources/views/admin/edit-fund-page.php:7, src/resources/views/admin/edit-fund-page.php:16, src/resources/views/admin/funds-row-actions.php:15, src/resources/views/admin/overview-page.php:12, src/resources/views/admin/overview-page.php:20
+msgid "Edit Fund"
+msgstr ""
+
+#: src/resources/views/admin/edit-fund-page.php:13, src/resources/views/admin/funds-row-actions.php:11, src/resources/views/admin/overview-page.php:17, src/resources/views/admin/reports-page.php:15
+msgid "Overview"
+msgstr ""
+
+#: src/resources/views/admin/edit-fund-page.php:67
+msgid "Update"
+msgstr ""
+
+#: src/resources/views/admin/edit-fund-page.php:73
+msgid "Delete fund"
+msgstr ""
+
+#: src/resources/views/admin/funds-page.php:7
+msgid "New Fund"
+msgstr ""
+
+#: src/resources/views/admin/funds-row-actions.php:10
+msgid "Fund overview"
+msgstr ""
+
+#: src/resources/views/admin/funds-row-actions.php:16
+msgid "Edit"
+msgstr ""
+
+#: src/resources/views/admin/funds-row-actions.php:25
+msgid "Delete fund %s"
+msgstr ""
+
+#: src/resources/views/admin/reports-page.php:10
+msgid "Reports"
+msgstr ""
+
+#: src/resources/views/admin/reports-page.php:21
+msgid "Legacy Reports"
+msgstr ""
+
+#: src/resources/views/admin/notices/give-inactive.php:5, src/resources/views/admin/notices/give-version-error.php:4, src/resources/views/admin/notices/revenue-database-table.php:4
+msgid "Activation Error:"
+msgstr ""
+
+#: src/resources/views/admin/notices/give-inactive.php:6, src/resources/views/admin/notices/give-version-error.php:6
+msgid "You must have"
+msgstr ""
+
+#: src/resources/views/admin/notices/give-inactive.php:7
+msgid "plugin installed and activated for the %s add-on to activate"
+msgstr ""
+
+#: src/resources/views/admin/notices/give-version-error.php:7
+msgid "version"
+msgstr ""
+
+#: src/resources/views/admin/notices/give-version-error.php:8
+msgid "for the %1$s add-on to activate"
+msgstr ""
+
+#: src/resources/views/admin/notices/revenue-database-table.php:6
+msgid "There is a problem preventing %1$s from working. The correct version of GiveWP is installed, however the revenue table is missing. Please contact support for assistance."
+msgstr ""
+
+#: src/resources/views/admin/reports/options.php:4
+msgid "Fund Columns:"
+msgstr ""

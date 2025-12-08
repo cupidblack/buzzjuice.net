@@ -1,0 +1,1 @@
+<?php ! defined( 'ABSPATH' ) && exit(); ?><fields items="editor.settings.fields"></fields>

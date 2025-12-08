@@ -1,0 +1,34 @@
+
+.zfolio.dzszfl-ready-for-transitions {
+
+  .the-feature-con {
+
+    $transition-property: height, opacity;
+    $transition-duration: .2s;
+    $transition-timing: ease-out;
+
+    @include apply_transition($transition-property, $transition-duration, $transition-timing);
+  }
+
+
+  $transition-property: height, opacity;
+  $transition-duration: .3s;
+  $transition-timing: ease-out;
+
+  @include apply_transition($transition-property, $transition-duration, $transition-timing);
+}
+
+
+.zfolio.add-loaded-on-images-animation {
+  .zfolio-item {
+    .the-feature {
+      opacity: 0;
+    }
+  }
+
+  .zfolio-item.image-loaded {
+    .the-feature {
+      opacity: 1;
+    }
+  }
+}

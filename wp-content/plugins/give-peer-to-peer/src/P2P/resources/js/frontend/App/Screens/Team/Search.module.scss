@@ -1,0 +1,51 @@
+.search {
+    display: grid;
+    gap: 0.5rem;
+
+    @media screen and (min-width: 64rem) {
+        grid-template-columns: repeat(2, auto);
+        justify-content: flex-end;
+        align-items: center;
+        gap: 1.375rem;
+    }
+}
+
+.searchLabel {
+    flex-grow: 0;
+    flex-shrink: 0;
+    color: #fff;
+    font-size: 1.0625rem;
+    font-weight: 500;
+    text-shadow: 0 0.07em 0.15em rgba(0, 0, 0, 0.25);
+    text-align: center;
+
+    @media screen and (min-width: 64rem) {
+        text-align: unset;
+    }
+}
+
+/**
+ * Ideally, we could set this as a background-image.
+ */
+.iconContainer {
+    position: relative;
+
+    svg {
+        position: absolute;
+        left: 0.95rem;
+        top: 0.95rem;
+        pointer-events: none;
+    }
+}
+
+.searchControl {
+    width: clamp(12rem, 19rem, 80vw);
+    box-sizing: border-box;
+    --pad: 0.8125rem;
+    padding: var(--pad) var(--pad) var(--pad) 2.4rem;
+    border-radius: 0.25rem;
+    border: 0.0625rem solid #b8b8b8;
+    font-weight: 500;
+    font-size: 0.8125rem;
+    background-color: white;
+}

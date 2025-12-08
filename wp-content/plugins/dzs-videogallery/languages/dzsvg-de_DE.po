@@ -1,0 +1,658 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: dzsvg\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-02-28 20:30+0200\n"
+"PO-Revision-Date: 2017-07-11 00:41+0300\n"
+"Last-Translator: ZoomIt <zoomitflash@gmail.com>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: __;_e;gettext_noop\n"
+"X-Poedit-Basepath: .\n"
+"X-Generator: Poedit 2.0.2\n"
+"Language: de_DE\n"
+"X-Poedit-SearchPath-0: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery\n"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:108
+msgid "Select Feed Mode"
+msgstr "Wählen Sie Feed Mode"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:111
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:119
+#, fuzzy
+msgid "Normal"
+msgstr "Format"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:112
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:129
+#, fuzzy
+msgid "Youtube User Channel"
+msgstr "Youtube-Nutzer"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:113
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:139
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:519
+msgid "YouTube Playlist"
+msgstr "Youtube Playlist"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:114
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:149
+#, fuzzy
+msgid "Vimeo User Channel"
+msgstr "Vimeo Benutzer-ID"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:122
+msgid "Feed from custom items you set below."
+msgstr "Feed von benutzerdefinierten Elemente, die Sie unten gesetzt."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:132
+msgid " Feed videos from your YouTube User channel."
+msgstr " Feed-Videos von Ihrem YouTube-Nutzer-Kanal."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:142
+msgid "Feed videos from the YouTube Playlist you create on their site. Just input the Playlist ID below."
+msgstr "Feed Videos von der YouTube-Playlist Sie auf ihrer Website erstellen. Geben Sie einfach unten die Playlist-ID."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:152
+msgid "Feed videos from your Vimeo User channel."
+msgstr "Feed-Videos von Ihrem Vimeo Benutzer Kanal."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:159
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2034
+msgid "General Options"
+msgstr "Allgemein"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:161
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2148
+msgid "ID"
+msgstr "ID"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:163
+msgid "Choose an unique id."
+msgstr "Wählen Sie eine eindeutige ID."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:166
+msgid "Width"
+msgstr "Breite"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:168
+msgid "Width in pixels."
+msgstr "Breite in Pixel."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:171
+msgid "Height"
+msgstr "Höhe"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:175
+msgid "Display Mode"
+msgstr "Anzeigemodus"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:186
+msgid "Video Gallery Skin"
+msgstr "Videogalerie-Skin"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:194
+#, fuzzy
+msgid "Video Player Skin"
+msgstr "Videogalerie-Skin"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:203
+#, fuzzy
+msgid "Flash Gallery Skin"
+msgstr "Videogalerie-Skin"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:211
+msgid "Navigation Style"
+msgstr "Navigation Stil"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:216
+msgid "Choose a navigation style for the normal display mode."
+msgstr "Wählen Sie ein Navigationsstil für den normalen Anzeigemodus."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:219
+msgid "Menu Position"
+msgstr "Menüposition"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:229
+msgid "Autoplay"
+msgstr "Automatisch abspielen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:231
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:238
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:245
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:267
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:274
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:281
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:303
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:319
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:338
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:374
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:397
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:456
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:464
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:472
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:480
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:488
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:496
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:504
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:895
+msgid "on"
+msgstr "zum Thema"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:232
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:239
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:246
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:266
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:273
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:280
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:302
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:318
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:337
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:375
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:396
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:455
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:463
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:471
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:479
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:487
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:503
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:895
+msgid "off"
+msgstr "aus"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:236
+msgid "Autoplay Next"
+msgstr "Nächstes Video autom. abspielen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:243
+msgid "Cue First Video"
+msgstr "Erstes Video autom. abspielen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:248
+msgid "Choose if the video should load at start or it should activate on click ( if a <strong>Cover Image</strong> is set )."
+msgstr "Wählen Sie, ob das Video beim Start geladen werden soll oder es sollte auf Klick aktivieren (falls ein <strong> Bild verfügbar </ strong> ist gesetzt)."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:252
+msgid "Cover Image"
+msgstr "Titelbild"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:257
+msgid "Default Gallery"
+msgstr "Standardgalerie"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:264
+msgid "Disable Non-Default"
+msgstr "Deaktivieren Sie Nicht-Standard"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:271
+msgid "Randomize / Shuffle Elements"
+msgstr "Randomize / Shuffle Elements"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:278
+msgid "Enable Switch Button"
+msgstr "Button zum Wechseln erlauben"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:285
+msgid "HTML5 Gallery Inits on"
+msgstr "HTML5 Galerie startet bei"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:288
+msgid "Select window.load if you want the slider to init when all the images are loaded, or the other when the document is ready"
+msgstr "Wählen Sie window.load, wenn Sie den Schieberegler wollen init, wenn alle Bilder geladen werden, oder der andere, wenn das Dokument fertig ist"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:296
+msgid "Background"
+msgstr "Hintergrund"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:300
+msgid "Enable Shadow"
+msgstr "Schatten erlauben"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:307
+msgid "Logo"
+msgstr "Logo"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:311
+msgid "Logo Link"
+msgstr "Link des Logos"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:316
+msgid "Share Button"
+msgstr "Teilen-Button"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:323
+msgid "Facebook Link"
+msgstr "Facebook-Link"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:327
+msgid "Twitter Link"
+msgstr "Twitter-Link"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:331
+msgid "Google Plus Link"
+msgstr "Google+ Link"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:335
+msgid "Embed Button"
+msgstr "Einbetten-Button"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:344
+#, fuzzy
+msgid "YouTube Options"
+msgstr "Youtube-Nutzer"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:347
+msgid "SD Quality"
+msgstr "SD Qualität"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:355
+msgid "HD Quality"
+msgstr "HD Qualität"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:365
+msgid "Default Quality"
+msgstr "Standardqualität"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:367
+msgid "HD"
+msgstr "H. D. ("
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:368
+msgid "SD"
+msgstr "SD"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:372
+msgid "Enable Custom Skin"
+msgstr "Aktivieren Sie Custom Skin"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:377
+msgid ""
+"Choose if the custom skin you set in the Video Player Skin is how YouTube videos should show ( on )\r\n"
+"                 or if the default YouTube skin should show ( off )"
+msgstr "Wählen Sie, wenn die benutzerdefinierte Haut, die Sie im Video-Player Skin eingestellt ist, wie YouTube-Videos zeigen sollte (auf) \\ r \\ n oder wenn die Standard-YouTube Haut zeigen sollte (off)"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:384
+msgid "HTML5 Gallery Options"
+msgstr "HTML5 Galerie-Optionen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:387
+msgid "Transition"
+msgstr "Übergänge"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:394
+msgid "Responsive"
+msgstr "Responsiv"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:404
+#, fuzzy
+msgid "Design Options"
+msgstr "Beschreibung"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:406
+msgid "Only for the html5 gallery"
+msgstr "Nur für die html5 Galerie"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:408
+msgid "Design Menu Item Width"
+msgstr "Design Menü Objekt Breite"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:412
+msgid "Design Menu Item Height"
+msgstr "Design Menü Objekt Höhe"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:416
+#, fuzzy
+msgid "Design Menu Item Space"
+msgstr "Design Menü Objekt Höhe"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:420
+msgid "Normal Controls Opacity"
+msgstr "Normale Kontrollen Opazität"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:422
+msgid "Choose an opacity from 0 to 1"
+msgstr "Wählen Sie eine Opazität von 0 bis 1"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:425
+msgid "Roll Out Controls Opacity"
+msgstr "Roll Out Steuert Opazität"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:427
+msgid "Choose an opacity from 0 to 1 for when the mouse is not on the video player"
+msgstr "Wählen Sie eine Opazität von 0 bis 1 für, wenn die Maus nicht auf den Video-Player"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:433
+#, fuzzy
+msgid "Flash Gallery Options"
+msgstr "HTML5 Galerie-Optionen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:436
+msgid "Default Volume"
+msgstr "Standardlautstärke"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:440
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:655
+msgid "Thumbnail"
+msgstr "Vorschaubild"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:444
+msgid "Window Mode"
+msgstr "Fenstermodus"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:452
+msgid "Disable Description"
+msgstr "Beschreibungen deaktivieren"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:453
+msgid "Only for the flash version"
+msgstr "Nur für die Flash-Version"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:460
+msgid "Enable Deeplinking"
+msgstr "Deeplinking erlauben"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:461
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:469
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:477
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:485
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:493
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:501
+msgid "Only for the flash version."
+msgstr "Nur für die Flash-Version."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:468
+msgid "HD Button"
+msgstr "HD Button"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:476
+msgid "Disable Big Play Button"
+msgstr "Big Play Button deaktivieren"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:484
+msgid "Leave Only Big Play Button"
+msgstr "Nur Big Play Button belassen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:492
+msgid "Let Flash Handle Feeds"
+msgstr "Flash soll Inhalte verwalten"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:493
+msgid "Deprecated."
+msgstr "Veraltet"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:500
+msgid "Scrollbar"
+msgstr "Scrollbar"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:515
+msgid "YouTube User"
+msgstr "Youtube-Nutzer"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:522
+msgid "You need to set the playlist ID there not the playlist Name. For example for this playlist http://www.youtube.com/my_playlists?p=PL08BACDB761A0C52A the id is 08BACDB761A0C52A. Remember that if you have the characters PL at the beggining of the ID they should not be included here.</div>"
+msgstr "Sie müssen die Playlist-ID gibt nicht den Namen der Wiedergabeliste ein. Zum Beispiel für diese Playlist http://www.youtube.com/my_playlists?p=PL08BACDB761A0C52A die ID ist 08BACDB761A0C52A. Denken Sie daran, dass, wenn Sie die Zeichen PL sich am Anfang der ID haben, sollten sie hier nicht einbezogen werden. </ Div>"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:528
+msgid "YouTube Max Videos"
+msgstr "Youtube Max. Videos"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:532
+msgid "Vimeo User ID"
+msgstr "Vimeo Benutzer-ID"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:550
+msgid "Type"
+msgstr "Typ"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:565
+#, fuzzy
+msgid "YouTube"
+msgstr "Youtube-Nutzer"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:568
+msgid ""
+"Input in the <strong>Source</strong> field below the youtube video ID. You can find the id contained in the link to \r\n"
+"                    the video - http://www.youtube.com/watch?v=<strong>ZdETx2j6bdQ</strong> ( for example )"
+msgstr "Geben Sie in das Feld <strong> Quelle </ strong> Feld unter dem YouTube-Video-ID. Sie können die ID in der Verbindung enthaltenen finden r \\ n das Video zu \\ - http://www.youtube.com/watch?v= <strong> ZdETx2j6bdQ </ strong> (zum Beispiel)"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:575
+msgid "Self-hosted Video"
+msgstr "Selbst gehosteten Video"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:578
+msgid ""
+"Stream videos your own hosted videos. You just have to include two formats of the video you are streaming. In the <strong>Source</strong>\r\n"
+"                    field you need to include the path to your mp4 formatted video. And in the OGG field there should be the ogg / ogv path, this is not mandatory, \r\n"
+"                    but recommended."
+msgstr "Stream-Videos auf Ihre eigenen gehosteten Videos. Sie müssen nur zwei Formate des Videos enthalten, die Sie streamen. In der <strong> Quelle </ strong> \\ r \\ n Feld müssen Sie den Pfad zu Ihrem mp4 Format Video aufzunehmen. Und im OGG Feld sollte die ogg / ogv Weg sein, dies ist nicht zwingend erforderlich, \\ r \\ n wird jedoch empfohlen."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:586
+#, fuzzy
+msgid "Vimeo Video"
+msgstr "Vimeo Optionen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:589
+msgid ""
+"Insert in the <strong>Source</strong> field the ID of the Vimeo video you want to stream. You can identify the ID easy from the link of the video,\r\n"
+"                     for example, here see the bolded part"
+msgstr "Legen Sie in der <strong> Quelle </ strong> die ID des Vimeo Video Sie streamen möchten. Sie können die ID einfach über den Link des Videos identifizieren, \\ r \\ n siehe zum Beispiel hier den fett gedruckten Teil"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:596
+msgid "Self-hosted Audio File"
+msgstr "Selbst gehosteten Audiodatei"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:599
+msgid "You need a MP3 format of your audio file and an OGG format. You put their paths in the Source and Html5 Ogg Format fields"
+msgstr "Sie benötigen einen MP3-Format der Audiodatei und eine OGG-Format. Sie setzen sich ihre Wege in die Quelle und Html5 Ogg-Format Felder"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:605
+msgid "Self-hosted Image File"
+msgstr "Selbst gehostete Image File"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:608
+msgid "Just put in the <strong>Source</strong> field the path to your image."
+msgstr "Einfach in der <strong> Quelle </ strong> der Pfad zu Ihrem Bild."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:614
+msgid "A link"
+msgstr "Eine Verbindung"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:617
+msgid "Link where the visitor should go when clicking the menu item."
+msgstr "Link, wo der Besucher gehen sollte, wenn Sie den Menüpunkt klicken."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:623
+msgid "Inline Content"
+msgstr "Inline-Inhalt"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:626
+msgid "Insert in the <strong>Source</strong> field custom content ( ie. embed from a custom site )."
+msgstr "Legen Sie in der <strong> Quelle </ strong> benutzerdefinierte Inhalte (dh. Einbetten von einer benutzerdefinierten Site)."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:633
+msgid "Source"
+msgstr "Quelle"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:636
+msgid ""
+"Below you will enter your video address. If it is a video from YouTube or Vimeo you just need to enter \r\n"
+"                the id of the video in the \"Video:\" field. The ID is the bolded part http://www.youtube.com/watch?v=<strong>j_w4Bi0sq_w</strong>. \r\n"
+"                If it is a local video you just need to write its location there or upload it through the Upload button ( .mp4 / .flv format )."
+msgstr "Nachfolgend finden Sie Ihre Video-Adresse eingeben. Wenn es ein Video von YouTube oder Vimeo Sie nur eingeben müssen, \\ r \\ n die ID des Videos in der \\ \"Video: \" ein. Die ID ist der bolded Teil http://www.youtube.com/watch?v= <strong> j_w4Bi0sq_w </ strong>. \\ R \\ n Wenn es sich um ein lokales Video, das Sie brauchen nur dort seine Lage zu schreiben oder es durch den Upload-Button (.mp4 / .flv-Format) hochladen."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:646
+msgid "Format"
+msgstr "Format"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:647
+msgid "Optional ogg / ogv file"
+msgstr "Optionale ogg/ogv Datei"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:647
+msgid "Only for the Video or Audio type"
+msgstr "Nur für den Video- oder Audiotyp"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:652
+msgid "Appearance Settings"
+msgstr "Darstellungseinstellungen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:659
+msgid "Title"
+msgstr "Titel"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:663
+msgid "Description"
+msgstr "Beschreibung"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:667
+msgid "Menu Description"
+msgstr "Menübeschreibung"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:673
+msgid "Preview Image"
+msgstr "Vorschaubild"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:675
+msgid "will be used as the background image for audio type too"
+msgstr "Wird auch als Hintergrund für Audioinhalte verwendet"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:678
+msgid "Tags"
+msgstr "Schlagwörter"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:680
+msgid "use the tag editor to generate tags at given times of the video"
+msgstr "verwenden Sie den Tag-Editor-Tags zu bestimmten Zeiten des Videos zu erzeugen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:686
+msgid "Advertising Settings"
+msgstr "Werbung Einstellungen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:689
+msgid "Ad  Source"
+msgstr "Werbequelle"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:690
+#, fuzzy
+msgid ""
+"if you host the video yourself, input here the mp4 / m4v source and have a file named the same but with .ogv extension\r\n"
+"            format in the same folder"
+msgstr ""
+"Falls Du das Video selbst bereitstellst, füge hier die MP4/M4V Quelle ein und eine identisch benannte .ogv\r\n"
+" Datei im gleichen Ordner."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:695
+msgid "Ad  Type"
+msgstr "Werbetyp"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:703
+msgid "Ad  Link"
+msgstr "Werbelink"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:811
+msgid "categories"
+msgstr "categories"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:898
+msgid "Feed From"
+msgstr "Inhalte von"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:1414
+msgid "Share on Facebook"
+msgstr "Auf Facebook teilen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:1422
+msgid "Share on Twitter"
+msgstr "Auf Twitter teilen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:1430
+msgid "Share on Google Plus"
+msgstr "Auf Google+ teilen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:1729
+msgid "Switch to"
+msgstr "Wechseln zu"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:1946
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:1948
+msgid "DZS Video Gallery"
+msgstr "DZS Videogalerie"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2035
+msgid "Use WordPress Uploader ?"
+msgstr "Verwenden Sie WordPress Uploader?"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2056
+msgid "Embed PrettyPhoto ?"
+msgstr "Embed Pretty?"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2079
+msgid "Use External wp-content Upload Directory ?"
+msgstr "Mit externen wp-content Upload-Verzeichnis?"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2112
+msgid "Video Gallery Admin"
+msgstr "Videogalerie-Verwaltung"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2113
+msgid "You need javascript for this."
+msgstr "Du benötigst JavaScript."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2115
+msgid "Documentation"
+msgstr "Dokumentation"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2116
+msgid "Go to Designer Center"
+msgstr "Zum Design-Center"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2159
+msgid "Add Slider"
+msgstr "Slider hinzufügen"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2164
+msgid "Import"
+msgstr "Importieren"
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2167
+msgid ""
+"Import here feed from a YT Playlist, YT User Channel or Vimeo User Channel - you just have to enter the \r\n"
+"                        id of the playlist / user id in the box below and select the correct type from below"
+msgstr ""
+"Youtube Playlist, Youtube Kanal oder Video Kanal hier importieren - Du musst die \r\n"
+" ID der Playlist / des Benutzers in die untere Box eintragen und den korrekten Typ auswählen."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2195
+msgid ""
+"If neither of these are enabled, only normal feed will work. \r\n"
+"                    Contact your host provider on how to enable these services to use the YouTube User Channel \r\n"
+"                    or YouTube Playlist feed."
+msgstr ""
+"Wenn nichts erlaubt ist, funktionieren nur die Inhalte. \r\n"
+"                   Kontaktiere Deinen Provider, um zu erfahren, wie Du diese Services zur Verwendung Deines Youtube-Kanals \r\n"
+" oder Playlists aktivieren kannst."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2200
+msgid "Loading..."
+msgstr "Lädt..."
+
+#: /Applications/MAMP/htdocs/wordpress/wp-content/plugins/dzs-videogallery/vg.php:2201
+msgid "Save Changes"
+msgstr "Änderungen speichern"
+
+#~ msgid "Disable Flash Gallery"
+#~ msgstr "Flash-Galerie deaktivieren"
+
+#~ msgid "drag & drop files here"
+#~ msgstr "Dateien hier hinziehen"
+
+#~ msgid "The Preupload List"
+#~ msgstr "Die Vor-Upload Liste"
+
+#~ msgid "add files here from the button or drag them above"
+#~ msgstr "Hier Dateien mit dem Button platzieren oder von oben hier her ziehen"
+
+#~ msgid "Confirm Upload"
+#~ msgstr "Upload bestätigen"

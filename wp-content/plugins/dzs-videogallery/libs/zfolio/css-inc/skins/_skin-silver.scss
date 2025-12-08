@@ -1,0 +1,188 @@
+
+
+/* --- skin-silver BEGIN */
+.zfolio.skin-silver{
+
+  .zfolio-item--inner--inner--inner{
+    position: relative;
+  }
+  .zfolio-item{
+
+    .the-overlay{
+      background-color: rgba(0,0,0,0);
+
+
+      $transition-property: background;
+      $transition-duration: .3s;
+      $transition-timing: ease-out;
+
+
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+    }
+    .item-meta{
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      left:50%; top:50%;
+      transform: translate(-50%,-50%);
+
+
+
+      color: #FFFFFF;
+
+
+      opacity:0;
+
+
+      filter: blur(10px);
+      -webkit-filter: blur(10px);
+
+      visibility: hidden;
+
+      pointer-events: none;
+
+      $transition-property: all;
+      $transition-duration: .5s;
+      $transition-timing: ease-in;
+
+
+
+
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+
+      .the-title{
+        font-size:30px;
+        line-height: 1.4;
+
+      }
+
+
+
+      .the-title:first-child:last-child{
+        &:after{
+          display: none;
+        }
+
+      }
+
+      .the-title:after{
+
+        content:"";
+
+        width:30px;
+        height:2px;
+        display: block;
+        background-color: #FFFFFF;
+        margin: 11px auto 17px;
+
+
+        $transition-property: all;
+        $transition-duration: .5s;
+        $transition-timing: ease-in;
+
+
+
+        @include apply_transition($transition-property,$transition-duration,$transition-timing);
+      }
+
+      .the-desc{
+        font-size: 14px;
+        font-weight: bold;
+        font-style: italic;
+      }
+    }
+  }
+  .zfolio-item:hover{
+    .the-overlay{
+
+      background-color: rgba(0,0,0,0.7);
+    }
+    .item-meta{
+
+      color: #FFFFFF;
+      text-shadow: 0 0 0px rgba(255,255,255,0.5);
+      opacity:1;
+
+
+      filter: blur(0px);
+      -webkit-filter: blur(0px);
+      visibility: visible;
+    }
+
+    .the-title:after{
+
+    }
+  }
+
+  .zfolio-item.under-300{
+    .the-title{
+
+
+    }
+  }
+
+  .zfolio-item--inner{
+    width: 100%; height: 100%;
+    display: block;
+
+    >.the-feature-con{
+      height: 100%!important;;
+    }
+
+  }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+.selector-con-for-skin-silver{
+  .categories{
+    margin-top:20px;
+    margin-bottom: 20px;
+  }
+
+
+  .a-category:first-child{
+  }
+  .a-category{
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    margin-left: 0px;
+    cursor: pointer;
+    padding:8px 12px;
+    line-height: 1;
+    position: relative;
+    color: #FFFFFF;;
+
+    margin-right: 5px;
+
+
+    background-color: rgba(255,255,255,0.2);
+    border: 1px solid #ffffff;;
+
+
+    $transition-property: color,background,border;
+    $transition-duration: .25s;
+    $transition-timing: ease-in;
+
+
+
+    @include apply_transition($transition-property,$transition-duration,$transition-timing);
+  }
+  .a-category.active,.a-category:hover{
+    background-color: #323337;
+    border-color: rgba(255,255,255,0.5);
+  }
+}

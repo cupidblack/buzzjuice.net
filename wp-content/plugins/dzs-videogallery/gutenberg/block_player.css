@@ -1,0 +1,24 @@
+.react-setting-container {
+  display: flex;
+  align-items: center;
+}
+.react-setting-container + .react-setting-container {
+  margin-top: 10px;
+}
+.react-setting-container--label {
+  font-size: 11px;
+  font-style: italic;
+  flex: 0 0 100px;
+}
+.react-setting-container--control {
+  flex: 100;
+  max-width: calc(100% - 100px);
+}
+.react-setting-container--control .editor-rich-text__tinymce {
+  white-space: nowrap;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/*# sourceMappingURL=block_player.css.map */

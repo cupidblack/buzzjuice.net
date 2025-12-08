@@ -1,0 +1,32 @@
+node:internal/modules/cjs/loader:1093
+  throw err;
+  ^
+
+Error: Cannot find module '/home/koware/public_html/buzzjuice.net/streams/nodejs/app.js'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1090:15)
+    at Module._load (node:internal/modules/cjs/loader:934:27)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:83:12)
+    at node:internal/main/run_main_module:23:47 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v19.9.0
+node:fs:756
+  handleErrorFromBinding(ctx);
+  ^
+
+Error: EISDIR: illegal operation on a directory, read
+    at Object.readSync (node:fs:756:3)
+    at tryReadSync (node:fs:437:20)
+    at Object.readFileSync (node:fs:483:19)
+    at loadConfig (/home/koware/public_html/buzzjuice.net/streams/nodejs/main.js:50:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async init (/home/koware/public_html/buzzjuice.net/streams/nodejs/main.js:121:3)
+    at async main (/home/koware/public_html/buzzjuice.net/streams/nodejs/main.js:128:3) {
+  errno: -21,
+  syscall: 'read',
+  code: 'EISDIR'
+}
+
+Node.js v19.9.0

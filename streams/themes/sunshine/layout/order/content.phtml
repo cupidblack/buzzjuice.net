@@ -1,0 +1,484 @@
+<div class="page-margin">
+
+	<div class="row">
+		<div class="col-md-5">
+
+			<?php if ($wo['order']->status == 'placed') { ?>
+				<div class="panel panel-white ch_card ch_summary">
+
+					<h2 class="ch_checkout_title">					
+						<!-- Status Badges -->
+						<?php if ($wo['order']->status == 'placed') { ?>
+							<span class="alert-danger badge"><?php echo 'Customer Awaiting Delivery Details'; ?></span>
+						<?php } elseif ($wo['order']->status == 'accepted') { ?>
+							<span class="alert-info badge"><?php echo 'Awaiting Customer Approval'; ?></span>
+						<?php } elseif ($wo['order']->status == 'packed') { ?>
+							<span class="alert-warning badge"><?php echo 'Customer Awaiting Delivery Status'; ?></span>
+						<?php } elseif ($wo['order']->status == 'shipped') { ?>
+							<span class="alert-warning badge"><?php echo 'Vendor Awaiting Delivery Status'; ?></span>
+						<?php } elseif ($wo['order']->status == 'delivered') { ?>
+							<span class="alert-success badge"><?php echo 'Order Delivered'; ?></span>
+						<?php } elseif ($wo['order']->status == 'canceled') { ?>
+							<span class="alert-dark badge"><?php echo 'Order Canceled'; ?></span>
+						<?php } ?>
+					</h2>
+
+					<h3 class="bold"><?php echo 'Saved Tracking Details'; ?></h3>
+					<div class="checkout_alert"></div>
+					<ul class="list-unstyled mb-0 cart_chos_addrs">
+						<?php
+						// Fetch the most recent 5 tracking details
+						$tracking_details = $db->where('product_owner_id', $wo['user']['user_id'])
+											->orderBy('time', 'DESC') // Sort by time in descending order
+											->get(T_USER_ORDERS, 5);  // Limit to 5 results
+						if (!empty($tracking_details)) {
+							foreach ($tracking_details as $key => $order) {
+								// Check if all required fields are present
+								if (!empty($order->payment_service_name) && 
+									!empty($order->payment_service_username) && 
+									!empty($order->payment_service_account) && 
+									!empty($order->delivery_agent) && 
+									!empty($order->tracking_id) && 
+									!empty($order->vendor_contact)) {
+						?>
+						<li>
+							<input type="radio" name="choose-order" id="choose_ordr_<?php echo($order->id) ?>" value="<?php echo($order->id) ?>" class="delivery_details" 
+								data-vendor_contact="<?php echo $order->vendor_contact; ?>"
+								data-payment_service_name="<?php echo $order->payment_service_name; ?>"
+								data-payment_service_username="<?php echo $order->payment_service_username; ?>"
+								data-payment_service_account="<?php echo $order->payment_service_account; ?>"
+								data-delivery_agent="<?php echo $order->delivery_agent; ?>"
+								data-tracking_id="<?php echo $order->tracking_id; ?>"
+								data-tracking_url="<?php echo $order->tracking_url; ?>"
+								data-warranty_policy="<?php echo $order->warranty_policy; ?>"
+								data-currency="<?php echo $order->currency; ?>">
+							<label for="choose_ordr_<?php echo($order->id) ?>">
+								<p><?php echo $order->payment_service_name; ?> - <?php echo $order->payment_service_username; ?> - <?php echo $order->payment_service_account; ?></p>
+								<p><?php echo $order->delivery_agent; ?> - <?php echo $order->tracking_id; ?> - <?php echo $order->vendor_contact; ?></p>
+							</label>
+						</li>
+						<?php 
+								}
+							} 
+						} else { ?>
+					</ul>
+					<p><?php echo 'Please add new delivery details'; ?></p>
+					<?php } ?>
+				</div>
+			<?php } ?>
+
+			<div class="panel wo_order_detail_widget">
+				<div class="delivery-details-order-id">
+					<h3 class="bold"><?php echo $wo['lang']['tracking_details']; ?></h3>
+					#<?php echo $wo['order']->hash_id; ?>
+					</div>
+				<style>
+					.delivery-details-order-id {
+						display: flex;
+						align-items: center;
+						justify-content: space-between;
+					}
+				</style>
+
+				<form id="tracking_form">
+					<div class="wow_form_fields">
+						<label><?php echo "Vendor's Contact"; ?></label>
+						<input type="text" name="vendor_contact" id="vendor_contact" 
+							placeholder="<?php echo "Seller's contact number"; ?>" 
+							value="<?php echo !empty($wo['order']->vendor_contact) ? $wo['order']->vendor_contact : ''; ?>" 
+							<?php echo ($wo['order']->status != 'placed') ? 'readonly' : ''; ?>>
+					</div>
+
+					<div class="wow_form_fields">
+						<label><?php echo 'Payment Service Name'; ?></label>
+						<input type="text" name="payment_service_name" id="payment_service_name" 
+							placeholder="<?php echo 'eg, Bank Name/MTN/TIGO'; ?>" 
+							value="<?php echo !empty($wo['order']->payment_service_name) ? $wo['order']->payment_service_name : ''; ?>" 
+							<?php echo ($wo['order']->status != 'placed') ? 'readonly' : ''; ?>>
+					</div>
+
+					<div class="wow_form_fields">
+						<label><?php echo 'Payment Service Username'; ?></label>
+						<input type="text" name="payment_service_username" id="payment_service_username" 
+							placeholder="<?php echo 'Name on payment service account'; ?>" 
+							value="<?php echo !empty($wo['order']->payment_service_username) ? $wo['order']->payment_service_username : ''; ?>" 
+							<?php echo ($wo['order']->status != 'placed') ? 'readonly' : ''; ?>>
+					</div>
+
+					<div class="wow_form_fields">
+						<label><?php echo 'Payment Service Account'; ?></label>
+						<input type="text" name="payment_service_account" id="payment_service_account" 
+							placeholder="<?php echo 'Payment account or phone number'; ?>" 
+							value="<?php echo !empty($wo['order']->payment_service_account) ? $wo['order']->payment_service_account : ''; ?>" 
+							<?php echo ($wo['order']->status != 'placed') ? 'readonly' : ''; ?>>
+					</div>
+
+					<div class="wow_form_fields">
+						<label><?php echo 'Delivery Agent'; ?></label>
+						<input type="text" name="delivery_agent" id="delivery_agent" 
+							placeholder="<?php echo "Delivery agent's name"; ?>" 
+							value="<?php echo !empty($wo['order']->delivery_agent) ? $wo['order']->delivery_agent : ''; ?>" 
+							<?php echo ($wo['order']->status != 'placed') ? 'readonly' : ''; ?>>
+					</div>
+
+					<div class="wow_form_fields">
+						<label><?php echo 'Reference Number'; ?></label>
+						<input type="text" name="tracking_id" id="tracking_id" 
+							placeholder="<?php echo 'Phone or tracking number'; ?>" 
+							value="<?php echo !empty($wo['order']->tracking_id) ? $wo['order']->tracking_id : ''; ?>" 
+							<?php echo ($wo['order']->status != 'placed') ? 'readonly' : ''; ?>>
+					</div>
+
+					<div class="wow_form_fields">
+						<label><?php echo 'Warranty & Refund Policy'; ?></label>
+						<select name="warranty_policy" id="warranty_policy" <?php echo ($wo['order']->status != 'placed') ? 'disabled' : ''; ?>>
+							<option value="1-3 days" <?php echo (!empty($wo['order']->warranty_policy) && $wo['order']->warranty_policy == '1-3 days') ? 'selected' : ''; ?>><?php echo '1 to 3 days'; ?></option>
+							<option value="3-7 days" <?php echo (!empty($wo['order']->warranty_policy) && $wo['order']->warranty_policy == '3-7 days') ? 'selected' : ''; ?>><?php echo '3 to 7 days'; ?></option>
+							<option value="7-14 days" <?php echo (!empty($wo['order']->warranty_policy) && $wo['order']->warranty_policy == '7-14 days') ? 'selected' : ''; ?>><?php echo '7 to 14 days'; ?></option>
+							<option value="14-30 days" <?php echo (!empty($wo['order']->warranty_policy) && $wo['order']->warranty_policy == '14-30 days') ? 'selected' : ''; ?>><?php echo '14 to 30 days'; ?></option>
+							<option value="1 month" <?php echo (!empty($wo['order']->warranty_policy) && $wo['order']->warranty_policy == '1 month') ? 'selected' : ''; ?>><?php echo '1 month'; ?></option>
+							<option value="2 months" <?php echo (!empty($wo['order']->warranty_policy) && $wo['order']->warranty_policy == '2 months') ? 'selected' : ''; ?>><?php echo '2 months'; ?></option>
+							<option value="3 months" <?php echo (!empty($wo['order']->warranty_policy) && $wo['order']->warranty_policy == '3 months') ? 'selected' : ''; ?>><?php echo '3 months'; ?></option>
+							<option value="6 months" <?php echo (!empty($wo['order']->warranty_policy) && $wo['order']->warranty_policy == '6 months') ? 'selected' : ''; ?>><?php echo '6 months'; ?></option>
+							<option value="1 year+" <?php echo (!empty($wo['order']->warranty_policy) && $wo['order']->warranty_policy == '1 year+') ? 'selected' : ''; ?>><?php echo '1 year plus'; ?></option>
+							<option value="No Refund" <?php echo (!empty($wo['order']->warranty_policy) && $wo['order']->warranty_policy == 'No Refund') ? 'selected' : ''; ?>><?php echo 'No refund'; ?></option>
+						</select>
+					</div>
+
+					<div class="wow_form_fields">
+						<label><?php echo 'Delivery Fee'; ?></label>
+						<div class="packaging-delivery-fee">
+							<select name="currency" id="currency" <?php echo ($wo['order']->status != 'placed') ? 'disabled' : ''; ?>>
+								<?php 
+								$currencies = [];
+								foreach ($wo['config']['currency_array'] as $currency_code => $currency_txt) {
+									if (isset($wo['config']['currency_symbol_array'][$currency_txt])) {
+										$currencies[$currency_txt] = $currency_txt . ' (' . $wo['config']['currency_symbol_array'][$currency_txt] . ')';
+									}
+								}
+								asort($currencies);
+								foreach ($currencies as $currency_txt => $currency_display) { 
+								?>
+									<option value="<?php echo $currency_txt; ?>" <?php echo (!empty($wo['order']->currency) && $wo['order']->currency == $currency_txt) ? 'selected' : ''; ?>>
+										<?php echo $currency_display; ?>
+									</option>
+								<?php } ?>
+							</select>
+
+							<input type="number" name="delivery_fee" id="delivery_fee" 
+								placeholder="<?php echo 'Enter Fee'; ?>" 
+								value="<?php echo !empty($wo['order']->delivery_fee) ? $wo['order']->delivery_fee : ''; ?>" 
+								<?php echo ($wo['order']->status != 'placed') ? 'readonly' : ''; ?>>
+						</div>                    
+					</div>
+					<div class="wow_form_fields">
+						<label><?php echo 'Tracking URL (Update)'; ?></label>
+						<input type="url" name="url" id="tracking_url" 
+							placeholder="<?php echo 'Tracking website link url'; ?>" 
+							value="<?php echo !empty($wo['order']->tracking_url) ? $wo['order']->tracking_url : $wo['config']['site_url'] . '/customer_order/' . $wo['order']->hash_id; ?>"
+							<?php echo ($wo['order']->status != 'placed') ? 'readonly' : ''; ?>>
+					</div>
+					
+					<!-- Form Footer -->
+					<div class="tracking_alert">
+						<?php if ($wo['order']->status == 'placed') { ?>
+							<button type="button" class="btn btn-default btn-mat" onclick="SaveTrackingDetails('<?php echo $wo['hash_id']; ?>')" <?php echo ($wo['order']->status != 'placed') ? 'disabled' : ''; ?>>
+								<?php echo $wo['lang']['save']; ?>
+							</button>
+						<?php } ?>
+						<div class="tracking-alert-notice">
+							<?php echo 'Please check details before saving'; ?>
+						</div>
+					</div>
+
+					<!-- Accept and Reset Buttons -->
+					<div class="wow_form_fields">
+						<!-- Alert Info -->
+						<?php if ($wo['order']->status == 'placed') { ?>
+							<div class="alert alert-danger">
+								<select class="border-bottom" id="cart_product_qty" onchange="ChangeStatus(this,'<?php echo $wo['hash_id'] ?>')">
+									<option value="placed" <?php if ($wo['order']->status == 'placed') {echo "selected";} ?>><?php echo 'Customer Awaiting Delivery Details'; ?></option>
+									<option value="canceled" <?php if ($wo['order']->status == 'canceled') {echo "selected";} ?>><?php echo 'Cancel Order'; ?></option>	
+								</select>
+							</div>
+						<?php } ?>
+
+						<?php if ($wo['order']->status == 'accepted') { ?>
+							<div class="alert alert-info">
+								<select class="border-bottom" id="cart_product_qty" onchange="ChangeStatus(this,'<?php echo $wo['hash_id'] ?>')">
+									<option value="accepted" <?php if ($wo['order']->status == 'accepted') {echo "selected";} ?>><?php echo 'Awaiting Customer Approval'; ?></option>
+								</select>
+							</div>
+						<?php } ?>
+
+						<?php if ($wo['order']->status == 'packed') { ?>
+							<div class="alert alert-warning">
+								<select class="border-bottom" id="cart_product_qty" onchange="ChangeStatus(this,'<?php echo $wo['hash_id'] ?>')">
+									<option value="packed" <?php if ($wo['order']->status == 'packed') {echo "selected";} ?>><?php echo 'Customer Awaiting Delivery Status'; ?></option>
+									<option value="shipped" <?php if ($wo['order']->status == 'shipped') {echo "selected";} ?>><?php echo 'Order Shipped'; ?></option>
+								</select>
+							</div>
+						<?php } ?>
+
+						<?php if ($wo['order']->status == 'shipped') { ?>
+							<div class="alert alert-warning">			
+								<select class="border-bottom" id="cart_product_qty" onchange="ChangeStatus(this,'<?php echo $wo['hash_id'] ?>')">
+									<option value="shipped" <?php if ($wo['order']->status == 'shipped') {echo "selected";} ?>><?php echo 'Order Shipped'; ?></option>
+								</select>
+							</div>
+						<?php } ?>
+
+
+						<?php if ($wo['order']->status == 'delivered') { ?>
+							<div class="alert alert-success">
+								<select class="border-bottom" id="cart_product_qty" onchange="ChangeStatus(this,'<?php echo $wo['hash_id'] ?>')">
+									<option value="delivered" <?php if ($wo['order']->status == 'delivered') {echo "selected";} ?>><?php echo 'Order Delivered'; ?></option>
+								</select>
+							</div>
+						<?php } ?>
+
+						<?php if ($wo['order']->status == 'canceled') { ?>
+							<div class="alert alert-dark">
+								<select class="border-bottom" id="cart_product_qty" onchange="ChangeStatus(this,'<?php echo $wo['hash_id'] ?>')">
+									<option value="canceled" <?php if ($wo['order']->status == 'canceled') {echo "selected";} ?>><?php echo 'Order Canceled'; ?></option>
+								</select>
+							</div>
+						<?php } ?>
+					</div>
+				</form>
+				<style>
+					.save-tracking-info {
+						margin-top: 20px;
+						display: flex;
+						justify-content: center;
+						font-size: 20px;
+						padding: 10px;
+					}
+
+					.save-tracking-details-info {
+						display: flex;
+						align-items: flex-end;
+						justify-content: space-between;
+						font-size: 18px;
+					}
+					.panel.wo_order_detail_widget select#currency {
+						margin-left: 15px;
+					}
+
+					.packaging-delivery-fee {
+						display: flex;
+						padding-right: 15px;
+					}
+
+					.packaging-delivery-fee select#currency {
+						margin-right: 20px;
+					}
+				</style>
+			</div>
+		</div>
+
+		<div class="col-md-7">
+			<div class="panel panel-white ch_card ch_cart">
+
+				<?php if ($wo['order']->status != 'delivered') { ?>
+					<div class="alert alert-info">
+						<?php echo $wo['lang']['if_the_order_status']; ?>
+					</div>
+					<div class="alert alert-info">
+						<?php echo $wo['lang']['if_the_order_delivered']; ?>
+					</div>
+				<?php } ?>
+
+				<style>
+					.ch_checkout_title .badge {
+						padding: 15px 11px;
+					}
+				</style>
+
+				<div class="row ch_prod_items_row">
+					<?php echo $wo['html']; ?>
+				</div>
+				<div class="ch_total_price">
+					<div class="divider border-bottom"></div>
+
+					<h4><?php echo $wo['lang']['payments'] ?></h4>
+					<div class="cust_order_prices">
+						<h4><?php echo $wo['lang']['subtotal']; ?></h4>
+						<p><?php echo $wo['config']['currency_symbol_array'][$wo['config']['currency']].$wo['total']; ?></p>
+					</div>
+					
+					<div class="cust_order_prices">
+						<h4><?php echo $wo['lang']['commission']; ?></h4>
+						<p><?php echo $wo['config']['currency_symbol_array'][$wo['config']['currency']].$wo['total_commission']; ?></p>
+					</div>
+					
+					<div class="cust_order_prices">
+						<h4><?php echo $wo['lang']['final_price']; ?></h4>
+						<p><?php echo $wo['config']['currency_symbol_array'][$wo['config']['currency']].$wo['total_final_price']; ?></p>
+					</div>
+					
+					<div class="divider border-bottom"></div>
+					<button type="button" class="btn btn-info btn-mat buy_button" onclick="DownloadPurchased('<?php echo $wo['hash_id'] ?>','order')"><?php echo $wo['lang']['download_invoice']; ?></button>
+					<svg width="371" height="218" viewBox="0 0 371 218" fill="none" xmlns="http://www.w3.org/2000/svg"><path opacity="0.4" d="M275.008 41.3416C307.369 28.1561 375.43 47.6713 391.786 57.0941L410.44 43.2371L532.518 -219.202L71.3192 -143.669C60.4225 -120.263 39.7451 -60.5365 44.2096 -8.88462C49.7902 55.6802 112.183 99.047 174.223 94.1242C232.5 89.5 234.557 57.8234 275.008 41.3416Z" fill="#48B774" stroke="white"/><path d="M300.467 72.6242C332.827 59.4387 663.274 90.2678 679.63 99.6906L766.842 -127.791L557.976 -187.919L96.7778 -112.387C85.881 -88.9802 65.2036 -29.2539 69.6681 22.398C75.2487 86.9628 136.92 125.407 199.682 125.407C262.5 125.407 260.016 89.1061 300.467 72.6242Z" stroke="#48B774" stroke-width="6"/></svg>
+				</div>
+
+				<style>
+					span.badge {
+						font-size: 24px;
+					}
+
+					h2.ch_checkout_title {
+						font-size: 24px;
+					}
+					.ch_checkout_title::after {
+						left: 90%;
+					}
+					h2.ch_checkout_title {
+						display: grid;
+					}
+
+					.ch_checkout_title .badge {
+						padding: 15px 11px;
+					}
+				</style>
+
+			</div>
+
+			<h3 class="bold"><?php echo $wo['lang']['delivery_address'] ?></h3>
+			<div class="address_book panel wo_order_detail_widget">
+				<div class="address_book_innr">
+					<div class="address_box">
+						<p class="addrs_name"><?php echo($wo['address']->name) ?></p>
+						<p class="addrs_phone"><?php echo($wo['address']->phone) ?></p>
+						<p class="addrs_street"><?php echo($wo['address']->address) ?></p>
+						<p class="addrs_street"><?php echo($wo['address']->city) ?><br><?php echo($wo['address']->country) ?></p>
+						<p class="addrs_count"><?php echo($wo['address']->zip) ?></p>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+<a href="<?php echo Wo_SeoLink('index.php?link1=order&id=' . $wo['hash_id']); ?>" data-ajax="?link1=order&id=<?php echo $wo['hash_id']; ?>" id="load_order"></a>
+
+<script type="text/javascript">
+	function SaveTrackingDetails(hash) {
+		let formData = {
+			vendor_contact: $('#vendor_contact').val(),
+			payment_service_name: $('#payment_service_name').val(),
+			payment_service_username: $('#payment_service_username').val(),
+			payment_service_account: $('#payment_service_account').val(),
+			delivery_agent: $('#delivery_agent').val(),
+			tracking_id: $('#tracking_id').val(),
+			tracking_url: $('#tracking_url').val(),
+			warranty_policy: $('#warranty_policy').val(),
+			delivery_fee: $('#delivery_fee').val(),
+			currency: $('#currency').val(),
+			order_hash: hash
+		};
+
+		// Check if tracking_id or tracking_url are missing
+		if (!formData.tracking_id || !formData.tracking_url) {
+			$('.tracking_alert').html('<div class="alert alert-danger">Tracking ID and Tracking URL are required.</div>');
+			setTimeout(function () {
+				$('.tracking_alert').html(`
+					<?php if ($wo['order']->status == 'placed') { ?>
+						<button type="button" class="btn btn-default btn-mat" onclick="SaveTrackingDetails('<?php echo $wo['hash_id']; ?>')" <?php echo ($wo['order']->status != 'placed') ? 'disabled' : ''; ?>>
+							<?php echo $wo['lang']['save']; ?>
+						</button>
+					<?php } ?>
+					<div class="tracking-alert-notice">
+						<?php echo 'Please check details before saving'; ?>
+					</div>
+				`); // Reset the content of the tracking_alert section
+			}, 3000); // 3-second delay
+			return; // Stop further execution
+		}
+
+		// Disable the Save button while processing
+		$('button[onclick^="SaveTrackingDetails"]').prop('disabled', true);
+
+		$.post(Wo_Ajax_Requests_File() + '?f=products&s=tracking', formData, function (response) {
+			if (response.status == 200) {
+				$('.tracking_alert').html('<div class="alert alert-success">' + response.message + '</div>');
+				setTimeout(function () {
+					location.reload(); // Reload the page after a short delay
+				}, 1000); // 1-second delay for user to see the success message
+			} else {
+				$('.tracking_alert').html('<div class="alert alert-danger">' + response.message + '</div>');
+				setTimeout(function () {
+					$('.tracking_alert').html(`
+						<?php if ($wo['order']->status == 'placed') { ?>
+							<button type="button" class="btn btn-default btn-mat" onclick="SaveTrackingDetails('<?php echo $wo['hash_id']; ?>')" <?php echo ($wo['order']->status != 'placed') ? 'disabled' : ''; ?>>
+								<?php echo $wo['lang']['save']; ?>
+							</button>
+						<?php } ?>
+						<div class="tracking-alert-notice">
+							<?php echo 'Please check details before saving'; ?>
+						</div>
+					`); // Reset the content of the tracking_alert section
+					$('button[onclick^="SaveTrackingDetails"]').prop('disabled', false); // Re-enable the Save button
+				}, 3000); // 3-second delay
+			}
+		}).fail(function () {
+			$('.tracking_alert').html('<div class="alert alert-danger">An error occurred while saving the details.</div>');
+			setTimeout(function () {
+				$('.tracking_alert').html(`
+					<?php if ($wo['order']->status == 'placed') { ?>
+						<button type="button" class="btn btn-default btn-mat" onclick="SaveTrackingDetails('<?php echo $wo['hash_id']; ?>')" <?php echo ($wo['order']->status != 'placed') ? 'disabled' : ''; ?>>
+							<?php echo $wo['lang']['save']; ?>
+						</button>
+					<?php } ?>
+					<div class="tracking-alert-notice">
+						<?php echo 'Please check details before saving'; ?>
+					</div>
+				`); // Reset the content of the tracking_alert section
+				$('button[onclick^="SaveTrackingDetails"]').prop('disabled', false); // Re-enable the Save button
+			}, 3000); // 3-second delay
+		});
+	}
+</script>
+
+<script type="text/javascript">
+    // Populate form fields when a tracking detail is selected
+    document.querySelectorAll('.delivery_details').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            // Check if the order status is 'placed'
+            if ('<?php echo $wo['order']->status; ?>' === 'placed') {
+                if (this.checked) {
+                    document.getElementById('vendor_contact').value = this.dataset.vendor_contact || '';
+                    document.getElementById('payment_service_name').value = this.dataset.payment_service_name || '';
+                    document.getElementById('payment_service_username').value = this.dataset.payment_service_username || '';
+                    document.getElementById('payment_service_account').value = this.dataset.payment_service_account || '';
+                    document.getElementById('delivery_agent').value = this.dataset.delivery_agent || '';
+                    document.getElementById('tracking_id').value = this.dataset.tracking_id || '';
+                    document.getElementById('tracking_url').value = this.dataset.tracking_url || '';
+                    document.getElementById('warranty_policy').value = this.dataset.warranty_policy || '';
+                    document.getElementById('currency').value = this.dataset.currency || '';
+                }
+            } else {
+                // If the status is not 'placed', show an alert or do nothing
+                alert('Customer must "Reset Order" before changing delivery tracking details.');
+            }
+        });
+    });
+</script>
+
+<style>
+	.tracking_alert {
+		display: flex;
+		justify-content: space-evenly;
+		align-items: baseline;
+	}
+	.tracking-alert-notice {
+		font-size: 20px;
+	}
+	.btn-default {
+		background: #378737;
+		border: 0;
+		font-size: 20px;
+		color: white;
+	}
+</style>

@@ -1,0 +1,218 @@
+
+$color_highlight:#e74c3c;
+.zfolio.skin-gazelia{
+  .zfolio-item{
+
+
+
+    .zfolio-item--inner{
+      overflow: hidden;
+
+      .the-overlay{
+        background-color: rgba(0,0,0,0);
+        $transition-property: background;
+        $transition-duration: .25s;
+        $transition-timing: ease-out;
+        @include apply_transition($transition-property,$transition-duration,$transition-timing);
+
+        position: absolute;
+
+        .the-overlay-anchor{
+          position: absolute;
+          top: -28px;
+          left:50%;
+          transform: translate3d(-50%,-50%,0);
+          -webkit-transform: translate3d(-50%,-50%,0);
+          width: 56px;
+          height: 56px;
+
+          background-color: #FFFFFF;
+          border-radius: 50%;
+
+
+
+          $transition-property: top;
+          $transition-duration: .25s;
+          $transition-timing: ease-out;
+
+
+
+          @include apply_transition($transition-property,$transition-duration,$transition-timing);
+
+
+        }
+        .the-overlay-anchor:after{
+          content: "\f067";
+          font-family: "FontAwesome",arial, serif;
+
+          color: #212121;
+
+          position: absolute;
+          top:50%;
+          left:50%;
+          transform: translate3d(-50%,-50%,0);
+          -webkit-transform: translate3d(-50%,-50%,0);
+
+          font-size: 21px;
+
+        }
+      }
+    }
+    .item-meta{
+      position: absolute;
+      width: 100%;
+      top: calc(100% + 10px);
+      opacity: 0;
+      background-color: #FFFFFF;
+      color: #212121;
+      text-transform: uppercase;
+      text-align: center;
+
+
+
+
+
+      top: auto;
+
+      bottom: 0px;
+
+
+      $transition-property: bottom,opacity;
+      $transition-duration: .3s;
+      $transition-timing: ease-out;
+
+
+
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+
+      .the-title{
+
+      }
+
+      .the-desc{
+
+        font-family: "Open Sans", arial;
+
+
+
+        color: #777777;
+
+
+        $transition-property: color;
+        $transition-duration: .25s;
+        $transition-timing: ease-in;
+
+
+
+        @include apply_transition($transition-property,$transition-duration,$transition-timing);
+      }
+    }
+
+    .item-meta:before{
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+
+      border-bottom: 10px solid #FFFFFF;
+
+      content:"";
+      position: absolute;
+      bottom: 100%;
+      left:50%;
+      margin-left: -10px;
+
+
+
+
+      $transition-property: all;
+      $transition-duration: .25s;
+      $transition-timing: ease-in;
+
+
+
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+
+    }
+
+
+  }
+
+  .zfolio-item:hover{
+
+    .zfolio-item--inner {
+      overflow: hidden;
+
+      .the-overlay {
+
+        .the-overlay-anchor {
+          top: 50%;
+        }
+      }
+    }
+    .item-meta{
+      color:#111111;
+      bottom: auto;
+      bottom: 20px;
+      top: auto;
+      opacity: 1;
+      .the-desc{
+
+        color:#111111;
+      }
+    }
+    .the-overlay{
+      background-color: rgba(0,0,0,.5);
+    }
+    .item-meta:before{
+    }
+
+
+  }
+}
+
+
+.zfolio.skin-gazelia.skin-gazelia--transparent{
+  .zfolio-item{
+
+
+    a.zfolio-item--inner{
+      display: block;
+    }
+    .zfolio-item--inner{
+      overflow: hidden;
+
+      .the-overlay{
+
+        .the-overlay-anchor{
+          background-color: transparent;
+          border: 2px solid #EEEEEE;
+
+        }
+        .the-overlay-anchor:after{
+          content: "\f002";
+          color: #ffffff;
+          font-size: 18px;
+
+        }
+      }
+    }
+
+    .item-meta{
+      background-color: transparent;
+
+
+      &,.the-title{
+
+        color: #ffffff;
+      }
+
+    }
+    .item-meta:before{
+      display: none;
+    }
+  }
+}
+
+
+

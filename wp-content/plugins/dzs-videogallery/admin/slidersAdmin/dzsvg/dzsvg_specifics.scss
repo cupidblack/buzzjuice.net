@@ -1,0 +1,13 @@
+
+
+$visibleLab: 'dzsvg--sliders-admin--vimeo-api-requires-user-id';
+
+
+body{
+
+  &:not(.slidersAdmin--visible-for--#{$visibleLab}):not(.a){
+    .slidersAdmin--visible-for--#{$visibleLab}{
+      display: none;
+    }
+  }
+}

@@ -1,0 +1,93 @@
+.dzsas-second-con {
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 10px 0;
+}
+.dzsas-second-con:not(.dzspb_layb_one_third) {
+  width: 100%;
+}
+.dzsas-second-con .dzsas-second-con--clip {
+  position: relative;
+  transition-property: left;
+  transition-duration: 0.3s;
+  transition-timing-function: ease-out;
+}
+.dzsas-second-con .dzsas-second-con--clip > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition-property: opacity, visibility;
+  transition-duration: 0.3s;
+  transition-timing-function: ease-out;
+}
+.dzsas-second-con .dzsas-second-con--clip > *.active {
+  opacity: 1;
+  visibility: visible;
+}
+.dzsas-second-con .read-more-con .read-more-content {
+  overflow: hidden;
+  display: block;
+  height: 0;
+}
+.dzsas-second-con .read-more-con .read-more-label {
+  color: #FFFFFF;
+  background-color: #333333;
+  text-align: center;
+  font-size: 14px;
+  font-family: "Open Sans", sans-sarif;
+  cursor: pointer;
+  transition-property: background;
+  transition-duration: 0.3s;
+  transition-timing-function: ease-out;
+}
+.dzsas-second-con .read-more-con .read-more-label i {
+  font-size: 22px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px;
+  transition-property: all;
+  transition-duration: 0.3s;
+  transition-timing-function: ease-out;
+  position: relative;
+  top: 1px;
+}
+.dzsas-second-con .read-more-con .read-more-label span {
+  display: inline-block;
+  vertical-align: middle;
+}
+.dzsas-second-con .read-more-con.active .read-more-content {
+  overflow: hidden;
+  display: block;
+  height: 0;
+}
+.dzsas-second-con .read-more-con.active .read-more-label {
+  background-color: #009bce;
+}
+.dzsas-second-con .read-more-con.active .read-more-label i {
+  transform: rotate(180deg);
+}
+.dzsas-second-con .read-more-con.active .read-more-label span {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.dzsas-second-con.skin-balne {
+  padding-top: 0;
+}
+.dzsas-second-con.skin-balne .item h4 {
+  font-size: 32px;
+  text-transform: uppercase;
+  text-align: left;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+.dzsas-second-con.skin-balne .item p {
+  color: #515151;
+  font-size: 12px;
+}
+
+/*# sourceMappingURL=second-con.css.map */

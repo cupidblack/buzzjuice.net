@@ -1,0 +1,116 @@
+.givewp-card {
+	background: #fff;
+	border-radius: 5px;
+	box-shadow: 0 3px 6px rgba(68, 68, 68, 0.05), 0 3px 6px rgba(68, 68, 68, 0.05);
+	display: flex;
+	flex-direction: column;
+
+	> .title {
+		font-weight: 900;
+		padding: 16px;
+		font-size: 15px;
+	}
+
+	> .content {
+		padding: 0;
+		flex: 1;
+		display: flex;
+		position: relative;
+		flex-direction: column;
+	}
+}
+
+.givewp-chart-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px;
+
+	> .givewp-chart-title-text {
+		font-weight: 600;
+		font-size: 15px;
+		white-space: nowrap;
+	}
+}
+
+.givewp-chart-canvas {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	background: #f4f4f4;
+	border-radius: 5px;
+	overflow: hidden;
+
+	canvas {
+		position: relative;
+	}
+}
+
+#givewp-chartjs-tooltip {
+	min-width: 80px;
+	text-align: center;
+	border-radius: 3px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	transform: translate(-50%, 0);
+
+	.givewp-tooltip-header {
+		background: #666;
+		padding: 8px 12px;
+		color: #fff;
+		font-size: 15px;
+		border-radius: 3px 3px 0 0;
+	}
+
+	.givewp-tooltip-body {
+		padding: 8px 12px;
+		color: rgb(228, 228, 228);
+		font-size: 12px;
+		background: #555;
+		border-radius: 0 0 3px 3px;
+	}
+
+	.givewp-tooltip-caret {
+		height: 14px;
+		width: 20px;
+		margin: 0 auto;
+		transform: translate3d(0, -1px, 0);
+		background: #555;
+		clip-path: polygon(50% 100%, 0 0, 100% 0);
+	}
+}
+
+.givewp-funds-legends {
+	position: absolute;
+	top: 20px;
+	right: 50px;
+	padding: 0;
+	margin: 0;
+
+	li {
+		display: block;
+		padding: 0;
+		line-height: 0;
+		cursor: pointer;
+		div {
+			position: relative;
+			width: 16px;
+			height: 16px;
+			margin-right: 10px;
+			border-radius: 20px;
+			top: 8px;
+			left: -25px;
+		}
+	}
+}
+
+.givewp-funds-linetrough {
+	text-decoration: line-through;
+}
+
+@media (max-width: 768px) {
+	.givewp-card {
+		grid-column: span 12 !important;
+	}
+}

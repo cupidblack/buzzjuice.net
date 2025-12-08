@@ -1,0 +1,45 @@
+<div class="usin-tabs">
+	<ul>
+		<li ng-class="['usin-tab', {'usin-tab-selected': $ctrl.currentGroup == group}]"
+			ng-repeat="group in $ctrl.reportGroups" ng-click="$ctrl.changeGroup(group)">
+			<span class="usin-tab-text">{{group.name}}</span>
+		</li>
+
+	<div class="usin-report-options">
+		<usin-report-toggle reports="$ctrl.reports" group="$ctrl.currentGroup"
+			on-visibility-change="$ctrl.changeReportVisibility(report, newVisibility)"></usin-report-toggle>
+		<button class="usin-btn usin-btn-export usin-btn-export-reports"
+				ng-click="export()" ng-disabled="$ctrl.isLoading()">
+			<span class="usin-icon-export" />
+			<md-tooltip md-direction="top">{{$ctrl.strings.export}}</md-tooltip>
+		</button>
+	</div>
+	</ul>
+</div>
+
+<!-- report filters -->
+<div ng-if="$ctrl.currentGroup.filters"
+		 ng-class="['usin-report-group-filters', {'usin-report-group-filters-focus': $ctrl.currentGroup.isAwaitingFilterSelection}]">
+	<div ng-repeat="filter in $ctrl.currentGroup.filters" class="usin-report-group-filter">
+		<label>{{filter.name}}</label>
+		<usin-select-field ng-model="$ctrl.currentGroup.appliedFilters[filter.id]" options="filter.options"
+											 search-action="filter.searchAction" ng-change="$ctrl.onGroupFiltersChange()" class="usin-select-large">
+		</usin-select-field>
+	</div>
+</div>
+
+<!-- report boxes -->
+
+<div class="usin-reports" ng-if="!$ctrl.currentGroup.isAwaitingFilterSelection">
+	<usin-report ng-repeat="ro in $ctrl.reports | group: $ctrl.currentGroup | filter:{visible:true}"
+		report-options="ro" group-filters="$ctrl.currentGroup.appliedFilters" class="usin-report-box">
+	</usin-report>
+</div>
+<div class="clear"></div>
+<div ng-if="$ctrl.currentGroup.info" class="usin-group-info">
+	<p ng-bind-html="$ctrl.currentGroup.info"></p>
+</div>
+
+<div class="usin-no-reports-found notice notice-warning" ng-if="!($ctrl.reports | group:$ctrl.currentGroup).length">
+	<p>{{$ctrl.strings.noReportsFound}}</p>
+</div>

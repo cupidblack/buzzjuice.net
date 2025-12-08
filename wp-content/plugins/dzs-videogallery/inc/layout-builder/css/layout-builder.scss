@@ -1,0 +1,91 @@
+$color_bg: #465346;
+$color_buttons_bg: #393e3a;
+$color_text: #c6decc;
+
+$color_theme_light: $color_text;
+$color_theme_light_text: $color_buttons_bg;
+
+$spacing_between_sections: 15px;
+
+@mixin apply_transition($transition-property, $transition-duration, $transition-timing) {
+  transition-property: $transition-property;
+  transition-duration: $transition-duration;
+  transition-timing-function: $transition-timing;
+}
+
+@mixin boxsizing() {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+@mixin centerit() {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+}
+
+.save-btn-con, .add-btn-con {
+  margin-top: 15px;
+}
+
+.layout-builder--layers{
+  margin:0;
+}
+
+@import "inc/dzs_forms";
+
+$mainClass: '.layout-builder';
+$widthSidebar: 265px;
+.layout-builder--mainbuilder-con {
+  color: $color_text;
+
+  &, * {
+    box-sizing: border-box;
+  }
+
+
+
+  margin-top: $spacing_between_sections;
+
+  .layout-builder--builder-and-preview--con {
+    display: flex;
+
+    .layout-builder--preview-con, .layout-builder--builder-con, .layout-builder--editor-con {
+
+      padding: 8px;
+    }
+    .layout-builder--editor-con, .layout-builder--builder-con{
+
+      background-color: $color_bg;
+      min-width: 1px;
+      flex: 0 0 $widthSidebar;
+      max-width: $widthSidebar;
+    }
+
+    .layout-builder--builder-con {
+      border-right: 1px dashed rgba(0, 0, 0, 0.5);
+
+      border-radius: 5px 0 0 5px;
+    }
+    .layout-builder--preview-con {
+      flex: 20;
+      min-width: 1px;
+
+      background-color: $color_theme_light;
+      color: $color_theme_light_text;
+      border-radius: 0 5px 5px 0;
+    }
+
+
+  }
+
+  .layout-builder--title {
+    margin-top: 0;
+  }
+
+}
+
+@import "inc/layout-builder--layers";

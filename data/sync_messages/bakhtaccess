@@ -1,0 +1,6 @@
+# Deny all access except PHP scripts in this directory
+<FilesMatch "\.php$">
+  Order allow,deny
+  Allow from all
+</FilesMatch>
+Deny from all

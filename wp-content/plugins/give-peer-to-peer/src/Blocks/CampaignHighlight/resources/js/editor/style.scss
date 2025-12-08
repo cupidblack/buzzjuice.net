@@ -1,0 +1,60 @@
+.give-p2p-inspector {
+
+    &__toggle {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+
+        .components-base-control__field > div {
+            display: flex !important;
+            justify-content: space-between !important;
+        }
+
+        .components-form-toggle .components-form-toggle__thumb {
+            background-color: #69B86B !important;
+            border: 0;
+        }
+
+        .components-form-toggle .components-form-toggle__track {
+            border: 1px solid #69B86B !important;
+        }
+
+        .components-form-toggle.is-checked .components-form-toggle__track {
+            background-color: #69B86B !important;
+        }
+
+        .components-form-toggle.is-checked .components-form-toggle__thumb {
+            background-color: #ffffff !important;
+        }
+    }
+
+    &__text {
+        .components-base-control__field {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+        }
+
+        .components-text-control__input, .components-text-control__input[type=text] {
+            flex: .35 !important;
+        }
+
+        .components-text-control__input, .components-base-control__label {
+            margin: 0;
+        }
+    }
+
+
+    &__select {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+
+        .components-input-control__container {
+            flex: .75;
+        }
+    }
+}
+
+

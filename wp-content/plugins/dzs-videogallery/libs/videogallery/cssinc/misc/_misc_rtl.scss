@@ -1,0 +1,16 @@
+
+html[dir=rtl] {
+  .videogallery .main-navigation {
+    direction: rtl !important;
+  }
+
+  .videogallery .main-navigation .the-title,
+  .videogallery .main-navigation .paragraph {
+    direction: rtl !important;
+  }
+
+  .videogallery .scroller {
+    direction: rtl !important;
+  }
+
+}

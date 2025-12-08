@@ -1,0 +1,5 @@
+body:not(.slidersAdmin--visible-for--dzsvg--sliders-admin--vimeo-api-requires-user-id):not(.a) .slidersAdmin--visible-for--dzsvg--sliders-admin--vimeo-api-requires-user-id {
+  display: none;
+}
+
+/*# sourceMappingURL=dzsvg_specifics.css.map */

@@ -1,0 +1,37 @@
+<div ng-class="['usin-report-wrap', {'usin-simple-loading': $ctrl.loading}]">
+	<div class="usin-report-header">
+
+		<span class="usin-report-title">{{$ctrl.reportOptions.name}}</span>
+		<span class="usin-icon-info" ng-if="$ctrl.reportOptions.info">
+			<md-tooltip md-direction="right" class="usin-multiline-tooltip">{{$ctrl.reportOptions.info}}</md-tooltip>
+		</span>
+
+		<ui-select ng-model="$ctrl.filter" ng-change="$ctrl.onFilterChange()" ng-if="$ctrl.hasFilters()" 
+			theme="select2" search-enabled="{{$ctrl.shouldEnableSearch()}}" ng-disabled="$ctrl.loading">
+			<ui-select-match>{{$ctrl.reportOptions.filters.options[$ctrl.filter]}}</ui-select-match>
+			<ui-select-choices repeat="item.key as (key , item) in $ctrl.reportOptions.filters.options | filter: $select.search" position="down">
+				<span ng-if="item.key != 'custom_period'">{{item.value}}</span>
+				<div ng-if="item.key == 'custom_period'"
+						 ng-click="$ctrl.onCustomPeriodClicked($event, $select)"
+						 class="usin-custom-period-select-link">{{$ctrl.customPeriodOptions.name}}</div>
+			</ui-select-choices>
+		</ui-select>
+
+		<div class="clear"></div>
+	</div>
+	<div class="usin-report-graph">
+		<div ng-if="$ctrl.supportsPagination()">
+			<button ng-click="$ctrl.loadPrevPage()" class="usin-btn usin-report-period-btn usin-report-period-btn-prev" ng-disabled="$ctrl.loading"><span class="usin-icon-arrow-left"></span></button>
+			<button ng-click="$ctrl.loadNextPage()" class="usin-btn usin-report-period-btn usin-report-period-btn-next" ng-disabled="$ctrl.loading || $ctrl.page == 0"><span class="usin-icon-arrow-right"></span></button>
+		</div>
+		<div ng-if="!$ctrl.loading && !$ctrl.error && !$ctrl.notice">
+			<usin-chart chart-options="$ctrl.chartOptions"></usin-chart>
+		</div>
+		<div ng-if="$ctrl.error" class="usin-error">
+			{{$ctrl.error}}
+		</div>
+		<div ng-if="$ctrl.notice" class="usin-notice-box">
+			{{$ctrl.notice}}
+		</div>
+	</div>
+</div>

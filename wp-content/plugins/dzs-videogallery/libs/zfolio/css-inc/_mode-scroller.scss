@@ -1,0 +1,46 @@
+.zfolio.mode-scroller {
+
+  > .items {
+    display: none;
+  }
+
+  .contentscroller {
+    opacity: 0;
+  }
+
+  &.inited-scroller-ready {
+    .contentscroller {
+      opacity: 1;
+    }
+  }
+
+  &.has-filters {
+
+
+    .zfolio-item {
+
+      $transition-property: transform, width, height, padding, opacity;
+      $transition-duration: .3s;
+      $transition-timing: ease-out;
+
+      opacity: 1;
+
+      transform-origin: center center;
+
+      @include apply_transition($transition-property, $transition-duration, $transition-timing);
+
+
+      &.filtered-out {
+        transform: scale(0);
+        width: 0 !important;
+        padding: 0;
+        opacity: 0;
+      }
+
+      .zfolio-item--inner--inner {
+        width: 100% !important;
+        height: 100% !important;
+      }
+    }
+  }
+}

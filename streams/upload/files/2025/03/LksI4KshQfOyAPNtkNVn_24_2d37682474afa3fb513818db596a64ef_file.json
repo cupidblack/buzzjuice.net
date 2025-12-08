@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "wowonder-449723",
+  "private_key_id": "6ef6cc686fe27f11cff47982020ffc8c2d7414af",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCik2ma3oKcNi4n\nChnnPhhmXS0Gpb2knk0sDp9vWrS4Es3R4UEdoWJJtnDmYfmIwv+l8OWqz9dZO9WG\nYraKTwGF+AV7TqYbK0J4ozxN2F8OT62jBe9tgtKs6PfNPsmTnt1tRbZT5Bs1Ry51\nvmG+mhY1WXvjIfSIBrRqH+R2ObVmHaXKcy/4YrgHzCY4b/eiOA4BNeGdoyvHNQv1\nTIZJQMxQCUj99bnr6lGwaigVgr3WSFEuhBHZYeVwdcnvbjNKNM4hg9xkKhm4RLMt\n75D7qppOyMdGW4DDDfUPByl1veohapqz/n5AzrBKLrLuf1/8AO0lfaUVSijDf6PU\nhhMFXcKhAgMBAAECggEAAk1/1ouIhOmHFjVRiNbFSIz4drgQMFKv/nNCaz6gd6t0\nNO+2lA2/ZusxC39B/sIt2uQzpwuHIuoBs4PbbG2NXAKIrLpAV4UFOgvTs1a5WaVZ\nz2FvkGVCZffj3M5AhMCRpX13GQK1/8sTC5WDyel1gcMYXXj119agKmm5dhzsJC91\nmLjyQ6jKfMtfPGOowZWRnCPcKAMp4m5SvWkf5ZseApdCkUqqNJdW7GaAFJ17r47q\nRIC2XlTyIy+H+KC7V52d0hYHuifxA+U7sukHE3fX2mu+Rt8gp7CO1bZPBW8Fxety\nF8dl+wq9dfMIAe8yaYuQ1o3lIMy83rZ3YaHXjsrsXwKBgQDdeWxJfcFZbIiLjpVS\neLABmF1BVVeoK/agAr+0Gg4ti/M3BXovwST4rdO0fw8nVLUC6jPB1cSu5DKgvzOo\nWNvE0meWcAvoi/AGSWQxwWP4kAvP7998WgZepIEfhAXJ1ye9I4CVtCmNCfykeZS4\nZUMGQsUM3/CHVzglBAdDbqR8YwKBgQC763lqyx9MPlJkfudHyQjm3ecbl5mkUvwU\nrsxQiPi0rPkqNDiDzneKkvhT3LSRekVsko52cROYf8YafwvenEUSAQKB380rxtlE\nybMDnbpsuNtCHgoENMNjbZIWcllRFm2WRsaMPhTvTGgJatC92Yz+Tfp6Ngtz27rS\nEBYcHOsKKwKBgDLfh15CQr2Vzq+v6uDs1BEpvJIbVm1M2/PZbcujCIqx0QZcfbqm\ndSWiWDTn0sVIEeQ/g/AMeIdr561A/k63SpQleKH3zuR18IahKSC8uYgJHo1/Hijk\nTP5Eb1yb6PB6OaialRjOL5U0LBJj0yOgLwsrHzRb5FZSVJU8HacBrUrdAoGAb10O\nqUESnSZZwYCLIzl58wcSDIH85SrghIlKP3fMm5XeWypzS3kx0odibqBeyc/CEKOR\nlZNRX5BpIA6mRBgrvo2mpLyyY/0FiQRW+A+jCQdLuJUArpluKSAn8PF3CNzXuLTc\nuQOZeG65QMtyRPAF5Dbl90LL6q8Ouaoa0DI6/90CgYBC/4TiFQr/rsHch0m0HxVN\nLud0cfjT2ryjIgnbDxpmuG2jP/z29yJkRkoSxHVpbRuzkugvCSzb4X9AEbi/jZgL\nfFmGIxGncUJh0TRawGtR4XFlArZg9hIssgyY2r99gqiR2zlzlWJcjmqESqcxdOrb\nIFfu0/cxFG4/GBoiKwzXGQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "buzzjuice-cloud-storage@wowonder-449723.iam.gserviceaccount.com",
+  "client_id": "106125733901402367117",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/buzzjuice-cloud-storage%40wowonder-449723.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

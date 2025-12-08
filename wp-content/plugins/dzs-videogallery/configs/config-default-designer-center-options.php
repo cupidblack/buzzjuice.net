@@ -1,0 +1,2 @@
+<?php
+return array('background' => '#111111', 'controls_background' => '#333333', 'scrub_background' => '#333333', 'scrub_buffer' => '#555555', 'controls_color' => '#aaaaaa', 'controls_hover_color' => '#dddddd', 'controls_highlight_color' => '#db4343', 'thumbs_bg' => '#333333', 'thumbs_active_bg' => '#777777', 'thumbs_text_color' => '#eeeeee', 'timetext_curr_color' => '#ffffff', 'thumbnail_image_width' => '', 'thumbnail_image_height' => '',);

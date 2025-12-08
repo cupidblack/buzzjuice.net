@@ -1,0 +1,146 @@
+.supportcard {
+    display: flex;
+    gap: 2.5rem;
+    justify-content: space-between;
+    align-items: center;
+
+    max-width: 1115px;
+    margin: auto;
+    padding: 2.5rem;
+
+    background-color: #fff;
+    box-shadow: 0 1.22202px 3.05505px rgba(0, 0, 0, 0.305862);
+    border-radius: 8px;
+
+    .main {
+        flex: 1;
+    }
+    .nav {
+        text-align: center;
+        display: flex;
+        gap: 1.25rem;
+        flex-direction: column;
+
+        button {
+            font-size: 22px;
+            width: 100%;
+        }
+    }
+
+    .avatar {
+        width: 200px;
+        height: 200px;
+
+        border-radius: 50%;
+        border: 2.92982px solid #fff;
+        box-shadow: 0 0.976608px 3.90643px rgba(0, 0, 0, 0.25);
+    }
+
+    .title {
+        color: #333;
+        font-size: 32px;
+        font-weight: 600;
+        margin: 0 0 20px;
+        line-height: 1.2em;
+    }
+
+    .fundraiserpill {
+        --verticalPad: 0.45em;
+
+        display: flex;
+        gap: var(--verticalPad);
+        padding: var(--verticalPad) 0.625em;
+        align-items: center;
+        font-size: 1rem;
+        font-weight: 500;
+        line-height: 1.2;
+        color: #555;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        border-radius: 9999px;
+
+        svg {
+            flex-shrink: 0;
+        }
+    }
+
+    .campaignlink {
+        color: var(--give-campaign-primary, #28c77b);
+        text-decoration: none;
+        margin-left: 6px;
+        font-weight: 600;
+    }
+
+    .progressbar {
+        margin-top: 10px;
+    }
+
+    .progressDetails {
+        display: flex;
+        flex-direction: row;
+        margin-bottom: 10px;
+        margin-top: 15px;
+        font-size: 17px;
+        font-weight: bold;
+        color: #767676;
+        align-items: center;
+    }
+
+    .progressDetails div {
+        flex-grow: 1;
+    }
+
+    .raised {
+        color: var(--give-campaign-primary, #28c77b);
+        font-size: 25px;
+    }
+
+    .goal {
+        text-align: right;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .supportcard {
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        height: auto;
+        padding: 40px;
+        gap: 0;
+
+        .main {
+            width: 100%;
+        }
+
+        .avatar {
+            width: 160px;
+            height: 160px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .nav {
+            width: 100%;
+            padding-top: 40px;
+
+            button {
+                font-size: 16px;
+            }
+        }
+
+        .fundraiserpill {
+            font-size: 0.875rem;
+        }
+
+        .progressDetails {
+            font-size: 14px;
+        }
+
+        .raised {
+            font-size: 16px;
+        }
+    }
+}

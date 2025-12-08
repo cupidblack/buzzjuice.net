@@ -1,0 +1,71 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 2,
+    "name": "give-p2p/campaign-list",
+    "version": "1.0.0",
+    "title": "Campaign List",
+    "category": "give",
+    "description": "The Campaign list block displays all campaigns and relative details",
+    "keywords": [
+        "campaigns"
+    ],
+    "supports": {
+        "align": [
+            "wide"
+        ]
+    },
+    "attributes": {
+        "campaign_id": {
+            "type": "string",
+            "default": ""
+        },
+        "per_page": {
+            "type": "number",
+            "default": 8
+        },
+        "align": {
+            "type": "string",
+            "default": "wide"
+        },
+        "accent_color": {
+            "type": "string",
+            "default": "#28c77b"
+        },
+        "columns": {
+            "type": "string",
+            "default": "max"
+        },
+        "layout": {
+            "type": "string",
+            "default": "grid"
+        },
+        "status": {
+            "type": "string",
+            "default": "all"
+        },
+        "show_avatar": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_goal": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_campaign_info": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_description": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_pagination": {
+            "type": "boolean",
+            "default": true
+        }
+    },
+    "textdomain": "give-peer-to-peer",
+    "editorStyle": "file:../../../../../public/css/give-p2p-campaign-list-block.css",
+    "editorScript": "file:../../../../../public/js/give-p2p-campaign-list-block.js"
+}
+

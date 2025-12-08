@@ -1,0 +1,536 @@
+2025-10-01 14:56:08 - Starting optimized migration
+2025-10-01 14:56:08 - Preloading target users, groups, fields...
+2025-10-01 14:56:08 - Preloaded 223 target users
+2025-10-01 14:56:08 - Preloaded 2 target groups
+2025-10-01 14:56:08 - Preloaded 57 target fields
+2025-10-01 14:56:08 - Building user map by user_login...
+2025-10-01 14:56:08 - UNMATCHED_USER oldID=73 login=65operatormarybeth
+2025-10-01 14:56:08 - UNMATCHED_USER oldID=84 login=agent00001
+2025-10-01 14:56:08 - UNMATCHED_USER oldID=85 login=agent00002
+2025-10-01 14:56:08 - UNMATCHED_USER oldID=86 login=agent00003
+2025-10-01 14:56:08 - UNMATCHED_USER oldID=87 login=agent00004
+2025-10-01 14:56:08 - UNMATCHED_USER oldID=88 login=agent00005
+2025-10-01 14:56:08 - UNMATCHED_USER oldID=45 login=carolinsmell32
+2025-10-01 14:56:08 - UNMATCHED_USER oldID=94 login=cupidblack-8189
+2025-10-01 14:56:08 - UNMATCHED_USER oldID=20 login=ntirigh
+2025-10-01 14:56:08 - UNMATCHED_USER oldID=30 login=scrawnyoerbss
+2025-10-01 14:56:08 - User map contains 56 matched users
+2025-10-01 14:56:08 - Loading old groups and fields...
+2025-10-01 14:56:08 - Loaded 8 old groups
+2025-10-01 14:56:08 - Loaded 443 old fields
+2025-10-01 14:56:08 - Mapping/creating groups in target...
+2025-10-01 14:56:08 - CREATED_GROUP oldG=2 name="Lifestyle" -> newG=3
+2025-10-01 14:56:08 - CREATED_GROUP oldG=3 name="About me" -> newG=4
+2025-10-01 14:56:08 - CREATED_GROUP oldG=5 name="Attributes" -> newG=5
+2025-10-01 14:56:08 - CREATED_GROUP oldG=8 name="Personal" -> newG=6
+2025-10-01 14:56:08 - CREATED_GROUP oldG=9 name="Interests" -> newG=7
+2025-10-01 14:56:08 - CREATED_GROUP oldG=10 name="Social Links" -> newG=8
+2025-10-01 14:56:08 - CREATED_GROUP oldG=11 name="Account Info" -> newG=9
+2025-10-01 14:56:08 - Group mapping complete: 8 entries
+2025-10-01 14:56:08 - Mapping/creating fields (pass 1: create fields with parent_id = 0)...
+2025-10-01 14:56:08 - CREATED_FIELD oldF=5 name="Phone Number" -> newF=58
+2025-10-01 14:56:08 - CREATED_FIELD oldF=6 name="My personal website or blog LinkURL is: " -> newF=59
+2025-10-01 14:56:08 - CREATED_FIELD oldF=7 name="Languages" -> newF=60
+2025-10-01 14:56:08 - CREATED_FIELD oldF=8 name="Nationality" -> newF=61
+2025-10-01 14:56:08 - CREATED_FIELD oldF=9 name="Ethnic Tribe" -> newF=62
+2025-10-01 14:56:08 - CREATED_FIELD oldF=10 name="Hobbies" -> newF=63
+2025-10-01 14:56:08 - CREATED_FIELD oldF=11 name="Skills" -> newF=64
+2025-10-01 14:56:08 - CREATED_FIELD oldF=12 name="Profession" -> newF=65
+2025-10-01 14:56:08 - CREATED_FIELD oldF=14 name="Gender" -> newF=66
+2025-10-01 14:56:08 - CREATED_FIELD oldF=21 name="Profile Type" -> newF=67
+2025-10-01 14:56:08 - CREATED_FIELD oldF=23 name="Username" -> newF=68
+2025-10-01 14:56:08 - CREATED_FIELD oldF=24 name="Some books I have read are" -> newF=69
+2025-10-01 14:56:08 - CREATED_FIELD oldF=25 name="Favorite Games" -> newF=70
+2025-10-01 14:56:08 - CREATED_FIELD oldF=26 name="Favorite Fashion Designer Label" -> newF=71
+2025-10-01 14:56:08 - CREATED_FIELD oldF=27 name="Favorite Movies &amp; Shows" -> newF=72
+2025-10-01 14:56:08 - CREATED_FIELD oldF=28 name="Favorite Radio Stations" -> newF=73
+2025-10-01 14:56:08 - CREATED_FIELD oldF=30 name="Favorite Podcasts &amp; Songs" -> newF=74
+2025-10-01 14:56:08 - CREATED_FIELD oldF=31 name="Sports I like to play are" -> newF=75
+2025-10-01 14:56:08 - CREATED_FIELD oldF=32 name="Role Model" -> newF=76
+2025-10-01 14:56:08 - CREATED_FIELD oldF=33 name="Favorite Actors" -> newF=77
+2025-10-01 14:56:08 - CREATED_FIELD oldF=34 name="Favorite Artists" -> newF=78
+2025-10-01 14:56:08 - CREATED_FIELD oldF=35 name="Favorite Colour" -> newF=79
+2025-10-01 14:56:08 - CREATED_FIELD oldF=36 name="My favorite day of the year is" -> newF=80
+2025-10-01 14:56:08 - CREATED_FIELD oldF=37 name="My religion is" -> newF=81
+2025-10-01 14:56:08 - CREATED_FIELD oldF=40 name="Looking for" -> newF=82
+2025-10-01 14:56:08 - CREATED_FIELD oldF=43 name="Relationship Status" -> newF=83
+2025-10-01 14:56:08 - CREATED_FIELD oldF=51 name="City" -> newF=84
+2025-10-01 14:56:08 - CREATED_FIELD oldF=52 name="Country" -> newF=85
+2025-10-01 14:56:08 - CREATED_FIELD oldF=246 name="One of my favorite quotes is:" -> newF=86
+2025-10-01 14:56:08 - CREATED_FIELD oldF=247 name="One thing I am most passionate about is:" -> newF=87
+2025-10-01 14:56:08 - CREATED_FIELD oldF=249 name="Height" -> newF=88
+2025-10-01 14:56:08 - CREATED_FIELD oldF=250 name="Weight" -> newF=89
+2025-10-01 14:56:08 - CREATED_FIELD oldF=251 name="Hair Color" -> newF=90
+2025-10-01 14:56:08 - CREATED_FIELD oldF=252 name="Auburn" -> newF=91
+2025-10-01 14:56:08 - CREATED_FIELD oldF=253 name="Black" -> newF=92
+2025-10-01 14:56:08 - CREATED_FIELD oldF=254 name="Blond" -> newF=93
+2025-10-01 14:56:08 - CREATED_FIELD oldF=255 name="Brown" -> newF=94
+2025-10-01 14:56:08 - CREATED_FIELD oldF=256 name="Chestnut" -> newF=95
+2025-10-01 14:56:08 - CREATED_FIELD oldF=257 name="Gray/White" -> newF=96
+2025-10-01 14:56:08 - CREATED_FIELD oldF=258 name="Eye Color" -> newF=97
+2025-10-01 14:56:08 - CREATED_FIELD oldF=266 name="Body Type" -> newF=98
+2025-10-01 14:56:08 - CREATED_FIELD oldF=276 name="Fitness Rating" -> newF=99
+2025-10-01 14:56:08 - CREATED_FIELD oldF=487 name="Single" -> newF=100
+2025-10-01 14:56:08 - CREATED_FIELD oldF=488 name="Dating" -> newF=101
+2025-10-01 14:56:08 - CREATED_FIELD oldF=489 name="Engaged" -> newF=102
+2025-10-01 14:56:08 - CREATED_FIELD oldF=490 name="Living together" -> newF=103
+2025-10-01 14:56:08 - CREATED_FIELD oldF=491 name="Married" -> newF=104
+2025-10-01 14:56:08 - CREATED_FIELD oldF=492 name="Widowed" -> newF=105
+2025-10-01 14:56:08 - CREATED_FIELD oldF=493 name="Prefer not to say" -> newF=106
+2025-10-01 14:56:08 - CREATED_FIELD oldF=576 name="Blue" -> newF=107
+2025-10-01 14:56:08 - CREATED_FIELD oldF=578 name="Hazel" -> newF=108
+2025-10-01 14:56:08 - CREATED_FIELD oldF=579 name="Gray" -> newF=109
+2025-10-01 14:56:08 - CREATED_FIELD oldF=580 name="Green" -> newF=110
+2025-10-01 14:56:08 - CREATED_FIELD oldF=581 name="Other" -> newF=111
+2025-10-01 14:56:08 - CREATED_FIELD oldF=601 name="Apple" -> newF=112
+2025-10-01 14:56:08 - CREATED_FIELD oldF=602 name="Athletic" -> newF=113
+2025-10-01 14:56:08 - CREATED_FIELD oldF=603 name="Inverted Triangle" -> newF=114
+2025-10-01 14:56:08 - CREATED_FIELD oldF=604 name="Big" -> newF=115
+2025-10-01 14:56:08 - CREATED_FIELD oldF=605 name="Fat" -> newF=116
+2025-10-01 14:56:08 - CREATED_FIELD oldF=606 name="Healthy" -> newF=117
+2025-10-01 14:56:08 - CREATED_FIELD oldF=607 name="Hourglass" -> newF=118
+2025-10-01 14:56:08 - CREATED_FIELD oldF=608 name="Large" -> newF=119
+2025-10-01 14:56:08 - CREATED_FIELD oldF=609 name="Pear" -> newF=120
+2025-10-01 14:56:08 - CREATED_FIELD oldF=610 name="Petite" -> newF=121
+2025-10-01 14:56:08 - CREATED_FIELD oldF=611 name="Short" -> newF=122
+2025-10-01 14:56:08 - CREATED_FIELD oldF=612 name="Slender" -> newF=123
+2025-10-01 14:56:08 - CREATED_FIELD oldF=613 name="Slim" -> newF=124
+2025-10-01 14:56:08 - CREATED_FIELD oldF=614 name="Small" -> newF=125
+2025-10-01 14:56:08 - CREATED_FIELD oldF=615 name="Tall" -> newF=126
+2025-10-01 14:56:08 - CREATED_FIELD oldF=616 name="XL" -> newF=127
+2025-10-01 14:56:08 - CREATED_FIELD oldF=617 name="XXL" -> newF=128
+2025-10-01 14:56:08 - CREATED_FIELD oldF=618 name="XXXL" -> newF=129
+2025-10-01 14:56:08 - CREATED_FIELD oldF=619 name="XXXXL" -> newF=130
+2025-10-01 14:56:08 - CREATED_FIELD oldF=620 name="I am actively fit" -> newF=131
+2025-10-01 14:56:08 - CREATED_FIELD oldF=621 name="I try to keep fit" -> newF=132
+2025-10-01 14:56:08 - CREATED_FIELD oldF=622 name="I do fitness once in a while" -> newF=133
+2025-10-01 14:56:08 - CREATED_FIELD oldF=623 name="I am planning on starting some kind of fitness program" -> newF=134
+2025-10-01 14:56:08 - CREATED_FIELD oldF=624 name="I am not fit" -> newF=135
+2025-10-01 14:56:08 - CREATED_FIELD oldF=775 name="I am 7 feet or taller" -> newF=136
+2025-10-01 14:56:08 - CREATED_FIELD oldF=776 name="6ft 11in, 83in, 210.82cm, 2.11 m" -> newF=137
+2025-10-01 14:56:08 - CREATED_FIELD oldF=777 name="6ft 10in, 82in, 208.28cm, 2.08 m" -> newF=138
+2025-10-01 14:56:08 - CREATED_FIELD oldF=778 name="6ft 9in, 81in, 205.74cm, 2.06 m" -> newF=139
+2025-10-01 14:56:08 - CREATED_FIELD oldF=779 name="6ft 8in, 80in, 203.2cm, 2.03 m" -> newF=140
+2025-10-01 14:56:08 - CREATED_FIELD oldF=780 name="6ft 7in, 79in, 200.66cm, 2.01 m" -> newF=141
+2025-10-01 14:56:08 - CREATED_FIELD oldF=781 name="6ft 6in, 78in, 198.12cm, 1.98 m" -> newF=142
+2025-10-01 14:56:08 - CREATED_FIELD oldF=782 name="6ft 5in, 77in, 195.58cm, 1.96 m" -> newF=143
+2025-10-01 14:56:08 - CREATED_FIELD oldF=783 name="6ft 4in, 76in, 193.04cm, 1.93 m" -> newF=144
+2025-10-01 14:56:08 - CREATED_FIELD oldF=784 name="6ft 3in, 75in, 190.5cm, 1.91 m" -> newF=145
+2025-10-01 14:56:08 - CREATED_FIELD oldF=785 name="6ft 2in, 74in, 187.96cm, 1.88 m" -> newF=146
+2025-10-01 14:56:08 - CREATED_FIELD oldF=786 name="6ft 1in, 73in, 185.42cm, 1.85 m" -> newF=147
+2025-10-01 14:56:08 - CREATED_FIELD oldF=787 name="6ft, 72in, 182.88cm, 1.83 m" -> newF=148
+2025-10-01 14:56:08 - CREATED_FIELD oldF=788 name="5ft 11in, 71in, 180.34 cm 1.8 m" -> newF=149
+2025-10-01 14:56:08 - CREATED_FIELD oldF=789 name="5ft 10in, 70in, 177.8cm, 1.78 m" -> newF=150
+2025-10-01 14:56:08 - CREATED_FIELD oldF=790 name="5ft 9in, 69in, 175.26cm, 1.75 m" -> newF=151
+2025-10-01 14:56:08 - CREATED_FIELD oldF=791 name="5ft 8in, 68in, 172.72cm, 1.73 m" -> newF=152
+2025-10-01 14:56:08 - CREATED_FIELD oldF=792 name="5ft 7in, 67in, 170.18cm, 1.7 m" -> newF=153
+2025-10-01 14:56:08 - CREATED_FIELD oldF=793 name="5ft 6in. 66in, 167.64cm, 1.68 m" -> newF=154
+2025-10-01 14:56:08 - CREATED_FIELD oldF=794 name="5ft 5in, 65in, 165.1cm, 1.65 m" -> newF=155
+2025-10-01 14:56:08 - CREATED_FIELD oldF=795 name="5ft 4in, 64in, 162.56cm, 1.63 m" -> newF=156
+2025-10-01 14:56:08 - CREATED_FIELD oldF=796 name="5ft 3in, 63in, 160.02cm, 1.6 m" -> newF=157
+2025-10-01 14:56:08 - CREATED_FIELD oldF=797 name="5ft 2in, 62in, 157.48cm, 1.57 m" -> newF=158
+2025-10-01 14:56:08 - CREATED_FIELD oldF=798 name="5ft 1in, 61in, 154.94cm, 1.55 m" -> newF=159
+2025-10-01 14:56:08 - CREATED_FIELD oldF=799 name="5ft 60in, 152.4cm, 1.52m" -> newF=160
+2025-10-01 14:56:08 - CREATED_FIELD oldF=800 name="4ft 11in, 59in, 149.86cm, 1.5 m" -> newF=161
+2025-10-01 14:56:08 - CREATED_FIELD oldF=801 name="4ft 10in, 58in, 147.32cm, 1.47 m" -> newF=162
+2025-10-01 14:56:08 - CREATED_FIELD oldF=802 name="4ft 9in, 57in, 144.78cm, 1.45 m" -> newF=163
+2025-10-01 14:56:08 - CREATED_FIELD oldF=803 name="4ft 8in, 56in, 142.24cm, 1.42 m" -> newF=164
+2025-10-01 14:56:08 - CREATED_FIELD oldF=804 name="4ft 7in, 55in, 139.7cm, 1.4 m" -> newF=165
+2025-10-01 14:56:08 - CREATED_FIELD oldF=805 name="4ft 6in, 54in, 137.16cm, 1.37 m" -> newF=166
+2025-10-01 14:56:08 - CREATED_FIELD oldF=806 name="4ft 5in, 53in, 134.62cm, 1.35 m" -> newF=167
+2025-10-01 14:56:08 - CREATED_FIELD oldF=807 name="4ft 4in, 52in, 132.08cm, 1.32 m" -> newF=168
+2025-10-01 14:56:08 - CREATED_FIELD oldF=808 name="4ft 3in, 51in, 129.54cm, 1.3 m" -> newF=169
+2025-10-01 14:56:08 - CREATED_FIELD oldF=809 name="4ft 2in, 50in, 127cm, 1.27 m" -> newF=170
+2025-10-01 14:56:08 - CREATED_FIELD oldF=810 name="4ft 1in, 49in, 124.46cm, 1.24 m" -> newF=171
+2025-10-01 14:56:08 - CREATED_FIELD oldF=811 name="I am 4 feet or shorter" -> newF=172
+2025-10-01 14:56:08 - CREATED_FIELD oldF=915 name="I am 40 kg 88.185 lb or less" -> newF=173
+2025-10-01 14:56:08 - CREATED_FIELD oldF=916 name="41kg 90.39 lb" -> newF=174
+2025-10-01 14:56:08 - CREATED_FIELD oldF=917 name="42kg 92.594 lb" -> newF=175
+2025-10-01 14:56:08 - CREATED_FIELD oldF=918 name="43kg 94.799 lb" -> newF=176
+2025-10-01 14:56:08 - CREATED_FIELD oldF=919 name="44kg 97.003 lb" -> newF=177
+2025-10-01 14:56:08 - CREATED_FIELD oldF=920 name="45kg 99.208 lb" -> newF=178
+2025-10-01 14:56:08 - CREATED_FIELD oldF=921 name="46kg 101.413 lb" -> newF=179
+2025-10-01 14:56:08 - CREATED_FIELD oldF=922 name="47kg 103.617 lb" -> newF=180
+2025-10-01 14:56:08 - CREATED_FIELD oldF=923 name="48kg 105.822 lb" -> newF=181
+2025-10-01 14:56:08 - CREATED_FIELD oldF=924 name="49kg 108.027 lb" -> newF=182
+2025-10-01 14:56:08 - CREATED_FIELD oldF=925 name="50kg 110.231 lb" -> newF=183
+2025-10-01 14:56:08 - CREATED_FIELD oldF=926 name="51kg 112.436 lb" -> newF=184
+2025-10-01 14:56:08 - CREATED_FIELD oldF=927 name="52kg 114.64 lb" -> newF=185
+2025-10-01 14:56:08 - CREATED_FIELD oldF=928 name="53kg 116.845 lb" -> newF=186
+2025-10-01 14:56:08 - CREATED_FIELD oldF=929 name="54kg 119.05 lb" -> newF=187
+2025-10-01 14:56:08 - CREATED_FIELD oldF=930 name="55kg 121.254 lb" -> newF=188
+2025-10-01 14:56:08 - CREATED_FIELD oldF=931 name="56kg 123.459 lb" -> newF=189
+2025-10-01 14:56:08 - CREATED_FIELD oldF=932 name="57kg 125.663 lb" -> newF=190
+2025-10-01 14:56:08 - CREATED_FIELD oldF=933 name="58kg 127.868 lb" -> newF=191
+2025-10-01 14:56:08 - CREATED_FIELD oldF=934 name="59kg 130.073 lb" -> newF=192
+2025-10-01 14:56:08 - CREATED_FIELD oldF=935 name="60kg 132.277 lb" -> newF=193
+2025-10-01 14:56:08 - CREATED_FIELD oldF=936 name="61kg 134.482 lb" -> newF=194
+2025-10-01 14:56:08 - CREATED_FIELD oldF=937 name="62kg 136.687 lb" -> newF=195
+2025-10-01 14:56:08 - CREATED_FIELD oldF=938 name="63kg 138.891 lb" -> newF=196
+2025-10-01 14:56:08 - CREATED_FIELD oldF=939 name="64kg 141.096 lb" -> newF=197
+2025-10-01 14:56:08 - CREATED_FIELD oldF=940 name="65kg 143.3 lb" -> newF=198
+2025-10-01 14:56:08 - CREATED_FIELD oldF=941 name="66kg 145.505 lb" -> newF=199
+2025-10-01 14:56:08 - CREATED_FIELD oldF=942 name="67kg 147.71 lb" -> newF=200
+2025-10-01 14:56:08 - CREATED_FIELD oldF=943 name="68kg 149.914 lb" -> newF=201
+2025-10-01 14:56:08 - CREATED_FIELD oldF=944 name="69kg 152.119 lb" -> newF=202
+2025-10-01 14:56:08 - CREATED_FIELD oldF=945 name="70kg 154.324 lb" -> newF=203
+2025-10-01 14:56:08 - CREATED_FIELD oldF=946 name="71kg 156.528 lb" -> newF=204
+2025-10-01 14:56:08 - CREATED_FIELD oldF=947 name="72kg 158.733 lb" -> newF=205
+2025-10-01 14:56:08 - CREATED_FIELD oldF=948 name="73kg 160.937 lb" -> newF=206
+2025-10-01 14:56:08 - CREATED_FIELD oldF=949 name="74kg 163.142 lb" -> newF=207
+2025-10-01 14:56:08 - CREATED_FIELD oldF=950 name="75kg 165.347 lb" -> newF=208
+2025-10-01 14:56:08 - CREATED_FIELD oldF=951 name="76kg 167.551 lb" -> newF=209
+2025-10-01 14:56:08 - CREATED_FIELD oldF=952 name="77kg 169.756 lb" -> newF=210
+2025-10-01 14:56:08 - CREATED_FIELD oldF=953 name="78kg 171.961 lb" -> newF=211
+2025-10-01 14:56:08 - CREATED_FIELD oldF=954 name="79kg 174.165 lb" -> newF=212
+2025-10-01 14:56:08 - CREATED_FIELD oldF=955 name="80kg 176.37 lb" -> newF=213
+2025-10-01 14:56:08 - CREATED_FIELD oldF=956 name="81kg 178.574 lb" -> newF=214
+2025-10-01 14:56:08 - CREATED_FIELD oldF=957 name="82kg 180.779 lb" -> newF=215
+2025-10-01 14:56:08 - CREATED_FIELD oldF=958 name="83kg 182.984 lb" -> newF=216
+2025-10-01 14:56:08 - CREATED_FIELD oldF=959 name="84kg 185.188 lb" -> newF=217
+2025-10-01 14:56:08 - CREATED_FIELD oldF=960 name="85kg 187.393 lb" -> newF=218
+2025-10-01 14:56:08 - CREATED_FIELD oldF=961 name="86kg 189.598 lb" -> newF=219
+2025-10-01 14:56:08 - CREATED_FIELD oldF=962 name="87kg 191.802 lb" -> newF=220
+2025-10-01 14:56:08 - CREATED_FIELD oldF=963 name="88kg 194.007 lb" -> newF=221
+2025-10-01 14:56:08 - CREATED_FIELD oldF=964 name="89kg 196.211 lb" -> newF=222
+2025-10-01 14:56:08 - CREATED_FIELD oldF=965 name="90kg 198.416 lb" -> newF=223
+2025-10-01 14:56:08 - CREATED_FIELD oldF=966 name="91kg 200.621 lb" -> newF=224
+2025-10-01 14:56:08 - CREATED_FIELD oldF=967 name="92kg 202.825 lb" -> newF=225
+2025-10-01 14:56:08 - CREATED_FIELD oldF=968 name="93kg 205.03 lb" -> newF=226
+2025-10-01 14:56:08 - CREATED_FIELD oldF=969 name="94kg 207.235 lb" -> newF=227
+2025-10-01 14:56:08 - CREATED_FIELD oldF=970 name="95kg 209.439 lb" -> newF=228
+2025-10-01 14:56:08 - CREATED_FIELD oldF=971 name="96kg 211.644 lb" -> newF=229
+2025-10-01 14:56:08 - CREATED_FIELD oldF=972 name="97kg 213.848 lb" -> newF=230
+2025-10-01 14:56:08 - CREATED_FIELD oldF=973 name="98kg 216.053 lb" -> newF=231
+2025-10-01 14:56:08 - CREATED_FIELD oldF=974 name="99kg 218.258 lb" -> newF=232
+2025-10-01 14:56:08 - CREATED_FIELD oldF=975 name="100kg 220.462 lb" -> newF=233
+2025-10-01 14:56:08 - CREATED_FIELD oldF=976 name="101kg 222.667 lb" -> newF=234
+2025-10-01 14:56:08 - CREATED_FIELD oldF=977 name="102kg 224.872 lb" -> newF=235
+2025-10-01 14:56:08 - CREATED_FIELD oldF=978 name="103kg 227.076 lb" -> newF=236
+2025-10-01 14:56:08 - CREATED_FIELD oldF=979 name="104kg 229.281 lb" -> newF=237
+2025-10-01 14:56:08 - CREATED_FIELD oldF=980 name="105kg 231.485 lb" -> newF=238
+2025-10-01 14:56:08 - CREATED_FIELD oldF=981 name="106kg 233.69 lb" -> newF=239
+2025-10-01 14:56:08 - CREATED_FIELD oldF=982 name="107kg 235.895 lb" -> newF=240
+2025-10-01 14:56:08 - CREATED_FIELD oldF=983 name="108kg 238.099 lb" -> newF=241
+2025-10-01 14:56:08 - CREATED_FIELD oldF=984 name="109kg 240.304 lb" -> newF=242
+2025-10-01 14:56:08 - CREATED_FIELD oldF=985 name="110kg 242.508 lb" -> newF=243
+2025-10-01 14:56:08 - CREATED_FIELD oldF=986 name="111kg 244.713 lb" -> newF=244
+2025-10-01 14:56:08 - CREATED_FIELD oldF=987 name="112kg 246.918 lb" -> newF=245
+2025-10-01 14:56:08 - CREATED_FIELD oldF=988 name="113kg 249.122 lb" -> newF=246
+2025-10-01 14:56:08 - CREATED_FIELD oldF=989 name="114kg 251.327 lb" -> newF=247
+2025-10-01 14:56:08 - CREATED_FIELD oldF=990 name="115kg 253.532 lb" -> newF=248
+2025-10-01 14:56:08 - CREATED_FIELD oldF=991 name="116kg 255.736 lb" -> newF=249
+2025-10-01 14:56:08 - CREATED_FIELD oldF=992 name="117kg 257.941 lb" -> newF=250
+2025-10-01 14:56:08 - CREATED_FIELD oldF=993 name="118kg 260.145 lb" -> newF=251
+2025-10-01 14:56:08 - CREATED_FIELD oldF=994 name="119kg 262.35 lb" -> newF=252
+2025-10-01 14:56:08 - CREATED_FIELD oldF=995 name="I am 120kg 264.555 lb or more" -> newF=253
+2025-10-01 14:56:08 - CREATED_FIELD oldF=996 name="My favorite holiday is" -> newF=254
+2025-10-01 14:56:08 - CREATED_FIELD oldF=997 name="Social Links" -> newF=255
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1062 name="facebook" -> newF=256
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1063 name="linkedIn" -> newF=257
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1064 name="twitter" -> newF=258
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1065 name="flickr" -> newF=259
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1066 name="instagram" -> newF=260
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1067 name="medium" -> newF=261
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1068 name="meetup" -> newF=262
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1069 name="pinterest" -> newF=263
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1070 name="quora" -> newF=264
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1071 name="reddit" -> newF=265
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1072 name="snapchat" -> newF=266
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1073 name="telegram" -> newF=267
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1074 name="tumblr" -> newF=268
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1075 name="twitch" -> newF=269
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1076 name="vk" -> newF=270
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1077 name="whatsapp" -> newF=271
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1078 name="youTube" -> newF=272
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1079 name="x" -> newF=273
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1080 name="tiktok" -> newF=274
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1081 name="Birthdate" -> newF=275
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1082 name="Passion" -> newF=276
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1083 name="Sport" -> newF=277
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1084 name="Travel" -> newF=278
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1085 name="Cooking" -> newF=279
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1086 name="Cinema" -> newF=280
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1087 name="Music" -> newF=281
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1088 name="Tatoo" -> newF=282
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1089 name="Books" -> newF=283
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1090 name="Gaming" -> newF=284
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1091 name="History" -> newF=285
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1285 name="Afghanistan" -> newF=286
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1286 name="Albania" -> newF=287
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1287 name="Algeria" -> newF=288
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1288 name="Andorra" -> newF=289
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1289 name="Angola" -> newF=290
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1290 name="Antigua and Barbuda" -> newF=291
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1291 name="Argentina" -> newF=292
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1292 name="Armenia" -> newF=293
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1293 name="Australia" -> newF=294
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1294 name="Austria" -> newF=295
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1295 name="Azerbaijan" -> newF=296
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1296 name="Bahamas" -> newF=297
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1297 name="Bahrain" -> newF=298
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1298 name="Bangladesh" -> newF=299
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1299 name="Barbados" -> newF=300
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1300 name="Belarus" -> newF=301
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1301 name="Belgium" -> newF=302
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1302 name="Belize" -> newF=303
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1303 name="Benin" -> newF=304
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1304 name="Bhutan" -> newF=305
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1305 name="Bolivia" -> newF=306
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1306 name="Bosnia and Herzegovina" -> newF=307
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1307 name="Botswana" -> newF=308
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1308 name="Brazil" -> newF=309
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1309 name="Brunei" -> newF=310
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1310 name="Bulgaria" -> newF=311
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1311 name="Burkina Faso" -> newF=312
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1312 name="Burundi" -> newF=313
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1313 name="Cambodia" -> newF=314
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1314 name="Cameroon" -> newF=315
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1315 name="Canada" -> newF=316
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1316 name="Cape Verde" -> newF=317
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1317 name="Central African Republic" -> newF=318
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1318 name="Chad" -> newF=319
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1319 name="Chile" -> newF=320
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1320 name="China" -> newF=321
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1321 name="Colombi" -> newF=322
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1322 name="Comoros" -> newF=323
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1323 name="Congo" -> newF=324
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1324 name="Congo (Brazzaville)" -> newF=325
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1325 name="Costa Rica" -> newF=326
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1326 name="Cote d\'Ivoire" -> newF=327
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1327 name="Croatia" -> newF=328
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1328 name="Cuba" -> newF=329
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1329 name="Cyprus" -> newF=330
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1330 name="Czech Republic" -> newF=331
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1331 name="Denmark" -> newF=332
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1332 name="Djibouti" -> newF=333
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1333 name="Dominica" -> newF=334
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1334 name="Dominican Republic" -> newF=335
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1335 name="East Timor (Timor Timur)" -> newF=336
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1336 name="Ecuador" -> newF=337
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1337 name="Egypt" -> newF=338
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1338 name="El Salvador" -> newF=339
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1339 name="Equatorial Guinea" -> newF=340
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1340 name="Eritrea" -> newF=341
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1341 name="Estonia" -> newF=342
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1342 name="Ethiopia" -> newF=343
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1343 name="Fiji" -> newF=344
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1344 name="Finland" -> newF=345
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1345 name="France" -> newF=346
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1346 name="Gabon" -> newF=347
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1347 name="Gambia, The" -> newF=348
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1348 name="Georgia" -> newF=349
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1349 name="Germany" -> newF=350
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1350 name="Ghana" -> newF=351
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1351 name="Greece" -> newF=352
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1352 name="Grenada" -> newF=353
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1353 name="Guatemala" -> newF=354
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1354 name="Guinea" -> newF=355
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1355 name="Guinea-Bissau" -> newF=356
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1356 name="Guyana" -> newF=357
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1357 name="Haiti" -> newF=358
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1358 name="Honduras" -> newF=359
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1359 name="Hungary" -> newF=360
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1360 name="Iceland" -> newF=361
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1361 name="India" -> newF=362
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1362 name="Indonesia" -> newF=363
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1363 name="Iran" -> newF=364
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1364 name="Iraq" -> newF=365
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1365 name="Ireland" -> newF=366
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1366 name="Israel" -> newF=367
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1367 name="Italy" -> newF=368
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1368 name="Jamaica" -> newF=369
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1369 name="Japan" -> newF=370
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1370 name="Jordan" -> newF=371
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1371 name="Kazakhstan" -> newF=372
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1372 name="Kenya" -> newF=373
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1373 name="Kiribati" -> newF=374
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1374 name="Korea, North" -> newF=375
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1375 name="Korea, South" -> newF=376
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1376 name="Kuwait" -> newF=377
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1377 name="Kyrgyzstan" -> newF=378
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1378 name="Laos" -> newF=379
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1379 name="Latvia" -> newF=380
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1380 name="Lebanon" -> newF=381
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1381 name="Lesotho" -> newF=382
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1382 name="Liberia" -> newF=383
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1383 name="Libya" -> newF=384
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1384 name="Liechtenstein" -> newF=385
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1385 name="Lithuania" -> newF=386
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1386 name="Luxembourg" -> newF=387
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1387 name="Macedonia" -> newF=388
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1388 name="Madagascar" -> newF=389
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1389 name="Malawi" -> newF=390
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1390 name="Malaysia" -> newF=391
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1391 name="Maldives" -> newF=392
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1392 name="Mali" -> newF=393
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1393 name="Malta" -> newF=394
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1394 name="Marshall Islands" -> newF=395
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1395 name="Mauritania" -> newF=396
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1396 name="Mauritius" -> newF=397
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1397 name="Mexico" -> newF=398
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1398 name="Micronesia" -> newF=399
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1399 name="Moldova" -> newF=400
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1400 name="Monaco" -> newF=401
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1401 name="Mongolia" -> newF=402
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1402 name="Morocco" -> newF=403
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1403 name="Mozambique" -> newF=404
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1404 name="Myanmar" -> newF=405
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1405 name="Namibia" -> newF=406
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1406 name="Nauru" -> newF=407
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1407 name="Nepal" -> newF=408
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1408 name="Netherlands" -> newF=409
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1409 name="New Zealand" -> newF=410
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1410 name="Nicaragua" -> newF=411
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1411 name="Niger" -> newF=412
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1412 name="Nigeria" -> newF=413
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1413 name="Norway" -> newF=414
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1414 name="Oman" -> newF=415
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1415 name="Pakistan" -> newF=416
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1416 name="Palau" -> newF=417
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1417 name="Panama" -> newF=418
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1418 name="Papua New Guinea" -> newF=419
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1419 name="Paraguay" -> newF=420
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1420 name="Peru" -> newF=421
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1421 name="Philippines" -> newF=422
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1422 name="Poland" -> newF=423
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1423 name="Portugal" -> newF=424
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1424 name="Qatar" -> newF=425
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1425 name="Romania" -> newF=426
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1426 name="Russia" -> newF=427
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1427 name="Rwanda" -> newF=428
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1428 name="Saint Kitts and Nevis" -> newF=429
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1429 name="Saint Lucia" -> newF=430
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1430 name="Saint Vincent" -> newF=431
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1431 name="Samoa" -> newF=432
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1432 name="San Marino" -> newF=433
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1433 name="Sao Tome and Principe" -> newF=434
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1434 name="Saudi Arabia" -> newF=435
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1435 name="Senegal" -> newF=436
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1436 name="Serbia and Montenegro" -> newF=437
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1437 name="Seychelles" -> newF=438
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1438 name="Sierra Leone" -> newF=439
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1439 name="Singapore" -> newF=440
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1440 name="Slovakia" -> newF=441
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1441 name="Slovenia" -> newF=442
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1442 name="Solomon Islands" -> newF=443
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1443 name="Somalia" -> newF=444
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1444 name="South Africa" -> newF=445
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1445 name="Spain" -> newF=446
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1446 name="Sri Lanka" -> newF=447
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1447 name="Sudan" -> newF=448
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1448 name="Suriname" -> newF=449
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1449 name="Swaziland" -> newF=450
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1450 name="Sweden" -> newF=451
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1451 name="Switzerland" -> newF=452
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1452 name="Syria" -> newF=453
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1453 name="Taiwan" -> newF=454
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1454 name="Tajikistan" -> newF=455
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1455 name="Tanzania" -> newF=456
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1456 name="Thailand" -> newF=457
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1457 name="Togo" -> newF=458
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1458 name="Tonga" -> newF=459
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1459 name="Trinidad and Tobago" -> newF=460
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1460 name="Tunisia" -> newF=461
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1461 name="Turkey" -> newF=462
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1462 name="Turkmenistan" -> newF=463
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1463 name="Tuvalu" -> newF=464
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1464 name="Uganda" -> newF=465
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1465 name="Ukraine" -> newF=466
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1466 name="United Arab Emirates" -> newF=467
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1467 name="United Kingdom" -> newF=468
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1468 name="United States" -> newF=469
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1469 name="Uruguay" -> newF=470
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1470 name="Uzbekistan" -> newF=471
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1471 name="Vanuatu" -> newF=472
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1472 name="Vatican City" -> newF=473
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1473 name="Venezuela" -> newF=474
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1474 name="Vietnam" -> newF=475
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1475 name="Yemen" -> newF=476
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1476 name="Zambia" -> newF=477
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1477 name="Zimbabwe" -> newF=478
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1481 name="business" -> newF=479
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1482 name="contacts" -> newF=480
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1483 name="cuisine (food & drinks)" -> newF=481
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1484 name="events" -> newF=482
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1485 name="games" -> newF=483
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1486 name="good reads" -> newF=484
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1487 name="lessons" -> newF=485
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1488 name="meetups" -> newF=486
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1489 name="parties" -> newF=487
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1490 name="relationship" -> newF=488
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1491 name="socials" -> newF=489
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1492 name="travel tours" -> newF=490
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1493 name="workshops" -> newF=491
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1504 name="Lady" -> newF=492
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1505 name="Gentleman" -> newF=493
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1506 name="Hermaphrodite" -> newF=494
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1507 name="Eunuch/Hijra" -> newF=495
+2025-10-01 14:56:08 - CREATED_FIELD oldF=1508 name="Ask me later" -> newF=496
+2025-10-01 14:56:08 - Field creation pass 1 complete: 443 fields mapped/created
+2025-10-01 14:56:08 - Updating field parent relationships (pass 2)...
+2025-10-01 14:56:09 - Parent update pass complete
+2025-10-01 14:56:09 - Migrating xprofile_data...
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=2 oldFID=3
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=3 oldFID=3
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=93 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=94 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=95 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=96 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=98 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=167 oldFID=3
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=171 oldFID=3
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=261 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=272 oldFID=4
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=295 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=296 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=297 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=298 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=299 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=300 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=301 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=302 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=303 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=304 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=305 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=306 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=307 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=332 oldUID=30
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=420 oldFID=3
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=422 oldFID=3
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=441 oldFID=3
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=508 oldFID=3
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=541 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=542 oldUID=20
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=557 oldFID=42
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=587 oldFID=248
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=633 oldFID=248
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=638 oldFID=500
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=639 oldFID=499
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=641 oldFID=248
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=734 oldFID=500
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=735 oldFID=499
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=749 oldFID=248
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=774 oldUID=45
+2025-10-01 14:56:09 - SKIP_DATA missing_field oldDataID=799 oldFID=248
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=852 oldUID=84
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=853 oldUID=84
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=854 oldUID=85
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=855 oldUID=85
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=856 oldUID=86
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=857 oldUID=86
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=858 oldUID=87
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=859 oldUID=87
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=860 oldUID=88
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=861 oldUID=88
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=874 oldUID=73
+2025-10-01 14:56:09 - SKIP_DATA missing_user oldDataID=884 oldUID=94
+2025-10-01 14:56:09 - Migrated 326 xprofile_data rows
+2025-10-01 14:56:09 - Migrating xprofile_meta...
+2025-10-01 14:56:09 - SKIP_META missing_map id=183 oldOID=3 type=field
+2025-10-01 14:56:09 - SKIP_META missing_map id=184 oldOID=3 type=field
+2025-10-01 14:56:09 - SKIP_META missing_map id=185 oldOID=3 type=field
+2025-10-01 14:56:09 - SKIP_META missing_map id=186 oldOID=3 type=field
+2025-10-01 14:56:09 - SKIP_META unknown_object_type id=230 type=data
+2025-10-01 14:56:09 - Migrated 169 xprofile_meta rows
+2025-10-01 14:56:09 - Migration finished. See /home/koware/public_html/buzzjuice.net/migration_log.txt for details.

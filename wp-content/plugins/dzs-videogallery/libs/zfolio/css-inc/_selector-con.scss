@@ -1,0 +1,70 @@
+.selector-con {
+  font-size: 13px;
+}
+
+.selector-con {
+  a, a:hover {
+    text-decoration: none;
+  }
+
+  &.none {
+    display: none;
+  }
+}
+
+.flex-select-search {
+
+  > .selector-con {
+    flex: 100;
+  }
+}
+
+
+// -- maybe move it
+.selector-con.selector-responsive-mode {
+
+  .categories {
+    max-height: 72px;
+    padding-top: 64px;
+
+
+    .a-category:not(.active) {
+      margin-top: 10px;
+      padding-top: 30px;
+      padding-bottom: 30px;
+      margin-left: 0;
+
+      opacity: 0;
+      visibility: hidden;
+      $transition-property: visibility, opacity;
+      $transition-duration: .25s;
+      $transition-timing: ease-in;
+
+
+      @include apply_transition($transition-property, $transition-duration, $transition-timing);
+    }
+
+    $transition-property: max-height;
+    $transition-duration: .25s;
+    $transition-timing: ease-in;
+
+
+    @include apply_transition($transition-property, $transition-duration, $transition-timing);
+  }
+
+  &.selector-responsive-mode--is-expanded {
+
+    .categories {
+      max-height: 800px;
+
+
+      .a-category:not(.active) {
+        padding-top: 30px;
+        margin-left: 0;
+
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+    "$schema": "https://json.schemastore.org/block.json",
+    "apiVersion": 2,
+    "name": "give-p2p/fundraiser-leaderboard",
+    "version": "1.0.0",
+    "title": "Fundraiser Leaderboard",
+    "category": "give",
+    "description": "The Fundraiser Leaderboard block allows admins to display a grid of fundraisers filtered by campaign",
+    "keywords": [
+        "fundraiser",
+        "leaderboard"
+    ],
+    "supports": {
+        "align": [
+            "wide"
+        ]
+    },
+    "attributes": {
+        "id": {
+            "type": "string",
+            "default": ""
+        },
+        "align": {
+            "type": "string",
+            "default": ""
+        },
+        "columns": {
+            "type": "string",
+            "default": "max"
+        },
+        "accent_color": {
+            "type": "string",
+            "default": "#28c77b"
+        },
+        "layout": {
+            "type": "string",
+            "default": "grid"
+        },
+        "per_page": {
+            "type": "string",
+            "default": "8"
+        },
+        "show_avatar": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_goal": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_description": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_pagination": {
+            "type": "boolean",
+            "default": true
+        }
+    },
+    "textdomain": "give-peer-to-peer",
+    "editorStyle": "file:../../../../../public/css//give-p2p-fundraiser-leaderboard-block.css",
+    "editorScript": "file:../../../../../public/js/give-p2p-fundraiser-leaderboard-block.js"
+}

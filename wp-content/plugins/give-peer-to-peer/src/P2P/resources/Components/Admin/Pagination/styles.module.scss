@@ -1,0 +1,8 @@
+.links {
+    transform: translateY(-5px);
+
+    > span > span {
+        display: inline-block;
+        margin: 5px 12px;
+    }
+}

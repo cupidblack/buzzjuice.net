@@ -1,0 +1,139 @@
+@use '../../css/functions' as *;
+
+/****************************************************************
+ * Base button styles
+ ****************************************************************/
+.base {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-style: solid;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    border-color: #28c77b;
+    background-color: #28c77b;
+
+    &:hover {
+        filter: brightness(1.2);
+    }
+
+    &:disabled:hover {
+        filter: brightness(1);
+        cursor: auto;
+    }
+
+    &:disabled {
+        background: #D7D7D7;
+        border: 0;
+    }
+
+    svg {
+        fill: var(--give-campaign-primary-contrast, #ffffff);
+    }
+}
+
+/****************************************************************
+ * States
+ ****************************************************************/
+
+.isLoading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: inherit;
+    border-radius: inherit;
+    background-color: inherit;
+    color: inherit;
+}
+
+/****************************************************************
+ * Color variants
+ *
+ * Color related properties only.
+ ****************************************************************/
+
+.color-primary {
+    border-color: var(--give-campaign-primary, #28c77b);
+    background-color: var(--give-campaign-primary, #28c77b);
+    color: var(--give-campaign-primary-contrast, #ffffff) !important;
+}
+
+.color-secondary {
+    border-color: var(--give-campaign-primary, #28c77b);
+    background-color: var(--give-campaign-primary-contrast, #fff);
+    color: var(--give-campaign-primary, #28c77b) !important;
+
+    &:hover {
+        filter: brightness(1.2);
+        color: var(--give-campaign-primary-contrast, #fff) !important;
+        background-color: var(--give-campaign-primary, #28c77b);
+    }
+}
+
+/****************************************************************
+ * Size variants
+ *
+ * Size related properties only.
+ ****************************************************************/
+
+.size-tiny {
+    padding: 0.57rem 1rem;
+    border-radius: 0.125rem;
+    border-width: 0.125rem;
+    font-size: safe-rem(0.9375);
+
+    svg {
+        position: relative;
+        top: 0.05em;
+        height: 0.65em;
+    }
+}
+
+.size-small {
+    font-size: safe-rem(1.125);
+
+    svg {
+        height: 1em;
+    }
+}
+
+.size-medium {
+    padding: 1.1rem;
+    font-size: safe-rem(1.375);
+    border-radius: 0.25rem;
+    border-width: 0.1875rem;
+    min-width: 30%;
+
+    svg {
+        height: 0.9em;
+        transform: translate(.06rem, .16rem);
+    }
+
+    .container {
+        white-space: nowrap;
+        transform: translateY(-.1rem);
+    }
+
+
+    @media only screen and (max-width: 768px) {
+        padding: 15px 25px;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .size-small,
+    .size-medium {
+        font-size: safe-rem(1);
+    }
+}

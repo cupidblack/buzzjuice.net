@@ -1,0 +1,28 @@
+.container {
+    padding: 10px;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    display: flex;
+    gap: 5px;
+    justify-content: end;
+}
+
+.label {
+    color: #9e9e9e;
+}
+
+.link {
+    color: var(--give-campaign-primary, #28c77b);
+
+    display: flex;
+    gap: 5px;
+    align-items: center;
+
+    text-decoration: none;
+
+    svg {
+        fill: var(--give-campaign-primary, #28c77b);
+    }
+}

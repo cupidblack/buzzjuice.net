@@ -1,0 +1,81 @@
+.page {
+    position: relative;
+}
+
+.editlink {
+    display: flex;
+    align-items: center;
+
+    position: absolute;
+    top: 2.45rem;
+    right: 2.25rem;
+
+    color: var(--give-campaign-primary, #28c77b);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+
+    svg {
+        position: relative;
+        top: -0.2ex;
+        margin-left: 0.2rem;
+        fill: var(--give-campaign-primary, #28c77b);
+    }
+}
+
+.header {
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.iframe {
+    min-height: 800px;
+    width: 1115px;
+    display: none;
+    transition: all ease-in 0.2s;
+}
+
+.visible {
+    display: block;
+}
+
+.notice {
+    width: 90%;
+    margin: 65px auto 0;
+}
+
+.pending {
+    display: flex;
+
+    span {
+        font-size: 0.75rem;
+        color: #000000;
+        line-height: 22px;
+        font-weight: 500;
+    }
+
+    span:first-child {
+        margin-right: 5px;
+    }
+}
+
+.campaignPageLink {
+    font-size: 1rem;
+    text-decoration: underline !important;
+    text-underline-offset: 3px;
+    margin: 35px;
+    color: var(--give-campaign-primary);
+}
+
+
+@media only screen and (max-width: 768px) {
+    .iframe {
+        min-height: 500px;
+        width: 90vw;
+    }
+
+    .header {
+        text-align: center;
+        font-size: 24px;
+    }
+}

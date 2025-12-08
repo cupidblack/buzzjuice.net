@@ -1,0 +1,72 @@
+.cardBody {
+    padding: 12px 20px;
+}
+
+.cardBody input[type="text"] {
+    padding: 6px 15px !important;
+}
+
+.icon {
+    margin-bottom: px;
+    margin-right: 10px;
+}
+
+.uploadDescription {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.uploadIconContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.selectedFile {
+    margin-top: 10px;
+    display: flex;
+}
+
+.maxSizeError,
+.errorMessage {
+    color: red;
+}
+
+.errorMessage {
+    line-height: 2rem;
+    font-size: 0.8rem;
+}
+
+.successMessage {
+    margin-top: 10px;
+    color: #28c77b;
+}
+
+.loader {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.radioInput {
+    text-align: left;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.columnActions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.button > button {
+    min-width: 35%;
+}
+
+.lostPassword > a {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    color: var(--give-campaign-primary, #28c77b)
+}
+

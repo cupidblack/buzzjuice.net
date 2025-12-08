@@ -1,0 +1,92 @@
+.givewp-table-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	font-weight: 600;
+	padding: 16px;
+	font-size: 15px;
+}
+
+.givewp-table {
+	display: flex;
+	flex-direction: column;
+
+	overflow-y: auto;
+	overflow-x: hidden;
+
+	> * {
+		display: flex;
+		min-height: 40px;
+		height: auto;
+		font-size: 14px;
+		padding: 8px 16px;
+
+		> * {
+			flex: 1;
+		}
+	}
+
+	> .givewp-table-header {
+		font-weight: 500;
+		background: #f4f4f4;
+		position: sticky;
+		top: 0;
+		display: flex;
+		align-items: center;
+		box-shadow: 0 0 8px #b8b8b8;
+	}
+
+	> .givewp-table-row {
+		background: #fff;
+
+		&:nth-of-type(odd) {
+			background: #f4f4f4;
+		}
+		a {
+			text-decoration: none;
+		}
+
+		.givewp-table-row-item {
+			display: flex;
+			color: #555;
+
+			.give-funds-donation-links {
+				a:first-child {
+					margin-right: 6px;
+				}
+
+				a:last-child {
+					margin-left: 6px;
+				}
+			}
+			.give-funds-checkbox {
+				margin-top: 12px;
+			}
+		}
+
+		.give-funds-display-block {
+			flex-direction: column;
+		}
+	}
+	.give-funds-select-column {
+		flex-grow: 0;
+		flex-shrink: 0;
+		flex-basis: 50px;
+	}
+}
+
+.give-funds-bulk-actions-row {
+	grid-column: span 12;
+	display: flex;
+	align-items: center;
+
+	.give-funds-table-title {
+		margin: 0;
+		flex-basis: 50%;
+	}
+	.give-funds-bulk-action {
+		flex-basis: 50%;
+		text-align: right;
+		padding-bottom: 30px;
+	}
+}

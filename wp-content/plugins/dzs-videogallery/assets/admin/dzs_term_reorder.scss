@@ -1,0 +1,255 @@
+
+
+@mixin apply_transition($transition-property, $transition-duration, $transition-timing) {
+    transition-property: $transition-property;transition-duration: $transition-duration;-moz-transition-property:$transition-property;-moz-transition-duration: $transition-duration;-webkit-transition-property:$transition-property;-webkit-transition-duration: $transition-duration;-o-transition-property:$transition-property;-o-transition-duration: $transition-duration;-ms-transition-property:$transition-property;
+    -ms-transition-duration: $transition-duration;-ms-transition-timing-function:$transition-timing;
+
+    @if $transition-timing == ease-out-quart {
+        -webkit-transition-timing-function: cubic-bezier(0.165, 0.840, 0.440, 1.000);
+        -moz-transition-timing-function: cubic-bezier(0.165, 0.840, 0.440, 1.000);
+        -o-transition-timing-function: cubic-bezier(0.165, 0.840, 0.440, 1.000);
+        transition-timing-function: cubic-bezier(0.165, 0.840, 0.440, 1.000);
+    } @else {
+        -webkit-transition-timing-function:$transition-timing;
+        -moz-transition-timing-function:$transition-timing;
+        -o-transition-timing-function:$transition-timing;
+        transition-timing-function: $transition-timing;
+    }
+}
+@mixin boxsizing() {
+    -moz-box-sizing:    border-box;   -webkit-box-sizing: border-box;    box-sizing:        border-box;
+}
+
+@mixin center_it() {
+    position: absolute;
+    top:50%; left:50%;
+    transform: translate(-50%,-50%);
+    -webkit-transform: translate(-50%,-50%);
+}
+.parent-cats-shower{
+
+    max-height: 0;
+    overflow: hidden;
+    $transition-property: max-height,padding,margin,opacity;
+    $transition-duration: 0.3s;
+    $transition-timing: ease-out;
+
+    opacity: 0;
+
+    padding:0;
+    display: block;
+    list-style: none;
+    margin: 0 0 0 0px;
+
+    @include apply_transition($transition-property, $transition-duration, $transition-timing);
+
+    &.loaded{
+        max-height: 150px;
+        padding: 10px 0;
+        opacity: 1;
+
+    }
+
+    &:before{
+        content: "";
+        clear: both;
+        height: 1px;
+        display: block;
+    }
+
+    > li{
+        display: inline-block;
+        margin-right: 0px;
+        padding-right: 5px;
+        padding-left: 5px;
+
+        font-size: 21px;
+
+        position: relative;
+        border-bottom: 1px solid rgba(0,0,00,0.1);
+
+        padding-bottom: 5px;
+        $transition-property: border;
+        $transition-duration: 0.3s;
+        $transition-timing: ease-out;
+
+        @include apply_transition($transition-property, $transition-duration, $transition-timing);
+
+        &:after{
+            content: "";
+            position: absolute;
+            left: 100%;
+            top: 0;
+            height: 100%;
+            width: 1px;
+
+            //background-color: ;
+        }
+
+        &:hover,&.active{
+
+            border-bottom: 1px solid rgba(111, 79, 111, 0.95);
+        }
+
+        >a{
+            text-decoration: none;
+
+            color: rgba(111, 79, 111, 0.95);
+        ;
+            cursor: pointer;
+        }
+    }
+}
+.column-title{
+
+    position: relative;
+    $transition-property: padding;
+    $transition-duration: 0.3s;
+    $transition-timing: ease-out;
+
+    @include apply_transition($transition-property, $transition-duration, $transition-timing);
+
+    &.has-image{
+        padding: 8px 10px 8px 70px;
+
+        .divimage{
+            opacity: 1;
+        }
+
+    }
+
+    .divimage{
+        width: 50px;
+        height: 50px;
+        border-radius: 5px;
+
+        background-size: cover;
+        background-position: center center;;
+        position: absolute;
+        top:5px;
+        left: 5px;
+
+        background-color: #444444;
+
+
+
+        opacity: 0;
+        $transition-property: padding,opacity;
+        $transition-duration: 0.3s;
+        $transition-timing: ease-out;
+
+        @include apply_transition($transition-property, $transition-duration, $transition-timing);
+    }
+}
+
+.dzs-sort-portfolio{
+
+    .sort-col{
+        width: 65px;
+        white-space: nowrap;
+    }
+
+
+    .dzs_sort_term_list-placeholder{
+        background-color: #444444!important;
+        width: 100%!important;
+        height: 60px!important;
+        float:none;
+        display: table-row;
+        border: 1px dotted rgba(255,255,255,0.3);
+    }
+
+    .sort-controls,.post-label {
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .title{
+        >.wp-post-image{
+            display: inline-block;
+            vertical-align: top;
+            margin-right: 10px;
+
+            width: 50px;
+            height: 50px;
+
+            position: absolute;
+            top: 5px;
+            left: 5px;
+
+
+        }
+
+        &.has-image{
+            position: relative;
+            padding-left: 80px;
+        }
+    }
+
+    .sort-col{
+        position: relative;
+    }
+
+    .column-order{
+        width: 5%;
+    }
+
+    tbody{
+
+        .column-order{
+            opacity:0.5;
+        }
+    }
+    .sort-controls{
+        margin-right: 5px;
+        color: #888888;
+
+        font-size: 14px;
+
+        left: 18px;
+
+        position: absolute;
+        top:50%;
+
+        transform: translate3d(0,-50%,0);
+
+
+        >*{
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 5px;
+
+            cursor: pointer;
+
+        }
+
+        .sort-up-down-conglomerate{
+            width: 20px;
+            font-size: 18px;
+            line-height: 0.5;
+            text-align: center;
+
+            .fa-caret-up{
+                margin-bottom: -5px;
+                display: block;
+            }
+
+            >.fa{
+
+                opacity: 0.5;
+
+                $transition-property: opacity;
+                $transition-duration: 0.3s;
+                $transition-timing: ease-out;
+
+                @include apply_transition($transition-property, $transition-duration, $transition-timing);
+
+                &:hover{
+                    opacity: 1;
+                }
+            }
+
+        }
+    }
+
+}

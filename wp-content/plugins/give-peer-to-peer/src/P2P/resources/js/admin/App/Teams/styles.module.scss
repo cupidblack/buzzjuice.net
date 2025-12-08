@@ -1,0 +1,107 @@
+.icon {
+    margin-right: 10px;
+}
+
+.uploadDescription {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.uploadIconContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.selectedFile {
+    margin-top: 10px;
+    display: flex;
+}
+
+.maxSizeError,
+.errorMessage {
+    margin-top: 10px;
+    color: #424242;
+
+    span {
+        margin-right: 5px;
+    }
+}
+
+.loader {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.radioInput {
+    text-align: left;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.columnActions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.button > button {
+    min-width: 35%;
+}
+
+.svgContainer {
+    margin-bottom: 25px;
+    transform: translateX(2%);
+}
+
+.setupCompleteWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    p {
+        font-size: 1.125rem;
+        line-height: 26px;
+        font-weight: 400 !important;
+        font-style: normal;
+        padding: 0 83px;
+        text-align: center;
+    }
+
+    button {
+        font-size: 1.375rem;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    a {
+        font-size: 1.105rem;
+        font-style: normal;
+        text-decoration: underline;
+        margin: 0;
+        padding: 0;
+    }
+
+    .details {
+        position: relative;
+        transform: translateY(10px);
+        color: #6b6b6b;
+
+        > span {
+            position: absolute;
+            top: 1px;
+        }
+    }
+}
+
+
+.skip {
+    display: block;
+    font-size: 1rem;
+    text-decoration: underline !important;
+    text-underline-offset: 2px;
+    color: var(--give-campaign-primary, #28c77b);
+}

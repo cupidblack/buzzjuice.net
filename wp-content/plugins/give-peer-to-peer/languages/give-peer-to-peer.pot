@@ -1,0 +1,3013 @@
+# Copyright (C) 2023 GiveWP
+# This file is distributed under the same license as the Give - Peer-to-Peer plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Give - Peer-to-Peer 1.6.6\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/give-peer-to-peer\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2023-08-23T22:05:05+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.8.1\n"
+"X-Domain: give-peer-to-peer\n"
+
+#. Plugin Name of the plugin
+msgid "Give - Peer-to-Peer"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://givewp.com/addons/peer-to-peer/"
+msgstr ""
+
+#. Description of the plugin
+msgid "Peer-to-Peer is a crowdfunding strategy which provides a means of decentralizing the fundraising for a campaign"
+msgstr ""
+
+#. Author of the plugin
+msgid "GiveWP"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://givewp.com/"
+msgstr ""
+
+#: src/Addon/resources/views/admin/notices/give-inactive.php:5
+#: src/Addon/resources/views/admin/notices/give-version-error.php:4
+msgid "Activation Error:"
+msgstr ""
+
+#: src/Addon/resources/views/admin/notices/give-inactive.php:6
+msgid "You must have the"
+msgstr ""
+
+#: src/Addon/resources/views/admin/notices/give-inactive.php:7
+msgid "plugin installed and activated for the %s add-on to activate"
+msgstr ""
+
+#: src/Addon/resources/views/admin/notices/give-version-error.php:6
+msgid "You must have"
+msgstr ""
+
+#: src/Addon/resources/views/admin/notices/give-version-error.php:7
+msgid "version"
+msgstr ""
+
+#: src/Addon/resources/views/admin/notices/give-version-error.php:8
+msgid "for the %1$s add-on to activate"
+msgstr ""
+
+#: src/Donations/resources/views/donation-details.php:3
+msgid "P2P Campaign"
+msgstr ""
+
+#: src/Donations/resources/views/donation-details.php:11
+#: src/Exports/FundraiserExport.php:48
+#: src/P2P/Admin/Export.php:64
+msgid "Campaign"
+msgstr ""
+
+#: src/Donations/resources/views/donation-details.php:13
+#: src/Donations/resources/views/donation-details.php:29
+#: src/Donations/resources/views/donation-details.php:45
+#: src/Donations/resources/js/source-selection.js:16
+#: src/Donations/resources/js/source-selection.js:63
+#: src/Donations/resources/js/source-selection.js:93
+msgid "Unassigned"
+msgstr ""
+
+#: src/Donations/resources/views/donation-details.php:27
+#: src/P2P/Admin/Export.php:66
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:334
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:195
+msgid "Team"
+msgid_plural "Teams"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Donations/resources/views/donation-details.php:43
+#: src/Exports/FundraiserExport.php:50
+#: src/P2P/Admin/Export.php:68
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:361
+msgid "Fundraiser"
+msgid_plural "Fundraisers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Email/EmailSettings.php:75
+#: src/Email/EmailSettings.php:94
+msgid "Email notifications related to the Peer-to-Peer Fundraising add-on are listed below. Select an email to configure it."
+msgstr ""
+
+#: src/Email/EmailSettings.php:125
+msgid "P2P Fundraiser Emails"
+msgstr ""
+
+#: src/Email/EmailSettings.php:126
+msgid "P2P Admin Emails"
+msgstr ""
+
+#: src/Email/EmailTags.php:35
+msgid "Campaign Name."
+msgstr ""
+
+#: src/Email/EmailTags.php:44
+msgid "Team Name."
+msgstr ""
+
+#: src/Email/EmailTags.php:53
+msgid "Fundraiser First Name."
+msgstr ""
+
+#: src/Email/EmailTags.php:62
+msgid "Team Captain First Name."
+msgstr ""
+
+#: src/Email/EmailTags.php:71
+msgid "Fundraiser Profile URL."
+msgstr ""
+
+#: src/Email/EmailTags.php:80
+msgid "Team Profile URL."
+msgstr ""
+
+#: src/Email/EmailTags.php:89
+msgid "The donation recipients name."
+msgstr ""
+
+#: src/Email/EmailTags.php:98
+msgid "The donation recipients goal."
+msgstr ""
+
+#: src/Email/EmailTags.php:107
+msgid "The donation recipients progress."
+msgstr ""
+
+#: src/Email/EmailTags.php:116
+msgid "The admins view all fundraisers URL"
+msgstr ""
+
+#: src/Email/EmailTags.php:125
+msgid "The admins view all teams URL"
+msgstr ""
+
+#: src/Email/EmailTags.php:134
+msgid "The fundraisers goal"
+msgstr ""
+
+#: src/Email/EmailTags.php:143
+msgid "The total amount of donations made to a fundraiser"
+msgstr ""
+
+#: src/Email/EmailTags.php:152
+msgid "The team goal"
+msgstr ""
+
+#: src/Email/EmailTags.php:161
+msgid "The total amount of donations made to a team"
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoined.php:27
+msgid "New Fundraiser Joined - No Approval Needed"
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoined.php:28
+msgid "Sent to administrator when a new fundraiser has joined a campaign."
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoined.php:36
+msgid "New Fundraiser Created - No Approval Needed!"
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoined.php:39
+msgid "New Fundraiser Created - No Approval Needed"
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoined.php:58
+msgid "Hi There %s!"
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoined.php:59
+msgid "A new fundraiser has joined %s!"
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoined.php:60
+#: src/Email/Notifications/AdminFundraiserJoinedNeedsApproval.php:61
+msgid "Fundraiser Name: "
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoined.php:61
+msgid "View all fundraisers here: "
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoined.php:92
+msgid "No fundraisers found."
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoined.php:96
+#: src/Email/Notifications/AdminFundraiserJoinedNeedsApproval.php:98
+#: src/Email/Notifications/FundraiserProfileApproved.php:131
+#: src/Email/Notifications/FundraiserProfileCreated.php:131
+msgid "- Select a fundraiser -"
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoined.php:148
+msgid "Select a fundraiser to populate the preview with real information:"
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoinedNeedsApproval.php:27
+msgid "New Fundraiser Joined - Needs Approval"
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoinedNeedsApproval.php:28
+msgid "Sent to the administrator when a new fundraiser has joined a campaign and requires approval."
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoinedNeedsApproval.php:36
+#: src/Email/Notifications/AdminFundraiserJoinedNeedsApproval.php:39
+msgid "New Fundraiser Created - Needs Approval!"
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoinedNeedsApproval.php:58
+#: src/Email/Notifications/AdminTeamCreated.php:59
+msgid "Hi there %s!"
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoinedNeedsApproval.php:59
+msgid "A new fundraiser has joined %s and requires approval!"
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoinedNeedsApproval.php:62
+msgid "View and approve all fundraisers here: "
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoinedNeedsApproval.php:94
+#: src/Email/Notifications/FundraiserProfileApproved.php:127
+#: src/Email/Notifications/FundraiserProfileCreated.php:127
+msgid "No fundraiser(s) found."
+msgstr ""
+
+#: src/Email/Notifications/AdminFundraiserJoinedNeedsApproval.php:150
+#: src/Email/Notifications/FundraiserProfileApproved.php:183
+#: src/Email/Notifications/FundraiserProfileCreated.php:183
+msgid "Preview email with a fundraiser:"
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreated.php:28
+#: src/Email/Notifications/AdminTeamCreated.php:40
+msgid "New Team Created - No Approval Needed"
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreated.php:29
+msgid "Sent to the administrator when a new team is created."
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreated.php:37
+msgid "New Team Created - No Approval Needed!"
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreated.php:60
+msgid "A new team has been created for %s !"
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreated.php:61
+#: src/Email/Notifications/AdminTeamCreatedNeedsApproval.php:61
+msgid "Team Captain: %s"
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreated.php:62
+#: src/Email/Notifications/AdminTeamCreatedNeedsApproval.php:62
+msgid "Team Name: %s "
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreated.php:63
+msgid "View all teams here:"
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreated.php:94
+#: src/Email/Notifications/AdminTeamCreatedNeedsApproval.php:95
+msgid "No team captains found."
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreated.php:98
+#: src/Email/Notifications/AdminTeamCreatedNeedsApproval.php:99
+#: src/Email/Notifications/TeamFundraiserJoined.php:142
+#: src/Email/Notifications/TeamProfileApproved.php:132
+#: src/Email/Notifications/TeamProfileCreated.php:132
+msgid "- Select a team captain -"
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreated.php:150
+#: src/Email/Notifications/TeamFundraiserJoined.php:196
+#: src/Email/Notifications/TeamProfileApproved.php:184
+#: src/Email/Notifications/TeamProfileCreated.php:184
+msgid "Preview email with a team captain:"
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreatedNeedsApproval.php:28
+#: src/Email/Notifications/AdminTeamCreatedNeedsApproval.php:40
+msgid "New Team Created - Needs Approval"
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreatedNeedsApproval.php:29
+msgid "Sent to the administrator when a new team is created and requires approval."
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreatedNeedsApproval.php:37
+msgid "New Team Created - Needs Approval!"
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreatedNeedsApproval.php:59
+msgid "Hi there %s !"
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreatedNeedsApproval.php:60
+msgid "A new team has been created for %s and requires approval!"
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreatedNeedsApproval.php:63
+msgid "View and approve all teams here:  "
+msgstr ""
+
+#: src/Email/Notifications/AdminTeamCreatedNeedsApproval.php:151
+msgid "Select a team captain to populate the preview with real information:"
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:30
+msgid "New Donation Individual Fundraiser"
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:31
+#: src/Email/Notifications/DonationTeamCaptain.php:32
+#: src/Email/Notifications/DonationTeamFundraiser.php:31
+msgid "Sent to designated recipient(s) when a new donation is received or a pending donation is marked as complete."
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:36
+msgid "Individual Fundraiser"
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:40
+#: src/Email/Notifications/DonationTeamFundraiser.php:40
+msgid "New Donation Received to Your Fundraising Profile for {campaign_name}!"
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:45
+#: src/Email/Notifications/DonationTeamCaptain.php:46
+#: src/Email/Notifications/DonationTeamFundraiser.php:45
+msgid "New Donation!"
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:64
+#: src/Email/Notifications/DonationTeamCaptain.php:65
+#: src/Email/Notifications/DonationTeamFundraiser.php:64
+#: src/Email/Notifications/FundraiserProfileApproved.php:58
+#: src/Email/Notifications/FundraiserProfileCreated.php:58
+#: src/Email/Notifications/TeamFundraiserJoined.php:65
+#: src/Email/Notifications/TeamProfileApproved.php:59
+#: src/Email/Notifications/TeamProfileCreated.php:59
+msgid "Hey %s!"
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:65
+#: src/Email/Notifications/DonationTeamFundraiser.php:65
+msgid "A new donation has been received to your Fundraising Profile for %s."
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:67
+#: src/Email/Notifications/DonationTeamCaptain.php:72
+#: src/Email/Notifications/DonationTeamFundraiser.php:67
+msgid "Here’s the donation details:"
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:68
+#: src/Email/Notifications/DonationTeamCaptain.php:73
+#: src/Email/Notifications/DonationTeamFundraiser.php:68
+msgid "Donor:"
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:69
+#: src/Email/Notifications/DonationTeamCaptain.php:74
+#: src/Email/Notifications/DonationTeamFundraiser.php:69
+msgid "Amount:"
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:70
+#: src/Email/Notifications/DonationTeamCaptain.php:75
+#: src/Email/Notifications/DonationTeamFundraiser.php:70
+msgid "Donation Date:"
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:71
+#: src/Email/Notifications/DonationTeamFundraiser.php:71
+msgid ""
+"Share your Fundraising Profile with your friends on social media or by email to reach your\n"
+"            fundraising goal! View your Fundraising profile here: "
+msgstr ""
+
+#: src/Email/Notifications/DonationIndividualFundraiser.php:93
+msgid "This email is automatically sent to the individual fundraiser and the recipient cannot be customized."
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamCaptain.php:31
+msgid "New Donation Team Captain"
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamCaptain.php:37
+#: src/Email/Notifications/TeamFundraiserJoined.php:33
+#: src/Email/Notifications/TeamProfileApproved.php:31
+#: src/Email/Notifications/TeamProfileCreated.php:31
+#: src/P2P/Routes/Admin/UpdateTeamCaptainRoute.php:51
+#: src/P2P/resources/Components/Admin/StepNavigation/stepNavigation.js:12
+#: src/P2P/resources/Components/Admin/StepNavigation/stepNavigation.js:30
+#: src/P2P/resources/Components/TeamProfileCard/index.js:28
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:223
+msgid "Team Captain"
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamCaptain.php:41
+msgid "New Donation Received for {team_name} for {campaign_name}!"
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamCaptain.php:66
+msgid "A new donation has been received to your Team Profile for %s."
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamCaptain.php:68
+msgid "Here’s the recipient details:"
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamCaptain.php:69
+msgid "Recipient Name:"
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamCaptain.php:70
+msgid "Recipient Goal:"
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamCaptain.php:71
+msgid "Recipient progress:"
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamCaptain.php:76
+msgid ""
+"Share your Team with your friends on social media or by email to reach your fundraising\n"
+"            goal! View your Fundraising profile here: "
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamCaptain.php:99
+#: src/Email/Notifications/TeamFundraiserJoined.php:109
+#: src/Email/Notifications/TeamProfileApproved.php:99
+#: src/Email/Notifications/TeamProfileCreated.php:99
+msgid "This email is automatically sent to the team captain and the recipient cannot be customized."
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamFundraiser.php:30
+msgid "New Donation Team Fundraiser"
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamFundraiser.php:36
+msgid "Team Fundraiser"
+msgstr ""
+
+#: src/Email/Notifications/DonationTeamFundraiser.php:96
+msgid "This email is automatically sent to the team fundraiser and the recipient cannot be customized."
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:26
+msgid "New Fundraiser Profile Approved"
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:27
+msgid "Sent to designated recipient(s) when a fundraiser profile is approved."
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:30
+#: src/Email/Notifications/FundraiserProfileCreated.php:30
+msgid "Individual Fundraiser, Team Fundraiser"
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:35
+msgid "Your fundraiser profile has been approved!"
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:38
+msgid "Fundraiser Profile Approved"
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:59
+msgid "Your fundraising profile for %s has been approved!"
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:60
+#: src/Email/Notifications/FundraiserProfileCreated.php:60
+#: src/Email/Notifications/TeamProfileApproved.php:61
+#: src/Email/Notifications/TeamProfileCreated.php:61
+msgid "Here’s your next steps:"
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:63
+#: src/Email/Notifications/FundraiserProfileCreated.php:63
+#: src/Email/Notifications/TeamProfileApproved.php:64
+#: src/Email/Notifications/TeamProfileCreated.php:64
+msgid "Click "
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:63
+#: src/Email/Notifications/FundraiserProfileCreated.php:63
+#: src/Email/Notifications/TeamProfileApproved.php:64
+#: src/Email/Notifications/TeamProfileCreated.php:64
+msgid "here"
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:64
+#: src/Email/Notifications/FundraiserProfileCreated.php:64
+#: src/Email/Notifications/TeamProfileApproved.php:65
+#: src/Email/Notifications/TeamProfileCreated.php:65
+msgid " to view your profile "
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:67
+#: src/Email/Notifications/FundraiserProfileCreated.php:67
+#: src/Email/Notifications/TeamProfileApproved.php:68
+#: src/Email/Notifications/TeamProfileCreated.php:68
+msgid "Make sure you’ve added a fundraising goal and a description as to why you’re fundraising for %s."
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:71
+#: src/Email/Notifications/FundraiserProfileCreated.php:71
+#: src/Email/Notifications/TeamProfileApproved.php:72
+#: src/Email/Notifications/TeamProfileCreated.php:72
+msgid "Share your fundraising profile on Facebook, Twitter, or by Email!"
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:74
+#: src/Email/Notifications/FundraiserProfileCreated.php:74
+#: src/Email/Notifications/TeamProfileApproved.php:75
+#: src/Email/Notifications/TeamProfileCreated.php:75
+msgid "We look forward to seeing you reach your goal! "
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:75
+#: src/Email/Notifications/FundraiserProfileCreated.php:75
+#: src/Email/Notifications/TeamFundraiserJoined.php:78
+#: src/Email/Notifications/TeamProfileApproved.php:76
+#: src/Email/Notifications/TeamProfileCreated.php:76
+msgid "View your Fundraising profile here: "
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileApproved.php:98
+#: src/Email/Notifications/FundraiserProfileCreated.php:98
+msgid "This email is automatically sent to the fundraiser and the recipient cannot be customized."
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileCreated.php:26
+msgid "New Fundraiser Profile Created"
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileCreated.php:27
+msgid "Sent to designated recipient(s) when a new fundraiser profile is created."
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileCreated.php:35
+msgid "Your fundraiser profile has been created!"
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileCreated.php:38
+msgid "New Fundraiser Created"
+msgstr ""
+
+#: src/Email/Notifications/FundraiserProfileCreated.php:59
+msgid "Your fundraising profile for %s has been created!"
+msgstr ""
+
+#: src/Email/Notifications/TeamFundraiserJoined.php:27
+msgid "New Fundraiser Joined Team"
+msgstr ""
+
+#: src/Email/Notifications/TeamFundraiserJoined.php:28
+msgid "Sent to the designated recipient(s) when a new fundraiser joins the team."
+msgstr ""
+
+#: src/Email/Notifications/TeamFundraiserJoined.php:38
+msgid "New Fundraiser Joined {team_name} for {campaign_name}!"
+msgstr ""
+
+#: src/Email/Notifications/TeamFundraiserJoined.php:43
+msgid "New Fundraiser Joined"
+msgstr ""
+
+#: src/Email/Notifications/TeamFundraiserJoined.php:66
+msgid "A new fundraiser has joined your team!"
+msgstr ""
+
+#: src/Email/Notifications/TeamFundraiserJoined.php:70
+msgid "Here’s the details:"
+msgstr ""
+
+#: src/Email/Notifications/TeamFundraiserJoined.php:71
+msgid "New Fundraiser:"
+msgstr ""
+
+#: src/Email/Notifications/TeamFundraiserJoined.php:72
+msgid "New Fundraiser Profile:"
+msgstr ""
+
+#: src/Email/Notifications/TeamFundraiserJoined.php:74
+msgid "Share your Team with your friends on social media or by email to reach your fundraising goal!"
+msgstr ""
+
+#: src/Email/Notifications/TeamFundraiserJoined.php:138
+#: src/Email/Notifications/TeamProfileApproved.php:128
+#: src/Email/Notifications/TeamProfileCreated.php:128
+msgid "No team captain(s) found."
+msgstr ""
+
+#: src/Email/Notifications/TeamProfileApproved.php:27
+msgid "New Team Profile Approved"
+msgstr ""
+
+#: src/Email/Notifications/TeamProfileApproved.php:28
+msgid "Sent to designated recipient(s) when a new team profile is approved."
+msgstr ""
+
+#: src/Email/Notifications/TeamProfileApproved.php:36
+msgid "Your team profile has been approved!"
+msgstr ""
+
+#: src/Email/Notifications/TeamProfileApproved.php:39
+msgid "Team Profile Approved"
+msgstr ""
+
+#: src/Email/Notifications/TeamProfileApproved.php:60
+msgid "Your team %s for %s has been approved!"
+msgstr ""
+
+#: src/Email/Notifications/TeamProfileCreated.php:27
+msgid "New Team Profile Created"
+msgstr ""
+
+#: src/Email/Notifications/TeamProfileCreated.php:28
+msgid "Sent to designated recipient(s) when a new team profile is created."
+msgstr ""
+
+#: src/Email/Notifications/TeamProfileCreated.php:36
+msgid " Your team {team_name} for {campaign_name} has been created!"
+msgstr ""
+
+#: src/Email/Notifications/TeamProfileCreated.php:39
+msgid "Team Profile Created"
+msgstr ""
+
+#: src/Email/Notifications/TeamProfileCreated.php:60
+msgid "Your team %s for %s has been created!"
+msgstr ""
+
+#: src/Exports/FundraiserExport.php:49
+#: src/P2P/resources/views/admin/add-campaign.php:58
+#: src/P2P/resources/views/admin/edit-campaign.php:40
+msgid "Campaign Name"
+msgstr ""
+
+#: src/Exports/FundraiserExport.php:51
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:177
+msgid "Fundraiser Name"
+msgstr ""
+
+#: src/Exports/FundraiserExport.php:52
+msgid "Fundraiser Email Address"
+msgstr ""
+
+#: src/Exports/FundraiserExport.php:53
+msgid "Fundraiser Goal Amount Formatted"
+msgstr ""
+
+#: src/Exports/FundraiserExport.php:54
+msgid "Fundraiser Raised Amount Formatted"
+msgstr ""
+
+#: src/Exports/resources/views/fundraiser-export-table-row.php:4
+msgid "Export Peer-to-Peer Fundraisers"
+msgstr ""
+
+#: src/Exports/resources/views/fundraiser-export-table-row.php:6
+msgid "Download a CSV of peer-to-peer fundraisers"
+msgstr ""
+
+#: src/Exports/resources/views/fundraiser-export-table-row.php:17
+msgid "Choose a campaign"
+msgstr ""
+
+#: src/Exports/resources/views/fundraiser-export-table-row.php:26
+msgid "Generate CSV"
+msgstr ""
+
+#: src/P2P/Admin/AddCampaign.php:30
+#: src/P2P/resources/views/admin/add-campaign.php:24
+msgid "Add New Peer-to-Peer Campaign"
+msgstr ""
+
+#: src/P2P/Admin/Campaigns.php:38
+msgid "Give P2P Campaigns"
+msgstr ""
+
+#: src/P2P/Admin/Campaigns.php:39
+#: src/P2P/resources/views/admin/campaigns.php:4
+#: src/P2P/resources/views/admin/prevent-delete-user.php:20
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:437
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:358
+msgid "P2P Campaigns"
+msgstr ""
+
+#: src/P2P/Admin/Campaigns.php:57
+msgid "New P2P Campaign added"
+msgstr ""
+
+#: src/P2P/Admin/EditCampaign.php:43
+msgid "Edit Peer-to-Peer Campaign"
+msgstr ""
+
+#: src/P2P/Admin/Export.php:63
+#: src/P2P/Routes/Admin/AddTeamCaptainRoute.php:66
+#: src/P2P/Routes/Admin/CreateFundraiserRoute.php:66
+#: src/P2P/Routes/Admin/CreateTeamRoute.php:58
+#: src/P2P/Routes/Admin/CreateWPUserRoute.php:54
+#: src/P2P/Routes/Admin/SendTeamInvitationEmailsRoute.php:68
+#: src/P2P/Routes/Admin/UpdateFundraiserRoute.php:57
+#: src/P2P/Routes/Admin/UpdateTeamCaptainRoute.php:41
+#: src/P2P/Routes/Admin/UpdateTeamRoute.php:66
+#: src/P2P/Routes/CloneCampaignRoute.php:36
+#: src/P2P/Routes/CreateFundraiserJoinTeamRoute.php:60
+#: src/P2P/Routes/CreateFundraiserProfileRoute.php:59
+#: src/P2P/Routes/CreateTeamRoute.php:98
+#: src/P2P/Routes/EditCampaignUrlRoute.php:69
+#: src/P2P/Routes/FundraiserCanJoinTeamRoute.php:47
+#: src/P2P/Routes/FundraiserJoinTeamRoute.php:50
+#: src/P2P/Routes/FundraiserLogin.php:57
+#: src/P2P/Routes/GetCampaignFundraisersSearch.php:40
+#: src/P2P/Routes/GetCampaignTeamsSearch.php:51
+#: src/P2P/Routes/GetCampaignTopDonorsRoute.php:50
+#: src/P2P/Routes/GetFundraiserInfo.php:66
+#: src/P2P/Routes/GetFundraisersRoute.php:136
+#: src/P2P/Routes/GetTeamsRoute.php:126
+#: src/P2P/Routes/RegisterFundraiserRoute.php:68
+#: src/P2P/Routes/RegisterJoinTeamRoute.php:37
+#: src/P2P/Routes/UpdateFundraiserProfileRoute.php:60
+#: src/P2P/Routes/UpdateTeamRoute.php:102
+msgid "Campaign ID"
+msgstr ""
+
+#: src/P2P/Admin/Export.php:65
+#: src/P2P/Routes/Admin/AddTeamCaptainRoute.php:71
+#: src/P2P/Routes/Admin/SendTeamInvitationEmailsRoute.php:73
+#: src/P2P/Routes/Admin/UpdateTeamCaptainRoute.php:46
+#: src/P2P/Routes/Admin/UpdateTeamRoute.php:71
+#: src/P2P/Routes/CreateFundraiserJoinTeamRoute.php:68
+#: src/P2P/Routes/FundraiserJoinTeamRoute.php:58
+#: src/P2P/Routes/GetFundraisersRoute.php:141
+#: src/P2P/Routes/GetTeamFundraisersRoute.php:49
+#: src/P2P/Routes/GetTeamRoute.php:72
+#: src/P2P/Routes/GetTeamTopDonorsRoute.php:50
+#: src/P2P/Routes/RegisterJoinTeamRoute.php:45
+#: src/P2P/Routes/SendTeamInvitationEmails.php:117
+#: src/P2P/Routes/UpdateTeamApprovalRoute.php:58
+#: src/P2P/Routes/UpdateTeamRoute.php:94
+msgid "Team ID"
+msgstr ""
+
+#: src/P2P/Admin/Export.php:67
+#: src/P2P/Routes/GetFundraisersTopDonorsRoute.php:50
+#: src/P2P/Routes/UpdateFundraiserApprovalRoute.php:57
+msgid "Fundraiser ID"
+msgstr ""
+
+#: src/P2P/Admin/Export.php:69
+msgid "Fundraiser User ID"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:26
+msgid "Campaign Title"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:29
+#: src/P2P/resources/views/admin/add-campaign.php:140
+#: src/P2P/resources/views/admin/edit-campaign.php:121
+#: src/P2P/Routes/GetCampaignsRoute.php:92
+msgid "Campaign status"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:32
+#: src/P2P/Routes/EditCampaignUrlRoute.php:73
+msgid "Campaign URL"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:35
+#: src/P2P/Admin/Settings/Campaign.php:44
+msgid "Donation Form"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:36
+#: src/P2P/Admin/Settings/Campaign.php:46
+msgid "All revenue from your campaign's fundraising is associated with a donation form. You can choose an existing donation form or create a new one for your campaign."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:38
+msgid "Create a new donation form"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:39
+msgid "Use an existing donation form"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:51
+msgid "Registration Notifications"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:52
+msgid "When a new fundraiser or team is registered an email will be sent to notify the site administrator."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:55
+msgid "Send one daily email for new registrations."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:56
+msgid "Send a separate email for each new registration."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:60
+msgid "Short Description"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:61
+msgid "This displays at the top of the main campaign page below the Campaign Name. It should describe your fundraising campaign, and invite visitors to join, start a team, donate, or share the campaign. Keep the description to one or two sentences."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:62
+msgid "Join a fundraising team, create your own, or donate to help fund this campaign."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:65
+msgid "Long Description"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:67
+msgid "<h2>Help Support our Cause</h2> <p>Join our fundraiser to help %1$s raise important funds to further our mission!</p> <!--more--> <p>Whether you make a donation, start a team, or simply support us by sharing the campaign, your help goes a long way and makes a difference.</p>"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:69
+msgid "A long form description of your campaign providing details to potential donors and fundraisers. In this space you can add images, text, and media files to help motivate visitors to support or join the campaign."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:72
+msgid "Campaign Logo"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:73
+msgid "The Campaign logo displays above the campaign title on all pages and should be at least 200x100px for optimal quality."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:76
+msgid "Campaign Image"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:77
+msgid "The Campaign Image displays on all pages and should be at least 1200x800px for optimal quality"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:80
+msgid "Primary Color"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:81
+msgid "This color is used in buttons and overlays. Select a color that compliments the color scheme of your site in general."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:85
+msgid "Campaign Fundraising Goal"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:86
+msgid "How much would you like the overall goal for this campaign to be? This is the goal amount that all teams and fundraisers will be working towards."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:90
+msgid "Goal Bar Color"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:91
+msgid "Used for the progress bar on the campaign, team, and fundraisers pages."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Campaign.php:103
+msgid "Edit Donation Form"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Fundraiser.php:25
+msgid "Fundraiser Approvals"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Fundraiser.php:36
+msgid "Enable Fundraiser Approval"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Fundraiser.php:37
+msgid "Disable Fundraiser Approval"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Fundraiser.php:40
+msgid "Default Fundraiser Goal"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Fundraiser.php:41
+msgid "This displays for fundraisers when they create their profile. Set a realistic but ambitious amount. Fundraisers can update the goal amount, but most will not."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Fundraiser.php:45
+msgid "Fundraiser Story Placeholder"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Fundraiser.php:46
+msgid "I'm fundraising to support this great cause, because it means so much to me. Help me out by donating through my fundraiser page."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Fundraiser.php:49
+msgid "This is the default text displayed on the fundraiser's page to compel their friends to join them in giving to your cause. People give to people, and stories motivate them. Set up your fundraisers for success by prompting them to tell their story here."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:25
+#: src/P2P/Admin/Settings/Sponsor.php:67
+#: src/P2P/resources/views/admin/add-campaign.php:99
+#: src/P2P/resources/views/admin/edit-campaign.php:81
+msgid "Sponsors"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:26
+msgid "If enabled, this adds a section to the campaign page to display sponsors."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:29
+msgid "Enabled"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:30
+msgid "Disabled"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:34
+msgid "Sponsor Linking"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:35
+msgid "This controls whether or not the sponsor images link to their websites. Linking with follow is better for their SEO but may hurt your SEO, linking with no follow and sponsored attributes has no effect on SEO, disabling linking will simply display the sponsor’s image."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:39
+msgid "Link with Follow Attribute"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:40
+msgid "Link with No Follow and Sponsored Attribute"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:41
+msgid "Disable Linking"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:45
+msgid "Sponsors Section Heading"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:46
+msgid "The sponsors heading displays above the list of sponsors."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:47
+#: src/P2P/resources/Components/SponsorGrid/index.js:16
+msgid "Our Wonderful Sponsors"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:51
+msgid "Sponsor Application Page"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:52
+msgid "If you provide a fully qualified URL (including the <code>https://</code>) here, it displays a button in the Sponsors section to allow new sponsors to contact you. Link to a page with a contact form on it. To disable display of that button, leave this field blank"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:57
+msgid "Sponsors Display"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:58
+msgid "You can either display the sponsors section only on the main campaign page, or also on all team pages and fundraiser pages"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:62
+msgid "All Campaign Pages"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:63
+msgid "Only Main Campaign Page"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:69
+msgid "Sponsor"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:70
+msgid "Add Sponsor"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:73
+msgid "Sponsor Name"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:74
+#: src/P2P/Admin/Settings/Sponsor.php:78
+msgid "The name of the sponsor is used for alt and title text."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:77
+msgid "Sponsor URL"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:81
+msgid "Sponsor Image"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Sponsor.php:82
+msgid "The sponsor image should be at least 150x100 for optimal quality."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:27
+msgid "Team Approvals"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:38
+msgid "Enable Team Approval"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:39
+msgid "Disable Team Approval"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:42
+msgid "Teams Registration"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:44
+msgid "If enabled, fundraisers will be able to register and create new teams from their \"Start Fundraising\" and \"Register\" pages."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:51
+msgid "Enable"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:52
+msgid "Disable"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:55
+msgid "Default Team Goal"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:57
+msgid "This displays for team captains during the team creation process. Set a realistic but ambitious amount. Team owners can update the goal amount, but most will not."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:65
+msgid "Team Story Placeholder"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:67
+msgid "We are fundraising to support a great cause that we believe in. Help us meet our goal by donating today to support our team."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:73
+msgid "Teams have their own stories too! This is where the team captain can write a few sentences about why they are fundraising to support the campaign. Set placeholder text for new teams to help them get started!"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:80
+msgid "Team Rankings"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:82
+msgid "If enabled, this displays rankings for all teams (by how much each team raises) on team and individual profiles as well as the campaign page."
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:89
+msgid "Enable Rankings"
+msgstr ""
+
+#: src/P2P/Admin/Settings/Team.php:90
+msgid "Disable Rankings"
+msgstr ""
+
+#: src/P2P/Commands/AddDonationFormNotice.php:31
+msgid "This donation form is attached to a Peer-to-Peer campaign"
+msgstr ""
+
+#: src/P2P/Commands/SendAdminRegistrationDigestEmail.php:52
+msgid "%s New Fundraiser"
+msgid_plural "%s New Fundraisers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/P2P/Commands/SendAdminRegistrationDigestEmail.php:67
+msgid "%s New Team"
+msgid_plural "%s New Teams"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/P2P/Commands/SendAdminRegistrationDigestEmail.php:89
+msgid "New Registrations"
+msgstr ""
+
+#: src/P2P/Controllers/Admin/EditCampaignController.php:94
+msgid "Campaign updated"
+msgstr ""
+
+#: src/P2P/Controllers/Admin/EditCampaignController.php:98
+msgid "Campaign not updated"
+msgstr ""
+
+#: src/P2P/Controllers/CampaignController.php:101
+#: src/P2P/Controllers/FundraiserController.php:90
+#: src/P2P/Controllers/TeamController.php:112
+msgid "recurring"
+msgstr ""
+
+#: src/P2P/Controllers/CampaignController.php:102
+#: src/P2P/Controllers/FundraiserController.php:91
+#: src/P2P/Controllers/TeamController.php:113
+msgid "one-time"
+msgstr ""
+
+#: src/P2P/Controllers/CampaignController.php:104
+#: src/P2P/Controllers/FundraiserController.php:92
+#: src/P2P/Controllers/TeamController.php:114
+msgid "today"
+msgstr ""
+
+#: src/P2P/Controllers/CampaignController.php:105
+#: src/P2P/Controllers/FundraiserController.php:93
+#: src/P2P/Controllers/TeamController.php:115
+msgid "yesterday"
+msgstr ""
+
+#: src/P2P/Controllers/CampaignController.php:105
+#: src/P2P/Controllers/FundraiserController.php:93
+#: src/P2P/Controllers/TeamController.php:115
+msgid "%d days ago"
+msgstr ""
+
+#: src/P2P/FieldsAPI/Traits/Validators.php:116
+msgid "Please enter a valid value for %s"
+msgstr ""
+
+#: src/P2P/FieldsAPI/Views/Image.php:52
+msgid "Add or Upload File"
+msgstr ""
+
+#: src/P2P/Migrations/AddNotifyOfDonationsColumn.php:21
+msgid "Add Notify Of Donations Column"
+msgstr ""
+
+#: src/P2P/Migrations/AddNotifyOfFundraisersColumn.php:23
+msgid "Add Notify Of Fundraisers Column"
+msgstr ""
+
+#: src/P2P/Models/Campaign.php:405
+msgid "To create a Campaign, please provide all the required fields: "
+msgstr ""
+
+#: src/P2P/Models/Campaign.php:424
+msgid "To create a Campaign object, please provide FieldCollection with all the required fields: "
+msgstr ""
+
+#: src/P2P/Models/Fundraiser.php:222
+msgid "To create a Fundraiser, please provide all the required fields: %s"
+msgstr ""
+
+#: src/P2P/Models/Sponsor.php:53
+msgid "To create a Sponsor, please provide all the required fields: "
+msgstr ""
+
+#: src/P2P/Models/Team.php:199
+msgid "To create a team, complete all required fields: %s"
+msgstr ""
+
+#: src/P2P/Models/TeamInvitation.php:81
+msgid "To create a Team Invitation, please provide all the required fields: %s"
+msgstr ""
+
+#: src/P2P/Receipt/DonationReceipt.php:74
+msgid "Donated to team"
+msgstr ""
+
+#: src/P2P/Receipt/DonationReceipt.php:80
+msgid "Donated to fundraiser"
+msgstr ""
+
+#: src/P2P/Receipt/DonationReceipt.php:87
+msgid "Donated to campaign"
+msgstr ""
+
+#: src/P2P/resources/views/admin/add-campaign.php:17
+#: src/P2P/resources/views/admin/edit-campaign.php:17
+#: src/P2P/Routes/GetCampaignsRoute.php:157
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:390
+msgid "Active"
+msgstr ""
+
+#: src/P2P/resources/views/admin/add-campaign.php:18
+#: src/P2P/resources/views/admin/edit-campaign.php:19
+#: src/P2P/Routes/GetCampaignsRoute.php:159
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:392
+msgid "Draft"
+msgstr ""
+
+#: src/P2P/resources/views/admin/add-campaign.php:30
+msgid "Go to P2P main campaign page"
+msgstr ""
+
+#: src/P2P/resources/views/admin/add-campaign.php:68
+#: src/P2P/resources/views/admin/edit-campaign.php:51
+msgid "Campaign Options"
+msgstr ""
+
+#: src/P2P/resources/views/admin/add-campaign.php:78
+#: src/P2P/resources/views/admin/edit-campaign.php:60
+msgid "Setup"
+msgstr ""
+
+#: src/P2P/resources/views/admin/add-campaign.php:85
+#: src/P2P/resources/views/admin/edit-campaign-container.php:52
+#: src/P2P/resources/views/admin/edit-campaign-container.php:105
+#: src/P2P/resources/views/admin/edit-campaign.php:67
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:255
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:338
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:136
+msgid "Teams"
+msgstr ""
+
+#: src/P2P/resources/views/admin/add-campaign.php:92
+#: src/P2P/resources/views/admin/edit-campaign-container.php:53
+#: src/P2P/resources/views/admin/edit-campaign-container.php:114
+#: src/P2P/resources/views/admin/edit-campaign.php:74
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:264
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:365
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:140
+msgid "Fundraisers"
+msgstr ""
+
+#: src/P2P/resources/views/admin/add-campaign.php:133
+msgid "Create New Campaign"
+msgstr ""
+
+#: src/P2P/resources/views/admin/add-campaign.php:161
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:431
+msgid "Create Campaign"
+msgstr ""
+
+#: src/P2P/resources/views/admin/campaign-permalink.php:7
+msgid "Permalink"
+msgstr ""
+
+#: src/P2P/resources/views/admin/campaign-permalink.php:15
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:292
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:273
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:252
+msgid "Edit"
+msgstr ""
+
+#: src/P2P/resources/views/admin/campaign-permalink.php:21
+msgid "OK"
+msgstr ""
+
+#: src/P2P/resources/views/admin/campaign-permalink.php:24
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:223
+#: src/P2P/resources/js/admin/App/Fundraisers/deleteFundraiserModal.js:193
+#: src/P2P/resources/js/admin/App/Teams/DeleteTeamModal.js:86
+msgid "Cancel"
+msgstr ""
+
+#: src/P2P/resources/views/admin/campaigns.php:6
+msgid "New Campaign"
+msgstr ""
+
+#: src/P2P/resources/views/admin/edit-campaign-container.php:46
+#: src/P2P/resources/views/admin/edit-campaign.php:115
+msgid "Edit Campaign"
+msgstr ""
+
+#: src/P2P/resources/views/admin/edit-campaign-container.php:65
+msgid "View Campaign"
+msgstr ""
+
+#: src/P2P/resources/views/admin/edit-campaign-container.php:96
+msgid "Settings"
+msgstr ""
+
+#: src/P2P/resources/views/admin/edit-campaign.php:18
+#: src/P2P/Routes/GetCampaignsRoute.php:158
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:391
+msgid "Inactive"
+msgstr ""
+
+#: src/P2P/resources/views/admin/edit-campaign.php:140
+msgid "Update Campaign"
+msgstr ""
+
+#: src/P2P/resources/views/admin/export-options.php:4
+msgid "P2P Data:"
+msgstr ""
+
+#: src/P2P/resources/views/admin/prevent-delete-user.php:11
+msgid "User accounts associated with a Peer-to-Peer Campaign Fundraiser cannot be deleted. To delete a user associated with a Fundraiser, first delete the fundraiser from the Peer-to-Peer Campaign."
+msgstr ""
+
+#: src/P2P/Routes/Admin/AddTeamCaptainRoute.php:76
+#: src/P2P/Routes/Admin/CreateWPUserRoute.php:59
+#: src/P2P/resources/js/admin/App/Fundraisers/RegisterFundraiser.js:66
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:273
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:96
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamRegister.js:93
+msgid "First Name"
+msgstr ""
+
+#: src/P2P/Routes/Admin/AddTeamCaptainRoute.php:81
+#: src/P2P/Routes/Admin/CreateWPUserRoute.php:64
+#: src/P2P/resources/js/admin/App/Fundraisers/RegisterFundraiser.js:74
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:281
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:107
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamRegister.js:103
+msgid "Last Name"
+msgstr ""
+
+#: src/P2P/Routes/Admin/AddTeamCaptainRoute.php:86
+#: src/P2P/Routes/Admin/CreateWPUserRoute.php:69
+#: src/P2P/resources/js/admin/App/Fundraisers/RegisterFundraiser.js:84
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:294
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:119
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamRegister.js:115
+msgid "Email"
+msgstr ""
+
+#: src/P2P/Routes/Admin/AddTeamCaptainRoute.php:92
+msgid "Fundraiser Story"
+msgstr ""
+
+#: src/P2P/Routes/Admin/AddTeamCaptainRoute.php:97
+msgid "Fundraiser Goal"
+msgstr ""
+
+#: src/P2P/Routes/Admin/AddTeamCaptainRoute.php:105
+#: src/P2P/Routes/Admin/CreateFundraiserRoute.php:93
+#: src/P2P/Routes/Admin/CreateTeamRoute.php:87
+#: src/P2P/Routes/Admin/UpdateFundraiserRoute.php:79
+#: src/P2P/Routes/Admin/UpdateTeamRoute.php:100
+#: src/P2P/Routes/UpdateTeamRoute.php:146
+msgid "File URL"
+msgstr ""
+
+#: src/P2P/Routes/Admin/AddTeamCaptainRoute.php:110
+#: src/P2P/Routes/Admin/CreateFundraiserRoute.php:98
+#: src/P2P/Routes/Admin/UpdateFundraiserRoute.php:84
+msgid "New Donation Notification"
+msgstr ""
+
+#: src/P2P/Routes/Admin/AddTeamCaptainRoute.php:132
+#: src/P2P/Routes/Admin/CreateFundraiserRoute.php:119
+#: src/P2P/Routes/Admin/CreateTeamRoute.php:118
+#: src/P2P/Routes/Admin/CreateWPUserRoute.php:89
+#: src/P2P/Routes/Admin/SendTeamInvitationEmailsRoute.php:103
+#: src/P2P/Routes/Admin/UpdateTeamCaptainRoute.php:72
+#: src/P2P/Routes/Admin/UpdateTeamRoute.php:130
+#: src/P2P/Routes/Admin/UpdateTeamRoute.php:140
+#: src/P2P/Routes/CreateFundraiserJoinTeamRoute.php:107
+#: src/P2P/Routes/CreateFundraiserProfileRoute.php:106
+#: src/P2P/Routes/RegisterFundraiserRoute.php:134
+#: src/P2P/Routes/RegisterJoinTeamRoute.php:100
+msgid "Campaign you are trying to join does not exist"
+msgstr ""
+
+#: src/P2P/Routes/Admin/AddTeamCaptainRoute.php:143
+#: src/P2P/Routes/Admin/CreateFundraiserRoute.php:199
+#: src/P2P/Routes/Admin/SendTeamInvitationEmailsRoute.php:114
+#: src/P2P/Routes/Admin/UpdateFundraiserRoute.php:152
+#: src/P2P/Routes/Admin/UpdateTeamCaptainRoute.php:83
+msgid "Team you are trying to join does not exist"
+msgstr ""
+
+#: src/P2P/Routes/Admin/AddTeamCaptainRoute.php:183
+msgid "Fundraiser already exist in this campaign."
+msgstr ""
+
+#: src/P2P/Routes/Admin/CreateFundraiserRoute.php:71
+msgid "WP User ID"
+msgstr ""
+
+#: src/P2P/Routes/Admin/CreateFundraiserRoute.php:76
+#: src/P2P/Routes/Admin/CreateFundraiserRoute.php:81
+#: src/P2P/Routes/Admin/UpdateFundraiserRoute.php:62
+#: src/P2P/Routes/Admin/UpdateFundraiserRoute.php:67
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:263
+msgid "Fundraiser goal"
+msgstr ""
+
+#: src/P2P/Routes/Admin/CreateFundraiserRoute.php:88
+#: src/P2P/Routes/Admin/UpdateFundraiserRoute.php:74
+msgid "Team id"
+msgstr ""
+
+#: src/P2P/Routes/Admin/CreateFundraiserRoute.php:131
+msgid "Invalid WP user"
+msgstr ""
+
+#: src/P2P/Routes/Admin/CreateFundraiserRoute.php:146
+msgid "Fundraiser is already exist in this campaign with %s."
+msgstr ""
+
+#: src/P2P/Routes/Admin/CreateFundraiserRoute.php:216
+#: src/P2P/Routes/Admin/CreateTeamRoute.php:169
+#: src/P2P/Routes/Admin/UpdateFundraiserRoute.php:179
+#: src/P2P/Routes/Admin/UpdateTeamRoute.php:196
+#: src/P2P/Routes/CloneCampaignRoute.php:72
+#: src/P2P/Routes/CreateFundraiserJoinTeamRoute.php:132
+#: src/P2P/Routes/CreateFundraiserProfileRoute.php:133
+#: src/P2P/Routes/FundraiserJoinTeamRoute.php:90
+#: src/P2P/Routes/FundraiserJoinTeamRoute.php:107
+#: src/P2P/Routes/RegisterFundraiserRoute.php:203
+#: src/P2P/Routes/RegisterJoinTeamRoute.php:148
+#: src/P2P/Routes/UpdateFundraiserApprovalRoute.php:103
+#: src/P2P/Routes/UpdateFundraiserProfileRoute.php:153
+#: src/P2P/Routes/UpdateTeamApprovalRoute.php:106
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/DonorsTabContent.js:17
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:60
+msgid "Something went wrong"
+msgstr ""
+
+#: src/P2P/Routes/Admin/CreateTeamRoute.php:63
+#: src/P2P/Routes/Admin/UpdateTeamRoute.php:76
+#: src/P2P/Routes/CreateTeamRoute.php:106
+#: src/P2P/Routes/UpdateTeamRoute.php:110
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:174
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:155
+msgid "Team name"
+msgstr ""
+
+#: src/P2P/Routes/Admin/CreateTeamRoute.php:68
+#: src/P2P/Routes/Admin/UpdateTeamRoute.php:81
+#: src/P2P/Routes/CreateTeamRoute.php:114
+#: src/P2P/Routes/UpdateTeamRoute.php:118
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:194
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:174
+msgid "Team story"
+msgstr ""
+
+#: src/P2P/Routes/Admin/CreateTeamRoute.php:73
+#: src/P2P/Routes/Admin/CreateTeamRoute.php:81
+#: src/P2P/Routes/Admin/UpdateTeamRoute.php:86
+#: src/P2P/Routes/Admin/UpdateTeamRoute.php:94
+#: src/P2P/Routes/CreateTeamRoute.php:122
+#: src/P2P/Routes/CreateTeamRoute.php:130
+#: src/P2P/Routes/UpdateTeamRoute.php:126
+msgid "Team goal"
+msgstr ""
+
+#: src/P2P/Routes/Admin/CreateTeamRoute.php:92
+#: src/P2P/Routes/Admin/UpdateTeamRoute.php:105
+#: src/P2P/Routes/CreateTeamRoute.php:142
+#: src/P2P/Routes/UpdateTeamRoute.php:151
+msgid "New Fundraiser Notification"
+msgstr ""
+
+#: src/P2P/Routes/Admin/CreateTeamRoute.php:97
+#: src/P2P/Routes/Admin/UpdateTeamRoute.php:110
+#: src/P2P/Routes/CreateTeamRoute.php:147
+#: src/P2P/Routes/UpdateTeamRoute.php:156
+msgid "New Team Donation Notification"
+msgstr ""
+
+#: src/P2P/Routes/Admin/CreateWPUserRoute.php:130
+msgid "Fundraiser is already exist in this campaign with this user email address."
+msgstr ""
+
+#: src/P2P/Routes/Admin/SendTeamInvitationEmailsRoute.php:78
+msgid "Emails"
+msgstr ""
+
+#: src/P2P/Routes/Admin/SendTeamInvitationEmailsRoute.php:143
+#: src/P2P/Routes/SendTeamInvitationEmails.php:165
+msgid "Invitation to fundraise"
+msgstr ""
+
+#: src/P2P/Routes/Admin/SendTeamInvitationEmailsRoute.php:151
+#: src/P2P/Routes/SendTeamInvitationEmails.php:173
+msgid "You are invited to fundraise with %s on behalf of %s."
+msgstr ""
+
+#: src/P2P/Routes/Admin/UpdateFundraiserRoute.php:103
+msgid "Fundraiser you are trying to update does not exist"
+msgstr ""
+
+#: src/P2P/Routes/Admin/UpdateTeamCaptainRoute.php:96
+msgid "Fundraiser you are trying to assign as team captain does not exist"
+msgstr ""
+
+#: src/P2P/Routes/Admin/UpdateTeamCaptainRoute.php:109
+msgid "Selected Fundraiser is captain of this team"
+msgstr ""
+
+#: src/P2P/Routes/CloneCampaignRoute.php:54
+msgid "Campaign you are trying to clone does not exist"
+msgstr ""
+
+#: src/P2P/Routes/CreateFundraiserJoinTeamRoute.php:76
+#: src/P2P/Routes/CreateFundraiserProfileRoute.php:75
+#: src/P2P/Routes/RegisterFundraiserRoute.php:95
+#: src/P2P/Routes/RegisterJoinTeamRoute.php:61
+msgid "Fundraiser first name"
+msgstr ""
+
+#: src/P2P/Routes/CreateFundraiserJoinTeamRoute.php:84
+#: src/P2P/Routes/CreateFundraiserProfileRoute.php:83
+#: src/P2P/Routes/RegisterFundraiserRoute.php:103
+#: src/P2P/Routes/RegisterJoinTeamRoute.php:69
+msgid "Fundraiser last name"
+msgstr ""
+
+#: src/P2P/Routes/CreateFundraiserProfileRoute.php:67
+#: src/P2P/Routes/RegisterFundraiserRoute.php:76
+msgid "Fundraiser is a team captain"
+msgstr ""
+
+#: src/P2P/Routes/CreateTeamRoute.php:136
+#: src/P2P/Routes/UpdateTeamRoute.php:140
+msgid "Team member invitation email addresses"
+msgstr ""
+
+#: src/P2P/Routes/CreateTeamRoute.php:171
+msgid "The Campaign you are trying to join does not exist"
+msgstr ""
+
+#: src/P2P/Routes/CreateTeamRoute.php:225
+msgid "An error occurred while processing your request. Unable to create team. "
+msgstr ""
+
+#: src/P2P/Routes/CreateTeamRoute.php:242
+msgid "An error occurred while processing your request. Unable to connect fundraiser with team."
+msgstr ""
+
+#: src/P2P/Routes/Endpoint.php:33
+msgid "You dont have the right permissions"
+msgstr ""
+
+#: src/P2P/Routes/FundraiserCanJoinTeamRoute.php:77
+msgid "Fundraiser has already joined team"
+msgstr ""
+
+#: src/P2P/Routes/FundraiserLogin.php:65
+msgid "Email or Username"
+msgstr ""
+
+#: src/P2P/Routes/FundraiserLogin.php:73
+#: src/P2P/resources/js/frontend/App/Screens/Login/Login.js:80
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:135
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamRegister.js:131
+msgid "Password"
+msgstr ""
+
+#: src/P2P/Routes/FundraiserLogin.php:99
+msgid "Campaign you are trying to login does not exist"
+msgstr ""
+
+#: src/P2P/Routes/FundraiserLogin.php:150
+msgid "Invalid username or password"
+msgstr ""
+
+#: src/P2P/Routes/GetAdminEmailsRoute.php:102
+#: src/P2P/Routes/GetUserInfoRoute.php:52
+msgid "User not found"
+msgstr ""
+
+#: src/P2P/Routes/GetCampaign.php:52
+msgid "Campaign does not exist."
+msgstr ""
+
+#: src/P2P/Routes/GetCampaignFundraisersSearch.php:48
+#: src/P2P/Routes/GetCampaignTeamsSearch.php:59
+msgid "Search text"
+msgstr ""
+
+#: src/P2P/Routes/GetCampaignFundraisersSearch.php:59
+#: src/P2P/Routes/GetCampaignsRoute.php:74
+#: src/P2P/Routes/GetCampaignTeamsSearch.php:75
+#: src/P2P/Routes/GetFundraisersRoute.php:145
+#: src/P2P/Routes/GetTeamsRoute.php:131
+msgid "Current page"
+msgstr ""
+
+#: src/P2P/Routes/GetCampaignFundraisersSearch.php:67
+#: src/P2P/Routes/GetCampaignsRoute.php:81
+#: src/P2P/Routes/GetCampaignTeamsSearch.php:83
+#: src/P2P/Routes/GetFundraisersRoute.php:149
+#: src/P2P/Routes/GetTeamsRoute.php:135
+msgid "Items per page"
+msgstr ""
+
+#: src/P2P/Routes/GetCampaignsRoute.php:96
+#: src/P2P/Routes/GetFundraisersRoute.php:161
+#: src/P2P/Routes/GetTeamsRoute.php:147
+msgid "Sort by column"
+msgstr ""
+
+#: src/P2P/Routes/GetCampaignsRoute.php:107
+#: src/P2P/Routes/GetFundraisersRoute.php:157
+#: src/P2P/Routes/GetTeamsRoute.php:143
+msgid "Sort direction"
+msgstr ""
+
+#: src/P2P/Routes/GetFundraiserInfo.php:96
+msgid "Fundraiser not found"
+msgstr ""
+
+#: src/P2P/Routes/GetFundraiserRoute.php:60
+msgid "Fundraiser does not exist."
+msgstr ""
+
+#: src/P2P/Routes/GetFundraisersRoute.php:153
+msgid "Fundraiser status"
+msgstr ""
+
+#: src/P2P/Routes/GetFundraisersRoute.php:212
+#: src/P2P/Routes/GetTeamsRoute.php:213
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:323
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:363
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:97
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:152
+msgid "Approved"
+msgstr ""
+
+#: src/P2P/Routes/GetFundraisersRoute.php:213
+#: src/P2P/Routes/GetTeamsRoute.php:214
+msgid "Pending Approval"
+msgstr ""
+
+#: src/P2P/Routes/GetTeamRoute.php:93
+#: src/P2P/Routes/UpdateTeamApprovalRoute.php:85
+msgid "Team does not exist"
+msgstr ""
+
+#: src/P2P/Routes/GetTeamsRoute.php:139
+msgid "Team status"
+msgstr ""
+
+#: src/P2P/Routes/RegisterFundraiserRoute.php:84
+#: src/P2P/Routes/RegisterJoinTeamRoute.php:53
+msgid "Fundraiser email address"
+msgstr ""
+
+#: src/P2P/Routes/RegisterFundraiserRoute.php:111
+#: src/P2P/Routes/RegisterJoinTeamRoute.php:77
+msgid "Fundraiser account password"
+msgstr ""
+
+#: src/P2P/Routes/RegisterFundraiserRoute.php:145
+msgid "An account already exists for that email address."
+msgstr ""
+
+#: src/P2P/Routes/RegisterFundraiserRoute.php:171
+msgid "A user with that email address already exists."
+msgstr ""
+
+#: src/P2P/Routes/SendPasswordResetEmail.php:39
+msgid "Username for which a password retrieval email should be sent."
+msgstr ""
+
+#: src/P2P/Routes/UpdateFundraiserApprovalRoute.php:110
+msgid "Fundraiser updated"
+msgstr ""
+
+#: src/P2P/Routes/UpdateFundraiserProfileRoute.php:68
+msgid "Individual fundraising goal"
+msgstr ""
+
+#: src/P2P/Routes/UpdateFundraiserProfileRoute.php:76
+msgid "Individual fundraising story"
+msgstr ""
+
+#: src/P2P/Routes/UpdateFundraiserProfileRoute.php:84
+msgid "Donation Notification"
+msgstr ""
+
+#: src/P2P/Routes/UpdateFundraiserProfileRoute.php:107
+msgid "Fundraiser does not exist on campaign"
+msgstr ""
+
+#: src/P2P/Routes/UpdateFundraiserProfileRoute.php:116
+msgid "Fundraiser does not exist"
+msgstr ""
+
+#: src/P2P/Routes/UpdateTeamApprovalRoute.php:121
+#: src/P2P/Routes/UpdateTeamRoute.php:240
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:347
+msgid "Team updated"
+msgstr ""
+
+#: src/P2P/Routes/UpdateTeamRoute.php:134
+msgid "Access"
+msgstr ""
+
+#: src/P2P/Routes/UpdateTeamRoute.php:177
+msgid "That team does not exist"
+msgstr ""
+
+#: src/P2P/Routes/UpdateTeamRoute.php:224
+msgid "An error occurred while processing your request. Unable to update team."
+msgstr ""
+
+#: src/Reallocation/API/DeleteFundraiserStrategy.php:67
+msgid "Error when deleting fundraiser%s"
+msgstr ""
+
+#: src/Reallocation/API/DeleteTeamStrategy.php:40
+msgid "Error when deleting team%s"
+msgstr ""
+
+#: src/Donations/resources/js/source-selection.js:17
+msgid "Oops, nothing found!"
+msgstr ""
+
+#: src/P2P/resources/Components/Admin/Modal/index.js:95
+msgid "Error details"
+msgstr ""
+
+#: src/P2P/resources/Components/Admin/Modal/index.js:96
+msgid "Additional context"
+msgstr ""
+
+#: src/P2P/resources/Components/Admin/Pagination/index.js:49
+msgid "Current Page"
+msgstr ""
+
+#: src/P2P/resources/Components/Admin/Pagination/index.js:52
+msgid "of"
+msgstr ""
+
+#: src/P2P/resources/Components/Admin/StepNavigation/stepNavigation.js:8
+msgid "Create Team Profile"
+msgstr ""
+
+#: src/P2P/resources/Components/Admin/StepNavigation/stepNavigation.js:16
+#: src/P2P/resources/Components/Admin/StepNavigation/stepNavigation.js:34
+#: src/P2P/resources/js/admin/App/Teams/InviteTeamMembersForm.js:100
+msgid "Invite Team Members"
+msgstr ""
+
+#: src/P2P/resources/Components/Admin/StepNavigation/stepNavigation.js:20
+#: src/P2P/resources/Components/Admin/StepNavigation/stepNavigation.js:48
+msgid "Setup complete"
+msgstr ""
+
+#: src/P2P/resources/Components/Admin/StepNavigation/stepNavigation.js:26
+msgid "Edit Team Profile"
+msgstr ""
+
+#: src/P2P/resources/Components/Admin/StepNavigation/stepNavigation.js:40
+#: src/P2P/resources/js/admin/App/Fundraisers/RegisterFundraiser.js:100
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:416
+#: src/P2P/resources/js/frontend/App/reducers/stepNavigation.js:8
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:193
+msgid "Register"
+msgstr ""
+
+#: src/P2P/resources/Components/Admin/StepNavigation/stepNavigation.js:44
+#: src/P2P/resources/js/frontend/App/reducers/stepNavigation.js:10
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:221
+msgid "Create Profile"
+msgstr ""
+
+#: src/P2P/resources/Components/Admin/Table/index.js:114
+msgid " Need help? Learn more about"
+msgstr ""
+
+#: src/P2P/resources/Components/DonateFormContainer/index.js:37
+#: src/P2P/resources/Components/ProfileHeader/index.js:39
+#: src/P2P/resources/Components/SupportCard/index.js:23
+msgid "Fundraising in support of the"
+msgstr ""
+
+#: src/P2P/resources/Components/DonorsList/index.js:14
+msgid "Be the first to donate!"
+msgstr ""
+
+#: src/P2P/resources/Components/DonorsList/index.js:16
+#: src/P2P/resources/Components/ListTable/index.js:23
+#: src/P2P/resources/Components/ListTable/index.js:46
+#: src/P2P/resources/Components/ProfileHeader/index.js:51
+#: src/P2P/resources/Components/SupportCard/index.js:50
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/Hero.js:57
+#: src/P2P/resources/js/frontend/App/Screens/Register/Register.js:85
+msgid "Donate Now"
+msgstr ""
+
+#: src/P2P/resources/Components/Pagination/index.js:19
+msgid "Showing %d - %d of %d Total %s"
+msgstr ""
+
+#: src/P2P/resources/Components/ProfileHeader/index.js:27
+msgid "Member of"
+msgstr ""
+
+#: src/P2P/resources/Components/ProfileHeader/index.js:94
+msgid "Read More"
+msgstr ""
+
+#: src/P2P/resources/Components/ProfileLogin/index.js:20
+#: src/P2P/resources/Components/SignInPill/index.js:17
+msgid "Sign in"
+msgstr ""
+
+#: src/P2P/resources/Components/RankingBadge/index.js:8
+msgid "1st Place"
+msgstr ""
+
+#: src/P2P/resources/Components/RankingBadge/index.js:12
+msgid "2nd Place"
+msgstr ""
+
+#: src/P2P/resources/Components/RankingBadge/index.js:16
+msgid "3rd Place"
+msgstr ""
+
+#: src/P2P/resources/Components/SecureAndEncrypted/index.js:11
+msgid "Secure and Encrypted"
+msgstr ""
+
+#: src/P2P/resources/Components/SecureAndEncrypted/index.js:16
+msgid "Insecure Connection"
+msgstr ""
+
+#: src/P2P/resources/Components/SignInPill/index.js:15
+#: src/P2P/resources/js/frontend/App/Screens/Login/LostPassword.js:88
+msgid "Already have an account?"
+msgstr ""
+
+#: src/P2P/resources/Components/SponsorGrid/index.js:35
+msgid "Sponsor this campaign!"
+msgstr ""
+
+#: src/P2P/resources/Components/SponsorGrid/index.js:36
+msgid "Promote your brand alongside this campaign and help the cause."
+msgstr ""
+
+#: src/P2P/resources/Components/SponsorGrid/index.js:39
+msgid "Sponsor Campaign"
+msgstr ""
+
+#: src/P2P/resources/Components/SponsorGrid/index.js:49
+msgid "Become a Sponsor"
+msgstr ""
+
+#: src/P2P/resources/Components/Stats/index.js:12
+msgid "Stats"
+msgstr ""
+
+#: src/P2P/resources/Components/Stats/index.js:23
+#: src/P2P/resources/Components/SupportCard/index.js:32
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:73
+msgid "raised"
+msgstr ""
+
+#: src/P2P/resources/Components/Stats/index.js:28
+msgid "%d%% of"
+msgstr ""
+
+#: src/P2P/resources/Components/Stats/index.js:31
+#: src/P2P/resources/Components/SupportCard/index.js:39
+msgid "goal"
+msgstr ""
+
+#: src/P2P/resources/Components/SupportCard/index.js:36
+msgid " %d%% of"
+msgstr ""
+
+#: src/P2P/resources/Components/SupportCard/index.js:55
+#: src/P2P/resources/js/frontend/App/reducers/stepNavigation.js:11
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/Hero.js:54
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:128
+#: src/P2P/resources/js/frontend/App/Screens/Register/Register.js:26
+msgid "Start Fundraising"
+msgstr ""
+
+#: src/P2P/resources/Components/TeamProfileCard/index.js:23
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:121
+msgid "%d Member"
+msgid_plural "%d Members"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:98
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:135
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:112
+msgid "All statuses"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:189
+msgid "Something went wrong!"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:202
+msgid "Duplicating Campaign"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:210
+msgid "Duplicate Campaign"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:220
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:306
+msgid "Duplicate"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:235
+msgid "Title"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:245
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:185
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:158
+msgid "Goal"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:273
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:228
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:186
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:205
+msgid "Status"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:296
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:277
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:256
+msgid "View"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:345
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:349
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:374
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:378
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:314
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:318
+msgid "Pending approval"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:404
+msgid "Loading Campaigns"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:410
+msgid "Unable to load campaigns. Check the logs for details."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:422
+msgid "Ready to start fundraising?"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:424
+msgid "Create your campaign to get started!"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:434
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:356
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:425
+msgid "Need help? Learn more about"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Campaigns/index.js:456
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:390
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:451
+msgid "Reset"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/CreateFundraiser.js:14
+#: src/P2P/resources/js/admin/App/Fundraisers/RegisterFundraiser.js:50
+msgid "Creating a new fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/CreateFundraiser.js:18
+msgid "Create your fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/deleteFundraiserModal.js:90
+msgid "Delete Fundraiser %s?"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/deleteFundraiserModal.js:103
+msgid "Once %s is deleted any donations associated with the Fundraiser will be reassigned to the %s campaign."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/deleteFundraiserModal.js:116
+msgid "The team has no other members so the team will be deleted when the fundraiser is deleted. Any donations associated with either %s or %s will be reassigned to the %s campaign."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/deleteFundraiserModal.js:130
+#: src/P2P/resources/js/admin/App/Fundraisers/deleteFundraiserModal.js:161
+msgid "Once %s is deleted any donations associated with the Fundraiser will be reassigned to the %s team."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/deleteFundraiserModal.js:144
+msgid "%s is the owner of the %s team. In order to delete this Fundraiser, you must assign another member as the owner of the team."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/deleteFundraiserModal.js:153
+msgid "Select a new team owner"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/deleteFundraiserModal.js:173
+msgid "If you are sure this is what you want to do, please enter the Fundraiser’s name into the input below and press the delete button."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/deleteFundraiserModal.js:186
+msgid "Type the fundraiser's name to confirm deletion"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/deleteFundraiserModal.js:200
+msgid "Delete Fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/EditFundraiser.js:26
+#: src/P2P/resources/js/admin/App/Fundraisers/ProcessComplete.js:57
+#: src/P2P/resources/js/admin/App/Teams/EditTeam.js:26
+#: src/P2P/resources/js/admin/App/Teams/InviteTeamMembersForm.js:83
+#: src/P2P/resources/js/admin/App/Teams/ProcessComplete.js:56
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:183
+msgid "Loading team"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/EditFundraiser.js:33
+#: src/P2P/resources/js/admin/App/Fundraisers/ProcessComplete.js:64
+#: src/P2P/resources/js/admin/App/Teams/EditTeam.js:33
+#: src/P2P/resources/js/admin/App/Teams/InviteTeamMembersForm.js:90
+#: src/P2P/resources/js/admin/App/Teams/ProcessComplete.js:63
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:190
+msgid "Unable to fetch the team. Check the logs for details."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/EditFundraiser.js:40
+#: src/P2P/resources/js/admin/App/Teams/EditTeam.js:40
+msgid "Editing %s"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/EditFundraiser.js:43
+msgid "Edit Fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:151
+msgid "All teams"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:292
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:271
+msgid "Delete"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:307
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:286
+msgid "%s of %s goal"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:315
+msgid "Yes"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:328
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:368
+msgid "Approve"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:339
+msgid "Loading Fundraisers"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:345
+msgid "Unable to load fundraisers. Check the logs for details."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:353
+msgid "Register Fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:367
+msgid "No fundraisers found"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:369
+msgid " Create a new fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserListTable.js:391
+msgid "Create a fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:186
+msgid "Loading teams"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:193
+msgid "Unable to fetch the teams. Check the logs for details."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:205
+msgid "None"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:211
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:305
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:129
+msgid "Why are you fundraising?"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:212
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:130
+msgid "In a few sentences, why are you helping support this fundraiser?"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:230
+msgid "Fundraiser image"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:231
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:216
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:195
+msgid "Upload an image for your team. Accepted formats are PNG and JPG. For best results use a 250 x 250 pixel image size."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:243
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:228
+msgid "UPLOAD A NEW IMAGE"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:244
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:338
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:229
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:158
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:211
+msgid "UPLOAD AN IMAGE"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:250
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:344
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:235
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:164
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:217
+msgid "exceeds the maximum upload size for this site"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:279
+msgid "Add to a team"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:294
+msgid "You are unable to join another team because you are currently a team captain for a campaign."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:320
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:396
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:201
+msgid "I would like to be notified of new donations given through my fundraising page."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:340
+msgid "Update Fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/FundraiserProfileForm.js:341
+msgid "Create Fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/ProcessComplete.js:71
+msgid "Create a new fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/ProcessComplete.js:75
+#: src/P2P/resources/js/admin/App/Teams/ProcessComplete.js:74
+msgid "Setup Complete"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/ProcessComplete.js:94
+msgid "Create another fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/ProcessComplete.js:101
+msgid "Go to fundraiser details"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/RegisterFundraiser.js:54
+msgid "Register a new fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Fundraisers/RegisterFundraiser.js:58
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:87
+msgid "Create an account below to get started!"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/CreateTeam.js:17
+#: src/P2P/resources/js/admin/App/Teams/InviteTeamMembersForm.js:96
+#: src/P2P/resources/js/admin/App/Teams/ProcessComplete.js:70
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:212
+msgid "Creating a new team"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/CreateTeam.js:21
+msgid "Create Your Team"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/DeleteTeamModal.js:49
+msgid "Delete Team %s?"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/DeleteTeamModal.js:55
+msgid "In deleting the %s team, would you also like to delete its %d members as well? If not, members will become independent Fundraisers of the %s campaign, no longer associated with this team. At that point the Fundraisers may choose to join another team."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/DeleteTeamModal.js:66
+msgid "If you are sure this is what you want to do, please enter the team name into the input below and press the delete button."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/DeleteTeamModal.js:79
+msgid "Type the team's name to confirm deletion"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/DeleteTeamModal.js:89
+msgid "Delete Team"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/EditTeam.js:43
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:143
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:149
+msgid "Edit Team"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/InviteTeamMembersForm.js:104
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:276
+msgid "Invite team members"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/InviteTeamMembersForm.js:105
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:277
+msgid "Add team members’ emails below (separated by commas) to send a welcome email to join the team."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/InviteTeamMembersForm.js:132
+msgid "Send"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/InviteTeamMembersForm.js:138
+msgid "Invitations sent"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/InviteTeamMembersForm.js:139
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:348
+msgid "Team created"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/InviteTeamMembersForm.js:154
+msgid "Skip"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/ProcessComplete.js:92
+msgid "Create another team"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/ProcessComplete.js:95
+msgid "Go to team details"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:196
+msgid "Loading fundraiser's list"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:203
+msgid "Unable to fetch the fundraiser's list. Check the logs for details."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:216
+msgid "Register Team Captain"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:224
+msgid "Select whether you would like to register a new user as a team captain or select from existing team members."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:239
+msgid "Create New Captain"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:253
+msgid "Existing team member"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:262
+msgid "Personal Information"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:263
+msgid "Your personal details will be added to your profile."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:306
+msgid "In a few sentences, why are you helping support this campaign as a team captain?"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:326
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:146
+msgid "Profile image"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:327
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:147
+msgid "Upload an image for your profile. Accepted formats are PNG and JPG. For best results use a 250 x 250 pixel image size."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:364
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:180
+msgid "Personal fundraising goal"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamCaptainForm.js:380
+msgid "Select team captain"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:175
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:156
+msgid "Please provide a name for your team. This name will be displayed on the leaderboards and on your team profile page."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:185
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:147
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:166
+msgid "Team Name"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:195
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:175
+msgid "Why are you fundraising? Describe in a few short paragraphs why you’re fundraising. Personal stories inspire others to join your team and help the cause!"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:205
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:186
+msgid "Team Story"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:215
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:194
+msgid "Team profile image"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:248
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:235
+msgid "Team fundraising goal"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:261
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:248
+msgid "Allow others to join team"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:262
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:249
+msgid "Select whether you would like anyone to be able to join your team or have it as an invite-only team."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:277
+msgid "Public"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:288
+msgid "Closed"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:300
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:302
+msgid "I would like to be notified of new donations given through my team/'s page."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:314
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:318
+msgid "I would like to be notified when a fundraiser has joined my team."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:334
+msgid "Update"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamProfileForm.js:334
+msgid "Continue"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:169
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:305
+msgid "Members"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:178
+msgid "Captain"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:194
+msgid "Action Items"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:301
+msgid "Member"
+msgid_plural "Members"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:337
+msgid "Team captain profile image"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:352
+msgid "Add Team Captain"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:388
+msgid "Edit Captain"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:402
+msgid "Invite members"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:412
+msgid "Loading Teams"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:417
+msgid "Unable to load teams. Check the logs for details."
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:423
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:453
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:191
+msgid "Create a team"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:427
+msgid " P2P Campaigns"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:436
+msgid "No teams found"
+msgstr ""
+
+#: src/P2P/resources/js/admin/App/Teams/TeamsListTable.js:438
+msgid " Create a new team"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/index.js:26
+msgid "Notice"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/index.js:28
+msgid "This campaign is set to \"%s\" and is not visable unless logged in as an administrator."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/reducers/stepNavigation.js:7
+msgid "Find Team"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/reducers/stepNavigation.js:9
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:149
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:340
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:124
+msgid "Create Team"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/Campaign.js:35
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:141
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:165
+msgid "Recent Donations"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/Campaign.js:40
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:146
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:169
+msgid "Be the first to support %s!"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/Campaign.js:47
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:162
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:183
+msgid "Top Donors"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/Campaign.js:66
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/Hero.js:39
+msgid "team"
+msgid_plural "teams"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/DonateCampaign.js:19
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/DonateFundraiser.js:19
+#: src/P2P/resources/js/frontend/App/Screens/Team/DonateTeam.js:19
+msgid "Make a donation to %s"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/DonateCampaign.js:21
+msgid "Make a donation to"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/Hero.js:24
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:99
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:119
+msgid "donation"
+msgid_plural "donations"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/Hero.js:28
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:95
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:115
+msgid "avg. donation"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/Hero.js:32
+msgid "fundraiser"
+msgid_plural "fundraisers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Campaign/Hero.js:76
+msgid "About this Campaign"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/DonateFundraiser.js:21
+#: src/P2P/resources/js/frontend/App/Screens/Team/DonateTeam.js:21
+msgid "Make a Donation to"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:32
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:41
+msgid "Support %s in fundraising for %s"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:51
+msgid "Unable to load top donors."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:70
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:79
+msgid "%s fundraising in support of %s"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:78
+msgid "Edit profile"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:103
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:123
+msgid "donor"
+msgid_plural "donors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:111
+msgid "Help me spread the word!"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:130
+msgid "Why I'm fundraising"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:136
+msgid "Is this you?"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:152
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:173
+msgid "Help %s reach their goal to support"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/Fundraiser.js:170
+msgid "Support this Fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:65
+msgid "%s Fundraisers"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:68
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:70
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:64
+#: src/P2P/resources/js/frontend/App/Screens/Team/SelectTeam.js:47
+#: src/P2P/resources/js/frontend/App/Screens/Team/Teams.js:60
+msgid "Start fundraising for"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:74
+msgid "All Fundraisers"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:78
+msgid "Searching for a fundraiser?"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:79
+msgid "leaderboard fundraiser search"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:81
+msgid "Start typing a fundraiser's name to search."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:91
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:90
+#: src/P2P/resources/js/frontend/App/Screens/Team/SelectTeam.js:72
+#: src/P2P/resources/js/frontend/App/Screens/Team/Teams.js:85
+msgid "Search results"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:97
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:199
+msgid "View Fundraiser"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:113
+msgid "Something went wrong while loading campaign fundraisers."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:116
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:114
+#: src/P2P/resources/js/frontend/App/Screens/Team/SelectTeam.js:100
+#: src/P2P/resources/js/frontend/App/Screens/Team/Teams.js:105
+msgid "Nothing found for search term \"%s\"."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:122
+msgid "Be the first to join as a fundraiser!"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/LeaderboardPage.js:124
+msgid "Invite your friends and family, and help make an impact."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:30
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:112
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:142
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamFundraiser.js:65
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamRegister.js:72
+#: src/P2P/resources/js/frontend/App/Screens/Team/SelectTeam.js:41
+#: src/P2P/resources/js/frontend/App/Screens/Team/Teams.js:54
+msgid "Start fundraising for the %s"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:32
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:114
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:144
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamFundraiser.js:68
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamRegister.js:74
+msgid "Start fundraising for the"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:41
+msgid "You're ready to begin fundraising!"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:42
+msgid "You're almost ready to begin fundraising!"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:49
+msgid "You're ready to start fundraising!"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:54
+msgid "We’ve notified a campaign administrator, and you will receive an email when your request has been approved."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:82
+msgid "View Profile"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:89
+msgid "Edit Profile"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:102
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:157
+msgid "Pending"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:136
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:96
+msgid "View Team"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:172
+#: src/P2P/resources/js/frontend/App/Screens/Register/Register.js:37
+msgid "Join a team"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:175
+#: src/P2P/resources/js/frontend/App/Screens/Register/Register.js:38
+msgid "Have friends already fundraising? Help them reach their goals!"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:194
+#: src/P2P/resources/js/frontend/App/Screens/Register/Register.js:72
+msgid "Start a team and be the team captain!"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Fundraiser/StartFundraising.js:205
+msgid "Go to campaign page"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/Login.js:54
+#: src/P2P/resources/js/frontend/App/Screens/Login/LostPassword.js:46
+#: src/P2P/resources/js/frontend/App/Screens/Login/PasswordResetSent.js:13
+msgid "Log in to the %s"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/Login.js:56
+msgid "Log in to the"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/Login.js:59
+msgid "Campaign Login"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/Login.js:63
+msgid "Sign in below to access your profile."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/Login.js:70
+#: src/P2P/resources/js/frontend/App/Screens/Login/LostPassword.js:68
+msgid "Email or username"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/Login.js:97
+msgid "Log in"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/Login.js:101
+msgid "Forgot your password?"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/Login.js:102
+msgid "Click here"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/LostPassword.js:48
+msgid "Login to the"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/LostPassword.js:51
+#: src/P2P/resources/js/frontend/App/Screens/Login/PasswordResetSent.js:18
+msgid "Lost Password"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/LostPassword.js:56
+msgid "Please enter your username or email address."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/LostPassword.js:58
+msgid "You will receive an email message with instructions on how to reset your password."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/LostPassword.js:82
+msgid "Get New Password"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Login/PasswordResetSent.js:20
+msgid "Check your email for the confirmation link."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/Register.js:21
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:68
+msgid "Start fundraising for %s"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/Register.js:23
+msgid "Start fundraising for "
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/Register.js:54
+msgid "Join as an Individual"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/Register.js:55
+msgid "Never underestimate the power of one. Start fundraising now."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/Register.js:71
+msgid "Create a Team"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/Register.js:79
+msgid "Want to simply make a donation?"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:80
+msgid "Register as a Team Captain"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:81
+msgid "Register as an Individual"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:142
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamRegister.js:138
+msgid "Password must have at least 6 characters"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:162
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamRegister.js:158
+msgid "Confirm Password"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/RegisterFundraiser.js:169
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamRegister.js:165
+msgid "The passwords do not match"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:121
+msgid "Create your Fundraiser Profile"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:122
+msgid "Edit your Fundraiser Profile"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Register/UpdateFundraiserProfile.js:220
+msgid "Update Profile"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:264
+msgid "Public - anyone can join"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:269
+msgid "Closed - only those you invite can join"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/CreateOrUpdateTeam.js:339
+msgid "Update Team"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamFundraiser.js:77
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamFundraiser.js:90
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamRegister.js:81
+#: src/P2P/resources/js/frontend/App/Screens/Team/JoinTeamRegister.js:188
+#: src/P2P/resources/js/frontend/App/Screens/Team/SelectTeam.js:79
+#: src/P2P/resources/js/frontend/App/Screens/Team/SelectTeam.js:96
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:102
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:228
+msgid "Join Team"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:61
+msgid "%s Teams"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:71
+msgid "All Teams"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:75
+#: src/P2P/resources/js/frontend/App/Screens/Team/SelectTeam.js:58
+#: src/P2P/resources/js/frontend/App/Screens/Team/Teams.js:71
+msgid "Searching for a team?"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:76
+#: src/P2P/resources/js/frontend/App/Screens/Team/SelectTeam.js:59
+#: src/P2P/resources/js/frontend/App/Screens/Team/Teams.js:72
+msgid "leaderboard team search"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:78
+#: src/P2P/resources/js/frontend/App/Screens/Team/SelectTeam.js:61
+#: src/P2P/resources/js/frontend/App/Screens/Team/Teams.js:74
+msgid "Start typing the name of the team..."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:112
+msgid "Something went wrong while loading campaign teams."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:118
+msgid "Be the first to create a team!"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/LeaderboardPage.js:120
+msgid "Create a team, invite your friends and family, and help make an impact."
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/SelectTeam.js:54
+#: src/P2P/resources/js/frontend/App/Screens/Team/Teams.js:67
+msgid "Find a Team to Join"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:87
+msgid "Edit team"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:131
+msgid "Help us spread the word!"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:154
+msgid "Why we're fundraising"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:160
+msgid "Team Captain?"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:189
+msgid "Team Members"
+msgstr ""
+
+#: src/P2P/resources/js/frontend/App/Screens/Team/Team.js:216
+msgid "Support this team"
+msgstr ""
+
+#: src/Blocks/CampaignHighlight/resources/js/block.json
+msgctxt "block title"
+msgid "Campaign Highlight"
+msgstr ""
+
+#: src/Blocks/CampaignHighlight/resources/js/block.json
+msgctxt "block description"
+msgid "The Campaign Highlight block allows admins to display a single campaign and it's details"
+msgstr ""
+
+#: src/Blocks/CampaignHighlight/resources/js/block.json
+msgctxt "block keyword"
+msgid "campaign"
+msgstr ""
+
+#: src/Blocks/CampaignHighlight/resources/js/block.json
+msgctxt "block keyword"
+msgid "campaign highlight"
+msgstr ""
+
+#: src/Blocks/CampaignList/resources/js/block.json
+msgctxt "block title"
+msgid "Campaign List"
+msgstr ""
+
+#: src/Blocks/CampaignList/resources/js/block.json
+msgctxt "block description"
+msgid "The Campaign list block displays all campaigns and relative details"
+msgstr ""
+
+#: src/Blocks/CampaignList/resources/js/block.json
+msgctxt "block keyword"
+msgid "campaigns"
+msgstr ""
+
+#: src/Blocks/FundraiserLeaderboard/resources/js/block.json
+msgctxt "block title"
+msgid "Fundraiser Leaderboard"
+msgstr ""
+
+#: src/Blocks/FundraiserLeaderboard/resources/js/block.json
+msgctxt "block description"
+msgid "The Fundraiser Leaderboard block allows admins to display a grid of fundraisers filtered by campaign"
+msgstr ""
+
+#: src/Blocks/FundraiserLeaderboard/resources/js/block.json
+msgctxt "block keyword"
+msgid "fundraiser"
+msgstr ""
+
+#: src/Blocks/FundraiserLeaderboard/resources/js/block.json
+#: src/Blocks/TeamLeaderboard/resources/js/block.json
+msgctxt "block keyword"
+msgid "leaderboard"
+msgstr ""
+
+#: src/Blocks/TeamLeaderboard/resources/js/block.json
+msgctxt "block title"
+msgid "Team Leaderboard"
+msgstr ""
+
+#: src/Blocks/TeamLeaderboard/resources/js/block.json
+msgctxt "block description"
+msgid "The Team Leaderboard block allows admins to display a grid of fundraisers filtered by campaign"
+msgstr ""
+
+#: src/Blocks/TeamLeaderboard/resources/js/block.json
+msgctxt "block keyword"
+msgid "team"
+msgstr ""

@@ -1,0 +1,154 @@
+.page {
+    position: relative;
+}
+
+.editlink {
+    display: flex;
+    align-items: center;
+
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 15px 20px 0 0;
+
+    color: var(--give-campaign-primary, #28c77b);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+
+    svg,
+    path {
+        fill: var(--give-campaign-primary, #28c77b);
+    }
+}
+
+.header {
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.iframe {
+    height: 1000px;
+    width: 897px;
+    display: none;
+}
+
+.visible {
+    display: block;
+}
+
+.teamsheader {
+    width: 1000px;
+    margin: auto;
+
+    header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    h1,
+    a {
+        font-weight: 600;
+    }
+
+    h1 {
+        color: #ffffff;
+        font-size: 28px;
+        margin-right: 10px;
+        display: inline-block;
+    }
+
+    a {
+        color: #28c77b;
+        font-size: 16px;
+        text-decoration: none;
+    }
+
+    a::after {
+        content: ' >';
+    }
+
+    label {
+        font-size: 18px;
+    }
+
+    label > span {
+        color: #ffffff;
+        font-weight: 500;
+    }
+
+    label > div {
+        display: inline-block;
+        position: relative;
+    }
+
+    input {
+        box-sizing: border-box;
+        height: 45px;
+        width: 300px;
+        margin-left: 20px;
+        padding-left: 35px; // Add space for search icon
+        border: 1px solid #b8b8b8;
+        border-radius: 4px;
+    }
+
+    label svg {
+        position: absolute;
+        top: 15px;
+        left: 35px;
+    }
+}
+
+.teamscontaineroverride {
+    padding: 10px;
+}
+
+.teamscontaineroverride main {
+    align-items: flex-start;
+}
+
+.errorMessage {
+    font-size: 13px;
+    margin-bottom: 10px;
+    color: red;
+}
+
+@media only screen and (max-width: 768px) {
+    .iframe {
+        width: 90vw;
+    }
+
+    .header {
+        text-align: center;
+        font-size: 24px;
+    }
+
+    .teamsheader {
+        width: 100%;
+
+        header {
+            display: flex;
+            flex-grow: 1;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label {
+            text-align: center;
+        }
+
+        label > span {
+            display: block;
+            padding-bottom: 10px;
+        }
+
+        input {
+            margin-left: 0;
+        }
+
+        label svg {
+            left: 15px;
+        }
+    }
+}

@@ -1,0 +1,11 @@
+.videogallery.skin_pro.skin_custom .navCon .navigationThumb { background: #cc3333; } .videogallery.skin_pro.skin_custom .navCon .navigationThumb.active { background: #cfaf7d; } .videogallery.skin_pro.skin_custom .navCon .navigationThumb { border-color: #111111; } .videogallery.skin_pro.skin_custom .the-tite { color: #ffffff; } .videogallery.skin_custom .imgblock { width: 50px; } .videogallery.skin_custom .imgblock { height: 50px; } .vplayer.skin_pro.skin_custom .playSimple  { border-left-color: #6dc078; }
+.vplayer.skin_pro.skin_custom .hdbutton-con .hdbutton-normal  { color: #6dc078; }
+.vplayer.skin_pro.skin_custom .volumeicon:before { border-right-color: #6dc078; }
+.vplayer.skin_pro.skin_custom .volume_static { background: #6dc078; }
+.vplayer.skin_pro.skin_custom .stopSimple .pause-part-1, .vplayer.skin_pro.skin_custom .stopSimple .pause-part-2, .vplayer.skin_pro.skin_custom .volumeicon { background: #6dc078; } 
+.vplayer.skin_pro.skin_custom .playcontrols:hover .playSimple  { border-left-color: #c04026; } .vplayer.skin_pro.skin_custom .volumeicon:hover:before { border-right-color: #c04026; } 
+                .vplayer.skin_pro.skin_custom .playcontrols:hover { border-color: #c04026; }
+.vplayer.skin_pro.skin_custom .playcontrols:hover .stopSimple .pause-part-1, .vplayer.skin_pro.skin_custom .playcontrols:hover .stopSimple .pause-part-2, .vplayer.skin_pro.skin_custom .volumeicon:hover { background: #c04026; } 
+                    .vplayer.skin_pro.skin_custom .scrub, .vplayer.skin_pro.skin_custom .volume_active { background: #e47777; } 
+.vplayer.skin_pro.skin_custom .hdbutton-con .hdbutton-hover  { color: #e47777; }
+.videogallery.skin_pro.skin_custom .the-logo { right: -50px; }.videogallery.skin_pro.skin_custom .the-logo { top: 100px; }

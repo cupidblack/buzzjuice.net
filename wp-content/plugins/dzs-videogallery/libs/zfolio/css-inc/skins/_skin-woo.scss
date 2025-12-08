@@ -1,0 +1,73 @@
+
+$color_highlight:#e74c3c;
+.zfolio.skin-woo{
+  .zfolio-item{
+    .item-meta{
+      position: relative;
+
+      color: #212121;
+      text-transform: uppercase;
+      text-align: center;
+
+      font-family: "Lato", "Open Sans", arial;
+
+      padding: 25px 10px;
+
+
+      $transition-property: color,background;
+      $transition-duration: .25s;
+      $transition-timing: ease-in;
+
+
+
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+
+      .the-title{
+        font-size: 20px;
+        font-weight: 900;
+        line-height: 1.4;
+        margin-top:5px;
+      }
+
+
+
+      .the-desc{
+
+        font-family: "Open Sans", arial;
+
+        font-size: 14px;
+
+        font-style: italic;
+        font-weight: bold;
+        color: #777777;
+
+
+        $transition-property: color;
+        $transition-duration: .25s;
+        $transition-timing: ease-in;
+
+
+
+        @include apply_transition($transition-property,$transition-duration,$transition-timing);
+      }
+    }
+
+
+    &:hover {
+
+      .item-meta {
+        background-color: $color_highlight;
+        color: #FFFFFF;
+        .the-title:after {
+
+          background-color: #FFFFFF;
+        }
+        .the-desc {
+
+          color: #FFFFFF;
+        }
+      }
+    }
+  }
+
+}

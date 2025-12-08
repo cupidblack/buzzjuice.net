@@ -1,0 +1,15 @@
+
+.dzsvg-page-about--description{
+  p{
+
+    font-size: 16px;
+    line-height: 1.6;
+  }
+}
+.navigation-and-main-area .main-navigation.menu-bottom .dzs-navigation--item{
+  margin-bottom: 30px;
+
+  &:last-child{
+    margin-bottom: 0;
+  }
+}

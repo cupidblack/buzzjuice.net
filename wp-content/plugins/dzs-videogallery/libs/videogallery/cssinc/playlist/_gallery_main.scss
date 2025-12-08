@@ -1,0 +1,141 @@
+@import "gallery_layout";
+.videogallery-con.fullbox {
+  width: 100%;
+  height: 100%;
+  @include boxsizing();
+}
+
+
+.videogallery {
+  opacity: 1;
+  width: 100%;
+  background-color: #515050;
+  transform-origin: 0% 0%;
+
+
+  @include boxsizing();
+
+  * {
+
+    @include boxsizing();
+
+  }
+
+}
+
+
+.videogallery.responsive-ratio-smooth {
+
+  $transition-property: height;
+  $transition-duration: 0.3s;
+  $transition-timing: ease-out;
+
+  .media--main-area {
+
+    @include apply_transition($transition-property, $transition-duration, $transition-timing);
+  }
+}
+
+
+$transition-property: all;
+$transition-duration: 0.2s;
+$transition-timing: linear;
+
+.videogallery .videogallery--navigation-container.use-easing {
+
+  @include apply_transition($transition-property, $transition-duration, $transition-timing);
+}
+
+.videogallery .videogallery--navigation-container:after {
+  display: block;
+  clear: both;
+  content: " ";
+
+}
+
+
+
+@import "gallery_controls";
+
+.videogallery {
+
+  &:not(.mode-videowall) {
+
+    .sliderCon > .vplayer {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      opacity: 0;
+      visibility: hidden;
+
+
+      video {
+        visibility: hidden;
+        opacity: 0;
+        $transition-property: opacity, visibility;
+        $transition-duration: 0.3s;
+        $transition-timing: ease-out;
+
+        @include apply_transition($transition-property, $transition-duration, $transition-timing);
+      }
+    }
+  }
+
+  .sliderCon > .vplayer.currItem {
+    opacity: 1;
+    visibility: visible;
+
+
+    video {
+      visibility: visible;
+      opacity: 1;
+    }
+  }
+
+  .sliderCon {
+    > .vplayer-tobe.is-touch {
+      display: none;
+    }
+
+    > .vplayer.is-touch.currItem {
+      display: block;
+    }
+
+
+  }
+
+
+  .dzs-navigation--item {
+
+  }
+
+  .dzs-navigation--item.inactive {
+    display: none;
+  }
+
+
+  .icon {
+    margin-right: 5px;
+    top: auto;
+    left: auto;
+    position: static;
+  }
+
+
+  .the-logo {
+    position: absolute;
+    top: 10px;
+    right: 60px;
+    z-index: 1005;
+    max-width: none;
+  }
+
+  .vplayer-tobe > iframe {
+    display: none;
+  }
+
+
+}
+
+
+

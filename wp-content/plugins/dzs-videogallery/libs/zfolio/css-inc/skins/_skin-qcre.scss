@@ -1,0 +1,230 @@
+
+
+$color_highlight: #e74c3c;
+.zfolio.skin-qcre{
+
+  &[data-margin="0"]{
+
+
+    .zfolio-item{
+
+      .the-feature{
+
+
+
+        $transition-property: all;
+        $transition-duration: .3s;
+        $transition-timing: ease-out;
+
+        transform: scale(1.03);
+        -webkit-transform: scale(1.03);
+        @include apply_transition($transition-property,$transition-duration,$transition-timing);
+      }
+
+    }
+
+  }
+
+  .zfolio-item{
+
+
+    .zfolio-item--inner--inner{
+
+      overflow: hidden;
+    }
+    .zfolio-item--inner{
+
+      overflow: hidden;
+
+    }
+
+    a.zfolio-item--inner{
+      display: block;
+    }
+
+    .the-overlay{
+
+      box-shadow: inset 0px 0px 0px 0px $color_highlight;
+
+
+      $transition-property: all;
+      $transition-duration: .3s;
+      $transition-timing: ease-out;
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+
+    }
+
+    .the-feature{
+
+
+
+      $transition-property: all;
+      $transition-duration: .3s;
+      $transition-timing: ease-out;
+
+      transform: scale(1);
+      -webkit-transform: scale(1);
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+    }
+
+
+    .item-meta{
+      position: absolute;
+      display: none;
+
+      text-align: center;
+
+      width: 100%;
+
+      padding:23px;
+      line-height: 1;
+
+      opacity: 0;
+      visibility: hidden;
+
+
+      $transition-property: top,bottom,opacity,visibility;
+      $transition-duration: .5s;
+      $transition-timing: ease-out;
+
+      bottom: -50%;
+      background-color: $color_highlight;
+
+      pointer-events: none;
+
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+
+      .the-title{
+        font-size: 14px;
+        font-weight: 700;
+
+        margin-bottom: 14px;
+
+      }
+
+      .the-desc{
+        font-size: 12px;
+        font-style: italic;
+        font-weight: 700;
+      }
+    }
+  }
+  .zfolio-item .zfolio-item--inner--inner--inner{
+    position: relative;
+  }
+  .zfolio-item .zfolio-item--inner--inner--inner:before{
+
+
+    position: absolute;
+    top: 100%;
+    left:50%;
+    width: 0;
+    height: 0;
+    border-left: 12px inset rgba(255, 255, 255, 0);
+    border-right: 12px inset rgba(255, 255, 255, 0);
+
+    border-top: 10px solid $color_highlight;
+    border-bottom:0;
+
+    margin-left: - 6px;
+
+    visibility: hidden;
+    opacity:0;
+
+
+    $transition-property: visibility, opacity;
+    $transition-duration: .5s;
+    $transition-timing: ease-out;
+
+
+    @include apply_transition($transition-property,$transition-duration,$transition-timing);
+
+  }
+
+  .zfolio-item.active{
+
+    .the-overlay{
+      box-shadow:         inset 0px 0px 0px 5px $color_highlight;
+    }
+    .item-meta{
+      top:auto!important;
+      bottom:-50%!important;;
+      opacity: 1;
+      visibility: visible;
+    }
+
+  }
+  .zfolio-item.active .zfolio-item--inner--inner--inner:before{
+
+
+    visibility: visible;
+    opacity: 1;
+
+
+  }
+
+  .zfolio-item:hover,.zfolio-item.active{
+
+    .zfolio-item--inner--inner--inner{
+
+      box-shadow:         inset 0px 0px 0px 5px $color_highlight;
+    }
+  }
+
+  .zfolio-item:hover{
+
+    .item-meta{
+      top:auto;
+      bottom:0;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .the-feature{
+      transform: scale(1.2);
+      -webkit-transform: scale(1.2);
+    }
+    .the-overlay{
+      box-shadow:         inset 0px 0px 0px 5px $color_highlight;
+    }
+  }
+
+
+}
+
+
+
+.excerpt-content.skin-qcre {
+  padding: 0;
+
+  background-color: #FFFFFF;
+
+  .close-btn {
+    display: none;
+  }
+
+  h4 {
+    font-size: 20px;
+    font-weight: 900;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    padding-bottom: 0;
+    color: #212121;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .subtitle {
+    font-style: italic;
+    font-size: 14px;
+    color: #e64c3b;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  p {
+    line-height: 1.5;
+  }
+}
+

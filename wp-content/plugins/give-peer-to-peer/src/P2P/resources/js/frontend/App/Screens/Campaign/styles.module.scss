@@ -1,0 +1,21 @@
+.header {
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.iframe {
+    min-height: 800px;
+    width: 1115px;
+    display: none;
+    transition: all ease-in 0.2s;
+}
+
+.visible {
+    display: block;
+}
+
+@media only screen and (max-width: 768px) {
+    .iframe {
+        width: 90vw;
+    }
+}

@@ -1,0 +1,35 @@
+
+$color_bg: rgba(70, 70, 70, 1);
+$color_text: #dddddd;
+
+// todo: remove after implementation OR leave it
+.layout-builder--menu-items--skin-default{
+  font-size: 13px;
+
+
+  .menu-moves-vertically{
+
+    .dzs-navigation--item{
+      &+.dzs-navigation--item{
+        margin-top: 0px;
+      }
+    }
+  }
+  .menu-moves-horizontally{
+
+    .dzs-navigation--item{
+      &+.dzs-navigation--item{
+        margin-left: 0px;
+      }
+    }
+  }
+
+
+}
+
+// -- style
+.layout-builder--menu-items--layout-default{
+  &:hover{
+
+  }
+}

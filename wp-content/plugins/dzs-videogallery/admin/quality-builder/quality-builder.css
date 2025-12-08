@@ -1,0 +1,70 @@
+.dzsvg-reclam-builder {
+  position: relative; }
+  .dzsvg-reclam-builder .scrubbar-con {
+    position: relative; }
+  .dzsvg-reclam-builder .scrub-bg {
+    width: 100%;
+    height: 22px;
+    background-color: #444444; }
+  .dzsvg-reclam-builder .reclam-marker {
+    top: 6px;
+    left: 0;
+    position: absolute;
+    height: 10px;
+    width: 10px; }
+    .dzsvg-reclam-builder .reclam-marker .icon {
+      position: absolute;
+      height: 10px;
+      width: 10px;
+      background-color: yellow;
+      transform: rotate(45deg); }
+    .dzsvg-reclam-builder .reclam-marker .delete-btn {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+      font-size: 15px;
+      color: #ffffff;
+      line-height: 1;
+      cursor: pointer; }
+
+.output {
+  background-color: #555;
+  color: #EEEEEE;
+  margin: 15px 0;
+  padding: 15px; }
+
+.video-container {
+  border: 1px dashed rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 15px;
+  margin-bottom: 15px;
+  max-width: 330px;
+  overflow: hidden;
+  opacity: 1;
+  visibility: visible;
+  transition-property: all;
+  transition-duration: 0.3s;
+  -moz-transition-property: all;
+  -moz-transition-duration: 0.3s;
+  -webkit-transition-property: all;
+  -webkit-transition-duration: 0.3s;
+  -o-transition-property: all;
+  -o-transition-duration: 0.3s;
+  -ms-transition-property: all;
+  -ms-transition-duration: 0.3s;
+  -ms-transition-timing-function: ease-out;
+  -webkit-transition-timing-function: ease-out;
+  -moz-transition-timing-function: ease-out;
+  -o-transition-timing-function: ease-out;
+  transition-timing-function: ease-out;
+  max-height: 300px; }
+  .video-container.is-sampler {
+    max-height: 0;
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    border: 1px dashed transparent;
+    opacity: 0;
+    visibility: hidden; }
+
+/*# sourceMappingURL=quality-builder.css.map */

@@ -1,0 +1,375 @@
+
+.navigation-and-main-area {
+
+  flex-direction: column;
+}
+
+.navigation-and-main-area {
+
+  display: flex;
+  position: relative;
+
+
+  .videogallery--navigation--clipped-container {
+    position: relative;
+    flex: 100;
+    overflow: hidden;
+    top: 0px;
+    width: 100%;
+    height: 100%;
+    margin-top: 0;
+    opacity: 1;
+    margin-bottom: 0;
+    @include boxsizing();
+  }
+
+  &.is-touch {
+    .videogallery--navigation--clipped-container {
+      overflow: auto;
+    }
+  }
+
+  .navigation--total-container {
+    position: relative;
+
+
+    transform: translate3d(0, 0, 0);
+    line-height: 1;
+
+
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+
+  }
+
+  // -- end FUNDAMENTAL
+
+
+  &.view--disable-video-area {
+    .media--main-area {
+      display: none;
+    }
+
+    .main-navigation:not(.a) {
+      flex-basis: 100%;
+    }
+  }
+
+  &.navType-none {
+    display: block;
+
+    .main-navigation:not(#a) {
+      display: none;
+    }
+  }
+
+  &.navType-simple {
+    .videogallery--navigation--clipped-container {
+      overflow: visible;
+
+      .dzs-navigation--item {
+        overflow: visible;
+      }
+    }
+
+
+    .main-navigation.menu-bottom, .main-navigation.menu-top {
+
+      white-space: normal;
+
+      .navigation--total-container {
+
+        white-space: normal;
+      }
+    }
+  }
+
+  &.navType-thumbsAndArrows {
+    .navigation--total-container {
+      top: 0;
+      left: 0;
+
+      $transition-property: top, left;
+      $transition-duration: 0.3s;
+      $transition-timing: ease-out;
+      @include apply_transition($transition-property, $transition-duration, $transition-timing);
+    }
+  }
+
+  .media--main-area {
+    flex: 1;
+  }
+
+  .main-navigation {
+    flex: 0;
+  }
+
+  &.navPosition-bottom {
+    flex-direction: column;
+  }
+
+  &.navPosition-top {
+    flex-direction: column-reverse;;
+  }
+
+  &.navPosition-top, &.navPosition-bottom {
+    height: auto;
+    display: block;
+  }
+
+  &.navPosition-left, &.navPosition-right {
+    flex-direction: row;;
+
+    .main-navigation {
+      flex: 0 0 250px;
+    }
+
+    .dzs-navigation--item-content {
+      > *[class*='layout-builder'] {
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+  }
+
+  &.navPosition-left {
+    flex-direction: row-reverse;;
+  }
+
+  .main-navigation:not(.a) {
+    display: flex;
+
+
+    &.menu-moves-vertically {
+      flex-direction: column;
+    }
+  }
+
+  .dzs-navigation--item-content {
+
+    &:after {
+      content: '';
+      display: block;
+      clear: both;;
+    }
+  }
+
+  &.mode-normal {
+
+    .main-navigation {
+      overflow: hidden;
+    }
+  }
+
+  .main-navigation.menu-none {
+    display: none;
+  }
+  .main-navigation.menu-left, .main-navigation.menu-right {
+    .dzs-navigation--item {
+      display: block;
+    }
+  }
+
+  .main-navigation.menu-bottom, .main-navigation.menu-top {
+
+    white-space: nowrap;
+
+    .dzs-navigation--item {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    .navigation--total-container {
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .main-navigation {
+      height: auto;
+    }
+
+    .navMain {
+      position: relative;
+    }
+  }
+
+
+  &.menu-none {
+    .main-navigation {
+      display: none;
+    }
+  }
+
+  .dzs-navigation--item {
+    cursor: pointer;
+    overflow: hidden;
+    @include boxsizing();
+    position: relative;
+  }
+
+  .dzs-navigation--item:after {
+    content: " ";
+    display: block;
+    clear: both;
+  }
+
+
+  .dzs-navigation--item .menuitem-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+
+}
+
+
+.videogallery.responsive-ratio-smooth.mode-normal.nav-thumbs {
+  .sliderCon {
+    > .vplayer {
+      height: 100% !important;
+    }
+  }
+}
+
+
+.navigation-type-image {
+  background-position: center center;
+  background-size: cover;
+}
+
+.videogallery.nav-thumbs.navWidth-bigger-then-totalWidth.menu-bottom, .videogallery.nav-thumbs.navWidth-bigger-then-totalWidth.menu-top {
+
+  text-align: center;
+}
+
+.videogallery {
+  &.nav-thumbsAndArrows {
+    .navMain {
+      overflow: hidden;
+    }
+  }
+}
+
+.navigation-and-main-area.nav-is-ultra-responsive {
+
+
+  &.navPosition-left, &.navPosition-right {
+
+    height: auto !important;
+    display: flex;
+    flex-direction: column;
+
+    .main-navigation {
+      width: 100% !important;
+      float: none !important;
+      height: auto;
+      max-height: 300px;
+
+      .navMain {
+        position: relative;
+      }
+
+      .dzs-navigation--item {
+        width: 100% !important;
+      }
+    }
+
+    .media--main-area {
+      width: 100% !important;
+    }
+
+  }
+
+  .gallery-buttons {
+    display: none;
+  }
+
+  .the-logo {
+    right: 10px !important;;
+  }
+
+  &.nav-thumbs {
+
+    &.navPosition-left, &.navPosition-right {
+      .main-navigation {
+        overflow: auto;
+      }
+    }
+  }
+
+
+  &.nav-thumbsAndArrows {
+    .thumbs-arrow-right {
+      bottom: auto !important;;
+      top: 20px !important;
+      margin-left: 15px !important;
+    }
+
+    .main-navigation {
+      overflow: hidden;
+    }
+  }
+
+
+}
+
+.dzs-navigation--type-scroller {
+
+  &.menu-moves-horizontally {
+
+    .navigation--clipped-container:not(.a) {
+      position: absolute;
+
+    }
+  }
+
+  .scroller-con {
+    height: auto !important;
+    overflow: hidden !important;
+
+    .scroller {
+      height: auto;
+      position: relative;
+
+      .inner {
+        position: relative !important;
+
+      }
+    }
+  }
+
+
+  .scroller-con.dir-ver .scroller {
+    width: 100%;
+  }
+
+  .scroller-con.dir-ver .scroller .scroller-con {
+    width: 100% !important;
+  }
+
+  .scroller-con.skin_apple > .scrollbar > .scrollbarx {
+    bottom: 0;
+  }
+}
+
+.layout-builder--item--type-container {
+  position: relative;
+}
+
+.dzs-navigation--item {
+  cursor: pointer;
+}
+
+.dzs-navigation--item-content {
+
+}
+
+
+.dzs-navigation--item {
+
+  text-align: left;
+}

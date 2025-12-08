@@ -1,0 +1,68 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 2,
+    "name": "give-p2p/team-leaderboard",
+    "version": "1.0.0",
+    "title": "Team Leaderboard",
+    "category": "give",
+    "description": "The Team Leaderboard block allows admins to display a grid of fundraisers filtered by campaign",
+    "keywords": [
+        "team",
+        "leaderboard"
+    ],
+    "supports": {
+        "align": [
+            "wide"
+        ]
+    },
+    "attributes": {
+        "id": {
+            "type": "string",
+            "default": ""
+        },
+        "align": {
+            "type": "string",
+            "default": ""
+        },
+        "accent_color": {
+            "type": "string",
+            "default": "#28c77b"
+        },
+        "columns": {
+            "type": "string",
+            "default": "max"
+        },
+        "layout": {
+            "type": "string",
+            "default": "grid"
+        },
+        "per_page": {
+            "type": "string",
+            "default": "8"
+        },
+        "offset": {
+            "type": "string",
+            "default": ""
+        },
+        "show_pagination": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_team_info": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_goal": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_avatar": {
+            "type": "boolean",
+            "default": true
+        }
+    },
+    "textdomain": "give-peer-to-peer",
+    "editorStyle": "file:../../../../../public/css//give-p2p-team-leaderboard-block.css",
+    "editorScript": "file:../../../../../public/js/give-p2p-team-leaderboard-block.js"
+}
+

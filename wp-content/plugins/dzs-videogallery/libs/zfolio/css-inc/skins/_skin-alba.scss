@@ -1,0 +1,192 @@
+
+
+/* --- skin-alba BEGIN */
+.zfolio.skin-alba{
+  $offset_for_border: 10px;
+  .zfolio-item{
+
+    .zfolio-item--inner--inner{
+      position: relative;
+
+      >figure{
+
+        position: absolute;
+        $transition-property: width,height;
+        $transition-duration: .3s;
+        $transition-timing: ease-out;
+
+        background-color: rgba(255,255,255,0.5);
+
+        @include apply_transition($transition-property,$transition-duration,$transition-timing);
+      }
+      > figure:nth-of-type(1){
+        top:$offset_for_border;
+        left:$offset_for_border;
+        width: 1px;
+        height: 0px;
+
+        transition-delay: 0.04s;
+
+      }
+      > figure:nth-of-type(2){
+        top:auto; bottom: $offset_for_border;
+        left:$offset_for_border;
+        width: 0px;
+        height: 1px;
+
+        transition-delay: 0.08s;
+      }
+      > figure:nth-of-type(3){
+        top:$offset_for_border;
+        left:auto; right:$offset_for_border;
+        width: 1px;
+        height: 0px;
+        transition-delay: 0.12s;
+
+      }
+      > figure:nth-of-type(4){
+        top: $offset_for_border;
+        right:$offset_for_border;
+        width: 0px;
+        height: 1px;
+
+        transition-delay: 0.15s;
+      }
+    }
+    .the-feature-con:after{
+
+      content: "";
+
+      width: 100%;
+      height: 70px;
+
+      position: absolute;
+      bottom:0;
+      left:0;
+
+      background: linear-gradient(to bottom,  rgba(0,0,0,0) 0%,rgba(0,0,0,.8) 100%);
+
+    }
+
+
+
+
+
+    .the-overlay{
+      background-color: rgba(0,0,0,0);
+
+
+      $transition-property: background;
+      $transition-duration: .3s;
+      $transition-timing: ease-out;
+
+
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+    }
+    .item-meta{
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      left:50%; top:auto; bottom: 10px;
+      transform: translate3d(-50%,0%,0);
+
+
+
+      color: #FFFFFF;
+
+
+      opacity:1;
+
+
+
+      visibility: visible;
+
+      pointer-events: none;
+
+      $transition-property: all;
+      $transition-duration: .3s;
+      $transition-timing: ease-out;
+
+
+
+
+      @include apply_transition($transition-property,$transition-duration,$transition-timing);
+
+      .the-title{
+        font-size: 16px;
+        line-height: 1.4;
+
+        text-transform: uppercase;
+
+        font-weight: bold;
+
+      }
+
+      .the-title:after{
+
+      }
+
+      .the-desc{
+        display: none;
+      }
+
+    }
+  }
+  .zfolio-item:hover{
+
+
+
+    .zfolio-item--inner{
+
+    }
+
+
+    .zfolio-item--inner--inner{
+
+      $offset_for_border: $offset_for_border*2;
+      > figure:nth-of-type(1){
+        height: calc(100% - #{$offset_for_border});
+
+      }
+      > figure:nth-of-type(2){
+        width: calc(100% - #{$offset_for_border});
+      }
+      > figure:nth-of-type(3){
+        height: calc(100% - #{$offset_for_border});
+
+      }
+      > figure:nth-of-type(4){
+        width: calc(100% - #{$offset_for_border});
+      }
+    }
+
+
+    .the-overlay{
+
+      background-color: rgba(0,0,0,0.7);
+    }
+    .item-meta{
+
+      color: #FFFFFF;
+      text-shadow: 0 0 0px rgba(255,255,255,0.5);
+      opacity:1;
+
+      bottom: 20px;
+    }
+
+    .the-title:after{
+
+    }
+  }
+
+  .zfolio-item.under-300{
+    .the-title{
+
+    }
+  }
+
+
+
+}
+
+/* --- skin-alba END */

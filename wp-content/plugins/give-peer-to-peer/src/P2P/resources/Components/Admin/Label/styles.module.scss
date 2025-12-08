@@ -1,0 +1,37 @@
+@import '../colors';
+
+.label {
+	margin-top: 1px; // Added for alignment when using flex, align-items center
+	padding: 2px 10px 0 10px;
+	border-radius: 6px;
+	display: inline-block;
+	height: 22px;
+	background-color: #a7a7a7;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.error {
+	background-color: $error;
+}
+
+.warning {
+	background-color: $warning;
+}
+
+.success {
+	background-color: $success;
+}
+
+.info {
+	background-color: $info;
+}
+
+.notice {
+	background-color: $notice;
+}
+
+.http {
+	background-color: $http;
+}

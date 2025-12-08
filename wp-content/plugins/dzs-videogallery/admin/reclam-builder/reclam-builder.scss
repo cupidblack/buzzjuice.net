@@ -1,0 +1,105 @@
+@mixin centerit() {
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.dzsvg-reclam-builder {
+
+  position: relative;
+
+  .scrubbar-con {
+    position: relative;
+  }
+
+  $height: 10px;
+
+  .scrub-bg {
+    width: 100%;
+    height: $height+ 12px;
+
+    background-color: #444444;
+  }
+
+  .reclam-marker {
+    top: 6px;
+
+    left: 0;
+    position: absolute;
+    height: $height;
+    width: $height;
+
+
+    .icon {
+      position: absolute;
+      height: $height;
+      width: $height;
+
+      background-color: yellow;
+
+      transform: rotate(45deg);
+    }
+
+    .delete-ad-btn {
+
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      font-size: 15px;
+      line-height: 1;
+      color: #9b3e3e;
+
+    }
+
+    .close-ad-btn {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+
+      font-size: 15px;
+
+      color: #ffffff;
+
+      background-color: #444;
+      border-radius: 50%;
+      line-height: 1;
+      $size: 20px;
+      width: $size;
+      height: $size;
+      transition-property: width,height;
+      transition-timing-function: ease-out;
+      transition-duration: 0.15s;
+
+      &:hover{
+
+        $size: 25px;
+        width: $size;
+        height: $size;
+      }
+
+
+      cursor: pointer;
+    }
+  }
+
+  .dzstooltip {
+    pointer-events: auto !important;
+    .dzstooltip--inner{
+      transition-property: box-shadow;
+      transition-timing-function: ease-out;
+      transition-duration: 0.15s;
+    }
+  }
+}
+
+.center-it {
+  @include centerit();
+}
+.dzstooltip.active{
+  .dzstooltip--inner{
+
+    box-shadow: 0 0 10px purple!important;
+  }
+}

@@ -1,0 +1,1 @@
+<?php ! defined( 'ABSPATH' ) && exit(); ?><ng-include src="$ctrl.getCurrentTemplateSettingsId()"></ng-include>

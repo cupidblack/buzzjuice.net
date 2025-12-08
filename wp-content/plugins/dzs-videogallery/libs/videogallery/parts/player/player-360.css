@@ -1,0 +1,12 @@
+.vplayer.is-360 .the-video:not(.ceva):not(.alceva) {
+  opacity: 0;
+  cursor: move;
+}
+.vplayer.is-360 .dzsvg-360-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+/*# sourceMappingURL=player-360.css.map */

@@ -1,0 +1,34 @@
+.pill {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	/* Vertical padding is less than horizontal due to line-height. */
+	--verticalPadding: 0.35em;
+	gap: var(--verticalPadding);
+	padding: var(--verticalPadding) 0.625em;
+	/* This is an arbitrarily large value to make it round. */
+	border-radius: 9999px;
+
+	box-shadow: 0 0.0625em 0.25em rgba(0, 0, 0, 0.2);
+	background-color: #fff;
+	color: #555;
+
+	font-size: 0.875rem;
+	font-weight: 500;
+	line-height: 1.2;
+
+	@media screen and (min-width: 48rem) {
+		font-size: 1rem;
+	}
+}
+
+.pill svg {
+	height: 1.1em;
+	flex-grow: 0;
+	flex-shrink: 0;
+	color: #0878b0;
+}
+
+.content {
+	margin: 0;
+}

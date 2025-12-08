@@ -1,0 +1,1 @@
+<?php ! defined( 'ABSPATH' ) && exit(); ?><questions items="editor.settings.questions"></questions>

@@ -1,0 +1,104 @@
+@use '../../css/functions' as *;
+
+.table {
+    width: 100%;
+    margin: 1rem auto;
+    border-spacing: 0px !important;
+
+    /* Visually hidden class omitting position: absolute since that breaks the table
+ * semantics */
+    .tableCaption {
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+}
+
+.tableColumnHead {
+    vertical-align: middle;
+    border-bottom: 0.0625em solid #ddd;
+    color: #4E4E4E;
+    font-weight: 700;
+    font-size: safe-rem(.875);
+    text-align: start;
+    width: fit-content;
+    background: #F9FFFC;
+}
+
+
+.members {
+    text-align: right;
+    inline-size: safe-rem(2);
+}
+
+.action {
+    inline-size: safe-rem(12);
+}
+
+.rank {
+    inline-size: safe-rem(4.5);
+    text-align: center;
+}
+
+.name, {
+    inline-size: safe-rem(15);
+}
+
+.team_captain {
+    inline-size: safe-rem(10);
+}
+
+.campaign_fundraiser_total, .campaign_team_total {
+    text-align: center;
+}
+
+.tableRow {
+    block-size: safe-rem(5);
+    border: 1px solid red;
+
+
+    &:nth-of-type(odd) {
+        background: #F9F9F9 !important;
+        border: 1px solid red;
+    }
+}
+
+.tableCell {
+    font-size: safe-rem(.875);
+
+    > span {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: .75rem;
+        font-weight: 600;
+    }
+
+    p, svg {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+
+    a {
+        width: 100%;
+    }
+}
+
+
+.avatar {
+    height: 2.925rem !important;
+    width: 2.925rem;
+    border-radius: 999px;
+}
+
+.tableColumnHead, .tableCell {
+    padding-block: safe-rem(1);
+    padding-inline: safe-rem(1);
+}
+

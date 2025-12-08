@@ -1,0 +1,108 @@
+.coverImage {
+  // This variable controls both the margin between this element and the
+  // previous sibling as well as the positioning of the stats in the container.
+  // At this size (not desktop), this height is the size of three stats items.
+  // If the number of stats items changes, make sure to increase this height.
+  --statsItemsHeight: 140px;
+
+  position: relative;
+  min-height: 300px;
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: var(--statsItemsHeight);
+
+  @media screen and (min-width: 48rem) {
+      --statsItemsHeight: 81px;
+  }
+}
+
+.stats {
+    position: absolute;
+    top: calc(-1 * var(--statsItemsHeight));
+    width: 90%;
+
+    @media screen and (min-width: 48rem) {
+        width: 70%;
+    }
+}
+
+.tintOverlay {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  opacity: 72%;
+  background-blend-mode: multiply;
+  background-color: var(--give-campaign-primary, #28c77b);
+  background-size: cover;
+}
+
+.content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
+
+.info {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.infoText {
+  text-align: center;
+  color: #fff;
+  margin-top: 70px;
+  padding-bottom: 20px;
+}
+
+.shareButtons {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+}
+
+.shareButtons a,
+.shareButtons button {
+	cursor: pointer;
+	text-decoration: none;
+	background-color: transparent;
+	color: #fff;
+	border: 3px solid #fff;
+	border-radius: 4px;
+	padding: 10px;
+	margin: 10px;
+	min-width: 140px;
+	text-align: center;
+	font-size: 16px;
+	font-weight: 600;
+
+	display: flex;
+	gap: 5px;
+	justify-content: center;
+	align-items: center;
+}
+
+.shareButtons a svg,
+.shareButtons button svg {
+	margin-top: -2px;
+}
+
+
+@media only screen and (max-width: 768px) {
+	.shareButtons a,
+	.shareButtons button {
+		min-width: 100px;
+		padding: 6px;
+		margin: 9px;
+		font-size: 13px;
+		border: 2px solid #fff;
+	}
+}

@@ -1,0 +1,134 @@
+.vplayer.skin_white {
+  line-height: 1;
+}
+.vplayer.skin_white > .vp-inner .controls {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding-right: 10px;
+}
+.vplayer.skin_white > .vp-inner .controls > *:not(.videoPlayer-controls--background) {
+  flex: 0 0 auto;
+  position: relative;
+  margin-left: 10px;
+}
+.vplayer.skin_white > .vp-inner .playcontrols {
+  width: 14px;
+  height: 14px;
+}
+.vplayer.skin_white > .vp-inner .controls .videoPlayer-controls--background {
+  background: linear-gradient(to bottom, transparent 0%, #000000 100%);
+  height: 181%;
+  filter: blur(7px);
+  bottom: -20px;
+  width: 120%;
+  left: -10%;
+  pointer-events: none;
+}
+.vplayer.skin_white > .vp-inner .controls .timetext {
+  display: none;
+}
+.vplayer.skin_white > .vp-inner .controls .scrubbar {
+  flex: 1000;
+  bottom: auto;
+  left: 0;
+  height: 5px;
+}
+.vplayer.skin_white > .vp-inner .controls .scrubbar .scrub-bg {
+  background-color: #dddddd;
+  opacity: 0.5;
+}
+.vplayer.skin_white > .vp-inner .controls .scrubbar .scrub {
+  background-color: #98c2d1;
+}
+.vplayer.skin_white > .vp-inner .controls .scrubbar .scrub-buffer {
+  background-color: #dddddd;
+}
+.vplayer.skin_white > .vp-inner .controls .playcontrols path, .vplayer.skin_white > .vp-inner .controls .playcontrols rect, .vplayer.skin_white > .vp-inner .controls .playcontrols polygon, .vplayer.skin_white > .vp-inner .controls .fscreencontrols path, .vplayer.skin_white > .vp-inner .controls .fscreencontrols rect, .vplayer.skin_white > .vp-inner .controls .fscreencontrols polygon, .vplayer.skin_white > .vp-inner .controls .volumecontrols path, .vplayer.skin_white > .vp-inner .controls .volumecontrols rect, .vplayer.skin_white > .vp-inner .controls .volumecontrols polygon {
+  fill: #ddd;
+  transition-property: fill;
+  transition-duration: 0.3s;
+  transition-timing-function: ease-out;
+}
+.vplayer.skin_white > .vp-inner .controls .scrubBox {
+  padding: 5px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 0;
+  color: #ffffff;
+  font-weight: bold;
+  border-radius: 3px;
+}
+.vplayer.skin_white > .vp-inner .controls .scrubBox:before {
+  border-top-color: rgba(0, 0, 0, 0);
+}
+.vplayer.skin_white > .vp-inner .controls .scrubBox:after {
+  border-top-color: rgba(0, 0, 0, 0.3);
+}
+.vplayer.skin_white > .vp-inner .controls .volumecontrols {
+  width: 80px;
+  display: flex;
+  align-items: center;
+}
+.vplayer.skin_white > .vp-inner .controls .volumecontrols .volumeicon {
+  position: absolute;
+  display: block;
+}
+.vplayer.skin_white > .vp-inner .controls .volumecontrols .volumeicon > svg {
+  display: block;
+}
+.vplayer.skin_white > .vp-inner .controls .volumecontrols .volume_static {
+  width: 60px;
+  left: auto;
+  right: 0;
+  top: 0px;
+  height: 8px;
+}
+.vplayer.skin_white > .vp-inner .controls .volumecontrols .volume_static .volbar {
+  background-color: #dddddd;
+  opacity: 0.5;
+  height: 8px;
+  top: 0%;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.vplayer.skin_white > .vp-inner .controls .volumecontrols .volume_static .volbar.active {
+  opacity: 1;
+}
+.vplayer.skin_white > .vp-inner .controls .fscreencontrols {
+  width: 16px;
+}
+.vplayer.skin_white > .vp-inner .controls .volumecontrols:hover path, .vplayer.skin_white > .vp-inner .controls .volumecontrols:hover polygon, .vplayer.skin_white > .vp-inner .controls .volumecontrols:hover rect, .vplayer.skin_white > .vp-inner .controls .timetext:hover path, .vplayer.skin_white > .vp-inner .controls .timetext:hover polygon, .vplayer.skin_white > .vp-inner .controls .timetext:hover rect, .vplayer.skin_white > .vp-inner .controls .playcontrols:hover path, .vplayer.skin_white > .vp-inner .controls .playcontrols:hover polygon, .vplayer.skin_white > .vp-inner .controls .playcontrols:hover rect, .vplayer.skin_white > .vp-inner .controls .fscreencontrols:hover path, .vplayer.skin_white > .vp-inner .controls .fscreencontrols:hover polygon, .vplayer.skin_white > .vp-inner .controls .fscreencontrols:hover rect {
+  fill: #98c2d1;
+}
+.vplayer.skin_white .volumecontrols {
+  width: 57px;
+  height: 14px;
+}
+.vplayer.skin_white .volume_static {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-image: none;
+  width: 100%;
+  height: 100%;
+  white-space: nowrap;
+}
+.vplayer.skin_white .volume_static .volbar {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background-color: #FFFFFF;
+  margin-right: 3px;
+  display: inline-block;
+  opacity: 0.4;
+  transition-property: opacity;
+  transition-duration: 0.3s;
+  transition-timing-function: ease-out;
+}
+.vplayer.skin_white .volume_static .volbar.active {
+  opacity: 1;
+}
+
+/*# sourceMappingURL=player-skin--skin_white.css.map */

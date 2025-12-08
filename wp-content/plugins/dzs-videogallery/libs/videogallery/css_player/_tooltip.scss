@@ -1,0 +1,62 @@
+.dzsvg-tooltip {
+  position: absolute;
+
+  right: -15px;
+
+  bottom: 30px;
+
+  padding: 0px;
+  $color_bg: #dddddd;
+  $color_text: #444;
+
+
+  color: $color_text;
+
+  border-radius: 5px;
+
+  background-color: $color_bg;
+
+  &:before {
+    content: "";
+    display: block;
+
+    position: absolute;
+    top: 100%;
+    right: 19px;
+    border-top: 5px solid $color_bg;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+  }
+
+  .quality-option {
+    padding: 10px 40px;
+
+    text-align: center;
+
+    &:hover, &.active {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+  }
+
+
+  transform: scale(0);
+  opacity: 0;
+  visibility: hidden;
+  transform-origin: bottom right;
+
+
+  $transition-property: all;
+  $transition-duration: 0.3s;
+  $transition-timing: ease-out;
+  @include apply_transition($transition-property, $transition-duration, $transition-timing);
+}
+
+
+&:hover {
+  .dzsvg-tooltip {
+
+    transform: scale(1);
+    visibility: visible;
+    opacity: 1;
+  }
+}

@@ -1,0 +1,364 @@
+# Copyright (C) 2022 Give_Fee_Recovery
+# This file is distributed under the same license as the Give_Fee_Recovery package.
+msgid ""
+msgstr ""
+"Project-Id-Version: Give_Fee_Recovery\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Team: GiveWP <info@givewp.com>\n"
+"Report-Msgid-Bugs-To: https://github.com/impress-org/give-fee-recovery/issues/new\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-KeywordsList: __;_e;_ex:1,2c;_n:1,2;_n_noop:1,2;_nx:1,2,4c;_nx_noop:1,2,3c;_x:1,2c;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.js\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../includes/class-give-fee-recovery-helper.php:643, ../includes/class-give-fee-recovery-helper.php:643
+msgid "Global Option"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:644, ../includes/class-give-fee-recovery-helper.php:644
+msgid "Customize"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:645, ../includes/class-give-fee-recovery-helper.php:640, ../includes/class-give-fee-recovery-helper.php:761, ../includes/class-give-fee-recovery-helper.php:841, ../includes/class-give-fee-recovery-helper.php:645, ../includes/class-give-fee-recovery-helper.php:640, ../includes/class-give-fee-recovery-helper.php:761, ../includes/class-give-fee-recovery-helper.php:841, ../includes/admin/tools/class-give-export-donations-fee-recovery-details.php:107
+msgid "Disabled"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:639, ../includes/class-give-fee-recovery-helper.php:760, ../includes/class-give-fee-recovery-helper.php:840, ../includes/class-give-fee-recovery-helper.php:639, ../includes/class-give-fee-recovery-helper.php:760, ../includes/class-give-fee-recovery-helper.php:840
+msgid "Enabled"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:649, ../includes/class-give-fee-recovery-helper.php:833, ../includes/class-give-fee-recovery-helper.php:649, ../includes/class-give-fee-recovery-helper.php:833, ../includes/admin/class-give-fee-recovery-admin.php:456, ../includes/admin/class-give-fee-recovery-settings.php:30
+msgid "Fee Recovery"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:650, ../includes/class-give-fee-recovery-helper.php:650
+msgid "This enables the Fee Recovery feature for all your forms. Note: You can enable/disable and customize the fees options per form as well."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:651, ../includes/class-give-fee-recovery-helper.php:651
+msgid "This enables the Fee Recovery feature for all your forms."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:665, ../includes/class-give-fee-recovery-helper.php:665
+msgid "All Gateways"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:666, ../includes/class-give-fee-recovery-helper.php:666
+msgid "Set Per Gateway"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:669, ../includes/class-give-fee-recovery-helper.php:669
+msgid "Gateway Fee Support"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:670, ../includes/class-give-fee-recovery-helper.php:670
+msgid "Set the fee recovery amount to be the same for all gateways or configure the fees per gateway."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:684, ../includes/class-give-fee-recovery-helper.php:684
+msgid "Donor Opt-in"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:685, ../includes/class-give-fee-recovery-helper.php:685
+msgid "Forced Opt-in"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:688, ../includes/class-give-fee-recovery-helper.php:688
+msgid "Fee Opt-In"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:689, ../includes/class-give-fee-recovery-helper.php:689
+msgid "You can allow donors to opt-in to cover the fees, or force the opt-in."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:703, ../includes/class-give-fee-recovery-helper.php:703
+msgid "Opt-in Message"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:704, ../includes/class-give-fee-recovery-helper.php:1055, ../includes/class-give-fee-recovery-helper.php:704, ../includes/class-give-fee-recovery-helper.php:1055
+msgid "I'd like to help cover the transaction fees of {fee_amount} for my donation."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:709, ../includes/class-give-fee-recovery-helper.php:709
+msgid "This is the message the donor sees next to a checkbox indicating that they choose to donate the credit card fees."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:718, ../includes/class-give-fee-recovery-helper.php:718
+msgid "Fee Message"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:719, ../includes/class-give-fee-recovery-helper.php:719
+msgid "Plus an additional {fee_amount} to cover gateway fees."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:723, ../includes/class-give-fee-recovery-helper.php:723
+msgid "This is the message displayed below the total amount indicating that an additional amount is added to their donation automatically."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:732, ../includes/class-give-fee-recovery-helper.php:732
+msgid "Below the donation level fields"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:734, ../includes/class-give-fee-recovery-helper.php:734
+msgid "Below the top donation amount field"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:736, ../includes/class-give-fee-recovery-helper.php:736
+msgid "Above the payment options"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:737, ../includes/class-give-fee-recovery-helper.php:737
+msgid "Below the payment options"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:738, ../includes/class-give-fee-recovery-helper.php:738
+msgid "Above the personal info fields"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:740, ../includes/class-give-fee-recovery-helper.php:740
+msgid "Below the personal info fields"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:742, ../includes/class-give-fee-recovery-helper.php:742
+msgid "Above the credit card fields"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:743, ../includes/class-give-fee-recovery-helper.php:743
+msgid "Below the credit card fields"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:746, ../includes/class-give-fee-recovery-helper.php:746
+msgid "Checkbox location"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:747, ../includes/class-give-fee-recovery-helper.php:747
+msgid "Choose option to place checkbox location."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:764, ../includes/class-give-fee-recovery-helper.php:764
+msgid "Include Fee Breakdown"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:765, ../includes/class-give-fee-recovery-helper.php:765
+msgid "If enabled a text breakdown of the donation total and fee will show below the final total amount on the donation form."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:779, ../includes/class-give-fee-recovery-helper.php:845, ../includes/class-give-fee-recovery-helper.php:779, ../includes/class-give-fee-recovery-helper.php:845
+msgid "Fee Percentage"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:780, ../includes/class-give-fee-recovery-helper.php:855, ../includes/class-give-fee-recovery-helper.php:780, ../includes/class-give-fee-recovery-helper.php:855
+msgid "Enter the fee percentage. This is typically between 1.5-3.5% depending on the gateway."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:797, ../includes/class-give-fee-recovery-helper.php:859, ../includes/class-give-fee-recovery-helper.php:797, ../includes/class-give-fee-recovery-helper.php:859
+msgid "Additional Fee Amount"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:798, ../includes/class-give-fee-recovery-helper.php:869, ../includes/class-give-fee-recovery-helper.php:798, ../includes/class-give-fee-recovery-helper.php:869
+msgid "This is an additional amount added to the percentage fee. For example, 2.9% + 30 cents."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:814, ../includes/class-give-fee-recovery-helper.php:873, ../includes/class-give-fee-recovery-helper.php:814, ../includes/class-give-fee-recovery-helper.php:873
+msgid "Maximum Fee Amount"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:815, ../includes/class-give-fee-recovery-helper.php:815
+msgid "This option allows you to limit the fee amount for the donors for more than a specific fee amount. For example, 2.9% + 30 cents but not more than $12.50. To remove the Maximum Fee Amount set the limit to zero."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:834, ../includes/class-give-fee-recovery-helper.php:834
+msgid "Enable this to configure Fee Recovery for this Gateway."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:874, ../includes/class-give-fee-recovery-helper.php:874
+msgid "Set Maximum Fee Amount when you don't want to charge the donors for more than a specific fee amount. For example, 2.9% + 30 cents but not more than $3.50."
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:889, ../includes/class-give-fee-recovery-helper.php:889
+msgid "Per Gateway"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:906, ../includes/class-give-fee-recovery-helper.php:906
+msgid "Give Fee Recovery Settings Docs Link"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:909, ../includes/class-give-fee-recovery-helper.php:909
+msgid "Give Fee Recovery Settings"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:1215, ../includes/class-give-fee-recovery-helper.php:1215, ../includes/public/class-give-fee-recovery-public.php:541
+msgid "Donation Amount"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:1216, ../includes/class-give-fee-recovery-helper.php:1216
+msgid "Fee Amount"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:1217, ../includes/class-give-fee-recovery-helper.php:1217
+msgid "Donation Total"
+msgstr ""
+
+#: ../includes/class-give-fee-recovery-helper.php:1290, ../includes/class-give-fee-recovery-helper.php:1290
+msgid "Please enter the valid subscription amount."
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:46
+msgid "Fees"
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:108
+msgid "Fee income"
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:129, ../includes/admin/class-fee-reports.php:165, ../includes/admin/class-fee-reports.php:695
+msgid "Fee Conversion"
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:164, ../includes/admin/class-fee-reports.php:452
+msgid "Fee Income"
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:283, ../includes/admin/class-fee-reports.php:538
+msgid "You do not have permission to view this data."
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:283, ../includes/admin/class-fee-reports.php:538, ../includes/admin/class-give-fee-recovery-admin.php:995, ../includes/admin/tools/data/class-give-tools-recount-all-form-fee-earnings.php:219, ../includes/admin/tools/data/class-give-tools-recount-form-fee-earnings.php:217
+msgid "Error"
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:443
+msgid "Total income for period"
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:444
+msgid "Total fees collected for period"
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:476
+msgid "Total income for period:"
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:482
+msgid "Total donations for period: "
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:488
+msgid "Total fees collected for period: "
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:494
+msgid "Percentage of fees to donations: "
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:687
+msgid "Total number of donations for period"
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:688
+msgid "Total number of fees collected for period"
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:721
+msgid "Total number of donations for period: "
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:727
+msgid "Total number of fees collected for period: "
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:733
+msgid "Donations given without fee recovery enabled: "
+msgstr ""
+
+#: ../includes/admin/class-fee-reports.php:740
+msgid "Fee recovery opt-in conversion rate: "
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:622
+msgid "Donation Amount:"
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:636
+msgid "+ %s for fees"
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:702
+msgid "Fee"
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:703
+msgid "Details"
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:826
+msgid "The total donation amount with currency sign."
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:919
+msgid "%1$s (%2$s donation + %3$s for fees)"
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:991
+msgid "Give total donation should be greater than the Give fee amount."
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:993
+msgid "Go back"
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:1156
+msgid "Fee Amount:"
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:1231
+msgid "Recalculate Form Fee Earnings for a Form"
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:1233
+msgid "Recalculate Form Fee Earnings for All Forms"
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:1245
+msgid "Recalculate the form fee earnings for a specific form."
+msgstr ""
+
+#: ../includes/admin/class-give-fee-recovery-admin.php:1246
+msgid "Recalculate the form fee earnings for the all forms."
+msgstr ""
+
+#: ../includes/public/class-give-fee-recovery-public.php:168, ../includes/public/class-give-fee-recovery-public.php:113
+msgid "Would you like to help cover the processing fees?"
+msgstr ""
+
+#: ../includes/public/class-give-fee-recovery-public.php:521, ../includes/admin/tools/class-give-export-donations-fee-recovery-details.php:59, ../includes/admin/tools/class-give-export-donations-fee-recovery-details.php:83
+msgid "Donation Fee"
+msgstr ""
+
+#: ../includes/public/class-give-fee-recovery-public.php:780
+msgid "{amount} donation plus {fee_amount} to help cover fees."
+msgstr ""
+
+#: ../includes/admin/tools/class-give-export-donations-fee-recovery-details.php:49
+msgid "Fee Recovery Fields:"
+msgstr ""
+
+#: ../includes/admin/tools/data/class-give-tools-recount-all-form-fee-earnings.php:219, ../includes/admin/tools/data/class-give-tools-recount-form-fee-earnings.php:217
+msgid "You do not have permission to recount stats."
+msgstr ""
+
+#: ../includes/admin/tools/data/class-give-tools-recount-all-form-fee-earnings.php:234
+msgid "All Form fee earnings successfully recounted."
+msgstr ""
+
+#: ../includes/admin/tools/data/class-give-tools-recount-form-fee-earnings.php:230
+msgid "Form fee earnings successfully recounted for \"%s\"."
+msgstr ""
+
+#: ../src/Receipt/UpdateDonationReceipt.php:57
+msgid "Processing Fee"
+msgstr ""

@@ -1,0 +1,124 @@
+# ============================
+# Buzzjuice.net - recommended .gitignore
+# WordPress + WoWonder (streams) + QuickDate (social)
+# ============================
+
+# ----------------------------
+# OS / System files
+# ----------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# ----------------------------
+# Editors / IDEs
+# ----------------------------
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~                      # temp files
+*.code-workspace
+.vagrant/
+
+# ----------------------------
+# Node / JS / build artifacts
+# ----------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+.cache/
+.tmp/
+.eslintcache
+
+# ----------------------------
+# PHP / Composer
+# ----------------------------
+vendor/
+*.phar
+composer.phar
+
+# ----------------------------
+# Logs, temporary & backups
+# ----------------------------
+*.log
+debug.log
+error_log
+*.zip
+*.tar.gz
+*.bak
+*.old
+*.tmp
+
+# ----------------------------
+# Environment / secrets
+# ----------------------------
+.env
+.env.*.local
+.env.local
+.env.production
+wp-config.php
+buzz-config.php
+streams/config.php
+quickdate/config.php
+social/config.php
+
+# ----------------------------
+# WordPress specifics
+# ----------------------------
+wp-content/uploads/
+wp-content/upgrade/
+wp-content/cache/
+wp-content/backups/
+wp-content/advanced-cache.php
+wp-content/object-cache.php
+wp-content/backwpup-*
+wp-content/wflogs/
+wp-content/ai1wm-backups/
+
+# ----------------------------
+# WoWonder / QuickDate specifics
+# ----------------------------
+streams/uploads/
+streams/cache/
+quickdate/uploads/
+quickdate/cache/
+social/uploads/
+social/cache/
+
+# ----------------------------
+# DB dumps & migration handling
+# ----------------------------
+# Ignore raw dumps except structured migrations
+data/db/*.sql
+data/db/*.sql.gz
+data/db/backups/
+!data/db/migrations/
+!data/db/migrations/**
+
+# ----------------------------
+# Docker / Container local files
+# ----------------------------
+docker-compose.override.yml
+docker-compose.*.yml
+.env.docker
+*.dockerfile
+docker-sync.yml
+.Dockerfile
+
+# ----------------------------
+# Explicit allow rules
+# ----------------------------
+!.env.example
+!README.md
+!data/db/migrations/**
+

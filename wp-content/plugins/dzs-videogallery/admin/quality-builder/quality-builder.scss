@@ -1,0 +1,116 @@
+
+@mixin apply_transition($transition-property, $transition-duration, $transition-timing) {
+    transition-property: $transition-property;transition-duration: $transition-duration;-moz-transition-property:$transition-property;-moz-transition-duration: $transition-duration;-webkit-transition-property:$transition-property;-webkit-transition-duration: $transition-duration;-o-transition-property:$transition-property;-o-transition-duration: $transition-duration;-ms-transition-property:$transition-property;
+    -ms-transition-duration: $transition-duration;-ms-transition-timing-function:$transition-timing;
+
+    @if $transition-timing == ease-out-quart {
+        -webkit-transition-timing-function: cubic-bezier(0.165, 0.840, 0.440, 1.000);
+        -moz-transition-timing-function: cubic-bezier(0.165, 0.840, 0.440, 1.000);
+        -o-transition-timing-function: cubic-bezier(0.165, 0.840, 0.440, 1.000);
+        transition-timing-function: cubic-bezier(0.165, 0.840, 0.440, 1.000);
+    } @else {
+        -webkit-transition-timing-function:$transition-timing;
+        -moz-transition-timing-function:$transition-timing;
+        -o-transition-timing-function:$transition-timing;
+        transition-timing-function: $transition-timing;
+    }
+}
+
+
+
+
+.dzsvg-reclam-builder{
+
+    position: relative;
+
+    .scrubbar-con{
+        position: relative;
+    }
+
+    $height: 10px;
+    .scrub-bg{
+        width: 100%;
+        height: $height+ 12px;
+
+        background-color: #444444;
+    }
+
+    .reclam-marker{
+        top:6px;
+
+        left:0;
+        position: absolute;
+        height: $height;
+        width: $height;
+
+
+        .icon{
+            position: absolute;
+            height: $height;
+            width: $height;
+
+            background-color: yellow;
+
+            transform: rotate(45deg);
+        }
+
+        .delete-btn{
+            position: absolute;
+            right: 5px;
+            top: 5px;
+
+            font-size: 15px;
+
+            color: #ffffff;
+            line-height: 1;
+
+            cursor: pointer;
+        }
+    }
+}
+.output{
+    background-color: #555;
+    color: #EEEEEE;
+
+    margin: 15px 0;
+
+    padding: 15px;
+}
+
+.video-container{
+    border: 1px dashed rgba(0,0,0,0.3);
+
+    background-color: rgba(0,0,0,0.05);
+    padding: 15px;
+
+    margin-bottom: 15px;
+
+    max-width: 330px;
+
+    overflow: hidden;
+
+    opacity: 1;
+    visibility: visible;
+
+    $transition-property: all;
+    $transition-duration: 0.3s;
+    $transition-timing: ease-out;
+
+    @include apply_transition($transition-property, $transition-duration, $transition-timing);
+    max-height: 300px;
+
+
+
+    &.is-sampler{
+
+        max-height: 0;
+        padding:0;
+        margin:0;
+        background-color: transparent;
+        border: 1px dashed transparent;
+        opacity: 0;
+        visibility: hidden;
+    }
+
+
+}

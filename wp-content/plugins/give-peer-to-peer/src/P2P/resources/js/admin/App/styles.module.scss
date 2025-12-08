@@ -1,0 +1,120 @@
+@use 'src/P2P/resources/css/functions' as *;
+
+.headerRow {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: #ffffff;
+    border-left: 1px solid #eeeeee;
+    border-right: 1px solid #eeeeee;
+    border-top: 1px solid #eeeeee;
+
+    .headerItem {
+        margin-right: 20px;
+    }
+}
+
+.pagination {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.footerRow {
+    padding-top: 20px;
+    display: flex;
+    width: 100%;
+}
+
+.titleColumn {
+    display: flex;
+    justify-content: normal;
+    flex-direction: row;
+    font-size: safe-rem(0.9375);
+}
+
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    font-weight: 600;
+
+    img {
+        margin-right: 23px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+    }
+}
+
+.approvedIcon span {
+    color: #69B868;
+}
+
+.info {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;;
+    align-items: flex-start;
+    gap: 5px;
+    font-size: safe-rem(.9375);
+}
+
+.teamTitle {
+    font-size: safe-rem(1);
+    font-weight: 600;
+    padding: 0;
+}
+
+.columnActions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    line-height: 1.7;
+
+    a {
+        font-size: safe-rem(0.875);
+        white-space: nowrap;
+    }
+
+    span {
+        color: #b5b5b5;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    span {
+        color: #b5b5b5;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    .delete {
+        color: #FF0000;
+    }
+}
+
+.progressBarWrapper {
+    flex: .8;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 11px;
+
+    > div > div > div {
+        background: linear-gradient(180deg, #FFDB00 0%, #FFA200 100%);
+    }
+}
+
+.membersContainer, .teamsContainer, .fundraisersContainer {
+
+    > span {
+        display: flex;
+        flex-direction: column;
+    }
+}

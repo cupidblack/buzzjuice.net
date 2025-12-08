@@ -1,0 +1,227 @@
+@import "TOKENS";
+$color_bg: #444;
+$color_main: #fff;
+$color_main_hover: #999;
+$color_highlight: #db4343;
+$hoverOpacity:0.9;
+$sizePlayerButton: 100px;
+$BUTTONS_SIZE: 120px;
+
+.vplayer.skin_bigplay {
+
+
+  >.vp-inner{
+
+    .pauseSimple, .videoPlayer-controls--background {
+      $transition-property: bottom, opacity, visibility;
+      $transition-duration: 0.3s;
+      $transition-timing: ease-out;
+      @include apply_transition($transition-property, $transition-duration, $transition-timing);
+    }
+
+
+    overflow: hidden;
+
+    .controls {
+      bottom: auto;
+      top: 0%;
+      left: 0%;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      $transition-property: bottom, opacity, visibility;
+      $transition-duration: 0.3s;
+      $transition-timing: ease-out;
+      @include apply_transition($transition-property, $transition-duration, $transition-timing);
+    }
+
+    .playcontrols {
+      position: absolute;
+      bottom: auto;
+      left: 50%;
+      top: 50%;
+      pointer-events: auto;
+    }
+
+
+
+    .playSimple {
+
+
+    }
+    .pauseSimple {
+      opacity: 0;
+    }
+
+    .videoPlayer-controls--background {
+      opacity: 0;
+    }
+
+    .controls{
+      @include centerit();
+      line-height: 1;
+    }
+
+    .playcontrols{
+
+      width: $sizePlayerButton;
+      height: $sizePlayerButton;
+
+      @include centerit();
+    }
+
+
+
+
+
+
+
+    .playSimple, .pauseSimple {
+
+
+      svg {
+        @include centerit();
+        $size: 35px;
+        width: $size;
+        height: $size;
+
+        path {
+          fill: $color_main;
+        }
+      }
+    }
+
+    .playHover {
+      display: none;
+    }
+
+
+    .pauseSimple {
+      margin-left: -2px;
+    }
+
+
+
+
+    .pauseHover {
+      display: none;
+    }
+
+    .playcontrols:hover .playSimple {
+
+      border-left-color: $color_main_hover;
+    }
+
+
+
+
+    .videoPlayer-controls--background {
+      height: $BUTTONS_SIZE;
+      width: $BUTTONS_SIZE;
+      margin-left: -$BUTTONS_SIZE/2;
+      margin-top: -$BUTTONS_SIZE/2;
+      left: 50%;
+      top: 50%;
+      border-radius: 50%;
+
+      bottom: 0;
+      background: $color_bg;
+    }
+
+
+    .hdbutton-con {
+      display: none;
+    }
+
+    .scrubbar {
+      display: none;
+    }
+
+    .scrub-bg {
+      display: none;
+    }
+
+    .scrub-buffer {
+      display: none;
+    }
+
+    .scrub {
+      display: none;
+    }
+
+
+
+    .timetext {
+      display: none;
+    }
+
+    .scrubBox {
+      display: none;
+    }
+
+    .scrubBox:after {
+      display: none;
+    }
+
+    .scrubBox:before {
+      display: none;
+    }
+
+
+    .scrubBox-prog:empty {
+      display: none;
+    }
+
+    .scrubBox-prog {
+      display: none;
+    }
+
+    .scrubBox-prog:after, .scrubBox-prog:before {
+      display: none;
+    }
+
+    .scrubBox-prog:after {
+      display: none;
+    }
+
+    .scrubBox-prog:before {
+      display: none;
+    }
+
+
+
+
+    .volume_active, .volume_cut, .volume_static, .volumeicon:hover:before, .volumeicon:hover, .volumeicon:before, .volumeicon, .volumecontrols {
+      display: none;
+    }
+
+
+    .fscreencontrols {
+      display: none;
+    }
+  }
+
+
+  &:not(.is-playing) {
+
+    >.vp-inner{
+    .videoPlayer-controls--background {
+      opacity: $hoverOpacity;
+    }
+    }
+  }
+  &.is-playing:hover {
+
+    >.vp-inner{
+    .pauseSimple {
+      opacity: $hoverOpacity;
+    }
+
+    .videoPlayer-controls--background {
+      opacity: $hoverOpacity;
+    }
+  }
+  }
+
+
+}

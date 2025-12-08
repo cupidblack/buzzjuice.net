@@ -1,0 +1,215 @@
+
+$margin: 15;
+div.zfolio {
+  > .items {
+    margin-left: 0;
+
+  }
+
+  .excerpt-content-con {
+    padding-right: #{$margin}px;
+    margin-bottom: #{$margin}px;
+
+  }
+
+
+  &.thumbnail-height-mode-cols, &:not(.custom-layout) {
+
+    .zfolio-item {
+
+      .zfolio-item--inner--inner {
+
+      }
+    }
+  }
+}
+
+
+
+.zfolio[class*="dzs-layout--"]:not(.a):not(.a):not(.a){
+
+  position: relative;
+  display: block;
+
+  .items{
+
+  }
+  .zfolio-item{
+  }
+}
+.zfolio.dzs-layout--1-cols{
+  .zfolio-item{
+  }
+}
+
+
+.zfolio.dzs-layout--2-cols{
+
+  > .items{
+
+  }
+
+  .zfolio-item{
+
+  }
+}
+
+.zfolio.dzs-layout--3-cols{
+
+  > .items{
+
+  }
+  .zfolio-item{
+
+  }
+}
+
+
+
+.zfolio.under-520.dzs-layout--2-cols,.zfolio.under-520.dzs-layout--3-cols,.zfolio.under-520.dzs-layout--4-cols,.zfolio.under-520.dzs-layout--5-cols{
+
+  div.zfolio-item{
+  }
+}
+
+.zfolio{
+
+
+  position: relative;
+
+  > .items{
+
+
+  }
+  .grid-sizer,.zfolio-item{
+
+  }
+}
+
+.zfolio.dzs-layout--5-cols{
+
+  .grid-sizer,.zfolio-item{
+
+  }
+
+}
+.zfolio.dzs-layout--6-cols{
+
+  > .items{
+
+  }
+
+  .grid-sizer,.zfolio-item{
+  }
+
+}
+
+
+
+
+
+// todo: grid it with var()
+$margin: 10;
+div.zfolio[data-margin="#{$margin}"] {
+  > .items {
+    margin-left: 0;
+    margin-right: -#{$margin}px;
+    margin-bottom: -#{$margin}px;
+  }
+
+  .excerpt-content-con {
+    padding-right: #{$margin}px;
+    margin-bottom: #{$margin}px;
+  }
+
+
+  .zfolio-item {
+
+    .zfolio-item--inner--inner {
+
+      padding-left: 0px;
+
+
+      width: calc(100% - #{$margin}px);
+      height: calc(100% - #{$margin}px);
+
+    }
+  }
+
+  &.thumbnail-height-mode-cols, &:not(.custom-layout) {
+
+    .zfolio-item {
+
+      .zfolio-item--inner--inner {
+        margin-bottom: #{$margin}px;
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+.dzs-layout--3-cols{
+
+}
+
+
+
+
+.zfolio.dzs-layout--4-cols{
+
+  position: relative;
+
+  > .items{
+
+  }
+
+  .grid-sizer,.zfolio-item,.dzs-layout-item{
+
+  }
+  .grid-sizer{
+  }
+}
+
+
+
+
+
+
+
+.zfolio.under-720.dzs-layout--2-cols{
+
+  div.zfolio-item{
+    width: 100%;
+  }
+}
+
+
+@media all and (max-width: 720px) {
+  .dzs-layout--2-cols{
+    div.zfolio-item{
+      width:100%;
+    }
+  }
+}
+
+
+@media all and (max-width: 520px) {
+  .dzs-layout--2-cols{
+    div.zfolio-item{
+      width:100%;
+    }
+  }
+  .dzs-layout--4-cols{
+    div.zfolio-item{
+      width:50%;
+    }
+  }
+}

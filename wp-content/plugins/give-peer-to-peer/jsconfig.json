@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "jsx": "react",
+        "baseUrl": ".",
+        "paths": {
+            "@p2p/*": [
+                "./src/P2P/resources/*"
+            ]
+        }
+    }
+}

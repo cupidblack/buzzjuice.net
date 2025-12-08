@@ -1,0 +1,191 @@
+.parent-cats-shower {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  padding: 0;
+  display: block;
+  list-style: none;
+  margin: 0 0 0 0px;
+  transition-property: max-height, padding, margin, opacity;
+  transition-duration: 0.3s;
+  -moz-transition-property: max-height, padding, margin, opacity;
+  -moz-transition-duration: 0.3s;
+  -webkit-transition-property: max-height, padding, margin, opacity;
+  -webkit-transition-duration: 0.3s;
+  -o-transition-property: max-height, padding, margin, opacity;
+  -o-transition-duration: 0.3s;
+  -ms-transition-property: max-height, padding, margin, opacity;
+  -ms-transition-duration: 0.3s;
+  -ms-transition-timing-function: ease-out;
+  -webkit-transition-timing-function: ease-out;
+  -moz-transition-timing-function: ease-out;
+  -o-transition-timing-function: ease-out;
+  transition-timing-function: ease-out; }
+  .parent-cats-shower.loaded {
+    max-height: 150px;
+    padding: 10px 0;
+    opacity: 1; }
+  .parent-cats-shower:before {
+    content: "";
+    clear: both;
+    height: 1px;
+    display: block; }
+  .parent-cats-shower > li {
+    display: inline-block;
+    margin-right: 0px;
+    padding-right: 5px;
+    padding-left: 5px;
+    font-size: 21px;
+    position: relative;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding-bottom: 5px;
+    transition-property: border;
+    transition-duration: 0.3s;
+    -moz-transition-property: border;
+    -moz-transition-duration: 0.3s;
+    -webkit-transition-property: border;
+    -webkit-transition-duration: 0.3s;
+    -o-transition-property: border;
+    -o-transition-duration: 0.3s;
+    -ms-transition-property: border;
+    -ms-transition-duration: 0.3s;
+    -ms-transition-timing-function: ease-out;
+    -webkit-transition-timing-function: ease-out;
+    -moz-transition-timing-function: ease-out;
+    -o-transition-timing-function: ease-out;
+    transition-timing-function: ease-out; }
+    .parent-cats-shower > li:after {
+      content: "";
+      position: absolute;
+      left: 100%;
+      top: 0;
+      height: 100%;
+      width: 1px; }
+    .parent-cats-shower > li:hover, .parent-cats-shower > li.active {
+      border-bottom: 1px solid rgba(111, 79, 111, 0.95); }
+    .parent-cats-shower > li > a {
+      text-decoration: none;
+      color: rgba(111, 79, 111, 0.95);
+      cursor: pointer; }
+
+.column-title {
+  position: relative;
+  transition-property: padding;
+  transition-duration: 0.3s;
+  -moz-transition-property: padding;
+  -moz-transition-duration: 0.3s;
+  -webkit-transition-property: padding;
+  -webkit-transition-duration: 0.3s;
+  -o-transition-property: padding;
+  -o-transition-duration: 0.3s;
+  -ms-transition-property: padding;
+  -ms-transition-duration: 0.3s;
+  -ms-transition-timing-function: ease-out;
+  -webkit-transition-timing-function: ease-out;
+  -moz-transition-timing-function: ease-out;
+  -o-transition-timing-function: ease-out;
+  transition-timing-function: ease-out; }
+  .column-title.has-image {
+    padding: 8px 10px 8px 70px; }
+    .column-title.has-image .divimage {
+      opacity: 1; }
+  .column-title .divimage {
+    width: 50px;
+    height: 50px;
+    border-radius: 5px;
+    background-size: cover;
+    background-position: center center;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background-color: #444444;
+    opacity: 0;
+    transition-property: padding, opacity;
+    transition-duration: 0.3s;
+    -moz-transition-property: padding, opacity;
+    -moz-transition-duration: 0.3s;
+    -webkit-transition-property: padding, opacity;
+    -webkit-transition-duration: 0.3s;
+    -o-transition-property: padding, opacity;
+    -o-transition-duration: 0.3s;
+    -ms-transition-property: padding, opacity;
+    -ms-transition-duration: 0.3s;
+    -ms-transition-timing-function: ease-out;
+    -webkit-transition-timing-function: ease-out;
+    -moz-transition-timing-function: ease-out;
+    -o-transition-timing-function: ease-out;
+    transition-timing-function: ease-out; }
+
+.dzs-sort-portfolio .sort-col {
+  width: 65px;
+  white-space: nowrap; }
+.dzs-sort-portfolio .dzs_sort_term_list-placeholder {
+  background-color: #444444 !important;
+  width: 100% !important;
+  height: 60px !important;
+  float: none;
+  display: table-row;
+  border: 1px dotted rgba(255, 255, 255, 0.3); }
+.dzs-sort-portfolio .sort-controls, .dzs-sort-portfolio .post-label {
+  display: inline-block;
+  vertical-align: middle; }
+.dzs-sort-portfolio .title > .wp-post-image {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: 10px;
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  top: 5px;
+  left: 5px; }
+.dzs-sort-portfolio .title.has-image {
+  position: relative;
+  padding-left: 80px; }
+.dzs-sort-portfolio .sort-col {
+  position: relative; }
+.dzs-sort-portfolio .column-order {
+  width: 5%; }
+.dzs-sort-portfolio tbody .column-order {
+  opacity: 0.5; }
+.dzs-sort-portfolio .sort-controls {
+  margin-right: 5px;
+  color: #888888;
+  font-size: 14px;
+  left: 18px;
+  position: absolute;
+  top: 50%;
+  transform: translate3d(0, -50%, 0); }
+  .dzs-sort-portfolio .sort-controls > * {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+    cursor: pointer; }
+  .dzs-sort-portfolio .sort-controls .sort-up-down-conglomerate {
+    width: 20px;
+    font-size: 18px;
+    line-height: 0.5;
+    text-align: center; }
+    .dzs-sort-portfolio .sort-controls .sort-up-down-conglomerate .fa-caret-up {
+      margin-bottom: -5px;
+      display: block; }
+    .dzs-sort-portfolio .sort-controls .sort-up-down-conglomerate > .fa {
+      opacity: 0.5;
+      transition-property: opacity;
+      transition-duration: 0.3s;
+      -moz-transition-property: opacity;
+      -moz-transition-duration: 0.3s;
+      -webkit-transition-property: opacity;
+      -webkit-transition-duration: 0.3s;
+      -o-transition-property: opacity;
+      -o-transition-duration: 0.3s;
+      -ms-transition-property: opacity;
+      -ms-transition-duration: 0.3s;
+      -ms-transition-timing-function: ease-out;
+      -webkit-transition-timing-function: ease-out;
+      -moz-transition-timing-function: ease-out;
+      -o-transition-timing-function: ease-out;
+      transition-timing-function: ease-out; }
+      .dzs-sort-portfolio .sort-controls .sort-up-down-conglomerate > .fa:hover {
+        opacity: 1; }
+
+/*# sourceMappingURL=dzs_term_reorder.css.map */

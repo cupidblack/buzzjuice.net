@@ -1,0 +1,431 @@
+<?php
+// Load password hashing library
+if (!class_exists('PasswordHash')) {
+    require_once __DIR__ . '/class-phpass.php';
+}
+
+require_once __DIR__ . '/../../shared/db_helpers.php';
+
+// Connect to WordPress DB
+$wp_db_conn = get_wp_db_conn();
+if (!$wp_db_conn) {
+    wp_log("ERROR: Failed to connect to WordPress DB: " . mysqli_connect_error());
+    die("Could not connect to WordPress DB");
+}
+
+// Helper serialization functions
+if (!function_exists('is_serialized')) {
+    function is_serialized($data, $strict = true) {
+        if (!is_string($data)) return false;
+        $data = trim($data);
+        if ('N;' === $data) return true;
+        if (strlen($data) < 4) return false;
+        if (':' !== $data[1]) return false;
+        $lastc = substr($data, -1);
+        if (';' !== $lastc && '}' !== $lastc) return false;
+        $token = $data[0];
+        switch ($token) {
+            case 's': if ($strict) { if ('"' !== substr($data, -2, 1)) return false; } elseif (false === strpos($data, '"')) return false; break;
+            case 'a':
+            case 'O': return (bool)preg_match("/^{$token}:[0-9]+:/s", $data);
+            case 'b':
+            case 'i':
+            case 'd': $rest = substr($data, 2); return (bool)preg_match("/^([0-9.E-]+);$/", $rest);
+        }
+        return false;
+    }
+}
+
+if (!function_exists('maybe_unserialize')) {
+    function maybe_unserialize($original) {
+        if (is_serialized($original)) return @unserialize($original);
+        return $original;
+    }
+}
+
+if (!defined('WP_BRIDGE_DEBUG_LOG')) {
+    define('WP_BRIDGE_DEBUG_LOG', __DIR__ . '/wp_bridge_debug.log');
+}
+function wp_log($msg) {
+    $timestamp = date('Y-m-d H:i:s');
+    error_log("[$timestamp] $msg\n", 3, WP_BRIDGE_DEBUG_LOG);
+}
+
+// 1. Fetch WP user by login or email
+function wp_get_user_by_login_or_email($wp_db_conn, $login_or_email) {
+    $login_or_email = mysqli_real_escape_string($wp_db_conn, $login_or_email);
+    $query = "SELECT * FROM " . wp_table('users') . " WHERE user_login = '$login_or_email' OR user_email = '$login_or_email' LIMIT 1";
+    $result = mysqli_query($wp_db_conn, $query);
+    if (!$result || mysqli_num_rows($result) == 0) return false;
+    return mysqli_fetch_assoc($result);
+}
+
+// 2. Check WP password
+function wp_check_password($password, $hash) {
+    $wp_hasher = new PasswordHash(8, true);
+    return $wp_hasher->CheckPassword($password, $hash);
+}
+
+// 3. Get WP usermeta
+function wp_get_usermeta($wp_db_conn, $user_id, $meta_key) {
+    $user_id = intval($user_id);
+    $meta_key = mysqli_real_escape_string($wp_db_conn, $meta_key);
+    $query = "SELECT meta_value FROM " . wp_table('usermeta') . " WHERE user_id = $user_id AND meta_key = '$meta_key' LIMIT 1";
+    $result = mysqli_query($wp_db_conn, $query);
+    if (!$result || mysqli_num_rows($result) == 0) return null;
+    $row = mysqli_fetch_assoc($result);
+    return maybe_unserialize($row['meta_value']);
+}
+
+// 4. Get BuddyBoss xProfile field
+function wp_get_xprofile_data($wp_db_conn, $user_id, $field_name) {
+    $field_name = mysqli_real_escape_string($wp_db_conn, $field_name);
+    $user_id = intval($user_id);
+    $field_id_query = "SELECT id FROM " . bp_table('xprofile_fields') . " WHERE name = '$field_name' LIMIT 1";
+    $field_id_result = mysqli_query($wp_db_conn, $field_id_query);
+    if (!$field_id_result || mysqli_num_rows($field_id_result) == 0) return null;
+    $field_id_row = mysqli_fetch_assoc($field_id_result);
+    $field_id = intval($field_id_row['id']);
+    $value_query = "SELECT value FROM " . bp_table('xprofile_data') . " WHERE user_id = $user_id AND field_id = $field_id LIMIT 1";
+    $value_result = mysqli_query($wp_db_conn, $value_query);
+    if (!$value_result || mysqli_num_rows($value_result) == 0) return null;
+    $value_row = mysqli_fetch_assoc($value_result);
+    return $value_row['value'];
+}
+
+// 5. Create WP user (basic, no meta)
+if (!function_exists('wp_create_user')) {
+    function wp_create_user($wp_db_conn, $username, $password, $email) {
+        $wp_hasher = new PasswordHash(8, true);
+        $user_login = mysqli_real_escape_string($wp_db_conn, $username);
+        $user_pass = $wp_hasher->HashPassword($password);
+        $user_email = mysqli_real_escape_string($wp_db_conn, $email);
+        $user_registered = date('Y-m-d H:i:s');
+        $check_query = "SELECT ID FROM " . wp_table('users') . " WHERE user_login = '$user_login' OR user_email = '$user_email' LIMIT 1";
+        $check_result = mysqli_query($wp_db_conn, $check_query);
+        if ($check_result && mysqli_num_rows($check_result) > 0) return false;
+        $insert_query = "INSERT INTO " . wp_table('users') . " (user_login, user_pass, user_email, user_registered, user_status) VALUES ('$user_login', '$user_pass', '$user_email', '$user_registered', 0)";
+        $insert_result = mysqli_query($wp_db_conn, $insert_query);
+        if (!$insert_result) return false;
+        return mysqli_insert_id($wp_db_conn);
+    }
+}
+
+// 6. Get full user data (WP + meta + xprofile)
+function wp_get_full_user_data($wp_db_conn, $user_id) {
+    $user_id = intval($user_id);
+    $user_query = "SELECT * FROM " . wp_table('users') . " WHERE ID = $user_id LIMIT 1";
+    $user_result = mysqli_query($wp_db_conn, $user_query);
+    if (!$user_result || mysqli_num_rows($user_result) == 0) return false;
+    $user = mysqli_fetch_assoc($user_result);
+
+    // Get all usermeta (for efficiency, fetch all at once)
+    $meta = [];
+    $meta_query = "SELECT meta_key, meta_value FROM " . wp_table('usermeta') . " WHERE user_id = $user_id";
+    $meta_result = mysqli_query($wp_db_conn, $meta_query);
+    if ($meta_result) {
+        while ($row = mysqli_fetch_assoc($meta_result)) {
+            $meta[$row['meta_key']] = maybe_unserialize($row['meta_value']);
+        }
+    }
+
+    // Get all xprofile fields (by field name)
+    $xprofile = [];
+    $field_query = "SELECT f.id, f.name FROM " . bp_table('xprofile_fields') . " AS f";
+    $field_result = mysqli_query($wp_db_conn, $field_query);
+    if ($field_result) {
+        while ($field = mysqli_fetch_assoc($field_result)) {
+            $field_id = intval($field['id']);
+            $field_name = $field['name'];
+            $data_query = "SELECT value FROM " . bp_table('xprofile_data') . " WHERE user_id = $user_id AND field_id = $field_id LIMIT 1";
+            $data_result = mysqli_query($wp_db_conn, $data_query);
+            if ($data_result && mysqli_num_rows($data_result)) {
+                $data_row = mysqli_fetch_assoc($data_result);
+                $xprofile[$field_name] = $data_row['value'];
+            }
+        }
+    }
+
+    return [
+        'ID' => $user['ID'],
+        'user_login' => $user['user_login'],
+        'user_email' => $user['user_email'],
+        'user_pass' => $user['user_pass'],
+        'user_registered' => $user['user_registered'],
+        'display_name' => $user['display_name'],
+        'meta' => $meta,
+        'xprofile' => $xprofile
+    ];
+}
+
+// 7. Update WP usermeta (insert or update)
+function wp_update_usermeta($wp_db_conn, $user_id, $meta_key, $meta_value) {
+    $original_key = $meta_key;
+    $user_id = intval($user_id);
+
+    // Debug: Begin
+    if (!$wp_db_conn) {
+        wp_log("[ERROR] wp_update_usermeta: WP DB connection is null for user_id=$user_id");
+        return false;
+    }
+    if (!$user_id) {
+        wp_log("[ERROR] wp_update_usermeta: Provided user_id is zero or invalid: $user_id");
+        return false;
+    }
+    // Debug: End
+
+    if ($meta_key === 'user_id') {
+        $meta_key = 'wo_user_id';
+    }
+
+    $meta_key = mysqli_real_escape_string($wp_db_conn, $meta_key);
+    $meta_value = (is_array($meta_value) || is_object($meta_value)) ? serialize($meta_value) : $meta_value;
+    $meta_value = mysqli_real_escape_string($wp_db_conn, $meta_value);
+
+    wp_log("Updating usermeta: user_id=$user_id, key=$meta_key (original=$original_key), value=$meta_value");
+
+    // --- Existing meta update/insert ---
+    $query = "SELECT umeta_id FROM " . wp_table('usermeta') . " WHERE user_id = $user_id AND meta_key = '$meta_key' LIMIT 1";
+    $result = mysqli_query($wp_db_conn, $query);
+
+    if ($result === false) {
+        wp_log("[ERROR] wp_update_usermeta: Failed SELECT query for meta_key='$meta_key'. MySQL error: " . mysqli_error($wp_db_conn));
+        // Continue to try inserting anyway
+    }
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
+        $umeta_id = intval($row['umeta_id']);
+        $update = "UPDATE " . wp_table('usermeta') . " SET meta_value = '$meta_value' WHERE umeta_id = $umeta_id";
+        $success = mysqli_query($wp_db_conn, $update);
+        if ($success === false) {
+            wp_log("[ERROR] wp_update_usermeta: Failed UPDATE query: $update. MySQL error: " . mysqli_error($wp_db_conn));
+        }
+        wp_log("UPDATE QUERY: $update — success=" . ($success ? 'YES' : 'NO'));
+    } else {
+        $insert = "INSERT INTO " . wp_table('usermeta') . " (user_id, meta_key, meta_value) VALUES ($user_id, '$meta_key', '$meta_value')";
+        $success = mysqli_query($wp_db_conn, $insert);
+        if ($success === false) {
+            wp_log("[ERROR] wp_update_usermeta: Failed INSERT query: $insert. MySQL error: " . mysqli_error($wp_db_conn));
+        }
+        wp_log("INSERT QUERY: $insert — success=" . ($success ? 'YES' : 'NO'));
+    }
+
+    // --- Always update/save the WoWonder user_id mapping in usermeta ---
+    // Only if meta_key is not already 'wo_user_id' (to prevent double lookup/recursion)
+    if ($meta_key !== 'wo_user_id') {
+        // You must include the db_helpers.php for get_wowonder_db()
+        if (!function_exists('get_wowonder_db')) {
+            if (file_exists(__DIR__ . '/../../data/db_helpers.php')) {
+                require_once __DIR__ . '/../../data/db_helpers.php';
+            }
+        }
+        $ww_db_conn = function_exists('get_wowonder_db') ? get_wowonder_db() : null;
+
+        if ($ww_db_conn) {
+            // Try to get the user's email from WP DB
+            $q = "SELECT user_email FROM " . wp_table('users') . " WHERE ID = $user_id LIMIT 1";
+            $res = mysqli_query($wp_db_conn, $q);
+            if ($res && $row = mysqli_fetch_assoc($res)) {
+                $user_email = $row['user_email'];
+                // Look up the corresponding WoWonder user_id by email
+                $email_esc = mysqli_real_escape_string($ww_db_conn, $user_email);
+                $ww_query = "SELECT user_id FROM Wo_Users WHERE email='$email_esc' LIMIT 1";
+                $ww_result = mysqli_query($ww_db_conn, $ww_query);
+                if ($ww_result && $ww_row = mysqli_fetch_assoc($ww_result)) {
+                    $wowonder_user_id = intval($ww_row['user_id']);
+                    // Check if the mapping already exists
+                    $check_q = "SELECT umeta_id FROM " . wp_table('usermeta') . " WHERE user_id = $user_id AND meta_key = 'wo_user_id' LIMIT 1";
+                    $check_result = mysqli_query($wp_db_conn, $check_q);
+                    if ($check_result && mysqli_num_rows($check_result) > 0) {
+                        // Already exists, optionally update if the value has changed
+                        $existing = mysqli_fetch_assoc($check_result);
+                        $existing_value_q = "SELECT meta_value FROM " . wp_table('usermeta') . " WHERE umeta_id = {$existing['umeta_id']} LIMIT 1";
+                        $existing_value_result = mysqli_query($wp_db_conn, $existing_value_q);
+                        $existing_value = false;
+                        if ($existing_value_result && $vrow = mysqli_fetch_assoc($existing_value_result)) {
+                            $existing_value = $vrow['meta_value'];
+                        }
+                        if ($existing_value != $wowonder_user_id) {
+                            $update = "UPDATE " . wp_table('usermeta') . " SET meta_value = '$wowonder_user_id' WHERE umeta_id = {$existing['umeta_id']}";
+                            $success_ww = mysqli_query($wp_db_conn, $update);
+                            wp_log("UPDATE wo_user_id mapping for WP user $user_id (was $existing_value, now $wowonder_user_id): " . ($success_ww ? "OK" : "FAIL"));
+                            if ($success_ww === false) {
+                                wp_log("[ERROR] Failed to update wo_user_id mapping. MySQL error: " . mysqli_error($wp_db_conn));
+                            }
+                        }
+                    } else {
+                        // Insert new mapping
+                        $insert = "INSERT INTO " . wp_table('usermeta') . " (user_id, meta_key, meta_value) VALUES ($user_id, 'wo_user_id', '$wowonder_user_id')";
+                        $success_ww = mysqli_query($wp_db_conn, $insert);
+                        wp_log("Created wo_user_id mapping for WP user $user_id → $wowonder_user_id: " . ($success_ww ? "OK" : "FAIL"));
+                        if ($success_ww === false) {
+                            wp_log("[ERROR] Failed to insert wo_user_id mapping. MySQL error: " . mysqli_error($wp_db_conn));
+                        }
+                    }
+                } else {
+                    wp_log("[ERROR] Could not find WoWonder user for email=$user_email. Query: $ww_query. MySQL error: " . mysqli_error($ww_db_conn));
+                }
+            } else {
+                wp_log("[ERROR] Could not find WP user email for ID=$user_id. Query: $q. MySQL error: " . mysqli_error($wp_db_conn));
+            }
+        } else {
+            wp_log("[ERROR] wp_update_usermeta: WoWonder DB connection is null.");
+        }
+    }
+
+    // Return true if no error during insert/update of the original meta
+    return true;
+}
+
+
+// 8. Update BuddyBoss xProfile field (insert or update)
+function wp_update_xprofile_field($wp_db_conn, $user_id, $field_name, $field_value) {
+    $user_id = intval($user_id);
+    $original_value = $field_value;
+
+    $field_name = mysqli_real_escape_string($wp_db_conn, $field_name);
+    $field_value = mysqli_real_escape_string($wp_db_conn, $field_value);
+
+    wp_log("Updating xProfile: user_id=$user_id, field_name=$field_name, value=$original_value");
+
+    $field_id_query = "SELECT id FROM " . bp_table('xprofile_fields') . " WHERE name = '$field_name' LIMIT 1";
+    $field_id_result = mysqli_query($wp_db_conn, $field_id_query);
+
+    if (!$field_id_result || mysqli_num_rows($field_id_result) == 0) {
+        wp_log("xProfile field not found: $field_name");
+        return false;
+    }
+
+    $field_id_row = mysqli_fetch_assoc($field_id_result);
+    $field_id = intval($field_id_row['id']);
+
+    $exists_query = "SELECT id FROM " . bp_table('xprofile_data') . " WHERE user_id = $user_id AND field_id = $field_id LIMIT 1";
+    $exists_result = mysqli_query($wp_db_conn, $exists_query);
+
+    if ($exists_result && mysqli_num_rows($exists_result) > 0) {
+        $row = mysqli_fetch_assoc($exists_result);
+        $update = "UPDATE " . bp_table('xprofile_data') . " SET value = '$field_value' WHERE id = {$row['id']}";
+        $success = mysqli_query($wp_db_conn, $update);
+        wp_log("xProfile UPDATE QUERY: $update — success=" . ($success ? 'YES' : 'NO'));
+        return $success;
+    } else {
+        $insert = "INSERT INTO " . bp_table('xprofile_data') . " (field_id, user_id, value, last_updated) VALUES ($field_id, $user_id, '$field_value', NOW())";
+        $success = mysqli_query($wp_db_conn, $insert);
+        wp_log("xProfile INSERT QUERY: $insert — success=" . ($success ? 'YES' : 'NO'));
+        return $success;
+    }
+}
+
+
+// AFTER successfully updating usermeta and/or xProfile...
+
+// 2. Get QuickDate user ID by email
+function qd_get_user_id_by_email($email) {
+    $conn = get_qd_db_conn();
+    if (!$conn) return false;
+
+    $email = $conn->real_escape_string($email);
+    $sql = "SELECT id FROM " . QD_USERS_TABLE . " WHERE email = '$email' LIMIT 1";
+    $result = $conn->query($sql);
+
+    if (!$result || $result->num_rows == 0) {
+        wp_log("[QuickDate] No user found with email: $email");
+        return false;
+    }
+
+    $row = $result->fetch_assoc();
+    return (int) $row['id'];
+}
+
+// 3. Get QuickDate table columns
+function qd_get_columns($conn, $table) {
+    static $cache = [];
+    if (isset($cache[$table])) return $cache[$table];
+
+    $columns = [];
+    $result = $conn->query("SHOW COLUMNS FROM `$table`");
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $columns[] = $row['Field'];
+        }
+        $cache[$table] = $columns;
+    }
+    return $columns;
+}
+
+// 4. Update QuickDate user by ID
+function qd_update_user($email, $data) {
+    $conn = get_qd_db_conn();
+    if (!$conn) return false;
+
+    $user_id = qd_get_user_id_by_email($email);
+    if (!$user_id) return false;
+
+    $columns = qd_get_columns($conn, QD_USERS_TABLE);
+    $set = [];
+
+    foreach ($data as $key => $value) {
+        if (!in_array($key, $columns)) {
+            wp_log("[QuickDate] Skipping unknown field: $key");
+            continue;
+        }
+        $escaped_value = $conn->real_escape_string($value);
+        $set[] = "`$key` = '$escaped_value'";
+    }
+
+    if (empty($set)) {
+        wp_log("[QuickDate] No valid fields to update for user $user_id");
+        return false;
+    }
+
+    $sql = "UPDATE `" . QD_USERS_TABLE . "` SET " . implode(',', $set) . " WHERE id = $user_id";
+    $result = $conn->query($sql);
+
+    if ($result) {
+        wp_log("[QuickDate] Successfully updated user $user_id");
+        return true;
+    } else {
+        wp_log("[QuickDate] Update failed: " . $conn->error);
+        return false;
+    }
+}
+
+// 5. Bridge: Call after updating WP data
+function sync_user_to_quickdate($wp_user_email, $usermeta_data = [], $xprofile_data = []) {
+    $qd_data = [];
+
+    // Prefer xprofile values for profile details
+    foreach ($xprofile_data as $key => $value) {
+        if ($value !== null && $value !== '') {
+            // For avatar and cover, prepend ../streams/ if not a URL
+            if (in_array($key, ['avatar', 'cover']) && !filter_var($value, FILTER_VALIDATE_URL)) {
+                if (strpos($value, '../streams/') !== 0) {
+                    $value = '../streams/' . ltrim($value, '/');
+                }
+            }
+            $qd_data[$key] = $value;
+        }
+    }
+
+    // Include usermeta data for matching fields only if not already set
+    foreach ($usermeta_data as $key => $value) {
+        if (!isset($qd_data[$key]) && $value !== null && $value !== '') {
+            if (in_array($key, ['avatar', 'cover']) && !filter_var($value, FILTER_VALIDATE_URL)) {
+                if (strpos($value, '../streams/') !== 0) {
+                    $value = '../streams/' . ltrim($value, '/');
+                }
+            }
+            $qd_data[$key] = $value;
+        }
+    }
+
+    if (empty($qd_data)) {
+        wp_log("[QuickDate] No data to sync for $wp_user_email");
+        return false;
+    }
+
+    return qd_update_user($wp_user_email, $qd_data);
+}
+
+

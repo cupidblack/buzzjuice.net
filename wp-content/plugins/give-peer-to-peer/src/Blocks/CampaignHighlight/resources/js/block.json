@@ -1,0 +1,43 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 2,
+    "name": "give-p2p/campaign-highlight",
+    "version": "1.0.0",
+    "title": "Campaign Highlight",
+    "category": "give",
+    "description": "The Campaign Highlight block allows admins to display a single campaign and it's details",
+    "keywords": [
+        "campaign",
+        "campaign highlight"
+    ],
+    "attributes": {
+        "id": {
+            "type": "string",
+            "default": ""
+        },
+        "accent_color": {
+            "type": "string",
+            "default": "#28c77b"
+        },
+        "show_avatar": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_goal": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_campaign_info": {
+            "type": "boolean",
+            "default": true
+        },
+        "show_description": {
+            "type": "boolean",
+            "default": true
+        }
+    },
+    "textdomain": "give-peer-to-peer",
+    "editorStyle": "file:../../../../../public/css/give-p2p-campaign-highlight-block.css",
+    "editorScript": "file:../../../../../public/js/give-p2p-campaign-highlight-block.js"
+}
+

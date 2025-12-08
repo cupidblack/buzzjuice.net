@@ -1,0 +1,111 @@
+@use 'src/P2P/resources/css/functions' as *;
+
+.profileCard {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    width: 80%;
+    margin: 10px auto;
+    padding: 15px 20px;
+    border: 1px solid #E9E8E8;
+
+}
+
+.containerLink:hover {
+    cursor: pointer;
+    border-color: var(--give-campaign-primary, #28c77b);
+}
+
+.containerLink {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px auto;
+    padding: 15px 20px;
+    border: 1px solid #E9E8E8;
+    width: 80%;
+
+    .column {
+        display: inline-flex;
+        align-items: center;
+
+        > svg path {
+            fill: var(--give-campaign-primary, #28C77B);
+        }
+    }
+}
+
+.image {
+    width: 93px;
+    height: 93px;
+    border-radius: 50%;
+    border: 2.92982px solid #fff;
+    box-shadow: 0 0.976608px 3.90643px rgba(0, 0, 0, 0.25);
+}
+
+.title {
+    display: inline-flex;
+    color: #333333;
+    font-size: safe-rem(1.125);
+    font-weight: 600;
+    text-align: left;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 5px;
+    max-width: 90%;
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    text-align: left;
+    color: #555555;
+    font-size: safe-rem(.875);
+    font-weight: 600;
+    padding: 10px 0;
+
+    a:not([class]) {
+        color: var(--give-campaign-primary, #28C77B);
+        text-decoration: none;
+    }
+}
+
+.icon {
+    padding-right: 19px;
+
+    & > svg {
+        stroke: var(--give-campaign-primary, #28c77b);
+    }
+}
+
+.arrowIcon {
+    svg {
+        width: 30px;
+    }
+}
+
+.text {
+    font-size: safe-rem(0.75);
+    color: #6B6B6B;
+    margin-top: 7px;
+}
+
+.status {
+    display: inline-flex;
+
+    span {
+        font-size: safe-rem(0.75);
+        color: #000000;
+        line-height: 22px;
+        font-weight: 500;
+    }
+
+    span:first-child {
+        margin-right: 5px;
+    }
+}

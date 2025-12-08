@@ -1,0 +1,1 @@
+export const REGISTER_POST_TYPE = 'dzsvideo';

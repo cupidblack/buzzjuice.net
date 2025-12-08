@@ -1,0 +1,27 @@
+<md-dialog aria-label="{{strings.selectPeriod}}">
+		<md-toolbar>
+			<div class="md-toolbar-tools">
+				<h2>{{strings.selectPeriod}}</h2>
+				<span flex></span>
+				<md-button class="md-icon-button" ng-click="closeDialog()">
+					<md-icon class="usin-icon-delete" aria-label="{{strings.cancel}}"></md-icon>
+				</md-button>
+			</div>
+		</md-toolbar>
+
+		<md-dialog-content>
+			<div class="md-dialog-content">
+				{{strings.between}} <usin-date-field ng-model="customPeriodOptions.start"></usin-date-field>
+				{{strings.and}} <usin-date-field ng-model="customPeriodOptions.end"></usin-date-field>
+			</div>
+		</md-dialog-content>
+
+		<md-dialog-actions layout="row">
+			<button class="usin-btn" ng-click="closeDialog()">
+				{{strings.cancel}}
+			</button>
+			<button class="usin-btn usin-btn-main" ng-click="applyCustomPeriod()" ng-disabled="!customPeriodOptions.start && !customPeriodOptions.end">
+				{{strings.apply}}
+			</button>
+		</md-dialog-actions>
+</md-dialog>

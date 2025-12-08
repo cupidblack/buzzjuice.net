@@ -1,0 +1,824 @@
+Welcome to WoWonder API documentation!
+You can use our API to access WoWonder API endpoints, which can get information from various features.
+
+Getting Started
+Please note that most requests require user authorization, for this you only need to send user’s access_token using GET method.
+All requests require your site (server_key) that should be sent with each request using POST method, the key can be found in Admin Panel > Mobile & API Settings > Manage API Access Keys > Server Key
+This is not a public API that can be used by public users, just the site owner can use it to build third party applications.
+IMPORTANT: This API can’t be used for marketing purpose or used to sell third party applications.
+/api/get-site-settings
+Get your site settings / config / information.
+
+End point: http://your-site.com/api/get-site-settings
+
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "config": [..], // An array of your site information, config etc..
+}
+/api/auth
+Log in the user and get the access token.
+
+End point: http://your-site.com/api/auth
+
+POST data:
+
+Key	Value	Description	Required
+username	string	User’s username	Yes
+password	string	User’s password	Yes
+timezone	string	User’s timezone	No
+device_id	string	Onesignal Device ID	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "access_token": "", // store this, it will be used for all other API calls
+  "user_id": "", // authenticated user id
+  "timezone": "", // user timezone
+}
+/api/social-login
+Log in the user and get the access token using FB or google.
+
+End point: http://your-site.com/api/social-login
+
+POST data:
+
+Key	Value	Description	Required
+access_token	string	FB or Google access_token	Yes
+provider	string(facebook, google)	Login site	Yes
+google_key	string	Google API key	Yes if provider = google
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "access_token": "", // store this, it will be used for all other API calls
+  "user_id": "", // authenticated user id
+  "timezone": "", // user timezone
+}
+/api/create-account
+Create a new user account. and get the access token.
+
+End point: http://your-site.com/api/create-account
+
+POST data:
+
+Key	Value	Description	Required
+username	string	User’s username	Yes
+password	string	User’s password	Yes
+email	string	User’s email	Yes
+confirm_password	string	User’s confirm password	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "access_token": "", // store this, it will be used for all other API calls
+  "user_id": "", // authenticated user id
+}
+/api/set-browser-cookie
+Log in the user to the browser using access_token.
+
+End point: http://your-site.com/api/set-browser-cookie?access_token=ACCESS_TOKEN
+
+Success repsond:
+
+Redirects to /get_news_feed page.
+/api/delete-access-token
+Log the user out.
+
+End point: http://your-site.com/api/delete-access-token?access_token=ACCESS_TOKEN
+
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+}
+/api/send-reset-password-email
+Send password reset email.
+
+End point: http://your-site.com/api/send-reset-password-email?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+email	string	User’s Email	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+}
+/api/get-user-data
+Get any user data.
+
+End point: http://your-site.com/api/get-user-data?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+user_id	int	Get the data of this user id.	Yes
+fetch	user_data,followers,following,liked_pages,joined_groups	Choose what you would like to get from the user.	At least one key is required.
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  {The keys that are sent in fetch}
+}
+/api/get-many-users-data
+Get mutli users data, for example you can get 20 users data as array in one API call.
+
+End point: http://your-site.com/api/get-many-users-data?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+user_ids	string	IDs separated with commas, example: 1,2,3,4,5	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "users": [..] // array
+}
+/api/get-user-albums
+Get user’s albums.
+
+End point: http://your-site.com/api/get-user-albums?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+user_id	int	Get the albums of this user ID.	Yes
+limit	int	Default: 35	No
+offset	int	Get albums before the offset ID	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "albums": {..}
+}
+/api/create-product
+Create new product (market system).
+
+End point: http://your-site.com/api/create-product?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+product_title	string	Product title, min: 2 letters.	Yes
+product_description	string	Product description, min: 2 letters.	Yes
+product_location	string	Product location, min: 2 letters.	Yes
+product_price	int	Product price	Yes
+product_category	int	Product category	Yes
+product_type	int	1 or 0, 1 for used product, 0 for new.	Yes
+images	Stream (File)	Image, (jpg,png,gif,jpeg)	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "product_id": 0, // created product ID
+  "product_post_id": 0 // created product post ID
+}
+/api/get-products
+Get latest products, or user products.
+
+End point: http://your-site.com/api/get-products?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+user_id	int	Get the products of this user ID, leave this if you want to get latest products.	No
+limit	int	Default: 35	No
+offset	int	Get albums before the offset ID	No
+category_id	int	Get the products under this category.	No
+keyword	int	Search for products.	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "products": {..}
+}
+/api/get-events
+Get latest events, or user events.
+
+End point: http://your-site.com/api/get-events?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+limit	int	Default: 35	No
+offset	int	Get events before the offset ID	No
+my_offset	int	Get my events before the offset ID	No
+fetch	events,my_events	Choose what you would like to get.	At least one key is required.
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  {Keys that are sent in fetch}
+}
+/api/go-to-event
+Go to event / remove go to event.
+
+End point: http://your-site.com/api/go-to-event?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+event_id	int	event ID	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "go_status": "going|not-going"
+}
+/api/interest-event
+Interest in event / remove interest in event.
+
+End point: http://your-site.com/api/interest-event?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+event_id	int	event ID	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "interest_status": "interested|not-interested"
+}
+/api/create-event
+Create new events.
+
+End point: http://your-site.com/api/create-event?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+event_name	string	Event name, min: 5 letters.	Yes
+event_location	string	Event location	Yes
+event_description	string	Event description, min: 10 letters.	Yes
+event_start_date	string	Event start date, fromat: YYYY-MM-DD	Yes
+event_end_date	string	Event end date, fromat: YYYY-MM-DD	Yes
+event_start_time	string	Event start time, fromat: 00:00	Yes
+event_end_time	string	Event end time, fromat: 00:00	Yes
+event_cover	stream (image file)	Event cover, jpg, png, gif, jpeg	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "event_id": 0, // created event ID
+}
+/api/follow-user
+Follow or unfollow a user.
+
+End point: http://your-site.com/api/follow-user?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+user_id	int	Who to follow?	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "follow_status": "followed|unfollowed"
+}
+/api/follow-request-action
+Accpet or decline follow / friends requests.
+
+End point: http://your-site.com/api/follow-request-action?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+user_id	int	Who to accept or decline?	Yes
+request_action	accept, decline	Use accpet to accept the follow request, use decline to delete it.	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+}
+/api/block-user
+Block or unblock a user.
+
+End point: http://your-site.com/api/block-user?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+user_id	int	Who to block or un-block?	Yes
+block_action	block, un-block	Use block to block the user, use un-block to unblock the user.	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "block_status": "un-blocked|blocked"
+}
+/api/post-actions
+Edit, delete a post | comment, like, wonder|dislike a post.
+
+End point: http://your-site.com/api/post-actions?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+post_id	int	The post you want to modify	Yes
+action	edit,delete,commet,like,dislike,wonder	…	Yes
+text	string	The post’s or comment’s text	Required if action = edit or comment
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "action": "deleted|edited|commented|liked|disliked|wondered",
+  // if there is comments
+  "comment_data": {
+    "text": "COMMENT_TEXT",
+    "post_comments_count": "COMMENT_COUNT"
+   }
+}
+/api/like-page
+Like or remove a like from a page.
+
+End point: http://your-site.com/api/like-page?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+page_id	int	The page id you want to like/dislike	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "like_status": "liked|unliked"
+}
+/api/join-group
+Join or leave a group.
+
+End point: http://your-site.com/api/join-group?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+group_id	int	The group id you want to join/leave	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "join_status": "joined|left"
+}
+/api/create-story
+Create new user story.
+
+End point: http://your-site.com/api/create-story?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+story_title	string	Story title, min: 2 letters.	No
+story_description	string	Story description	No
+file	Stream (File)	Images or videos, (jpg,png,mp4,gif,jpeg,mov,webm)	Yes
+file_type	image,video	Use image if you are uploading an image, use video if you are uploading a video	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "story_id": 0, // created story ID
+}
+/api/delete-story
+Delete user story/status.
+
+End point: http://your-site.com/api/delete-story?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+story_id	int	Story ID that will be deleted.	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "message": ".."
+}
+/api/set-chat-typing-status
+Set chat “typing…” or remove it from chat.
+
+End point: http://your-site.com/api/set-chat-typing-status?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+user_id	int	User ID that the user is chatting with	Yes
+status	typing,stopped	Use typing to show typing message on user’s chat box, use stopped to remove it.	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+}
+/api/change-chat-color
+Change the chat conversation color.
+
+End point: http://your-site.com/api/change-chat-color?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+user_id	int	User ID that the user is chatting with	Yes
+color	#{COLOR}	Hex color, example: #ffffff	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+}
+/api/get-articles
+Get latest or user’s articles.
+
+End point: http://your-site.com/api/get-articles?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+limit	int	Default: 25	No
+offset	int	Get articles after the offset ID	No
+user_id	int	Filter by user.	No
+category	int	Filter by category.	No
+article_id	int	Get a specified article by ID.	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "articles": [..] // Array
+}
+/api/get-group-data
+Get any group data.
+
+End point: http://your-site.com/api/get-group-data?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+group_id	int	Get the data of this group.	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "group_data": {..} // Object
+}
+/api/get-page-data
+Get any page data.
+
+End point: http://your-site.com/api/get-page-data?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+page_id	int	Get the data of this page.	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "page_data": {..} // Object
+}
+/get_news_feed
+An HTML hybird page that displays user’s latest posts, page’s posts , group’s posts and latest timeline posts.
+
+End point: http://your-site.com/get_news_feed
+
+GET data:
+
+Key	Value	Description	Required
+user_id	Show posts of this ID	Get the data of this post.	No
+page_id	Show posts of this page	Get the data of this post.	No
+group_id	Show posts of this group	Get the data of this post.	No
+Output:
+
+HTML Document.
+
+/api/get-post-data
+Get any post data.
+
+End point: http://your-site.com/api/get-post-data?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+post_id	int	Get the data of this post.	Yes
+fetch	post_data,post_comments,post_wondered_users,post_liked_users	Choose what you would like to get from the post.	At least one key is required.
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  {Keys that are sent in fetch}
+}
+/api/update-user-data
+Update user data, avatar, cover, general settings, privacy and a lot more.
+
+End point: http://your-site.com/api/update-user-data?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+username	string	User’s username	No
+email	string	User’s email address	No
+phone_number	string	User’s phone number	No
+new_password	string	User’s new_password	No
+current_password	string	User’s current password	Yes, if new password is sent.
+gender	string (male, female)	User’s gender	No
+avatar	Stream (File)	User’s profile picture	No
+cover	Stream (File	User’s profile avatar	No
+…	strings	You can use and update any user data by sending the key name with its value in the POST request as above.	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "message": "Your profile was updated"
+}
+/api/update-group-data
+Update group data, avatar, cover, general settings, privacy and a lot more.
+
+End point: http://your-site.com/api/update-group-data?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+group_id	string	Effected group ID	Yes
+group_name	string	Group name	No
+group_title	string	Group title	No
+about	string	Group description	No
+category	string	Category ID	No
+privacy	1,0	Public or Private	No
+avatar	Stream (File)	User’s profile picture	No
+cover	Stream (File)	User’s profile avatar	No
+…	strings	You can use and update any user data by sending the key name with its value in the POST request as above.	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "message": "Your group was updated"
+}
+/api/update-page-data
+Update page data, avatar, cover, general settings, privacy and a lot more.
+
+End point: http://your-site.com/api/update-page-data?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+page_id	string	Effected page ID	Yes
+page_name	string	Page name	No
+page_title	string	Page title	No
+page_description	string	Page description	No
+page_category	string	Category ID	No
+avatar	Stream (File)	User’s profile picture	No
+cover	Stream (File)	User’s profile avatar	No
+…	strings	You can use and update any user data by sending the key name with its value in the POST request as above.	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "message": "Your page was updated"
+}
+/api/get-movies
+Get latest movies.
+
+End point: http://your-site.com/api/get-movies?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+limit	int	Movies Limit	No
+id	int	Get movie information for this ID	No
+offset	int	get movies after this ID	No
+genre	string	get movies under this genre category	No
+country	string	get movies under this country	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "movies": [] // Array of latest movies
+}
+/api/create-group
+Create a new group. and get the created group data.
+
+End point: http://your-site.com/api/create-group?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+group_name	string	Group name without special characters	Yes
+group_title	string	Group title	Yes
+about	string	Group about info	Yes
+category	int	Category ID	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "group_data": {..} // Object data of the created group
+}
+/api/create-page
+Create a new page. and get the created page data.
+
+End point: http://your-site.com/api/create-page?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+page_name	string	Page name without special characters	Yes
+page_title	string	Page title	Yes
+page_category	string	Page about info	Yes
+page_description	string	Category ID	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "page_data": {..} // Object data of the created group
+}   
+/api/get-nearby-users
+Get nearby users using lat / lng
+
+End point: http://your-site.com/api/get-nearby-users?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+limit	int	Default: 25	No
+offset	int	Get articles after the offset ID	No
+gender	male,female	Filter by gender.	No
+keyword	string	Filter by name.	No
+status	1,0	Filter by online / offline.	No
+distance	int	Filter by distance / km	No
+lat	string	Update user lat	No
+lng	string	Update user lng	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "nearby_users": [..] // Array
+}
+/api/get-blocked-users
+Get blocked users.
+
+End point: http://your-site.com/api/get-blocked-users?access_token=ACCESS_TOKEN
+
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "blocked_users": [..] // Array
+}   
+/api/get-stories
+Get latest friends stories.
+
+End point: http://your-site.com/api/get-stories?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+limit	int	Default: 25	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "stories": [..] // Array
+}
+/api/delete-conversation
+Delete chat conversation
+
+End point: http://your-site.com/api/delete-conversation?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+user_id	int	User id you want to delete the conversation with.	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "message": ".."
+}
+/api/get-community
+Get user’s owned groups & pages.
+
+End point: http://your-site.com/api/get-community?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+user_id	int	Get the data of this user ID.	Yes
+fetch	groups,pages	At least one key is required.	
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  {Keys that are sent in fetch}
+}
+/api/get-general-data
+Get general site & user data, notification, friend/follow requests, counts, hashtags, pro users, and promoted pages
+
+End point: http://your-site.com/api/get-general-data?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+fetch	notifications,friend_requests,pro_users,promoted_pages,trending_hashtag,count_new_messages	At least one key is required.	
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  {Keys that are sent in fetch}
+}
+/api/get-user-suggestions
+Get random users to follow, or get users that matchs phone numbers.
+
+End point: http://your-site.com/api/get-user-suggestions?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+contacts	json string	Get users that matchs those phone numbers, example: [NUMBER1, NUMBER2].	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "suggestions": [],
+  "contacts_suggestions": []
+}.
+/api/send-message
+Send a message to a user (file, sticker, or text)
+
+End point: http://your-site.com/api/send-message?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+user_id	int	To whom this message is sent	Yes
+message_hash_id	int	Generate a random unique hash, so you can use after the message is sent.	Yes
+text	string	Message text.	No
+file	stream (File)	Attach a file to the message.	No
+image_url	string (URL)	Import an image from a url.	No
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "message_data": [..] // Array
+}
+/api/search
+Search for users, pages, groups
+
+End point: http://your-site.com/api/search?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+limit	int	Default: 35	No
+user_offset	int	Get users before the offset ID	No
+page_offset	int	Get paes before the offset ID	No
+group_offset	int	Get groups before the offset ID	No
+gender	string	Filter by gender (male/female)	No
+search_key	string	Keyword.	Yes
+JSON formatted success repsond:
+
+{
+   "api_status": 200,
+   "users": [],
+   "pages": [],
+   "groups": []
+}
+/api/get-activities
+Get latest activities
+
+End point: http://your-site.com/api/get-activities?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+limit	int	Default: 25	No
+offset	int	Get activities before the offset ID	No
+JSON formatted success repsond:
+
+{
+   "api_status": 200,
+   "activities": [],
+}
+/api/delete-user
+Delete user.
+
+End point: http://your-site.com/api/delete-user?access_token=ACCESS_TOKEN
+
+POST data:
+
+Key	Value	Description	Required
+password	string	User’s Password.	Yes
+JSON formatted success repsond:
+
+{
+  "api_status": 200,
+  "message": "User successfully deleted."
+}
+Error Handling
+All endpoints errors respond looks like:
+
+{
+  "api_status": "400",
+  "errors": {
+      "error_id": ID,
+      "error_text": "..."
+  }
+}

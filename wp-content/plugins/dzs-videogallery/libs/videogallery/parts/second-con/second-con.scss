@@ -1,0 +1,127 @@
+@import "../../TOKENS";
+.dzsas-second-con{
+  position: relative;
+  overflow: hidden;
+
+  @include boxsizing();
+
+
+  padding: 10px 0 ;
+
+
+  &:not(.dzspb_layb_one_third){
+
+    width: 100%;
+  }
+
+  $transition-property: left;
+  $transition-duration: 0.3s;
+  $transition-timing: ease-out;
+  .dzsas-second-con--clip{
+    position: relative;
+    @include apply_transition($transition-property, $transition-duration, $transition-timing);
+
+    $transition-property: opacity,visibility;
+    $transition-duration: 0.3s;
+    $transition-timing: ease-out;
+    > *{
+      position: absolute;
+      top:0;left:0;
+      width: 100%;
+      opacity: 0;
+      visibility: hidden;
+      @include apply_transition($transition-property, $transition-duration, $transition-timing);
+    }
+    > *.active{
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  .read-more-con{
+    .read-more-content{
+      overflow: hidden;
+      display: block;
+      height:0;
+
+    }
+
+    .read-more-label{
+      color: #FFFFFF;
+      background-color: #333333;
+      text-align: center;
+      font-size: 14px;
+      font-family: "Open Sans", sans-sarif;
+
+      cursor: pointer;
+      $transition-property: background;
+      $transition-duration: 0.3s;
+      $transition-timing: ease-out;
+      @include apply_transition($transition-property, $transition-duration, $transition-timing);
+
+      i{
+        font-size: 22px;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 5px;
+        $transition-property: all;
+        $transition-duration: 0.3s;
+        $transition-timing: ease-out;
+        @include apply_transition($transition-property, $transition-duration, $transition-timing);
+
+        position: relative;
+        top: 1px;
+      }
+
+      span{
+
+        display: inline-block;
+        vertical-align: middle;
+      }
+    }
+  }
+  .read-more-con.active{
+    .read-more-content{
+      overflow: hidden;
+      display: block;
+      height:0;
+
+    }
+
+    .read-more-label{
+      background-color: rgb(0, 155, 206);
+
+      i{
+        transform: rotate(180deg);
+      }
+
+      span{
+
+        display: inline-block;
+        vertical-align: middle;
+      }
+    }
+  }
+
+}
+
+.dzsas-second-con.skin-balne{
+
+  padding-top: 0;
+
+  .item{
+
+    h4{
+      font-size: 32px;
+      text-transform: uppercase;
+      text-align: left;
+      margin-top: 12px;
+      margin-bottom: 12px;
+    }
+
+    p{
+      color: #515151;
+      font-size: 12px;
+    }
+  }
+}

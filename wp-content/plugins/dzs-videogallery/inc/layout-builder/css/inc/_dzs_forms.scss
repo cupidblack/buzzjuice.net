@@ -1,0 +1,60 @@
+
+
+
+.layout-builder--add-builder-btn {
+  border: 1px solid $color_text;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: inline-block;
+
+  & + * {
+    margin-left: 5px;
+  }
+
+}
+
+.dzs--input-con {
+  position: relative;
+  display: inline-block;
+  > input {
+    border-radius: 5px;
+    padding: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+
+    background-color: $color_buttons_bg;
+    outline: none;
+    $transition-property: all;
+    $transition-duration: 0.8s;
+    $transition-timing: ease-out;
+    @include apply_transition($transition-property, $transition-duration, $transition-timing);
+
+    &:hover, &:focus {
+      box-shadow: 0 0 16px rgba(0, 0, 0, 0.47);
+      &~.dzs--input--icon{
+        opacity: 0;
+        transform: translate3d(0,-50%,0) scale(0);
+      }
+    }
+  }
+  .dzs--input--icon{
+    position: absolute;
+    top:50%;
+    right: 10px;
+    transform: translate3d(0,-50%,0) scale(1);
+    transform-origin: center center;
+    opacity: 0.5;
+    $transition-property: opacity, font-size, line-height, transform;
+    $transition-duration: 0.3s;
+    $transition-timing: ease-out;
+    @include apply_transition($transition-property, $transition-duration, $transition-timing);
+  }
+  >input, .dzs--input--icon{
+
+    color: $color_text;
+  }
+}
+
+.layout--main-con {
+  margin-top: 15px;
+}

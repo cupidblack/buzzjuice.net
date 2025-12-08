@@ -1,0 +1,103 @@
+// Arbitrarily named and sizes media query. Rename if you need to add more.
+@mixin desktop {
+    @media screen and (min-width: 48rem) {
+        @content
+    }
+}
+
+.stats {
+    box-sizing: border-box;
+    background-color: #fbfbfb;
+    border-radius: 0.625rem;
+    box-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.3);
+}
+
+.grid {
+    box-sizing: border-box;
+    display: flex;
+    justify-items: center;
+    flex-direction: column;
+    list-style: none;
+    margin: 0;
+    padding-left: 0;
+    border-bottom-left-radius: inherit;
+    border-bottom-right-radius: inherit;
+
+    @include desktop {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
+
+.item {
+    box-sizing: border-box;
+    flex-grow: 1;
+    display: block;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-align: center;
+    color: #767676;
+
+    & + .item {
+        border-style: solid;
+        border-color: #efefef;
+        border-width: 0;
+        border-top-width: 0.0625rem;
+
+        @include desktop {
+            border-top-width: 0;
+            border-left-width: 0.0625rem;
+        }
+    }
+}
+
+.amount {
+    box-sizing: border-box;
+    display: inline-block;
+    font-size: 0.9375rem;
+    color: #424242;
+
+    @include desktop {
+        display: block;
+        font-size: 1.375rem;
+    }
+}
+
+.progress {
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 1rem;
+    padding: 1.5rem 1rem;
+    background-color: #fff;
+    border: 0.0625rem solid #f2f2f2;
+    border-bottom-left-radius: inherit;
+    border-bottom-right-radius: inherit;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    line-height: 1;
+    color: #767676;
+
+    @include desktop {
+        font-size: 1.0625rem;
+    }
+}
+
+.totalRaisedAmount {
+    color: var(--give-campaign-primary, #28c77b);
+    font-size: 1.125rem;
+
+    @include desktop {
+        font-size: 1.5625rem;
+    }
+}
+
+.percentageOfGoal {}
+
+.progressBar {
+    width: 100%;
+}

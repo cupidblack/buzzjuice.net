@@ -1,0 +1,18 @@
+.logo {
+    block-size: 9.375rem;
+    border-radius: 9999px;
+	border: 0.1831rem solid #fff;
+	box-shadow: 0 0.0625rem 0.25rem rgb(0 0 0 / 0.25);
+    aspect-ratio: 1;
+
+    @supports not (aspect-ratio: 1) {
+        inline-size: 9.375rem;
+    }
+
+    @media only screen and (min-width: 768px) {
+        block-size: 12.5rem;
+        @supports not (aspect-ratio: 1) {
+            inline-size: 12.5rem;
+        }
+    }
+}

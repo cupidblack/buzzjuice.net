@@ -1,0 +1,15 @@
+{
+    "sql_db_host": "127.0.0.1",
+    "sql_db_user": "koware_iapd",
+    "sql_db_pass": "42v[D=qOXk#E",
+    "sql_db_name": "koware_buzzjuice_streams",
+    
+    "nodejs_ssl": 1,
+    "nodejs_key_path": "/home/koware/ssl/keys/cca4f_bcef7_ad5990e458267f19e20ae3b767c9537c.key",
+    "nodejs_cert_path": "/home/koware/ssl/certs/buzzjuice_net_koware_org_cca4f_bcef7_1759609174_a7fdd68f097a07f963992cf98840fdd0.crt",
+    "nodejs_port": "3001",
+    "nodejs_ssl_port": "3002",
+    
+    "site_url": "https://buzzjuice.net/streams",
+    "purchase_code": "08796-OEM-0009471"
+}

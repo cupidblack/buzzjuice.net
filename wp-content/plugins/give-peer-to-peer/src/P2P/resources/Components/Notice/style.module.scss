@@ -1,0 +1,43 @@
+.container {
+    gap: 10px;
+    display: flex;
+    align-items: center;
+
+    padding: 10px;
+    margin: 0 auto 20px;
+    box-sizing: border-box;
+
+    height: 50px;
+    max-width: 1115px;
+
+    background-color: #ffffff;
+    border-left: 4px solid lightgray;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+
+    &,
+    & * {
+        color: #333333;
+        font-size: 15.44px;
+        font-weight: 500;
+    }
+
+    strong {
+        font-weight: 600;
+    }
+
+    path {
+        //fill: inherit;
+    }
+
+    @media only screen and (max-width: 768px) {
+        margin: 10px;
+        display: block;
+        text-align: center;
+        height: auto;
+
+        svg {
+            display: block;
+            margin: auto;
+        }
+    }
+}

@@ -1,0 +1,2720 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2024-11-19 16:37+1100\n"
+"PO-Revision-Date: 2024-11-19 16:37+1100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.6\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: core/ajax.php:27
+msgid "You are not allowed to perform this action"
+msgstr ""
+
+#: core/ajax.php:30 core/user-list/list-export.php:87
+msgid "Nonce did not verify"
+msgstr ""
+
+#: core/ajax.php:94 core/ajax.php:110
+msgid "Missing required param: "
+msgstr ""
+
+#: core/assets.php:111
+msgid "Are you sure?"
+msgstr ""
+
+#: core/assets.php:112
+msgid "Actions"
+msgstr ""
+
+#: core/assets.php:113
+msgid "Edit"
+msgstr ""
+
+#: core/assets.php:114
+msgid "Update"
+msgstr ""
+
+#: core/assets.php:115
+msgid "Delete"
+msgstr ""
+
+#: core/assets.php:116
+msgid "Cancel"
+msgstr ""
+
+#: core/assets.php:117
+msgid "Apply"
+msgstr ""
+
+#: core/assets.php:118 core/modules/module-page.php:25 users-insights.php:175
+msgid "Settings"
+msgstr ""
+
+#: core/assets.php:119 core/updates/plugin-updater.php:517
+msgid "Error"
+msgstr ""
+
+#: core/assets.php:120
+msgid "Save changes"
+msgstr ""
+
+#: core/assets.php:121
+msgid "0 results found"
+msgstr ""
+
+#: core/assets.php:122
+msgid "Error loading data"
+msgstr ""
+
+#: core/assets.php:123
+msgid "View"
+msgstr ""
+
+#: core/assets.php:124
+msgid "Select"
+msgstr ""
+
+#: core/assets.php:125
+msgid "between"
+msgstr ""
+
+#: core/assets.php:126
+msgid "and"
+msgstr ""
+
+#: core/assets.php:127
+msgid "with"
+msgstr ""
+
+#: core/assets.php:128 core/field-defaults.php:244 core/field-defaults.php:257
+#: core/field-defaults.php:316
+msgid "contains"
+msgstr ""
+
+#: core/assets.php:129
+msgid "Close"
+msgstr ""
+
+#: core/assets.php:130
+msgid "Add"
+msgstr ""
+
+#: core/assets.php:131
+msgid "Yes"
+msgstr ""
+
+#: core/assets.php:132
+msgid "No"
+msgstr ""
+
+#: core/assets.php:133
+msgid "From"
+msgstr ""
+
+#: core/assets.php:134
+msgid "Until"
+msgstr ""
+
+#: core/assets.php:135
+msgid "Total"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-assets.php:44
+msgid "Add Field"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-assets.php:45
+msgid "Field Name"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-assets.php:46
+msgid "Field Key"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-assets.php:47
+msgid "Field Type"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-assets.php:48
+msgid "Fields"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-assets.php:49
+msgid "Field Options"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-assets.php:50
+msgid ""
+"Enter each option on a new line. For more control, you may specify both a "
+"value and label like this:<br> red : Red Color<br>blue : Blue Color"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-assets.php:51
+#: core/crm/custom-fields/custom-fields-options.php:39
+#: core/crm/custom-fields/custom-fields-options.php:188
+#: core/user-list/list-assets.php:104
+msgid "Error updating fields"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-assets.php:52
+msgid ""
+"Tip: If you would like to use existing custom user meta fields from the\n"
+"\t\t\tWordPress users meta table, please make sure to insert the existing "
+"meta key into the \"Field Key\"\n"
+"\t\t\tfield. "
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-options.php:58
+#, php-format
+msgid "Error: The %s field can't be blank"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-options.php:62
+msgid "Error: Field options can't be blank"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-options.php:70
+msgid "Error: Invalid field name"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-options.php:76
+#, php-format
+msgid ""
+"Error: Invalid field key. Only lowercase alphanumeric characters, dashes and "
+"underscores are allowed. You can alternatively use \"%s\""
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-options.php:82
+#, php-format
+msgid ""
+"Error: \"%s\" is a default WordPress user meta key. Please use another key."
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-options.php:86
+msgid "Error: A field with this key already exists"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-options.php:90
+msgid ""
+"There are already user meta records associated with this field key. Using "
+"this key will allow you to view and update the existing values. Are you sure "
+"that you want to use this key?"
+msgstr ""
+
+#: core/crm/custom-fields/custom-fields-page.php:23
+msgid "Custom Fields"
+msgstr ""
+
+#: core/crm/groups.php:147
+#, php-format
+msgid "Failed to update group of %d users"
+msgstr ""
+
+#: core/crm/groups.php:154 core/crm/groups.php:205 core/crm/groups.php:207
+#: core/privacy/privacy-eraser.php:100 core/privacy/privacy-exporter.php:183
+#: core/user-list/list-assets.php:98
+msgid "User Groups"
+msgstr ""
+
+#: core/crm/groups.php:206 core/field-defaults.php:31
+msgid "User Group"
+msgstr ""
+
+#: core/crm/groups.php:208
+msgid "Search User Groups"
+msgstr ""
+
+#: core/crm/groups.php:210
+msgid "Back to User Groups"
+msgstr ""
+
+#: core/crm/groups.php:211
+msgid "All User Groups"
+msgstr ""
+
+#: core/crm/groups.php:212
+msgid "Edit User Group"
+msgstr ""
+
+#: core/crm/groups.php:213
+msgid "Update User Group"
+msgstr ""
+
+#: core/crm/groups.php:214
+msgid "Add New User Group"
+msgstr ""
+
+#: core/crm/groups.php:215
+msgid "New User Group Name"
+msgstr ""
+
+#: core/crm/groups.php:216
+msgid "Separate User Groups with commas"
+msgstr ""
+
+#: core/crm/groups.php:217
+msgid "Add or remove User Groups"
+msgstr ""
+
+#: core/crm/groups.php:218
+msgid "Choose from the most popular User Groups"
+msgstr ""
+
+#: core/crm/groups.php:238 core/crm/groups.php:253 core/crm/groups.php:290
+msgid "Group Color"
+msgstr ""
+
+#: core/crm/notes/note.php:45
+msgid "Note"
+msgstr ""
+
+#: core/crm/notes/notes.php:22 core/field-defaults.php:137
+#: core/privacy/privacy-exporter.php:99 core/user-list/list-assets.php:100
+msgid "Notes"
+msgstr ""
+
+#: core/events/event.php:63
+msgid "Error saving event record"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking-data.php:74
+msgid "Page removed"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking-user-activity.php:47
+msgid "Last Visited Pages"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking-user-activity.php:68
+msgid "Most Visited Pages"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking-user-activity.php:77
+#: core/events/visit-tracking/visit-tracking-user-activity.php:84
+msgid "Title"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking-user-activity.php:77
+#: core/events/visit-tracking/visit-tracking-user-activity.php:84
+#: plugin-modules/memberpress/memberpress-user-activity.php:180
+msgid "Type"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking-user-activity.php:84
+msgid "Number of visits"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking.php:50
+msgid "Page Visit Tracking"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking.php:51
+msgid "Allows you to track which pages your users visit while logged in. "
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking.php:54
+#: core/modules/module-defaults.php:34 core/modules/module-defaults.php:46
+#: core/modules/module-defaults.php:62 core/privacy/privacy.php:137
+#: plugin-modules/bbpress/bbpress.php:38
+#: plugin-modules/buddypress/buddypress.php:45 plugin-modules/edd/edd.php:59
+#: plugin-modules/events-calendar/events-calendar.php:76
+#: plugin-modules/gravity-forms/gravity-forms.php:51
+#: plugin-modules/learndash/learndash.php:72
+#: plugin-modules/memberpress/memberpress.php:45
+#: plugin-modules/pbpro/pbpro.php:37 plugin-modules/pmpro/pmpro.php:32
+#: plugin-modules/ultimate-member/ultimate-member.php:50
+#: plugin-modules/wc-memberships/wc-memberships.php:35
+#: plugin-modules/wc-subscriptions/wc-subscriptions.php:42
+#: plugin-modules/woocommerce/woocommerce.php:88
+msgid "Learn More"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking.php:58
+msgid "Enable tracking for user roles"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking.php:63
+msgid "Enable tracking for post types"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking.php:77
+msgid "Has visited"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking.php:91
+msgid "Has not visited"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking.php:105
+msgid "Page visits"
+msgstr ""
+
+#: core/events/visit-tracking/visit-tracking.php:158
+msgid "Error: required events database table could not be created. "
+msgstr ""
+
+#: core/field-defaults.php:8
+msgid "User ID"
+msgstr ""
+
+#: core/field-defaults.php:19
+msgid "Username"
+msgstr ""
+
+#: core/field-defaults.php:43
+msgid "Display Name"
+msgstr ""
+
+#: core/field-defaults.php:53
+msgid "First Name"
+msgstr ""
+
+#: core/field-defaults.php:63
+msgid "Last Name"
+msgstr ""
+
+#: core/field-defaults.php:73
+msgid "E-mail"
+msgstr ""
+
+#: core/field-defaults.php:84
+msgid "Date Registered"
+msgstr ""
+
+#: core/field-defaults.php:96
+msgid "Role"
+msgstr ""
+
+#: core/field-defaults.php:108
+msgid "Website"
+msgstr ""
+
+#: core/field-defaults.php:117
+msgid "Posts Created"
+msgstr ""
+
+#: core/field-defaults.php:127 core/user-activity.php:90
+msgid "Comments"
+msgstr ""
+
+#: core/field-defaults.php:147
+msgid "Last seen"
+msgstr ""
+
+#: core/field-defaults.php:159
+msgid "Sessions"
+msgstr ""
+
+#: core/field-defaults.php:170
+msgid "Browser"
+msgstr ""
+
+#: core/field-defaults.php:181
+msgid "Browser Version"
+msgstr ""
+
+#: core/field-defaults.php:192
+msgid "Platform"
+msgstr ""
+
+#: core/field-defaults.php:203
+msgid "Country"
+msgstr ""
+
+#: core/field-defaults.php:214
+msgid "City"
+msgstr ""
+
+#: core/field-defaults.php:225
+msgid "Region"
+msgstr ""
+
+#: core/field-defaults.php:245 core/field-defaults.php:258
+#: core/field-defaults.php:317
+msgid "does not contain"
+msgstr ""
+
+#: core/field-defaults.php:246 core/field-defaults.php:266
+#: core/field-defaults.php:276 core/field-defaults.php:298
+#: core/field-defaults.php:305 core/field-defaults.php:328
+msgid "is"
+msgstr ""
+
+#: core/field-defaults.php:247 core/field-defaults.php:277
+#: core/field-defaults.php:299 core/field-defaults.php:306
+#: core/field-defaults.php:329
+msgid "is not"
+msgstr ""
+
+#: core/field-defaults.php:248
+msgid "starts with"
+msgstr ""
+
+#: core/field-defaults.php:249
+msgid "ends with"
+msgstr ""
+
+#: core/field-defaults.php:250 core/field-defaults.php:259
+#: core/field-defaults.php:269 core/field-defaults.php:278
+#: core/field-defaults.php:307 core/field-defaults.php:318
+#: core/field-defaults.php:330 core/field-defaults.php:342
+#: core/field-defaults.php:354 core/field-defaults.php:367
+#: core/field-defaults.php:379
+msgid "is set"
+msgstr ""
+
+#: core/field-defaults.php:251 core/field-defaults.php:260
+#: core/field-defaults.php:270 core/field-defaults.php:279
+#: core/field-defaults.php:308 core/field-defaults.php:319
+#: core/field-defaults.php:331 core/field-defaults.php:343
+#: core/field-defaults.php:355 core/field-defaults.php:368
+#: core/field-defaults.php:380
+msgid "is not set"
+msgstr ""
+
+#: core/field-defaults.php:267
+msgid "is greater than"
+msgstr ""
+
+#: core/field-defaults.php:268 core/field-defaults.php:361
+msgid "is less than"
+msgstr ""
+
+#: core/field-defaults.php:291
+msgid "include"
+msgstr ""
+
+#: core/field-defaults.php:292
+msgid "exclude"
+msgstr ""
+
+#: core/field-defaults.php:340 core/field-defaults.php:352
+msgid "includes"
+msgstr ""
+
+#: core/field-defaults.php:341 core/field-defaults.php:353
+msgid "does not include"
+msgstr ""
+
+#: core/field-defaults.php:362
+msgid "is more than"
+msgstr ""
+
+#: core/field-defaults.php:363
+msgid "is exactly"
+msgstr ""
+
+#: core/field-defaults.php:364 core/field-defaults.php:376
+msgid "is after"
+msgstr ""
+
+#: core/field-defaults.php:365 core/field-defaults.php:377
+msgid "is on"
+msgstr ""
+
+#: core/field-defaults.php:366 core/field-defaults.php:378
+msgid "is before"
+msgstr ""
+
+#: core/helper.php:78 core/helper.php:87
+msgid "ago"
+msgstr ""
+
+#: core/modules/license.php:142
+msgid "License expires today"
+msgstr ""
+
+#: core/modules/license.php:143
+#, php-format
+msgid "License active - expires in %d days"
+msgstr ""
+
+#: core/modules/license.php:145
+#, php-format
+msgid "License %s"
+msgstr ""
+
+#: core/modules/module-assets.php:39
+msgid "Active Modules"
+msgstr ""
+
+#: core/modules/module-assets.php:40
+msgid "Inactive Modules"
+msgstr ""
+
+#: core/modules/module-assets.php:41
+msgid "Activate Module"
+msgstr ""
+
+#: core/modules/module-assets.php:42
+msgid "Deactivate"
+msgstr ""
+
+#: core/modules/module-assets.php:43
+msgid "Try for free"
+msgstr ""
+
+#: core/modules/module-assets.php:44
+msgid "Buy now"
+msgstr ""
+
+#: core/modules/module-assets.php:45
+msgid "Enter a license key"
+msgstr ""
+
+#: core/modules/module-assets.php:46
+msgid "License key"
+msgstr ""
+
+#: core/modules/module-assets.php:47
+msgid "Add license"
+msgstr ""
+
+#: core/modules/module-assets.php:48
+msgid "Remove"
+msgstr ""
+
+#: core/modules/module-assets.php:49
+msgid "Refresh"
+msgstr ""
+
+#: core/modules/module-assets.php:50
+msgid "License activated"
+msgstr ""
+
+#: core/modules/module-assets.php:51
+msgid "License deactivated"
+msgstr ""
+
+#: core/modules/module-assets.php:52
+msgid "HTTP request error"
+msgstr ""
+
+#: core/modules/module-assets.php:53
+msgid "No active modules"
+msgstr ""
+
+#: core/modules/module-assets.php:54
+msgid "No inactive modules"
+msgstr ""
+
+#: core/modules/module-assets.php:55
+#, php-format
+msgid "This module requires a license key to be set in the \"%s\" section"
+msgstr ""
+
+#: core/modules/module-assets.php:56
+msgid "Beta"
+msgstr ""
+
+#: core/modules/module-defaults.php:21
+msgid "Users Insights License"
+msgstr ""
+
+#: core/modules/module-defaults.php:22
+msgid ""
+"Add your license key in order to have automatic updates of the plugin and "
+"use the Geolocation functionality."
+msgstr ""
+
+#: core/modules/module-defaults.php:30
+msgid "User Activity"
+msgstr ""
+
+#: core/modules/module-defaults.php:31
+msgid "Detects last login date and number of sessions. "
+msgstr ""
+
+#: core/modules/module-defaults.php:41
+msgid "Device Detection"
+msgstr ""
+
+#: core/modules/module-defaults.php:42
+msgid ""
+"Detects the browser\n"
+"\t\t\t\t\tand platform details of your logged in users. "
+msgstr ""
+
+#: core/modules/module-defaults.php:55 core/privacy/privacy.php:109
+#: core/privacy/privacy.php:125
+msgid "Geolocation"
+msgstr ""
+
+#: core/modules/module-page.php:70
+msgid ""
+"For best results, it is recommended to have the Users Insights Activity "
+"module active when using Device Detection. \n"
+"\t\t\t\tWhen the Activity module is deactivated, device detection will be "
+"only performed upon a user's manual sign in."
+msgstr ""
+
+#: core/modules/modules.php:62
+msgid "Error: Module could not be activated"
+msgstr ""
+
+#: core/modules/modules.php:255
+msgid "Invalid license"
+msgstr ""
+
+#: core/modules/modules.php:261
+msgid "License activations limit reached"
+msgstr ""
+
+#: core/modules/modules.php:263
+#, php-format
+msgid "this license is already activated on %s websites"
+msgstr ""
+
+#: core/modules/modules.php:266
+msgid "License expired"
+msgstr ""
+
+#: core/modules/modules.php:287
+msgid "Invalid module ID"
+msgstr ""
+
+#: core/modules/remote-license.php:66
+msgid "Remote HTTP request failed. Please try again later."
+msgstr ""
+
+#: core/privacy/privacy-eraser.php:26 core/privacy/privacy-exporter.php:36
+msgid "Users Insights Data"
+msgstr ""
+
+#: core/privacy/privacy-eraser.php:78 core/privacy/privacy-exporter.php:219
+msgid "IP Address (hashed)"
+msgstr ""
+
+#: core/privacy/privacy-eraser.php:121
+#, php-format
+msgid "Note #%s"
+msgstr ""
+
+#: core/privacy/privacy-eraser.php:126
+msgid "note"
+msgid_plural "notes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: core/privacy/privacy-eraser.php:138
+msgid "tacked page visit"
+msgid_plural "tracked page visits"
+msgstr[0] ""
+msgstr[1] ""
+
+#: core/privacy/privacy-eraser.php:167
+#, php-format
+msgid "Custom field %s"
+msgstr ""
+
+#: core/privacy/privacy-eraser.php:228
+msgid "Removed"
+msgstr ""
+
+#: core/privacy/privacy-eraser.php:234
+msgid "Retained"
+msgstr ""
+
+#: core/privacy/privacy-eraser.php:240
+msgid "Error removing"
+msgstr ""
+
+#: core/privacy/privacy-exporter.php:87
+msgid "User Data"
+msgstr ""
+
+#: core/privacy/privacy-exporter.php:112
+msgid "Pages Visited"
+msgstr ""
+
+#: core/privacy/privacy-exporter.php:140
+msgid "Coordinates (IP based)"
+msgstr ""
+
+#: core/privacy/privacy.php:64
+msgid ""
+"This sample language includes the basics around what personal data \n"
+"\t\t \tUsers Insights may be detecting and storing. Depending on which "
+"modules are enabled, \n"
+"\t\t\tthe specific information detected by Users Insights will vary. If you "
+"do not have a \n"
+"\t\t\tgood reason for having any of the user data detection modules active, "
+"we recommend\n"
+"\t\t\tkeeping them inactive. We also recommend consulting \n"
+"\t\t\twith a lawyer when deciding what information to disclose on your "
+"privacy policy."
+msgstr ""
+
+#: core/privacy/privacy.php:72
+msgid "Suggested text when the Geolocation module is active:"
+msgstr ""
+
+#: core/privacy/privacy.php:73
+msgid ""
+"We will track your location based on your IP address in order to [enter "
+"reason here]. To detect your location, we will send your IP address to the "
+"geolocation services of usersinsights.com. We will store the country, "
+"region, city and coordinates associated with your IP address. We will also "
+"store your IP address in a hashed format so we can check it for changes."
+msgstr ""
+
+#: core/privacy/privacy.php:79
+msgid "Suggested text when the Activity module is active:"
+msgstr ""
+
+#: core/privacy/privacy.php:80
+msgid ""
+"We will track your last login date and number of sessions in order to [enter "
+"reason here]."
+msgstr ""
+
+#: core/privacy/privacy.php:83
+msgid "Suggested text when the Device Detection module is active:"
+msgstr ""
+
+#: core/privacy/privacy.php:84
+msgid ""
+"We will track your browser name, browser version and device platform in "
+"order to [enter reason here]."
+msgstr ""
+
+#: core/privacy/privacy.php:87
+msgid "Suggested text when the Page Visit Tracking module is active:"
+msgstr ""
+
+#: core/privacy/privacy.php:88
+msgid "We will track the pages that you visit in order to [enter reason here]."
+msgstr ""
+
+#: core/privacy/privacy.php:99
+msgid "Privacy Settings"
+msgstr ""
+
+#: core/privacy/privacy.php:100
+msgid "Configure the privacy settings of Users Insights."
+msgstr ""
+
+#: core/privacy/privacy.php:105
+msgid ""
+"Users Insights data to include in the WordPress personal data export file"
+msgstr ""
+
+#: core/privacy/privacy.php:107
+msgid ""
+"Select which Users Insights data to include in the Personal Data Export "
+"file, generated by WordPress under Tools -> Export Personal Data"
+msgstr ""
+
+#: core/privacy/privacy.php:110 core/privacy/privacy.php:126
+msgid "Device info"
+msgstr ""
+
+#: core/privacy/privacy.php:111 core/privacy/privacy.php:127
+msgid "Last seen & sessions"
+msgstr ""
+
+#: core/privacy/privacy.php:112 core/privacy/privacy.php:128
+msgid "Pages visited"
+msgstr ""
+
+#: core/privacy/privacy.php:113 core/privacy/privacy.php:129
+#: core/reports/reports-defaults.php:9
+msgid "User groups"
+msgstr ""
+
+#: core/privacy/privacy.php:114 core/privacy/privacy.php:130
+msgid "User notes"
+msgstr ""
+
+#: core/privacy/privacy.php:115 core/privacy/privacy.php:131
+msgid "Users Insights custom fields"
+msgstr ""
+
+#: core/privacy/privacy.php:116
+msgid "Hashed IP address (geolocation module)"
+msgstr ""
+
+#: core/privacy/privacy.php:121
+msgid "Users Insights data to erase upon Personal Data Erase request"
+msgstr ""
+
+#: core/privacy/privacy.php:123
+msgid ""
+"Select which Users Insights data to be erased upon erase request, under "
+"Tools -> Erase Personal Data"
+msgstr ""
+
+#: core/query/user-query.php:23 core/query/user-query.php:60
+msgid "Execution time"
+msgstr ""
+
+#: core/query/user-query.php:24 core/query/user-query.php:61
+msgid "Database error"
+msgstr ""
+
+#: core/reports/loaders/last-seen-loader.php:11
+#: core/reports/report-periods.php:24
+msgid "Today"
+msgstr ""
+
+#: core/reports/loaders/standard-report-loader.php:23
+#: plugin-modules/edd/reports/loaders/edd-order-number-loader.php:36
+#: plugin-modules/woocommerce/reports/loaders/woocommerce-items-per-order-loader.php:44
+#: plugin-modules/woocommerce/reports/loaders/woocommerce-order-number-loader.php:52
+msgid "Other"
+msgstr ""
+
+#: core/reports/period-report.php:34
+msgid "Daily"
+msgstr ""
+
+#: core/reports/period-report.php:35
+msgid "Weekly"
+msgstr ""
+
+#: core/reports/period-report.php:36
+msgid "Monthly"
+msgstr ""
+
+#: core/reports/period-report.php:37
+msgid "Yearly"
+msgstr ""
+
+#: core/reports/period.php:93
+msgid "All time"
+msgstr ""
+
+#: core/reports/period.php:94
+msgid "Last 7 days"
+msgstr ""
+
+#: core/reports/period.php:95
+msgid "Last 30 days"
+msgstr ""
+
+#: core/reports/period.php:96
+msgid "Last 6 months"
+msgstr ""
+
+#: core/reports/period.php:97
+msgid "Last 12 months"
+msgstr ""
+
+#: core/reports/period.php:105
+msgid "Previous 7 days"
+msgstr ""
+
+#: core/reports/period.php:106
+msgid "Previous 30 days"
+msgstr ""
+
+#: core/reports/period.php:107
+msgid "Previous 6 months"
+msgstr ""
+
+#: core/reports/period.php:108
+msgid "Previous 12 months"
+msgstr ""
+
+#: core/reports/report-periods.php:50
+msgid "This week"
+msgstr ""
+
+#: core/reports/report.php:139
+msgid "General"
+msgstr ""
+
+#: core/reports/reports-ajax.php:57
+msgid "Error finding a report with this ID"
+msgstr ""
+
+#: core/reports/reports-ajax.php:61
+msgid "Missing filter parameter"
+msgstr ""
+
+#: core/reports/reports-assets.php:49
+msgid "No reports found for this module"
+msgstr ""
+
+#: core/reports/reports-assets.php:50
+msgid "Toggle reports"
+msgstr ""
+
+#: core/reports/reports-assets.php:51
+#: core/reports/standard-report-with-period-filter.php:34
+msgid "Custom"
+msgstr ""
+
+#: core/reports/reports-assets.php:52
+msgid "Select a period"
+msgstr ""
+
+#: core/reports/reports-assets.php:53 core/user-list/list-assets.php:95
+msgid "Export"
+msgstr ""
+
+#: core/reports/reports-defaults.php:8
+msgid "Registered users"
+msgstr ""
+
+#: core/reports/reports-defaults.php:13
+msgid "Last seen distribution"
+msgstr ""
+
+#: core/reports/reports-defaults.php:18
+msgid "Top user countries"
+msgstr ""
+
+#: core/reports/reports-defaults.php:21
+msgid "Top user regions"
+msgstr ""
+
+#: core/reports/reports-defaults.php:24
+msgid "Top user cities"
+msgstr ""
+
+#: core/reports/reports-defaults.php:29
+msgid "User browsers"
+msgstr ""
+
+#: core/reports/reports-defaults.php:30
+msgid "Detected browsers displayed only"
+msgstr ""
+
+#: core/reports/reports-defaults.php:32
+msgid "User platforms"
+msgstr ""
+
+#: core/reports/reports-defaults.php:33
+msgid "Detected platforms displayed only"
+msgstr ""
+
+#: core/reports/reports-page.php:26
+msgid "Reports"
+msgstr ""
+
+#: core/reports/standard-report-with-period-comparison-filter.php:40
+msgid "vs"
+msgstr ""
+
+#: core/updates/plugin-updater.php:98
+msgid "Enter a valid license key for dashboard updates."
+msgstr ""
+
+#: core/updates/plugin-updater.php:271
+#, php-format
+msgid ""
+"There is a new version of %1$s available. %2$sView version %3$s details%4$s."
+msgstr ""
+
+#: core/updates/plugin-updater.php:279
+#, php-format
+msgid ""
+"There is a new version of %1$s available. %2$sView version %3$s details%4$s "
+"or %5$supdate now%6$s."
+msgstr ""
+
+#: core/updates/plugin-updater.php:517
+msgid "You do not have permission to install plugin updates"
+msgstr ""
+
+#: core/updates/plugin-updater.php:572
+msgid "Auto-updates are not available for this plugin."
+msgstr ""
+
+#: core/user-activity.php:90
+msgid "Comment"
+msgstr ""
+
+#: core/user-detect.php:247 core/user-detect.php:248 core/user-detect.php:249
+msgid "unknown"
+msgstr ""
+
+#: core/user-list/list-ajax.php:82
+msgid "No data found for this user"
+msgstr ""
+
+#: core/user-list/list-ajax.php:240
+#, php-format
+msgid "%s is not a registered activity type"
+msgstr ""
+
+#: core/user-list/list-assets.php:74
+msgid ""
+"Tip: Try to hide all the columns from the eye-icon menu and refresh the page"
+msgstr ""
+
+#: core/user-list/list-assets.php:75
+msgid "more info"
+msgstr ""
+
+#: core/user-list/list-assets.php:78
+msgid "days ago"
+msgstr ""
+
+#: core/user-list/list-assets.php:79
+msgid "day"
+msgstr ""
+
+#: core/user-list/list-assets.php:80
+msgid "month"
+msgstr ""
+
+#: core/user-list/list-assets.php:81
+msgid "year"
+msgstr ""
+
+#: core/user-list/list-assets.php:82
+msgid "Load More"
+msgstr ""
+
+#: core/user-list/list-assets.php:84
+msgid "Add Filter"
+msgstr ""
+
+#: core/user-list/list-assets.php:86
+msgid "Activity"
+msgstr ""
+
+#: core/user-list/list-assets.php:87
+msgid "No activity found"
+msgstr ""
+
+#: core/user-list/list-assets.php:88
+msgid "Back to user list"
+msgstr ""
+
+#: core/user-list/list-assets.php:89
+msgid "of"
+msgstr ""
+
+#: core/user-list/list-assets.php:90
+msgid "Users per page"
+msgstr ""
+
+#: core/user-list/list-assets.php:91
+#: plugin-modules/gravity-forms/reports/gravity-forms-reports.php:21
+msgid "users"
+msgstr ""
+
+#: core/user-list/list-assets.php:92
+msgid "user locations detected"
+msgstr ""
+
+#: core/user-list/list-assets.php:93
+msgid "online"
+msgstr ""
+
+#: core/user-list/list-assets.php:94
+#, php-format
+msgid "Export this list of %d users"
+msgstr ""
+
+#: core/user-list/list-assets.php:96
+#, php-format
+msgid ""
+"Are you sure that you want to export the current list of <span class=\"usin-"
+"dialog-highlight\">%s</span> users?"
+msgstr ""
+
+#: core/user-list/list-assets.php:97
+msgid "Error exporting data"
+msgstr ""
+
+#: core/user-list/list-assets.php:99
+msgid "Error updating user groups"
+msgstr ""
+
+#: core/user-list/list-assets.php:101
+msgid "Add Note"
+msgstr ""
+
+#: core/user-list/list-assets.php:102
+msgid "by"
+msgstr ""
+
+#: core/user-list/list-assets.php:103
+msgid "Error updating notes list"
+msgstr ""
+
+#: core/user-list/list-assets.php:105
+msgid "Toggle Columns"
+msgstr ""
+
+#: core/user-list/list-assets.php:106
+msgid "Enter Map View"
+msgstr ""
+
+#: core/user-list/list-assets.php:107
+msgid "Exit Map View"
+msgstr ""
+
+#: core/user-list/list-assets.php:108
+#, php-format
+msgid "%d Users Selected"
+msgstr ""
+
+#: core/user-list/list-assets.php:109
+msgid "1 User Selected"
+msgstr ""
+
+#: core/user-list/list-assets.php:110
+msgid "Bulk Actions"
+msgstr ""
+
+#: core/user-list/list-assets.php:111
+msgid "Segments"
+msgstr ""
+
+#: core/user-list/list-assets.php:112
+msgid "Save the current filters as a segment"
+msgstr ""
+
+#: core/user-list/list-assets.php:113
+msgid "Apply filters to create a segment"
+msgstr ""
+
+#: core/user-list/list-assets.php:114
+msgid "Create new segment"
+msgstr ""
+
+#: core/user-list/list-assets.php:115
+msgid "Save segment"
+msgstr ""
+
+#: core/user-list/list-assets.php:116
+msgid "Delete segment"
+msgstr ""
+
+#: core/user-list/list-assets.php:117
+msgid "Segment name"
+msgstr ""
+
+#: core/user-list/list-assets.php:118
+#, php-format
+msgid ""
+"Are you sure that you want to delete the segment <span class=\"usin-dialog-"
+"highlight\">%s</span>?"
+msgstr ""
+
+#: core/user-list/list-assets.php:119
+msgid "Error creating the segment"
+msgstr ""
+
+#: core/user-list/list-assets.php:120
+msgid "This field does not exist anymore"
+msgstr ""
+
+#: core/user-list/list-assets.php:121
+msgid "Add to group"
+msgstr ""
+
+#: core/user-list/list-assets.php:122
+msgid "Add the selected user to the following group"
+msgstr ""
+
+#: core/user-list/list-assets.php:123
+#, php-format
+msgid "Add the selected %d users to the following group"
+msgstr ""
+
+#: core/user-list/list-assets.php:124
+msgid "Remove from group"
+msgstr ""
+
+#: core/user-list/list-assets.php:125
+msgid "Remove the selected user from the following group"
+msgstr ""
+
+#: core/user-list/list-assets.php:126
+#, php-format
+msgid "Remove the selected %d users from the following group"
+msgstr ""
+
+#: core/user-list/list-assets.php:127
+msgid "Select all users"
+msgstr ""
+
+#: core/user-list/list-assets.php:128
+msgid "Clear Selection"
+msgstr ""
+
+#: core/user-list/list-assets.php:129
+msgid "Select a group"
+msgstr ""
+
+#: core/user-list/list-assets.php:130
+msgid "Show debug info"
+msgstr ""
+
+#: core/user-list/list-assets.php:131
+msgid "Hide debug info"
+msgstr ""
+
+#: core/user-list/list-assets.php:132
+msgid ""
+"There are no user groups created. Go to Users Insights -> User Groups to "
+"create a new group."
+msgstr ""
+
+#: core/user-list/list-assets.php:133
+msgid "Clear selection"
+msgstr ""
+
+#: core/user-list/list-assets.php:134
+msgid "Clear all"
+msgstr ""
+
+#: core/user-list/list-assets.php:135
+msgid "View all"
+msgstr ""
+
+#: core/user-list/list-assets.php:136
+msgid "Add section title"
+msgstr ""
+
+#: core/user-list/list-assets.php:137
+msgid "more hidden items"
+msgstr ""
+
+#: core/user-list/list-assets.php:138
+msgid "Profile settings"
+msgstr ""
+
+#: core/user-list/list-assets.php:139
+msgid "Click on the Profile Settings button above to toggle field visibility"
+msgstr ""
+
+#: core/user-list/list-export.php:83
+msgid "You don't have permission to access this page"
+msgstr ""
+
+#: core/user.php:80
+msgid "Just now"
+msgstr ""
+
+#: core/user.php:141
+msgid "Edit User"
+msgstr ""
+
+#: core/utils/debug.php:23 core/utils/debug.php:24
+msgid "Users Insights Debug"
+msgstr ""
+
+#: plugin-modules/bbpress/bbpress-user-activity.php:24
+msgid "Reply to: "
+msgstr ""
+
+#: plugin-modules/bbpress/bbpress-user-activity.php:24
+msgid "Topic reply"
+msgstr ""
+
+#: plugin-modules/bbpress/bbpress.php:35
+msgid ""
+"Retrieves and displays data about the users activity in the bbPress forums."
+msgstr ""
+
+#: plugin-modules/bbpress/bbpress.php:50
+msgid "Forums"
+msgstr ""
+
+#: plugin-modules/bbpress/bbpress.php:63
+msgid "Topics"
+msgstr ""
+
+#: plugin-modules/bbpress/bbpress.php:76
+msgid "Replies"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress-user-activity.php:87
+msgid "Friend"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress-user-activity.php:87
+#: plugin-modules/buddypress/buddypress.php:103
+msgid "Friends"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress-user-activity.php:132
+msgid "Activity Update"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress-user-activity.php:132
+#: plugin-modules/buddypress/buddypress.php:118
+msgid "Activity Updates"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress-user-activity.php:177
+msgid "Member of 1 Group"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress-user-activity.php:178
+#, php-format
+msgid "Member of %d Groups"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress-user-activity.php:215
+msgid "Group Created"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress-user-activity.php:216
+#: plugin-modules/buddypress/buddypress.php:73
+msgid "Groups Created"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress-user-activity.php:253
+msgid "View BuddyPress Profile"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress.php:42
+msgid ""
+"Retrieves and displays data about the users activity in the BuddyPress "
+"social network."
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress.php:60
+msgid "Group Number"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress.php:86
+#: plugin-modules/learndash/learndash.php:166
+msgid "Group"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress.php:133
+msgid "Profile Type"
+msgstr ""
+
+#: plugin-modules/buddypress/buddypress.php:146
+msgid "Member Type"
+msgstr ""
+
+#: plugin-modules/buddypress/reports/buddypress-reports.php:24
+msgid "Active users"
+msgstr ""
+
+#: plugin-modules/buddypress/reports/buddypress-reports.php:34
+msgid "Top Groups"
+msgstr ""
+
+#: plugin-modules/buddypress/reports/buddypress-reports.php:45
+msgid "Number of friends"
+msgstr ""
+
+#: plugin-modules/buddypress/reports/buddypress-reports.php:58
+msgid "Profile types"
+msgstr ""
+
+#: plugin-modules/buddypress/reports/buddypress-reports.php:67
+msgid "Member types"
+msgstr ""
+
+#: plugin-modules/edd/edd-user-activity.php:97
+#: plugin-modules/woocommerce/woocommerce-user-activity.php:47
+#: plugin-modules/woocommerce/woocommerce-user-activity.php:139
+msgid "Order"
+msgid_plural "Orders"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/edd/edd-user-activity.php:154
+msgid "View Easy Digital Downloads profile"
+msgstr ""
+
+#: plugin-modules/edd/edd.php:55
+msgid "Easy Digital Downloads"
+msgstr ""
+
+#: plugin-modules/edd/edd.php:56
+msgid ""
+"Retrieves and displays data from the Easy Digital Downloads orders made by "
+"the WordPress users."
+msgstr ""
+
+#: plugin-modules/edd/edd.php:75 plugin-modules/woocommerce/woocommerce.php:114
+msgid "Placed an order"
+msgstr ""
+
+#: plugin-modules/edd/edd.php:84 plugin-modules/woocommerce/woocommerce.php:123
+msgid "Date"
+msgstr ""
+
+#: plugin-modules/edd/edd.php:85 plugin-modules/memberpress/memberpress.php:159
+#: plugin-modules/pmpro/pmpro.php:83 plugin-modules/pmpro/pmpro.php:148
+#: plugin-modules/wc-memberships/wc-memberships.php:60
+#: plugin-modules/wc-subscriptions/wc-subscriptions.php:68
+#: plugin-modules/woocommerce/woocommerce.php:124
+msgid "Status"
+msgstr ""
+
+#: plugin-modules/edd/edd.php:86 plugin-modules/woocommerce/woocommerce.php:125
+msgid "Order total"
+msgstr ""
+
+#: plugin-modules/edd/edd.php:87 plugin-modules/memberpress/memberpress.php:158
+#: plugin-modules/wc-subscriptions/wc-subscriptions.php:69
+#: plugin-modules/woocommerce/woocommerce.php:126
+msgid "Product"
+msgstr ""
+
+#: plugin-modules/edd/edd.php:96
+msgid "Purchases"
+msgstr ""
+
+#: plugin-modules/edd/edd.php:109 plugin-modules/memberpress/memberpress.php:79
+#: plugin-modules/pmpro/pmpro.php:171
+#: plugin-modules/woocommerce/woocommerce.php:182
+msgid "Lifetime value"
+msgstr ""
+
+#: plugin-modules/edd/edd.php:123
+msgid "Last order date"
+msgstr ""
+
+#: plugin-modules/edd/edd.php:135
+#: plugin-modules/woocommerce/woocommerce.php:228
+msgid "Ordered products"
+msgstr ""
+
+#: plugin-modules/edd/edd.php:149 plugin-modules/edd/reports/edd-reports.php:28
+#: plugin-modules/woocommerce/woocommerce.php:242
+msgid "Order statuses"
+msgstr ""
+
+#: plugin-modules/edd/reports/edd-reports.php:20
+#: plugin-modules/woocommerce/reports/loaders/woocommerce-performance-comparison-loader.php:60
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:69
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:115
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:144
+msgid "Sales"
+msgstr ""
+
+#: plugin-modules/edd/reports/edd-reports.php:22
+msgid "Earnings"
+msgstr ""
+
+#: plugin-modules/edd/reports/edd-reports.php:24
+#: plugin-modules/woocommerce/reports/loaders/woocommerce-new-customers-loader.php:24
+msgid "New customers"
+msgstr ""
+
+#: plugin-modules/edd/reports/edd-reports.php:26
+msgid "Number of sales per customer"
+msgstr ""
+
+#: plugin-modules/edd/reports/edd-reports.php:30
+msgid "Customer Lifetime value"
+msgstr ""
+
+#: plugin-modules/edd/reports/edd-reports.php:32
+msgid "Best sellers"
+msgstr ""
+
+#: plugin-modules/edd/reports/edd-reports.php:37
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:73
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:121
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:150
+msgid "Orders by status"
+msgstr ""
+
+#: plugin-modules/edd/reports/edd-reports.php:42
+msgid "License statuses"
+msgstr ""
+
+#: plugin-modules/edd/reports/edd-reports.php:45
+msgid "License renewals"
+msgstr ""
+
+#: plugin-modules/edd/reports/loaders/edd-order-number-loader.php:37
+msgid "sale"
+msgid_plural "sales"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/events-calendar/events-calendar-ticket-orders-user-activity.php:19
+#: plugin-modules/events-calendar/events-calendar-tickets-user-activity.php:24
+msgctxt "date preposition"
+msgid "on"
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar-ticket-orders-user-activity.php:38
+msgid "Ticket Ordered"
+msgid_plural "Tickets Ordered"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/events-calendar/events-calendar-tickets-user-activity.php:41
+msgid "RSVP"
+msgid_plural "RSVPs"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/events-calendar/events-calendar.php:73
+msgid ""
+"Detects the user data from the Events Calendar Events Tickets, Events "
+"Tickets Plus and Community Events extensions."
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar.php:91
+msgid "RSVPs yes"
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar.php:104
+msgid "RSVPs no"
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar.php:117
+msgid "Has RSVP'd"
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar.php:133
+msgid "Tickets ordered"
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar.php:146
+msgid "Has ordered ticket for event"
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar.php:160
+msgid "Has not ordered ticket for event"
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar.php:175
+msgid "Events created"
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar.php:209
+msgid "yes for"
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar.php:210
+msgid "no for"
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar.php:211
+msgid "any for"
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar.php:212
+msgid "none for"
+msgstr ""
+
+#: plugin-modules/events-calendar/events-calendar.php:229
+msgid "Event Created"
+msgid_plural "Events Created"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/gravity-forms/gravity-forms-unlinked-forms.php:20
+#, php-format
+msgid "Has submitted form %s"
+msgstr ""
+
+#: plugin-modules/gravity-forms/gravity-forms-unlinked-forms.php:115
+msgid "Submission date"
+msgstr ""
+
+#: plugin-modules/gravity-forms/gravity-forms-user-activity.php:42
+#, php-format
+msgid "%s Entry"
+msgid_plural "%s Entries"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/gravity-forms/gravity-forms.php:48
+msgid ""
+"Provides Gravity Forms related filters and data. Detects and displays the "
+"custom user data saved with the Gravity Forms User Registration Add-on."
+msgstr ""
+
+#: plugin-modules/gravity-forms/gravity-forms.php:56
+msgid "Enable form submission filters in user table for forms"
+msgstr ""
+
+#: plugin-modules/gravity-forms/gravity-forms.php:59
+msgid ""
+"This option allows you to filter users based on the data from their form "
+"submissions. This field is available for all forms, including those that are "
+"not linked to users via the User Registration add-on."
+msgstr ""
+
+#: plugin-modules/gravity-forms/gravity-forms.php:62
+msgid "Enable form submission reports for forms"
+msgstr ""
+
+#: plugin-modules/gravity-forms/gravity-forms.php:65
+msgid ""
+"This option allows you to enable reports for all forms, including non-user "
+"linked forms<br/> and including those forms that are not submitted by users. "
+"For each enabled form there will be a separate corresponding tab in the "
+"Reports section."
+msgstr ""
+
+#: plugin-modules/gravity-forms/gravity-forms.php:84
+msgid "Has submitted form"
+msgstr ""
+
+#: plugin-modules/gravity-forms/gravity-forms.php:98
+msgid "Has not submitted form"
+msgstr ""
+
+#: plugin-modules/gravity-forms/gravity-forms.php:171
+#, php-format
+msgid ""
+"Error: The form filters and reports features require Gravity Forms version "
+"%s or newer."
+msgstr ""
+
+#: plugin-modules/gravity-forms/reports/gravity-forms-reports.php:25
+msgid ""
+"All of the field reports in this section reflect the user data that is "
+"stored as user meta via the User Registration add-on"
+msgstr ""
+
+#: plugin-modules/gravity-forms/reports/gravity-forms-reports.php:35
+#, php-format
+msgid ""
+"* All of the reports in this section are based on all %s form entries, "
+"including non-user submissions"
+msgstr ""
+
+#: plugin-modules/gravity-forms/reports/gravity-forms-reports.php:55
+msgid "Top user submitted forms"
+msgstr ""
+
+#: plugin-modules/gravity-forms/reports/gravity-forms-reports.php:132
+msgid "Submissions"
+msgstr ""
+
+#: plugin-modules/gravity-forms/reports/gravity-forms-reports.php:137
+msgid "Includes both user and non-user submissions"
+msgstr ""
+
+#: plugin-modules/learndash/learndash-course-analytics.php:18
+#, php-format
+msgid "%s Started"
+msgstr ""
+
+#: plugin-modules/learndash/learndash-course-analytics.php:30
+#, php-format
+msgid "%s Completed"
+msgstr ""
+
+#: plugin-modules/learndash/learndash-quiz-results.php:23
+#, php-format
+msgid "%s Results"
+msgstr ""
+
+#: plugin-modules/learndash/learndash-user-activity.php:55
+msgid "Started on"
+msgstr ""
+
+#: plugin-modules/learndash/learndash-user-activity.php:59
+#: plugin-modules/learndash/learndash-user-activity.php:167
+msgid "Completed on"
+msgstr ""
+
+#: plugin-modules/learndash/learndash-user-activity.php:71
+#, php-format
+msgid "%s Activity"
+msgstr ""
+
+#: plugin-modules/learndash/learndash-user-activity.php:119
+#, php-format
+msgid "%s Access"
+msgstr ""
+
+#: plugin-modules/learndash/learndash-user-activity.php:172
+msgid "Duration"
+msgstr ""
+
+#: plugin-modules/learndash/learndash-user-activity.php:187
+#, php-format
+msgid "%s Attempt"
+msgid_plural "%s Attempts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/learndash/learndash-user-activity.php:247
+#, php-format
+msgid "Belongs to 1 Group"
+msgid_plural "Belongs to %d Groups"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/learndash/learndash.php:55
+msgid ""
+"The <b>LearnDash Module</b> of Users Insights requires LearnDash 2.3 or "
+"newer. \n"
+"\t\t\t\tPlease update LearnDash to the latest version and run the data "
+"upgrade as explained in \n"
+"\t\t\t\t<a href=\"https://usersinsights.com/introducing-learndash-"
+"integration/\">this article</a>."
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:68
+msgid "LearnDash"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:69
+msgid ""
+"Detects the LearnDash user activity and makes it available in the user table "
+"and filters."
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:76
+msgid "Enable course columns for courses"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:79
+msgid ""
+"For each selected course the \"course started\" and \"course completed\"\n"
+"\t\t\t\t\tcolumns will be added to the user table, showing the course start "
+"and end date for each user."
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:83
+msgid "Enable quiz results columns for quizzes"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:86
+msgid ""
+"For each selected quiz a new column will be available in the table showing "
+"the results of all attempts for each user."
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:103
+#, php-format
+msgctxt "Lessons Completed Label"
+msgid "%s Completed"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:107
+#, php-format
+msgctxt "Topics Completed Label"
+msgid "%s Completed"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:111
+#, php-format
+msgctxt "Courses Completed Label"
+msgid "%s Completed"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:115
+#, php-format
+msgctxt "Courses Started Label"
+msgid "%s In Progress"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:119
+#, php-format
+msgid "%s Attempts"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:123
+#, php-format
+msgid "%s Passes"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:134
+msgid "Last Activity"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:150
+msgid "Has engaged in course"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:151
+msgid "Has not engaged in course"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:152
+msgid "Has completed course"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:153
+msgid "Has not completed course"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:154
+msgid "Has passed quiz"
+msgstr ""
+
+#: plugin-modules/learndash/learndash.php:155
+msgid "Has not passed quiz"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:18
+msgid "All of the LearnDash reports reflect only registered user activity"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:35
+#, php-format
+msgid "Select a %s"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:50
+msgid "Select a quiz"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:73
+#, php-format
+msgid "Top %s by student number"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:79
+#: plugin-modules/pmpro/reports/pmpro-reports.php:17
+#: plugin-modules/wc-memberships/reports/wc-memberships-reports.php:17
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:49
+msgid "All statuses"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:80
+#: plugin-modules/learndash/reports/loaders/learndash-course-student-progress-loader.php:34
+msgid "Completed"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:81
+#: plugin-modules/learndash/reports/loaders/learndash-course-student-progress-loader.php:33
+msgid "In Progress"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:89
+#, php-format
+msgid "Time to complete %s"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:93
+#, php-format
+msgid ""
+"Time interval from start to completion of the %s. Values are rounded up to "
+"the nearest integer."
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:97
+msgid "Hours"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:98
+msgid "Days"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:99
+msgid "Weeks"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:100
+msgid "Months"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:107
+msgid "Student progress breakdown"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:109
+msgid "Date filter segments the data by start date"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:116
+msgid "Top groups by student number"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:134
+msgid "Most correctly answered questions"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:136
+#: plugin-modules/learndash/reports/learndash-reports.php:144
+msgid "LearnDash might reset question stats after question updating"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:142
+msgid "Most incorrectly answered questions"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:150
+#, php-format
+msgid "Time spent on %s"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:173
+msgid "Active students"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:179
+#, php-format
+msgid "%s started"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:181
+#, php-format
+msgid "Students started %s"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:190
+#, php-format
+msgid "%s completed"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:192
+#, php-format
+msgid "Students completed %s"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:201
+#, php-format
+msgid "%s attempts"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:208
+#, php-format
+msgid "%s attempts distribution"
+msgstr ""
+
+#: plugin-modules/learndash/reports/learndash-reports.php:215
+#, php-format
+msgid "%s score"
+msgstr ""
+
+#: plugin-modules/learndash/reports/loaders/learndash-course-time-to-complete-loader.php:60
+msgid "hours"
+msgstr ""
+
+#: plugin-modules/learndash/reports/loaders/learndash-course-time-to-complete-loader.php:61
+msgid "days"
+msgstr ""
+
+#: plugin-modules/learndash/reports/loaders/learndash-course-time-to-complete-loader.php:62
+msgid "weeks"
+msgstr ""
+
+#: plugin-modules/learndash/reports/loaders/learndash-course-time-to-complete-loader.php:63
+msgid "months"
+msgstr ""
+
+#: plugin-modules/learndash/reports/loaders/learndash-quiz-attempts-distribution-loader.php:39
+msgid "attempt"
+msgid_plural "attempts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/learndash/reports/loaders/learndash-quiz-attempts-loader.php:10
+msgid "Passes"
+msgstr ""
+
+#: plugin-modules/learndash/reports/loaders/learndash-quiz-attempts-loader.php:11
+msgid "Fails"
+msgstr ""
+
+#: plugin-modules/learndash/reports/loaders/learndash-quiz-question-accuracy-loader.php:28
+msgid "Invalid answer type"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress-user-activity.php:47
+#: plugin-modules/memberpress/memberpress-user-activity.php:133
+#: plugin-modules/pmpro/pmpro-user-activity.php:63
+#: plugin-modules/pmpro/pmpro-user-activity.php:70
+#: plugin-modules/wc-memberships/wc-memberships-user-activity.php:65
+msgid "Membership"
+msgid_plural "Memberships"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/memberpress/memberpress-user-activity.php:84
+msgid "Transaction"
+msgid_plural "Transactions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/memberpress/memberpress-user-activity.php:138
+#: plugin-modules/memberpress/memberpress-user-activity.php:179
+msgid "Expires on"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress-user-activity.php:145
+msgid "Coupon used"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress-user-activity.php:164
+#: plugin-modules/memberpress/memberpress.php:70
+#: plugin-modules/memberpress/memberpress.php:159
+#: plugin-modules/memberpress/reports/loaders/memberpress-membership-statuses-loader.php:7
+#: plugin-modules/memberpress/reports/memberpress-reports.php:34
+msgid "active"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress-user-activity.php:167
+#: plugin-modules/memberpress/memberpress.php:71
+#: plugin-modules/memberpress/memberpress.php:159
+#: plugin-modules/memberpress/reports/loaders/memberpress-membership-statuses-loader.php:7
+#: plugin-modules/memberpress/reports/memberpress-reports.php:34
+msgid "inactive"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress-user-activity.php:176
+msgid "Non-recurring"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress-user-activity.php:176
+msgid "Recurring"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress-user-activity.php:178
+msgid "Created on"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress-user-activity.php:192
+msgid "View transactions"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress-user-activity.php:235
+msgid "Never"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress.php:42
+msgid ""
+"Makes the MemberPress user membership and profile data available in the user "
+"table, filters and reports."
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress.php:53
+#, php-format
+msgid ""
+"Error: Minimum supported MemberPress version is %s. Your current version is: "
+"%s"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress.php:62
+#: plugin-modules/pmpro/pmpro.php:98
+msgid "Member status"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress.php:91
+msgid "Transactions"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress.php:103
+#: plugin-modules/pmpro/pmpro.php:115
+#: plugin-modules/wc-memberships/wc-memberships.php:70
+msgid "Memberships"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress.php:115
+#: plugin-modules/pmpro/pmpro.php:128
+#: plugin-modules/wc-memberships/wc-memberships.php:111
+msgid "Active memberships"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress.php:125
+msgid "First transaction"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress.php:137
+msgid "Last transaction"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress.php:149
+#: plugin-modules/pmpro/pmpro.php:138
+#: plugin-modules/wc-memberships/wc-memberships.php:49
+msgid "Has a membership"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress.php:160
+msgid "Date created"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress.php:161
+msgid "Date expiring"
+msgstr ""
+
+#: plugin-modules/memberpress/memberpress.php:169
+#: plugin-modules/woocommerce/woocommerce.php:267
+msgid "Has used coupon"
+msgstr ""
+
+#: plugin-modules/memberpress/reports/memberpress-reports.php:18
+msgid "All memberships"
+msgstr ""
+
+#: plugin-modules/memberpress/reports/memberpress-reports.php:21
+msgid "Membership signups"
+msgstr ""
+
+#: plugin-modules/memberpress/reports/memberpress-reports.php:23
+#: plugin-modules/pmpro/pmpro.php:184
+#: plugin-modules/pmpro/reports/pmpro-reports.php:25
+msgid "Payments"
+msgstr ""
+
+#: plugin-modules/memberpress/reports/memberpress-reports.php:25
+#: plugin-modules/pmpro/reports/pmpro-reports.php:27
+msgid "Payments total amount"
+msgstr ""
+
+#: plugin-modules/memberpress/reports/memberpress-reports.php:27
+#: plugin-modules/pmpro/reports/pmpro-reports.php:29
+#: plugin-modules/wc-memberships/reports/wc-memberships-reports.php:24
+msgid "Ended memberships"
+msgstr ""
+
+#: plugin-modules/memberpress/reports/memberpress-reports.php:29
+msgid "Number of users per membership"
+msgstr ""
+
+#: plugin-modules/memberpress/reports/memberpress-reports.php:34
+msgid "all statuses"
+msgstr ""
+
+#: plugin-modules/memberpress/reports/memberpress-reports.php:36
+#: plugin-modules/pmpro/reports/pmpro-reports.php:38
+#: plugin-modules/wc-memberships/reports/wc-memberships-reports.php:35
+#: plugin-modules/wc-memberships/wc-memberships.php:97
+msgid "Membership statuses"
+msgstr ""
+
+#: plugin-modules/memberpress/reports/memberpress-reports.php:43
+msgid "Member lifetime value"
+msgstr ""
+
+#: plugin-modules/memberpress/reports/memberpress-reports.php:45
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:101
+msgid "Top coupons used"
+msgstr ""
+
+#: plugin-modules/pbpro/pbpro.php:34
+msgid "Allows you to search and filter the Profile Builder Pro user data."
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro-user-activity.php:30
+msgid "Edit Member"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro-user-activity.php:101
+msgid "Fee"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro-user-activity.php:102
+#: plugin-modules/pmpro/pmpro.php:58 plugin-modules/pmpro/pmpro.php:149
+#: plugin-modules/wc-memberships/wc-memberships.php:61
+#: plugin-modules/wc-subscriptions/wc-subscriptions-user-activity.php:62
+#: plugin-modules/wc-subscriptions/wc-subscriptions.php:66
+msgid "Start date"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro-user-activity.php:104
+#: plugin-modules/pmpro/pmpro.php:70 plugin-modules/pmpro/pmpro.php:150
+#: plugin-modules/wc-subscriptions/wc-subscriptions-user-activity.php:67
+#: plugin-modules/wc-subscriptions/wc-subscriptions.php:67
+msgid "End date"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro-user-activity.php:115
+msgid "Payment"
+msgid_plural "Payments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/pmpro/pmpro-user-activity.php:191
+msgid "Discount Code Used"
+msgid_plural "Discount Codes Used"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/pmpro/pmpro.php:29
+msgid ""
+"Detects the Paid Memberships Pro user data and makes it available in the "
+"user table, filters and reports."
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro.php:45 plugin-modules/pmpro/pmpro.php:147
+msgid "Level"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro.php:107
+msgid "is active"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro.php:108
+msgid "is inactive"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro.php:159
+#: plugin-modules/wc-memberships/wc-memberships.php:84
+msgid "Member since"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro.php:197
+msgid "Last payment"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro.php:209
+msgid "Has used discount code"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro.php:222
+#: plugin-modules/woocommerce/woocommerce.php:194
+msgid "Billing country"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro.php:235
+#: plugin-modules/woocommerce/woocommerce.php:206
+msgid "Billing state"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro.php:247
+#: plugin-modules/woocommerce/woocommerce.php:217
+msgid "Billing city"
+msgstr ""
+
+#: plugin-modules/pmpro/pmpro.php:355
+msgid "Last"
+msgstr ""
+
+#: plugin-modules/pmpro/reports/pmpro-reports.php:20
+msgid "All levels"
+msgstr ""
+
+#: plugin-modules/pmpro/reports/pmpro-reports.php:23
+msgid "Signups"
+msgstr ""
+
+#: plugin-modules/pmpro/reports/pmpro-reports.php:31
+msgid "Number of members per level"
+msgstr ""
+
+#: plugin-modules/pmpro/reports/pmpro-reports.php:45
+msgid "Customer lifetime value"
+msgstr ""
+
+#: plugin-modules/pmpro/reports/pmpro-reports.php:47
+msgid "Top discount codes used"
+msgstr ""
+
+#: plugin-modules/pmpro/reports/pmpro-reports.php:49
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:91
+msgid "Top billing countries"
+msgstr ""
+
+#: plugin-modules/pmpro/reports/pmpro-reports.php:51
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:93
+msgid "Top billing states"
+msgstr ""
+
+#: plugin-modules/pmpro/reports/pmpro-reports.php:53
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:95
+msgid "Top billing cities"
+msgstr ""
+
+#: plugin-modules/ultimate-member/ultimate-member.php:47
+msgid ""
+"Detects and displays the custom user fields data generated with the Ultimate "
+"Member forms."
+msgstr ""
+
+#: plugin-modules/ultimate-member/ultimate-member.php:72
+msgid "Account status"
+msgstr ""
+
+#: plugin-modules/ultimate-member/ultimate-member.php:142
+msgid "Community Role"
+msgstr ""
+
+#: plugin-modules/ultimate-member/ultimate-member.php:186
+msgid "View Ultimate Member Profile"
+msgstr ""
+
+#: plugin-modules/ultimate-member/ultimate-member.php:216
+msgid "Approved"
+msgstr ""
+
+#: plugin-modules/ultimate-member/ultimate-member.php:217
+msgid "Pending review"
+msgstr ""
+
+#: plugin-modules/ultimate-member/ultimate-member.php:218
+msgid "Waiting e-mail confirmation"
+msgstr ""
+
+#: plugin-modules/ultimate-member/ultimate-member.php:219
+msgid "Inactive"
+msgstr ""
+
+#: plugin-modules/ultimate-member/ultimate-member.php:220
+msgid "Rejected"
+msgstr ""
+
+#: plugin-modules/wc-memberships/reports/wc-memberships-reports.php:20
+msgid "All plans"
+msgstr ""
+
+#: plugin-modules/wc-memberships/reports/wc-memberships-reports.php:23
+msgid "New members"
+msgstr ""
+
+#: plugin-modules/wc-memberships/reports/wc-memberships-reports.php:25
+msgid "Cancelled & expired memberships"
+msgstr ""
+
+#: plugin-modules/wc-memberships/reports/wc-memberships-reports.php:26
+msgid "Number of memberships per plan"
+msgstr ""
+
+#: plugin-modules/wc-memberships/wc-memberships-user-activity.php:38
+msgid "Start Date"
+msgstr ""
+
+#: plugin-modules/wc-memberships/wc-memberships-user-activity.php:44
+msgid "Expiry Date"
+msgstr ""
+
+#: plugin-modules/wc-memberships/wc-memberships-user-activity.php:50
+msgid "Cancelled Date"
+msgstr ""
+
+#: plugin-modules/wc-memberships/wc-memberships.php:31
+msgid "WooCommerce Memberships"
+msgstr ""
+
+#: plugin-modules/wc-memberships/wc-memberships.php:32
+msgid ""
+"Retrieves and displays the data from the WooCommerce Memberships extension."
+msgstr ""
+
+#: plugin-modules/wc-memberships/wc-memberships.php:59
+msgid "Plan"
+msgstr ""
+
+#: plugin-modules/wc-memberships/wc-memberships.php:62
+msgid "Expiry date"
+msgstr ""
+
+#: plugin-modules/wc-memberships/wc-memberships.php:63
+msgid "Cancelled date"
+msgstr ""
+
+#: plugin-modules/wc-memberships/wc-memberships.php:122
+msgid "Membership plans"
+msgstr ""
+
+#: plugin-modules/wc-subscriptions/wc-subscriptions-user-activity.php:72
+#: plugin-modules/wc-subscriptions/wc-subscriptions.php:105
+msgid "Next payment"
+msgstr ""
+
+#: plugin-modules/wc-subscriptions/wc-subscriptions-user-activity.php:80
+msgid "related order"
+msgid_plural "related orders"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/wc-subscriptions/wc-subscriptions-user-activity.php:95
+msgid "Subscription"
+msgid_plural "Subscriptions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/wc-subscriptions/wc-subscriptions.php:38
+msgid "WooCommerce Subscriptions"
+msgstr ""
+
+#: plugin-modules/wc-subscriptions/wc-subscriptions.php:39
+msgid ""
+"Retrieves and displays the data from the WooCommerce Subscriptions extension."
+msgstr ""
+
+#: plugin-modules/wc-subscriptions/wc-subscriptions.php:56
+msgid "Has a subscription"
+msgstr ""
+
+#: plugin-modules/wc-subscriptions/wc-subscriptions.php:77
+msgid "Subscriptions"
+msgstr ""
+
+#: plugin-modules/wc-subscriptions/wc-subscriptions.php:91
+msgid "Subscription statuses"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/loaders/woocommerce-items-per-order-loader.php:45
+msgid "item"
+msgid_plural "items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/woocommerce/reports/loaders/woocommerce-new-customers-loader.php:10
+msgid "Returning customers"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/loaders/woocommerce-order-number-loader.php:53
+msgid "order"
+msgid_plural "orders"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/woocommerce/reports/loaders/woocommerce-performance-comparison-loader.php:59
+#: plugin-modules/woocommerce/woocommerce.php:136
+msgid "Orders"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/loaders/woocommerce-performance-comparison-loader.php:61
+msgid "Refunds"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/loaders/woocommerce-product-attributes-loader.php:14
+#: plugin-modules/woocommerce/reports/loaders/woocommerce-product-variations-loader.php:17
+msgid "This report is not applicable to this product"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:25
+msgid "Select a product"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:39
+msgid "Select a category"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:70
+#, php-format
+msgid "Orders with status %s"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:71
+msgid "Sales total"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:75
+msgid "New vs returning customers"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:77
+msgid "Number of orders per customer"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:83
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:123
+msgid "Performance comparison"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:85
+msgid "Number of items per order"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:97
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:131
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:165
+msgid "Order status"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:99
+msgid "Payment methods used"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:103
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:167
+msgid "Top ordered products"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:105
+msgid "Most refunded products"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:107
+msgid "Abandoned carts"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:108
+msgid "Number of abandoned carts of logged in users"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:109
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:137
+msgid "Top order origin sources"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:111
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:139
+msgid "Top order origin types"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:119
+#, php-format
+msgid "Number of orders containing the selected product with status %s"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:125
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:152
+msgid "Items sold"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:126
+#, php-format
+msgid "Number of items sold of the selected product in orders with status %s"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:127
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:158
+msgid "Items sold total"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:128
+#, php-format
+msgid ""
+"Total amount of items sold of the selected product in orders with status %s "
+"(does not reflect partial refunds)"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:129
+msgid "Frequently bought together"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:133
+msgid "Top ordered variations"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:135
+msgid "Top ordered attributes"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:148
+#, php-format
+msgid ""
+"Number of orders containing the products from the selected category with "
+"status %s"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:156
+#, php-format
+msgid ""
+"Number of items sold of selected category products in orders with status %s"
+msgstr ""
+
+#: plugin-modules/woocommerce/reports/woocommerce-reports.php:163
+#, php-format
+msgid ""
+"Total amount of items sold of selected category products in orders with "
+"status %s (does not reflect partial refunds)"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce-query-legacy.php:375
+#: plugin-modules/woocommerce/woocommerce-query.php:197
+msgid ""
+"Filtering by both product and product category is not allowed. Please choose "
+"only one."
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce-user-activity.php:90
+msgid "Product Review"
+msgid_plural "Product Reviews"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/woocommerce/woocommerce-user-activity.php:109
+msgid "for"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce-user-activity.php:152
+msgid "Coupon Used"
+msgid_plural "Coupons Used"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/woocommerce/woocommerce-user-activity.php:187
+msgid "Item in Cart"
+msgid_plural "Items in Cart"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/woocommerce/woocommerce-user-activity.php:320
+msgid "Origin"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce-wishlists-user-activity.php:31
+#: plugin-modules/woocommerce/woocommerce-yith-wishlists-user-activity.php:31
+msgid "added on"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce-wishlists-user-activity.php:42
+#: plugin-modules/woocommerce/woocommerce-yith-wishlists-user-activity.php:42
+msgid "Product in Wishlist"
+msgid_plural "Products in Wishlist"
+msgstr[0] ""
+msgstr[1] ""
+
+#: plugin-modules/woocommerce/woocommerce.php:84
+msgid "WooCommerce"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:85
+msgid ""
+"Retrieves and displays data from the WooCommerce orders made by the "
+"WordPress users."
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:127
+msgid "Product category"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:128
+msgid "Origin source"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:129
+msgid "Origin type"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:148
+msgid "Successful orders"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:160
+msgid "First order"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:171
+msgid "Last order"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:255
+msgid "Reviews"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:279
+msgid "Cart"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:294
+msgid "Has product in cart"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:312
+msgid "Order Origin Source"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:325
+msgid "Order Origin Type"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:341
+msgid "Wishlist products"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:353
+#: plugin-modules/woocommerce/woocommerce.php:370
+msgid "Has product in wishlist"
+msgstr ""
+
+#: plugin-modules/woocommerce/woocommerce.php:458
+msgid "Users Insights Profile"
+msgstr ""
+
+#: users-insights.php:142
+msgid "Users Insights"
+msgstr ""

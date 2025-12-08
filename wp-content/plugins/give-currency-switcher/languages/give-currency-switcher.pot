@@ -1,0 +1,399 @@
+# Copyright (C) 2022 GiveWP
+# This file is distributed under the GPL-2.0+.
+msgid ""
+msgstr ""
+"Project-Id-Version: Give - Currency Switcher 1.5.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/give-currency-switcher\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2022-03-17T15:58:40+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.6.0\n"
+"X-Domain: give-currency-switcher\n"
+
+#. Plugin Name of the plugin
+msgid "Give - Currency Switcher"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://givewp.com/addons/currency-switcher/"
+msgstr ""
+
+#. Description of the plugin
+msgid "Provide your donors with the ability to give using currency of their choice."
+msgstr ""
+
+#. Author of the plugin
+msgid "GiveWP"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://givewp.com/"
+msgstr ""
+
+#: give-currency-switcher.php:154
+msgid "General"
+msgstr ""
+
+#: give-currency-switcher.php:155
+#: includes/admin/class-give-currency-switcher-admin.php:275
+#: includes/give-currency-switcher-helpers.php:126
+msgid "Geolocation"
+msgstr ""
+
+#: give-currency-switcher.php:156
+#: includes/give-currency-switcher-helpers.php:154
+msgid "Payment Gateways"
+msgstr ""
+
+#: give-currency-switcher.php:186
+msgid "<strong>Activation Error:</strong> You must have the <a href=\"%s\" target=\"_blank\">Give</a> plugin installed and activated for the Currency Switcher add-on to activate."
+msgstr ""
+
+#: give-currency-switcher.php:197
+msgid "<strong>Activation Error:</strong> You must have <a href=\"%1$s\" target=\"_blank\">Give</a> core version %2$s+ for the Currency Switcher add-on to activate."
+msgstr ""
+
+#: give-currency-switcher.php:218
+#: give-currency-switcher.php:231
+msgid "Cheatin&#8217; huh?"
+msgstr ""
+
+#: give-currency-switcher.php:374
+#: includes/admin/class-give-currency-switcher-admin.php:269
+#: includes/admin/class-give-currency-switcher-settings.php:30
+#: includes/give-currency-switcher-helpers.php:51
+msgid "Currency Switcher"
+msgstr ""
+
+#: give-currency-switcher.php:403
+msgid "Settings"
+msgstr ""
+
+#: give-currency-switcher.php:441
+msgid "Documentation"
+msgstr ""
+
+#: give-currency-switcher.php:455
+msgid "Add-ons"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:211
+msgid "Unable to fetch the data please check Give log."
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:212
+msgid "Couldn't fetch exchange rate for: "
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:213
+msgid "The number of decimals will be used to display and to round and the prices. Rounding will be mathematical, with halves rounded up."
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:214
+msgid "If specified, this markup will be added to the standard exchange rate."
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:219
+msgid "Exchange rates successfully updated!"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:220
+msgid "Couldn't fetch the exchange rate for: "
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:281
+msgid "Gateways"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:301
+msgid "-- Select a default currency --"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:308
+msgid "Default Currency"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:446
+msgid "Currency Switched:"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:448
+msgid "Exchange Rates: "
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:455
+msgid "Base Currency: "
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:459
+msgid "Base total: "
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:592
+msgid "Look like you have changed the currency. Keep your your exchange rates up to date <a href=\"%s\"> Exchange Rate settings.</a>."
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:623
+msgid "Custom Prices"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:624
+msgid "Add price for each currency."
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:629
+#: includes/give-currency-switcher-helpers.php:44
+#: includes/give-currency-switcher-helpers.php:69
+#: includes/give-currency-switcher-helpers.php:83
+#: includes/give-currency-switcher-helpers.php:133
+msgid "Enabled"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:630
+#: includes/give-currency-switcher-helpers.php:40
+#: includes/give-currency-switcher-helpers.php:45
+#: includes/give-currency-switcher-helpers.php:70
+#: includes/give-currency-switcher-helpers.php:84
+#: includes/give-currency-switcher-helpers.php:134
+msgid "Disabled"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:634
+msgid "Set Amount"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:635
+msgid "Add custom amount for various currency."
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:669
+msgid "Currency Amounts"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:670
+msgid "Customize the donation amounts for each currency."
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:676
+msgid "Custom"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:677
+#: includes/give-currency-switcher-helpers.php:417
+msgid "Exchange Rate"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:682
+msgid "Currency Amount"
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:683
+msgid "Set the custom price for the currency."
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:683
+msgid "Note: You need to set the exchange rate first to set the custom price for a specific currency."
+msgstr ""
+
+#: includes/admin/class-give-currency-switcher-admin.php:1036
+msgid "Google Finance API is now deprecated. Please update your <a href=\"%s\">Exchange Rate Provider.</a>"
+msgstr ""
+
+#: includes/admin/class-give-render-setting-table.php:183
+msgid "Select payment gateway"
+msgstr ""
+
+#: includes/admin/class-give-render-setting-table.php:284
+msgid "No items found."
+msgstr ""
+
+#: includes/admin/class-give-render-setting-table.php:287
+msgid "Only the base Give currency has been enabled, therefore there are no Exchange Rates to be configured."
+msgstr ""
+
+#: includes/admin/class-give-render-setting-table.php:289
+msgid "Only base currency is activated, Please enable some currencies in order to set the payment support."
+msgstr ""
+
+#: includes/frontend/class-give-currency-switcher-frontend.php:208
+msgid "<b>%1$s</b> is not supported by <b>%2$s</b> gateway."
+msgstr ""
+
+#: includes/frontend/class-give-currency-switcher-frontend.php:627
+msgid "Currency auto switched to your preferred currency <b>%s</b>."
+msgstr ""
+
+#: includes/frontend/class-give-currency-switcher-frontend.php:633
+msgid "Your country is <b>%1$s</b> so currency auto changed to <b>%2$s</b>"
+msgstr ""
+
+#: includes/frontend/class-give-currency-switcher-frontend.php:1098
+msgid "is not supported by"
+msgstr ""
+
+#: includes/frontend/class-give-currency-switcher-frontend.php:1100
+msgid "gateway. Please choose other gateway"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:38
+msgid "Global Option"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:39
+msgid "Customize"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:52
+msgid "This enables the Give Currency Switcher for all your website's donation forms. Note: You can disable the global options and enable and customize options per form as well."
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:52
+msgid "This allows you to customize the Currency Switcher settings for just this donation form. You can disable Currency Switcher for just this form as well or simply use the global settings."
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:62
+msgid "Display Currency Acronym"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:63
+msgid "This option will add the currency acronym (USD, EUR, GBP) before the currency symbol on the donation form display to make it easier for donors to recognize currencies. This is helpful when you have multiple currencies sharing the same symbol. For example, MXN and USD share \"$\" as a symbol. With this option enabled the donation form would display \"MXN $\" when that currency was selected within the dropdown."
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:76
+msgid "Auto-Switch Currency"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:77
+msgid "Enabling this will automatically switch the currency to the donor's currency from their latest donation."
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:91
+msgid "Currency Switcher Message"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:95
+msgid "Displays to the donor the difference between the base currency amount and the new currency amount."
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:104
+msgid "Supported Currencies"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:105
+msgid "Select the currencies you would like to support. Note: the GiveWP Base Currency set in the Currency settings will be enabled automatically."
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:116
+msgid "Exchange Rates"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:118
+msgid "By default, exchange rates are set automatically and refresh daily. If you want to override those settings for any reason, the above section allows you to manually set the exchange rates."
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:127
+msgid "Enable automatic selection of Currency depending on Visitors' location. This feature uses GeoLite data created by <a href=\"%1$s\" target=\"_blank\">MaxMind</a>."
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:140
+msgid "Base Currency (if fails)"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:141
+msgid "Select the currency to use by default when a visitor comes from a country whose currency is not supported by your site, or when geolocation resolution fails."
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:155
+msgid "Set the payment gateways available when paying in each currency."
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:164
+msgid "Give - Currency Switcher Settings Docs Link"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:167
+msgid "Give - Currency Switcher Settings"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:416
+#: includes/give-currency-switcher-helpers.php:589
+msgid "Currency"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:418
+msgid "Set Manually"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:419
+msgid "Decimal Number"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:420
+msgid "Rate Markup"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:489
+msgid "Enter exchange rate"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:530
+msgid "Fetch Exchange Rates"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:590
+msgid "Enabled Gateways"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:938
+msgid "Failed to retrieve exchange rates. Please contact admin and view Log"
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:1320
+msgid "Please set currency's exchange rate first."
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:1323
+msgid "Only base Give currency is enabled, please choose few currencies first."
+msgstr ""
+
+#: includes/give-currency-switcher-helpers.php:1797
+msgid "The current exchange rate is 1.00 %1$s equals %2$s %3$s."
+msgstr ""
+
+#: lib/class-give-geo-location.php:187
+msgid "Geo Location is not support with PHP %s. It required minimum PHP 5.4 or greater than it."
+msgstr ""
+
+#: lib/class-give-geo-location.php:247
+msgid "Method "
+msgstr ""
+
+#: lib/class-give-geo-location.php:260
+msgid "Error(s) occurred while retrieving Geolocation information for IP Address \"%s\". Error: %s."
+msgstr ""
+
+#: src/resources/views/notices/give-inactive.php:5
+#: src/resources/views/notices/give-version-error.php:4
+msgid "Activation Error:"
+msgstr ""
+
+#: src/resources/views/notices/give-inactive.php:6
+#: src/resources/views/notices/give-version-error.php:6
+msgid "You must have"
+msgstr ""
+
+#: src/resources/views/notices/give-inactive.php:7
+msgid "plugin installed and activated for the %s add-on to activate"
+msgstr ""
+
+#: src/resources/views/notices/give-version-error.php:7
+msgid "version"
+msgstr ""
+
+#: src/resources/views/notices/give-version-error.php:8
+msgid "for the %1$s add-on to activate"
+msgstr ""

@@ -1,0 +1,41 @@
+.uploadDescription {
+	height: 84px;
+	display: flex;
+	align-items: center;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.dropZone,
+.label {
+	cursor: pointer;
+}
+
+.dropZone {
+	display: flex;
+	flex-grow: 1;
+	background: #FBFCFB;
+	border: 2px dashed #B8B8B8;
+	border-radius: 4px;
+	min-height: 100px;
+	padding: 25px;
+	margin: 0;
+}
+
+.over {
+	opacity: 0.5;
+}
+
+.label {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	color: #CCCCCC;
+	font-size: 13px;
+}
+
+.input {
+	display: none;
+}

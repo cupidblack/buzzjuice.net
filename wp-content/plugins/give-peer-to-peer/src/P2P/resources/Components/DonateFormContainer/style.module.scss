@@ -1,0 +1,135 @@
+.container {
+    margin: auto;
+    max-width: 1115px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+    & > header {
+        padding: 30px;
+        text-align: center;
+        background-color: #fff;
+
+        // Top border radius to match container.
+        border-radius: 6px 6px 0 0;
+
+        h1 {
+            color: #333;
+            font-size: 32px;
+            line-height: 39px;
+            font-weight: 500;
+            max-width: 60%;
+            margin: 0 auto;
+            padding: 15px 0;
+        }
+    }
+
+    & > .content {
+        position: relative;
+        min-height: 1001px; // Prevents background image shifting when searching teams to join.
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: top;
+        transition: all ease-in 0.2s;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        // Bottom border radius to match container.
+        border-radius: 0 0 6px 6px;
+
+        .inner {
+            z-index: 1;
+            margin: 40px auto;
+        }
+
+        .tintOverlay {
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            position: absolute;
+            opacity: 72%;
+            background-blend-mode: multiply;
+            background-color: var(--give-campaign-primary, #28c77b);
+
+            // Bottom border radius to match container.
+            border-radius: 0 0 6px 6px;
+        }
+    }
+}
+
+.logocontainer {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    width: 200px;
+    height: 200px;
+
+    border-radius: 50%;
+    border: 2.92982px solid #fff;
+    box-shadow: 0 0.976608px 3.90643px rgba(0, 0, 0, 0.25);
+}
+
+.fundraiserpill {
+    color: #555;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    border-radius: 80px;
+
+    svg {
+        fill: #1e8cbe;
+    }
+}
+
+.campaignlink {
+    color: var(--give-campaign-primary, #28c77b);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+@media only screen and (max-width: 768px) {
+    .logo {
+        width: 150px;
+        height: 150px;
+    }
+
+    .container {
+        & > header {
+            h1 {
+                max-width: 100%;
+                font-size: 18px;
+            }
+        }
+
+        & > .content {
+            min-height: 600px;
+        }
+    }
+
+    .fundraiserpill {
+        display: block;
+        width: 100%;
+        font-size: 14px;
+        text-align: left;
+        padding: 10px 10px 7px 10px;
+
+        svg {
+            float: left;
+            margin-top: -4px;
+            margin-right: 10px;
+        }
+    }
+}

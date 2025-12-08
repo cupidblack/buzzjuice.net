@@ -1,0 +1,10 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg">
+<filter id="aurahover">
+<feGaussianBlur stdDeviation="2" />
+    <feComponentTransfer>
+        <feFuncR type="linear" slope="0.75"/>
+        <feFuncG type="linear" slope="0.75"/>
+        <feFuncB type="linear" slope="0.75"/>
+    </feComponentTransfer>
+</filter>
+</svg>
