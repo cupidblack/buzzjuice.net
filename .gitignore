@@ -54,7 +54,7 @@ composer.phar
 debug.log
 error_log
 *.zip
-*.tar.gz
+!*.tar.gz
 *.bak
 *.old
 *.tmp
@@ -99,9 +99,9 @@ social/cache/
 # DB dumps & migration handling
 # ----------------------------
 # Ignore raw dumps except structured migrations
-data/db/*.sql
-data/db/*.sql.gz
-data/db/backups/
+!data/db/*.sql
+!data/db/*.sql.gz
+!data/db/backups/
 !data/db/migrations/
 !data/db/migrations/**
 
