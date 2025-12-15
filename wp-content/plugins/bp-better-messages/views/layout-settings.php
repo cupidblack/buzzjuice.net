@@ -33,9 +33,10 @@ $next_sync = wp_next_scheduled( 'better_messages_sync_user_index_weekly' );
 $next_sync = ( $next_sync ) ? date('d-m-Y H:i:m', $next_sync) : '-';
 
 $jobs_list = [
+     'better_messages_send_notifications',
     'better_messages_sync_unread',
     'better_messages_cleaner_job',
-    'better_messages_send_notifications',
+    'better_messages_ai_ensure_completion_job',
     'better_messages_sync_user_index_weekly'
 ];
 
@@ -527,7 +528,7 @@ $has_late_message = ob_get_clean();
             let jsonObject = {};
 
             for (const [key, value] of formData.entries()) {
-                if( key.endsWith("[]") ){
+                if( key.slice(-2) === "[]" ){
                     let lastKey = key.replace(/\[\]$/, "");
 
                     if( ! jsonObject[lastKey] ){
@@ -542,7 +543,6 @@ $has_late_message = ob_get_clean();
 
                 let lastKey = keys.pop();
                 let obj = jsonObject;
-
 
                 keys.forEach(k => {
                     if ( ! obj[k] ) {
@@ -1304,6 +1304,21 @@ $has_late_message = ob_get_clean();
                                         <p style="font-size: 10px;"><?php _ex( 'Users will be able to select messages to reply', 'Settings page', 'bp-better-messages' ); ?></p>
                                     </th>
                                 </tr>
+                                <tr valign="top">
+                                    <td style="padding:0"></td>
+                                    <th style="padding:0">
+                                        <table>
+                                            <tbody>
+                                            <tr>
+                                                <td style="padding:0">
+                                                    <input id="enable_self_replies" style="vertical-align: middle;" name="enableSelfReplies" type="checkbox" <?php checked( $this->settings[ 'enableSelfReplies' ], '1' ); ?> value="1" />
+                                                    <label for="enable_self_replies" style="padding-left:5px"><?php _ex( 'Allow replies to own messages', 'Settings page', 'bp-better-messages' ); ?></label>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </th>
+                                </tr>
                                 <tr valign="top" class="">
                                     <td>
                                         <input name="allowEditMessages" type="checkbox" <?php checked( $this->settings[ 'allowEditMessages' ], '1' ); ?> value="1" />
@@ -1322,6 +1337,16 @@ $has_late_message = ob_get_clean();
                                     <th>
                                         <?php _ex( 'Allow users to pin messages', 'Settings page', 'bp-better-messages' ); ?>
                                         <p style="font-size: 10px;"><?php _ex( 'Allow conversation moderators to pin messages to the top of messages list', 'Settings page', 'bp-better-messages' ); ?></p>
+                                    </th>
+                                </tr>
+
+                                <tr valign="top" class="">
+                                    <td>
+                                        <input name="privateReplies" type="checkbox" <?php checked( $this->settings[ 'privateReplies' ], '1' ); ?> value="1" />
+                                    </td>
+                                    <th>
+                                        <?php _ex( 'Add "Private Message" button to message context menu', 'Settings page', 'bp-better-messages' ); ?>
+                                        <p style="font-size: 10px;"><?php _ex( 'Enables easy way to send message to specific user in group conversations by opening his message context menu', 'Settings page', 'bp-better-messages' ); ?></p>
                                     </th>
                                 </tr>
 
@@ -2206,6 +2231,99 @@ $has_late_message = ob_get_clean();
                     </td>
                 </tr>
 
+
+                <script type="text/javascript">
+                    function selectCustomSound( elementId ) {
+                        var selectFrame = wp.media({
+                            title: 'Select MP3 file',
+                            library: { type: 'audio', post_mime_type: 'audio/mpeg' },
+                            multiple: false
+                        });
+
+                        selectFrame.on('open', function() {
+                            var library = selectFrame.state().get('library');
+                            if (library && library.props) {
+                                library.props.set({ post_mime_type: 'audio/mpeg' });
+                            }
+                        });
+
+                        selectFrame.on('select', function() {
+                            var attachment = selectFrame.state().get('selection').first().toJSON();
+                            var mime = attachment && (attachment.mime || attachment.post_mime_type || '');
+                            if (mime !== 'audio/mpeg') {
+                                return;
+                            }
+
+                            var id = attachment.id;
+                            var url = attachment.url;
+                            var resetBtn = document.querySelector('#' + elementId + 'Reset');
+                            var inputElement = document.querySelector('input[name="' + elementId + 'Id"]');
+                            var audioElement = document.querySelector('#' + elementId );
+
+                            if( url.slice(-4) === '.mp3' ){
+                                audioElement.src = url;
+                                inputElement.value = id;
+                                resetBtn.classList.remove('hidden');
+                            } else {
+                                inputElement.value = '0';
+                                audioElement.src = audioElement.dataset.default;
+                                resetBtn.classList.add('hidden');
+                                alert('Please select only .mp3 files');
+                                return false;
+                            }
+                        });
+
+                        selectFrame.open()
+                    }
+
+                    function playSound( btn, elementId ) {
+                        var audioElement = document.querySelector('#' + elementId );
+                        audioElement.play();
+                    }
+
+                    function resetSound( elementId ) {
+                        if( ! confirm('Are you sure you want to reset to default sound?') ) return;
+                        var inputElement = document.querySelector('input[name="' + elementId + 'Id"]');
+                        var audioElement = document.querySelector('#' + elementId );
+                        var resetBtn = document.querySelector('#' + elementId + 'Reset');
+                        audioElement.src = audioElement.dataset.default;
+                        inputElement.value = '0';
+                        resetBtn.classList.add('hidden');
+                    }
+                </script>
+                <?php
+                $soundsFolder = apply_filters( 'bp_better_messages_sounds_assets', Better_Messages()->url . 'assets/sounds/' );
+
+                $notificationSoundId = $this->settings[ 'notificationSoundId' ];
+                $defaultSound = $soundsFolder . 'notification.mp3';
+                $currentSound = $defaultSound;
+
+                $hasCustom = false;
+
+                if( ! empty( $notificationSoundId ) ){
+                    $attachment_url = wp_get_attachment_url( $notificationSoundId );
+                    if( $attachment_url && str_ends_with( $attachment_url, '.mp3' ) ){
+                        $currentSound = $attachment_url;
+                        $hasCustom = true;
+                    }
+                }
+                ?>
+
+                <tr valign="top" class="">
+                    <th scope="row" valign="top">
+                        <?php _ex( 'Message notification sound', 'Settings page', 'bp-better-messages' ); ?>
+                    </th>
+                    <td>
+                        <div style="margin: 10px 0 0;">
+                            <span class="button" onclick="playSound(this, 'notificationSound')"><?php _ex( 'Play', 'Settings page', 'bp-better-messages' ); ?></span>
+                            <span class="button button-secondary" onclick="selectCustomSound( 'notificationSound' )"><?php _ex( 'Select custom sound', 'Settings page', 'bp-better-messages' ); ?></span>
+                            <span id="notificationSoundReset" class="button bm-destructive-button <?php if( ! $hasCustom ) echo 'hidden'; ?>" onclick="resetSound('notificationSound')"><?php _ex( 'Reset default sound', 'Settings page', 'bp-better-messages' ); ?></span>
+                        </div>
+                        <audio id="notificationSound" src="<?php echo esc_attr($currentSound); ?>" data-default="<?php echo esc_attr($defaultSound) ?>"></audio>
+                        <input type="hidden" name="notificationSoundId" value="<?php echo esc_attr( $this->settings[ 'notificationSoundId' ] ); ?>">
+                    </td>
+                </tr>
+
                 <tr valign="top" class="">
                     <th scope="row" valign="top">
                         <?php _ex( 'Message sent sound volume', 'Settings page', 'bp-better-messages' ); ?>
@@ -2213,6 +2331,37 @@ $has_late_message = ob_get_clean();
                     </th>
                     <td>
                         <input type="number" name="sentSound" min="0" max="100" value="<?php echo esc_attr( $this->settings[ 'sentSound' ] ); ?>">
+                    </td>
+                </tr>
+
+                <?php
+                $sentSoundId = $this->settings[ 'sentSoundId' ];
+                $defaultSound = $soundsFolder . 'sent.mp3';
+                $currentSound = $defaultSound;
+
+                $hasCustom = false;
+
+                if( ! empty( $sentSoundId ) ){
+                    $attachment_url = wp_get_attachment_url( $sentSoundId );
+                    if( $attachment_url && str_ends_with( $attachment_url, '.mp3' ) ){
+                        $currentSound = $attachment_url;
+                        $hasCustom = true;
+                    }
+                }
+                ?>
+
+                <tr valign="top" class="">
+                    <th scope="row" valign="top">
+                        <?php _ex( 'Message sent sound', 'Settings page', 'bp-better-messages' ); ?>
+                    </th>
+                    <td>
+                        <div style="margin: 10px 0 0;">
+                            <span class="button" onclick="playSound(this, 'sentSound')"><?php _ex( 'Play', 'Settings page', 'bp-better-messages' ); ?></span>
+                            <span class="button button-secondary" onclick="selectCustomSound( 'sentSound' )"><?php _ex( 'Select custom sound', 'Settings page', 'bp-better-messages' ); ?></span>
+                            <span id="sentSoundReset" class="button bm-destructive-button <?php if( ! $hasCustom ) echo 'hidden'; ?>" onclick="resetSound('sentSound')"><?php _ex( 'Reset default sound', 'Settings page', 'bp-better-messages' ); ?></span>
+                        </div>
+                        <audio id="sentSound" src="<?php echo esc_attr($currentSound); ?>" data-default="<?php echo esc_attr($defaultSound) ?>"></audio>
+                        <input type="hidden" name="sentSoundId" value="<?php echo esc_attr( $this->settings[ 'sentSoundId' ] ); ?>">
                     </td>
                 </tr>
 
@@ -2227,14 +2376,88 @@ $has_late_message = ob_get_clean();
                     </td>
                 </tr>
 
+                <?php
+                $callSoundId = $this->settings[ 'callSoundId' ];
+                $defaultSound = $soundsFolder . 'calling.mp3';
+                $currentSound = $defaultSound;
+
+                $hasCustom = false;
+
+                if( ! empty( $callSoundId ) ){
+                    $attachment_url = wp_get_attachment_url( $callSoundId );
+                    if( $attachment_url && str_ends_with( $attachment_url, '.mp3' ) ){
+                        $currentSound = $attachment_url;
+                        $hasCustom = true;
+                    }
+                }
+                ?>
+
+                <tr valign="top" class="">
+                    <th scope="row" valign="top">
+                        <?php _ex( 'Incoming call sound', 'Settings page', 'bp-better-messages' ); ?>
+                    </th>
+                    <td>
+                        <?php  if( Better_Messages()->functions->can_use_premium_code() && bpbm_fs()->is_premium() ) { ?>
+                            <div style="margin: 10px 0 0;">
+                                <span class="button" onclick="playSound(this, 'callSound')"><?php _ex( 'Play', 'Settings page', 'bp-better-messages' ); ?></span>
+                                <span class="button button-secondary" onclick="selectCustomSound( 'callSound' )"><?php _ex( 'Select custom sound', 'Settings page', 'bp-better-messages' ); ?></span>
+                                <span id="callSoundReset" class="button bm-destructive-button <?php if( ! $hasCustom ) echo 'hidden'; ?>" onclick="resetSound('callSound')"><?php _ex( 'Reset default sound', 'Settings page', 'bp-better-messages' ); ?></span>
+                            </div>
+                            <audio id="callSound" src="<?php echo esc_attr($currentSound); ?>" data-default="<?php echo esc_attr($defaultSound) ?>"></audio>
+                        <?php }
+
+                        Better_Messages()->functions->license_proposal();
+                        ?>
+                        <input type="hidden" name="callSoundId" value="<?php echo esc_attr( $this->settings[ 'callSoundId' ] ); ?>">
+                    </td>
+                </tr>
+
                 <tr valign="top" class="">
                     <th scope="row" valign="top">
                         <?php _ex( 'Outgoing call sound volume', 'Settings page', 'bp-better-messages' ); ?>
                         <p style="font-size: 10px;"><?php _ex( 'From 0 to 100 (0 to disable)', 'Settings page', 'bp-better-messages' ); ?></p>
                     </th>
                     <td>
-                        <input type="number" name="dialingSound" min="0" max="100" value="<?php echo esc_attr( $this->settings[ 'dialingSound' ] ); ?>" <?php  if( ! Better_Messages()->functions->can_use_premium_code()  || ! bpbm_fs()->is_premium() ) echo 'disabled'; ?> >
+                        <input type="number" name="dialingSound" min="0" max="100" value="<?php echo esc_attr( $this->settings[ 'dialingSound' ] ); ?>" <?php if( ! Better_Messages()->functions->can_use_premium_code()  || ! bpbm_fs()->is_premium() ) echo 'disabled'; ?> >
                         <?php Better_Messages()->functions->license_proposal(); ?>
+                    </td>
+                </tr>
+
+
+
+                <?php
+                $dialingSoundId = $this->settings[ 'dialingSoundId' ];
+                $defaultSound = $soundsFolder . 'dialing.mp3';
+                $currentSound = $defaultSound;
+
+                $hasCustom = false;
+
+                if( ! empty( $dialingSoundId ) ){
+                    $attachment_url = wp_get_attachment_url( $dialingSoundId );
+                    if( $attachment_url && str_ends_with( $attachment_url, '.mp3' ) ){
+                        $currentSound = $attachment_url;
+                        $hasCustom = true;
+                    }
+                }
+                ?>
+
+                <tr valign="top" class="">
+                    <th scope="row" valign="top">
+                        <?php _ex( 'Outgoing call sound', 'Settings page', 'bp-better-messages' ); ?>
+                    </th>
+                    <td>
+                        <?php  if( Better_Messages()->functions->can_use_premium_code() && bpbm_fs()->is_premium() ) { ?>
+                            <div style="margin: 10px 0 0;">
+                                <span class="button" onclick="playSound(this, 'dialingSound')"><?php _ex( 'Play', 'Settings page', 'bp-better-messages' ); ?></span>
+                                <span class="button button-secondary" onclick="selectCustomSound( 'dialingSound' )"><?php _ex( 'Select custom sound', 'Settings page', 'bp-better-messages' ); ?></span>
+                                <span id="dialingSoundReset" class="button bm-destructive-button <?php if( ! $hasCustom ) echo 'hidden'; ?>" onclick="resetSound('dialingSound')"><?php _ex( 'Reset default sound', 'Settings page', 'bp-better-messages' ); ?></span>
+                            </div>
+                            <audio id="dialingSound" src="<?php echo esc_attr($currentSound); ?>" data-default="<?php echo esc_attr($defaultSound) ?>"></audio>
+                        <?php }
+
+                        Better_Messages()->functions->license_proposal();
+                        ?>
+                        <input type="hidden" name="dialingSoundId" value="<?php echo esc_attr( $this->settings[ 'dialingSoundId' ] ); ?>">
                     </td>
                 </tr>
                 </tbody>

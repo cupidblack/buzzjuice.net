@@ -383,10 +383,17 @@ class WC_Subscriptions_Product {
 						}
 						break;
 				}
+			} elseif ( 1 === $billing_interval ) {
+				$subscription_string = sprintf(
+					// translators: 1$: recurring amount, 2$: subscription period (e.g. "month") (e.g. "$15 / month").
+					__( '%1$s / %2$s', 'woocommerce-subscriptions' ),
+					$price,
+					wcs_get_subscription_period_strings( $billing_interval, $billing_period )
+				);
 			} else {
 				$subscription_string = sprintf(
-					// translators: 1$: recurring amount, 2$: subscription period (e.g. "month" or "3 months") (e.g. "$15 / month" or "$15 every 2nd month").
-					_n( '%1$s / %2$s', '%1$s every %2$s', $billing_interval, 'woocommerce-subscriptions' ),
+					// translators: 1$: recurring amount, 2$: subscription period (e.g. "3 months") (e.g. "$15 every 2nd month").
+					__( '%1$s every %2$s', 'woocommerce-subscriptions' ),
 					$price,
 					wcs_get_subscription_period_strings( $billing_interval, $billing_period )
 				);
@@ -1279,18 +1286,6 @@ class WC_Subscriptions_Product {
 		}
 
 		return $button_text;
-	}
-
-	/**
-	 * If a product is being marked as not purchasable because it is limited and the customer has a subscription,
-	 * but the current request is to resubscribe to the subscription, then mark it as purchasable.
-	 *
-	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
-	 * @return bool
-	 */
-	public static function is_purchasable( $is_purchasable, $product ) {
-		_deprecated_function( __METHOD__, '2.1', 'WCS_Limiter::is_purchasable_product' );
-		return WCS_Limiter::is_purchasable_product( $is_purchasable, $product );
 	}
 
 	/**

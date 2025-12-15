@@ -1,20 +1,20 @@
 var html = document.querySelector('html');
 
-document.addEventListener("fluentCommunityUtilReady", function () {
-    wp.hooks.addAction('better_messages_update_unread', 'bm_fluent_com', function( unread ){
-        var unreadCounters = document.querySelectorAll('.bm-unread-badge');
+wp.hooks.addAction('better_messages_update_unread', 'bm_fluent_com', function( unread ){
+    var unreadCounters = document.querySelectorAll('.bm-unread-badge');
 
-        unreadCounters.forEach(function( counter ){
-            counter.innerHTML = unread;
+    unreadCounters.forEach(function( counter ){
+        counter.innerHTML = unread;
 
-            if( unread > 0 ){
-                counter.style.display = '';
-            } else {
-                counter.style.display = 'none';
-            }
-        });
+        if( unread > 0 ){
+            counter.style.display = '';
+        } else {
+            counter.style.display = 'none';
+        }
     });
+});
 
+document.addEventListener('fluentCommunityUtilReady', function () {
     updateDynamicCSS();
 
     window.FluentCommunityUtil.hooks.addFilter("fluent_com_portal_routes", "fluent_chat_route", function (a) {
@@ -34,6 +34,8 @@ document.addEventListener("fluentCommunityUtilReady", function () {
                         return false;
                     }
 
+                    document.body.classList.remove('bp-messages-mobile');
+
                     var container = document.querySelector('.bp-messages-wrap-main');
                     if( container ){
                         if( container.reactRoot ) container.reactRoot.unmount()
@@ -46,8 +48,6 @@ document.addEventListener("fluentCommunityUtilReady", function () {
             meta: {active: "better-messages"}
         }), a;
     });
-
-    installMobileMenuButton();
 });
 
 function updateDynamicCSS(){
@@ -88,31 +88,6 @@ function updateDynamicCSS(){
         }
 
         style.innerHTML = css + '}';
-}
-
-function installMobileMenuButton(){
-    var mobileMenu = document.querySelector('.fcom_mobile_menu');
-    var betterMessagesHeaderButton = document.querySelector('.fcom_better_messages_menu_li');
-
-    if( ! mobileMenu || ! betterMessagesHeaderButton ){
-        setTimeout( installMobileMenuButton, 100 );
-    } else {
-        var mobileMenuItems = mobileMenu.querySelector('.focm_menu_items');
-
-        var bmMobileMenuItemIcon = betterMessagesHeaderButton.querySelector('.el-icon').innerHTML;
-        var bmMobileMenuItemHref = betterMessagesHeaderButton.querySelector('a').href;
-
-        var bmMobileMenuItem = document.createElement('div');
-        bmMobileMenuItem.innerHTML = '<a href="' + bmMobileMenuItemHref + '" class="focm_menu_item"><i class="el-icon"><span>' + bmMobileMenuItemIcon + '</span></i><span><span class="bm-unread-badge" style="display: none;"></span></span></a>';
-
-
-        if (mobileMenuItems.children.length >= 1) {
-            mobileMenuItems.insertBefore(bmMobileMenuItem, mobileMenuItems.children[1]);
-        } else {
-            mobileMenuItems.appendChild(bmMobileMenuItem);
-        }
-    }
-
 }
 
 const config = { attributes: true, attributeFilter: ['class'] };

@@ -1242,14 +1242,11 @@ body.bp-messages-mobile {
 
                 a{
                   color: rgba(var(--bm-text-color), 1);
+                  text-decoration: underline !important;
                 }
 
                 &.favorited-page{
                   cursor: pointer;
-                }
-
-                &:hover .bm-reactions-selector {
-                  display: block;
                 }
 
                 &.bm-message-pending{
@@ -1257,56 +1254,6 @@ body.bp-messages-mobile {
 
                   &:hover{
                     opacity: 1;
-                  }
-                }
-
-                .bm-reactions-selector {
-                  display: none;
-                  position: absolute;
-                  padding: 0;
-                  border: none;
-                  box-shadow: 0 1px 3px 0 #b0b0b0;
-                  background: white;
-                  border-radius: 50px !important;
-                  z-index: 900;
-                  bottom: -9px;
-                  right: -9px;
-                  //width: 20px;
-                  //height: 20px;
-
-                  &:hover{
-                    padding: 3px 2px;
-                    //width: 28px;
-                    overflow-y: hidden;
-
-                    .bm-reaction-icon{
-                      display: block;
-                      margin-top: 1px;
-                      margin-bottom: 1px;
-                      padding: 2px;
-
-                      > img{
-                        width: 20px !important;
-                        height: 20px !important;
-                      }
-                    }
-                  }
-
-                  .bm-reaction-icon{
-                    display: none;
-                    cursor: pointer;
-                    padding: 4px;
-
-                    > img{
-                      display: block !important;
-                      margin: 0 !important;
-                      padding: 0 !important;
-                      //transition: width, height 0.2s linear;
-                    }
-
-                    &:last-child{
-                      display: block;
-                    }
                   }
                 }
 
@@ -1493,6 +1440,8 @@ body.bp-messages-mobile {
                       max-width: 300px;
                       overflow: hidden;
                       margin-bottom: 5px;
+                      //margin-left: auto;
+                      //margin-right: auto;
 
                       img{
                         opacity: 0;
@@ -2839,6 +2788,59 @@ body.bp-messages-mobile {
 }
 
 
+
+.bm-reactions-selector {
+  position: absolute;
+  padding: 0;
+  border: none;
+  box-shadow: 0 1px 3px 0 #b0b0b0;
+  background: white;
+  border-radius: 50px !important;
+  z-index: 10000001;
+
+  &:hover{
+    overflow-y: hidden;
+    display: grid;
+    grid-template-columns: repeat( var(--columns, 1), 1fr );
+    border-radius: 5px !important;
+    padding: 5px;
+
+    &[data-columns="1"]{
+      border-radius: 50px !important;
+      padding: 3px 2px;
+    }
+
+    .bm-reaction-icon{
+      display: block;
+      margin-top: 1px;
+      margin-bottom: 1px;
+      padding: 2px;
+
+      > img{
+        width: 20px !important;
+        height: 20px !important;
+      }
+    }
+  }
+
+  .bm-reaction-icon{
+    display: none;
+    cursor: pointer;
+    padding: 4px;
+
+    > img{
+      display: block !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      //transition: width, height 0.2s linear;
+    }
+
+    &:last-child{
+      display: block;
+    }
+  }
+}
+
 .bm_user_selector{
   position: relative;
   font-size: 16px !important;
@@ -4034,6 +4036,18 @@ body.bp-messages-mobile .bm-medium-editor-mention-panel{
 
 }
 
+@-webkit-keyframes pulse-animation {
+  0% { -webkit-transform: scale(1); }
+  25% { -webkit-transform: scale(1); }
+  50% { -webkit-transform: scale(1.2) }
+  75% { -webkit-transform: scale(1); }
+  100% { -webkit-transform: scale(1); }
+}
+
+.bm-ai-waiting > svg {
+  -webkit-animation: pulse-animation 2s infinite linear;
+}
+
 .bp-messages-wrap .threads-list .thread .bm-info .bm-live-chat-online{
   display: flex;
   font-size: 11px;
@@ -4050,13 +4064,6 @@ body.bp-messages-mobile .bm-medium-editor-mention-panel{
     margin-right: 5px;
   }
 
-  @-webkit-keyframes pulse-animation {
-    0% { -webkit-transform: scale(1); }
-    25% { -webkit-transform: scale(1); }
-    50% { -webkit-transform: scale(1.2) }
-    75% { -webkit-transform: scale(1); }
-    100% { -webkit-transform: scale(1); }
-  }
 }
 
 .bp-messages-wrap .threads-list .thread .bm-info p .avatar {
@@ -10221,10 +10228,6 @@ html[dir="rtl"]{
               .bm-reactions{
                 flex-direction: row-reverse !important;
               }
-              .bm-reactions-selector{
-                left: -9px;
-                right: auto !important;
-              }
             }
           }
 
@@ -10606,6 +10609,7 @@ body.bm-mobile-device .bp-messages-wrap .threads-list .thread .actions .bm-more-
 }
 
 body.bm-mobile-device-pwa.bp-messages-mobile {
+
   .bp-messages-wrap {
     .chat-tabs > div {
       padding-bottom: 20px;
@@ -10622,6 +10626,16 @@ body.bm-mobile-device-pwa.bp-messages-mobile {
     }
   }
 
+  &.bm-mobile-device-android{
+    &.bm-mobile-device-pwa-fullscreen{
+      .bp-messages-wrap {
+        .bm-reply{
+          padding-bottom: 50px;
+        }
+      }
+    }
+  }
+
   #bp-better-messages-mini-mobile-container .chat-footer{
     padding-bottom: 20px;
     height: 64px;
@@ -10632,7 +10646,7 @@ body.bm-mobile-device-pwa.bp-messages-mobile {
   overflow: hidden !important;
 }
 
-#buddypress .bp-messages-wrap div:not(.bm-sticky-date){
+#buddypress .bp-messages-wrap div:not(.bm-sticky-date,.bm-reactions-selector,.bm-message-content){
   border-radius: 0 !important;
 }
 
@@ -10668,7 +10682,7 @@ body.bm-mobile-device-pwa.bp-messages-mobile {
   width: 100%;
   background: rgb(255,255,255,0.95);
   overflow: auto;
-  z-index: 2;
+  z-index: 1;
 
   .bm-guest-wall-content{
     margin-top: 50px;

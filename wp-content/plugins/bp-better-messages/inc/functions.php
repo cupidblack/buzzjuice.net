@@ -87,7 +87,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
          *
          * @since 2.0.63
          */
-        public function get_user_messages_url( int $user_id, int $thread_id = null ): string {
+        public function get_user_messages_url( int $user_id, ?int $thread_id = null ): string {
             if( $thread_id ) {
                 return Better_Messages()->functions->add_hash_arg('conversation/' . $thread_id, [
                     'scrollToContainer' => ''
@@ -178,7 +178,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
         public function can_erase_thread( $user_id, $thread_id ){
             $can_erase = false;
 
-            if( user_can( $user_id, 'manage_options' ) ){
+            if( user_can( $user_id, 'bm_can_administrate' ) ){
                 $can_erase = true;
             }
 
@@ -188,7 +188,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
         public function can_clear_thread( $user_id, $thread_id ){
             $can_erase = false;
 
-            if( user_can( $user_id, 'manage_options' ) ){
+            if( user_can( $user_id, 'bm_can_administrate' ) ){
                 $can_erase = true;
             }
 
@@ -301,6 +301,8 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 $deleteMethod = Better_Messages()->settings['deleteMethod'];
             }
 
+            do_action( 'better_messages_before_message_delete', $message_id, $thread_id, $deleteMethod );
+
             $sql = $wpdb->prepare("SELECT {$wpdb->posts}.ID
                     FROM {$wpdb->posts}
                     INNER JOIN {$wpdb->postmeta}
@@ -401,7 +403,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
         }
 
         public function is_thread_super_moderator($user_id, $thread_id, $include_admin = true ){
-            if( $include_admin && user_can( $user_id, 'manage_options') ) {
+            if( $include_admin && user_can( $user_id, 'bm_can_administrate') ) {
                 return true;
             }
 
@@ -1169,7 +1171,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
          *
          * @since 2.0.64
          */
-        public function get_private_conversation_id(int $to, int $from = null, bool $create = true, string $subject = '', $uniqueKey = null): array{
+        public function get_private_conversation_id( int $to, ?int $from = null, bool $create = true, string $subject = '', $uniqueKey = null): array{
             if( ! Better_Messages()->functions->is_user_authorized() ) {
                 return [
                     'result' => 'not_allowed',
@@ -1228,13 +1230,13 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
          * @param bool $create
          * @return array
          */
-        public function get_pm_thread_id( int $to, int $from = null, bool $create = true, string $subject = '' ): array
+        public function get_pm_thread_id( int $to, ?int $from = null, bool $create = true, string $subject = '' ): array
         {
             return $this->get_private_conversation_id( $to, $from, $create, $subject );
         }
 
 
-        public function get_unique_pm_thread_id( string $uniqueKey, int $to, int $from = null, bool $create = true, string $subject = '' ): array
+        public function get_unique_pm_thread_id( string $uniqueKey, int $to, ?int $from = null, bool $create = true, string $subject = '' ): array
         {
             return $this->get_private_conversation_id( $to, $from, $create, $subject, $uniqueKey );
         }
@@ -1362,8 +1364,10 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             }
 
             if( function_exists('bp_get_member_user_id') ) {
-                $loop_user_id = bp_get_member_user_id();
-                if (!!$loop_user_id) return $loop_user_id;
+                if( ! function_exists('bp_is_user_profile') || ! bp_is_user_profile() ) {
+                    $loop_user_id = bp_get_member_user_id();
+                    if ( !! $loop_user_id ) return $loop_user_id;
+                }
             }
 
             $displayed_user_id = bp_displayed_user_id();
@@ -1423,9 +1427,8 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
         {
             //$string = str_replace( PHP_EOL, ' ', $string );
             //$string = preg_replace( '/[\r\n]+/', "\n", $string );
-            $string = preg_replace( '/[ \t]+/', ' ', $string );
+            //$string = preg_replace( '/[ \t]+/', ' ', $string );
             //$string = preg_replace( '<br>', '', $string );
-
             return trim($string);
         }
 
@@ -1505,45 +1508,26 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             return '<div class="bp-messages-single-thread-wrap" style="height: ' . $initialHeight . 'px" data-thread-id="' . $thread_id . '">' . Better_Messages()->functions->container_placeholder() . '</div>';
         }
 
-        public function get_page( $disable_admin_mode = false ){
+        public function get_page( $args = [] ){
             if (defined('WP_DEBUG') && true === WP_DEBUG) {
                 // some debug to add later
             } else {
                 error_reporting(0);
             }
 
-            do_action('bp_better_messages_before_generation');
+            if( ! is_array( $args ) ) $args = [];
 
-            $path = apply_filters('bp_better_messages_views_path', Better_Messages()->path . '/views/');
+            $args = wp_parse_args( $args, [
+               'full_screen' => false
+            ] );
 
-            $template = 'layout-index.php';
+            $initialHeight = (int) apply_filters( 'bp_better_messages_max_height', Better_Messages()->settings['messagesHeight'] );
+
+            $full_screen = $args['full_screen'] ? '1' : '0';
 
             ob_start();
-
-            $template = apply_filters( 'bp_better_messages_current_template', $path . $template, $template );
-
-            do_action('bp_better_messages_before_main_template_rendered');
-
-            if($template !== false) {
-                Better_Messages()->functions->pre_template_include();
-                include($template);
-                Better_Messages()->functions->after_template_include();
-            }
-
-            do_action('bp_better_messages_after_main_template_rendered');
-
-            if( isset($thread_id) && is_int($thread_id)  && ! isset($_GET['mini']) ){
-                Better_Messages()->functions->messages_mark_thread_read( $thread_id );
-            }
-
-            $content = ob_get_clean();
-            $content = str_replace('loading="lazy"', '', $content);
-
-            $content = Better_Messages()->functions->minify_html( $content );
-
-            do_action('bp_better_messages_after_generation');
-
-            return $content;
+            echo '<div class="bp-messages-wrap-main" style="height: ' . $initialHeight . 'px" data-full-screen="' . $full_screen . '">' . Better_Messages()->functions->container_placeholder() . '</div>';
+            return ob_get_clean();
         }
 
         public function get_group_page( $group_id ){
@@ -1553,59 +1537,17 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 error_reporting(0);
             }
 
-            global $bpbm_errors;
-            $bpbm_errors = [];
-            do_action('bp_better_messages_before_generation');
-
-            $path = apply_filters('bp_better_messages_views_path', Better_Messages()->path . '/views/');
-
             $thread_id = Better_Messages()->groups->get_group_thread_id( $group_id );
-            $is_mini = isset($_GET['mini']);
-
-            $template = 'layout-group.php';
-
-            if( ! current_user_can('manage_options') ) {
-                if ( ! BP_Groups_Member::check_is_member(Better_Messages()->functions->get_current_user_id(), $group_id) ) {
-                    $thread_id = false;
-                    $bpbm_errors[] = __('Access restricted', 'bp-better-messages');
-
-                    if ($is_mini) {
-                        wp_send_json($bpbm_errors, 403);
-                    }
-
-                    $template = 'layout-index.php';
-                }
-            }
-
             ob_start();
-
-            $template = apply_filters( 'bp_better_messages_current_template', $path . $template, $template );
-
-
-            if( ! $this->is_ajax() && count( $bpbm_errors ) > 0 ) {
-                echo '<p class="bpbm-notice">' . implode('</p><p class="bpbm-notice">', $bpbm_errors) . '</p>';
-            }
-
-            if($template !== false) {
-                $this->pre_template_include();
-                include($template);
-                $this->after_template_include();
-            }
-
-            if( isset($thread_id) && is_int($thread_id)  && ! isset($_GET['mini']) ){
-                Better_Messages()->functions->messages_mark_thread_read( $thread_id );
-            }
-
+            $is_in_groups_now = bm_bp_is_current_component('groups');
+            $initialHeight = (int) apply_filters( 'bp_better_messages_max_height', Better_Messages()->settings['messagesHeight'] );
+            ?>
+            <div style="height:<?php echo $initialHeight; ?>px" class="bp-messages-wrap-group <?php if( $is_in_groups_now ) { echo 'bp-messages-group-thread'; }; ?> <?php Better_Messages()->functions->messages_classes($thread_id, 'group'); ?>" data-thread-id="<?php esc_attr_e($thread_id); ?>"><?php echo Better_Messages()->functions->container_placeholder(); ?></div>
+            <?php
             $content = ob_get_clean();
-            $content = str_replace('loading="lazy"', '', $content);
 
-            $content = Better_Messages()->functions->minify_html( $content );
-
-            do_action('bp_better_messages_after_generation');
-
-            return $content;
+            return Better_Messages()->functions->minify_html( $content );
         }
-
 
         public function get_threads_html( $user_id = null, $height = 400 ){
             return $this->get_conversations_layout( $height );
@@ -2704,6 +2646,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                     }
 
                     $attachment_meta[ $attachment_id ] = wp_get_attachment_url( $attachment_id );
+
                     if( $enable_double_check ) {
                         add_post_meta($attachment_id, 'bp-better-messages-message-id', $message->id, true);
                         delete_post_meta($attachment_id, 'better-messages-waiting-for-message');

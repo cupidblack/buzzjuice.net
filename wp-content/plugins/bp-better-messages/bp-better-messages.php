@@ -5,7 +5,7 @@
     Plugin Name: Better Messages
     Plugin URI: https://www.wordplus.org
     Description: Realtime private messaging system for WordPress
-    Version: 2.9.0
+    Version: 2.10.2
     Author: WordPlus
     Author URI: https://www.wordplus.org
     Requires PHP: 7.4
@@ -16,7 +16,7 @@
 defined( 'ABSPATH' ) || exit;
 if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
     class Better_Messages {
-        public $version = '2.9.0';
+        public $version = '2.10.2';
 
         public $db_version = '1.0.4';
 
@@ -94,6 +94,9 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
         /** @var Better_Messages_Cleaner $cleaner */
         public $cleaner;
 
+        /** @var Better_Messages_Capabilities $capabilities */
+        public $capabilities;
+
         /** @var Better_Messages_WebSocket $functions */
         public $websocket = false;
 
@@ -105,6 +108,9 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
 
         /** @var Better_Messages_AI $group_calls */
         public $ai = false;
+
+        /** @var Better_Messages_Blocks $blocks */
+        public $blocks = false;
 
         /** @var Better_Messages_Mobile_App $mobile_app */
         public $mobile_app = false;
@@ -165,6 +171,7 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
             require_once 'inc/user-config.php';
             require_once 'inc/shortcodes.php';
             require_once 'inc/rest-api.php';
+            require_once 'inc/capabilities.php';
             require_once 'inc/cleaner.php';
             require_once 'inc/moderation.php';
             require_once 'inc/guests.php';
@@ -177,6 +184,7 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
             require_once 'addons/reactions.php';
             require_once 'inc/customize.php';
             require_once 'addons/ai/ai.php';
+            require_once 'inc/blocks/blocks.php';
             require_once Better_Messages()->path . 'vendor/AES256.php';
             require_once Better_Messages()->path . 'vendor/randomizer/randomizer-start.php';
             require_once Better_Messages()->path . 'vendor/random-name-generator/random-name-generator.php';
@@ -199,6 +207,7 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
             if ( $this->settings['searchAllUsers'] === '1' && !defined( 'BP_MESSAGES_AUTOCOMPLETE_ALL' ) ) {
                 define( 'BP_MESSAGES_AUTOCOMPLETE_ALL', true );
             }
+            $this->capabilities = Better_Messages_Capabilities();
             $this->urls = Better_Messages_Urls();
             $this->emoji = Better_Messages_Emojis();
             $this->mentions = Better_Messages_Mentions();
@@ -210,6 +219,7 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
             $this->cleaner = Better_Messages_Cleaner();
             $this->moderation = Better_Messages_Moderation();
             $this->ai = Better_Messages_AI();
+            $this->blocks = Better_Messages_Blocks();
             if ( bm_bp_is_active( 'groups' ) ) {
                 require_once 'inc/component-group.php';
                 $this->groups = Better_Messages_Group();
@@ -501,6 +511,8 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
                 'fullScreen'         => ( $this->settings['desktopFullScreen'] == '1' ? '1' : '0' ),
                 'myProfile'          => ( $this->settings['myProfileButton'] == '1' ? '1' : '0' ),
                 'replies'            => ( $this->settings['enableReplies'] == '1' ? '1' : '0' ),
+                'selfReplies'        => ( $this->settings['enableSelfReplies'] == '1' ? '1' : '0' ),
+                'privateReplies'     => ( $this->settings['privateReplies'] == '1' ? '1' : '0' ),
                 'template'           => $this->settings['template'],
                 'layout'             => $this->settings['modernLayout'],
                 'singleThread'       => ( $this->settings['singleThreadMode'] == '1' ? '1' : '0' ),
@@ -548,6 +560,18 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
                 'guests'             => ( Better_Messages()->guests->guest_access_enabled() ? '1' : '0' ),
                 'reports'            => ( $this->settings['allowReports'] == '1' ? '1' : '0' ),
             );
+            $sounds_keys = [
+                'notificationSound',
+                'sentSound',
+                'callSound',
+                'dialingSound'
+            ];
+            foreach ( $sounds_keys as $key ) {
+                $setting_key = $key . 'Url';
+                if ( !empty( $this->settings[$setting_key] ) ) {
+                    $script_variables[$setting_key] = $this->settings[$setting_key];
+                }
+            }
             $suggested_conversations = apply_filters( 'better_messages_suggested_conversations', $this->settings['suggestedConversations'], get_current_user_id() );
             if ( !empty( $suggested_conversations ) ) {
                 $script_variables['suggestedConversations'] = $suggested_conversations;

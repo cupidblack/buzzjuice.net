@@ -4,7 +4,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api_DB_Migrate' ) ):
     class Better_Messages_Rest_Api_DB_Migrate
     {
 
-        private $db_version = 1.5;
+        private $db_version = 1.7;
 
         public static function instance()
         {
@@ -19,8 +19,6 @@ if ( !class_exists( 'Better_Messages_Rest_Api_DB_Migrate' ) ):
         }
 
         public function __construct(){
-            add_action( 'rest_api_init',  array( $this, 'rest_api_init' ) );
-
             add_action( 'wp_ajax_bp_messages_admin_import_options', array( $this, 'import_admin_options' ) );
             add_action( 'wp_ajax_bp_messages_admin_export_options', array( $this, 'export_admin_options' ) );
             add_action( 'wp_ajax_better_messages_admin_reset_database', array( $this, 'reset_database' ) );
@@ -120,36 +118,6 @@ if ( !class_exists( 'Better_Messages_Rest_Api_DB_Migrate' ) ):
             }
         }
 
-
-        public function rest_api_init(){
-            /*register_rest_route( 'better-messages/v1', '/db/check', array(
-                'methods' => 'GET',
-                'callback' => array( $this, 'check_db' ),
-                'permission_callback' => array( $this, 'has_access' )
-            ) );*/
-        }
-
-        public function check_db(){
-            $db_1_version = get_option('better_messages_db_version', false);
-            $db_migrated  = get_option('better_messages_db_migrated', false);
-
-            if( $db_1_version && ! $db_migrated ){
-                return [
-                    'result' => 'upgrade_required',
-                    'from'   => (float) $db_1_version,
-                    'to'     => $this->db_version
-                ];
-            }
-
-            return [
-                'result' => 'upgrade_not_required',
-            ];
-        }
-
-        public function has_access(){
-            return current_user_can( 'manage_options' );
-        }
-
         public function get_tables(){
             return [
                 bm_get_table('threads'),
@@ -240,7 +208,8 @@ if ( !class_exists( 'Better_Messages_Rest_Api_DB_Migrate' ) ):
                       KEY `thread_id` (`thread_id`),
                       KEY `created_at` (`created_at`),
                       KEY `updated_at` (`updated_at`),
-                      KEY `temp_id` (`temp_id`)
+                      KEY `temp_id` (`temp_id`),
+                      KEY `thread_id_created_at` (`thread_id`, `created_at`)
                     ) ENGINE=InnoDB;",
 
                 "CREATE TABLE `" . bm_get_table('meta') ."` (
@@ -345,6 +314,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api_DB_Migrate' ) ):
             $this->update_collate();
 
             Better_Messages_Users()->schedule_sync_all_users();
+            Better_Messages_Capabilities()->register_capabilities();
 
             update_option( 'better_messages_2_db_version', $this->db_version, false );
         }
@@ -531,6 +501,14 @@ if ( !class_exists( 'Better_Messages_Rest_Api_DB_Migrate' ) ):
                 ],
                 '1.5' => [
                     "ALTER TABLE `" . bm_get_table('messages') ."` ADD INDEX `temp_id` (`temp_id`);",
+                ],
+                '1.6' => [
+                    function () {
+                        Better_Messages_Capabilities()->register_capabilities();
+                    }
+                ],
+                '1.7' => [
+                    "ALTER TABLE `" . bm_get_table('messages') ."` ADD INDEX `thread_id_created_at` (`thread_id`, `created_at`);",
                 ]
             ];
 

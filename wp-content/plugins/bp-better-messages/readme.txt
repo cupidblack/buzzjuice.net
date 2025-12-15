@@ -2,9 +2,9 @@
 Contributors: wordplus
 Tags: BuddyPress, Ultimate Member, private message, chat, messaging
 Requires at least: 5.9.0
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.9.0
+Stable tag: 2.10.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -65,6 +65,7 @@ https://www.youtube.com/watch?v=jMHx97QsXj8
 * [WP Job Manager](https://www.wordplus.org/wpjobmanager)
 * [ProfileGrid](https://www.wordplus.org/profilegrid)
 * [UsersWP](https://www.better-messages.com/docs/integrations/userswp/)
+* [Progressify PWA](https://www.better-messages.com/docs/integrations/progressify/)
 * [OneSignal](https://www.better-messages.com/docs/integrations/onesignal/)
 * [Crocoblock JetEngine Profile Builder](https://www.better-messages.com/docs/integrations/jet-engine/)
 * [WP User Manager](https://www.better-messages.com/docs/integrations/wp-user-manager/)
@@ -118,6 +119,7 @@ Our WebSockets servers are completely private and do not store or track any priv
 * **NEW** Group Audio Chats
 * **NEW** Screen Share feature
 * **NEW** Web Push feature
+* **NEW** iOS and Android Mobile Apps
 * Messages Delivery Status (sent, delivered, seen)
 * Typing indicator (indicates if another participant writing message at the moment)
 * Online indicator
@@ -168,8 +170,51 @@ You can translate plugin to your language with LocoTranslate or [participate in 
 
 == Changelog ==
 
-= 2.9.0 =
+= 2.10.0 - 2.10.2 =
+* Added User Inbox Block for WordPress Block editor
+* Added ability to upload custom notification sounds for incoming and outgoing messages, and for incoming and outgoing calls, in the plugin settings under the Notifications tab.
+* Added subfolders for file uploads to prevent too many files in single folder (this will only affect new uploaded files)
+* Fixed some php deprecation notices in new PHP versions
+* Documented [better_messages_css_customizations](https://www.better-messages.com/docs/development/php-filters/better_messages_css_customizations) php filter for customizing
+* Added new hook for developers [better_messages_call_created](https://www.better-messages.com/docs/development/php-actions/better_messages_call_created)
+* Added new hook for developers [better_messages_group_call_joined](https://www.better-messages.com/docs/development/php-actions/better_messages_group_call_joined)
+* AI Chat Bots:
+    * Rewrite of the AI Chat Bots to use new OpenAI Responses API for better performance and lower costs
+    * Support for images generation tool which allow to generate or make modifications to images using gpt-image-1 or gpt-image-1-mini models
+    * Support for uploading PDF files to conversation with AI Chat Bots
+    * Support File Search tool which allows AI Chat Bots to search relevant information through your own uploaded files
+    * Support for WebSearch tool which allows AI Chat Bots to search information from the web
+    * Support for changing Service Tier	in Chat Bot settings
+* Updated Freemius SDK
+* Other minor bugfixes and improvements
+
+= 2.9.0 - 2.9.17 =
+* Fixed mobile menu entry in FluentCommunity integration when mobile menu is displayed outside of community
+* Fixed reply area overlay on mobile devices in latest FluentCommunity versions
+* Updated PeepSo Messages Popup to match new PeepSo design
+* Used new messages icon in PeepSo integration
+* Automatically switching between dark and light modes in new PeepSo Block Theme
+* Reworked messages reactions selector to fit more icons nicely and better positioning in edge cases situations
+* Added integration with [Progressify PWA](https://www.better-messages.com/docs/integrations/progressify/) for push notifications
+* Minor improvements for fullscreen pwa mode
+* Added better_messages_attachments_random_file_name filter to allow developers to disable random file name generation for uploaded files
+* Added thread_id_created_at_index database index to messages table to improve performance in some cases
 * Added Android Mobile App (WebSocket version only)
+* Fixed issue with file upload in AI Chat Bots conversations in some cases
+* Search results on New Conversation screen does not have height limit anymore at desktop devices and contains more results if available
+* Added new option which allows to send private message to user from message context menu in group conversations
+* Added option to enable possibility to send replies to own messages
+* Added New capability `bm_can_administrate`. This capability can be assigned to any user or role (via the User Role Editor plugin or similar) to grant moderator privileges. Users with this capability can view all conversations and messages on the site, as well as delete messages and entire conversations.
+* Fix for scrolling broken in some cases in FluentCommunity at mobile devices
+* Added Mobile App Splash Screen Background Color setting
+* Added Mobile App Login logo height setting
+* Fixed missed translations for Mobile App
+* Minor fixes for functionality related to pasting links and screen snapshots from clipboard
+* Removed request aborted error displaying in some cases
+* Fixed admin settings does not save correctly in some cases because of conflict with other plugins
+* Ensure that users with bm_can_administrate capability can not be blocked by regular users
+* Fixed mini chats not working properly in some cases
+* Updated 3rd party libraries to latest versions
 * Other minor bugfixes and improvements
 
 = 2.8.0 - 2.8.16 =

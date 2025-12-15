@@ -113,13 +113,27 @@ class Better_Messages_Options
             'giphyContentRating'          => 'g',
             'giphyLanguage'               => 'en',
             'enableReplies'               => '1',
+            'enableSelfReplies'           => '0',
             'messagesMinHeight'           => 450,
             'messagesHeight'              => 650,
             'sideThreadsWidth'            => 320,
+
             'notificationSound'           => 100,
+            'notificationSoundId'         => 0,
+            'notificationSoundUrl'        => '',
+
             'sentSound'                   => 50,
+            'sentSoundId'                 => 0,
+            'sentSoundUrl'                => '',
+
             'callSound'                   => 100,
+            'callSoundId'                 => 0,
+            'callSoundUrl'                => '',
+
             'dialingSound'                => 50,
+            'dialingSoundId'              => 0,
+            'dialingSoundUrl'             => '',
+
             'modernLayout'                => 'left',
             'deletedBehaviour'            => 'ignore',
             'unreadCounter'               => 'messages',
@@ -242,6 +256,7 @@ class Better_Messages_Options
             'redirectUnlogged'              => '0',
             'wpJobManagerIntegration'       => '0',
             'pinnedMessages'                => '0',
+            'privateReplies'                => '0',
             'openAiApiKey'                  => '',
 
             'deleteOldMessages'             => 0,
@@ -343,20 +358,18 @@ class Better_Messages_Options
             );
         }*/
 
-        //if( ! defined('BM_DISABLE_MESSAGES_VIEWER') && Better_Messages()->settings['messagesViewer'] !== '0' ) {
-
         add_submenu_page(
             'bp-better-messages',
             $administration_title,
             $menu_title,
-            'manage_options',
+            'bm_can_administrate',
             'better-messages-viewer',
             array($this, 'viewer_page_html'),
             10
         );
         //}
 
-        /*add_submenu_page(
+        /* add_submenu_page(
             'bp-better-messages',
             _x('System', 'WP Admin', 'bp-better-messages'),
             _x('System', 'WP Admin', 'bp-better-messages'),
@@ -389,6 +402,7 @@ class Better_Messages_Options
     public function settings_page_html()
     {
         wp_enqueue_script( 'jquery-ui-sortable' );
+        wp_enqueue_media();
 
         if ( isset( $_POST['_wpnonce'] ) && !empty($_POST['_wpnonce']) && wp_verify_nonce( $_POST['_wpnonce'], 'bp-better-messages-settings' ) ) {
             unset( $_POST['_wpnonce'], $_POST['_wp_http_referer'] );
@@ -739,6 +753,10 @@ class Better_Messages_Options
             $settings['enableReplies'] = '0';
         }
 
+        if ( !isset( $settings['enableSelfReplies'] ) ) {
+            $settings['enableSelfReplies'] = '0';
+        }
+
         if ( !isset( $settings['allowEditMessages'] ) ) {
             $settings['allowEditMessages'] = '0';
         }
@@ -967,6 +985,10 @@ class Better_Messages_Options
             $settings['pinnedMessages'] = '0';
         }
 
+        if( ! isset( $settings['privateReplies'] ) ) {
+            $settings['privateReplies'] = '0';
+        }
+
         if( ! isset( $settings['restrictRoleType'] ) || $settings['restrictRoleType'] !== 'disallow' ) {
             $settings['restrictRoleType'] = 'allow';
         }
@@ -1010,9 +1032,13 @@ class Better_Messages_Options
             'notificationsInterval'     => 0,
             'notificationsOfflineDelay' => 0,
             'notificationSound'         => 0,
+            'notificationSoundId'       => 0,
             'sentSound'                 => 0,
+            'sentSoundId'               => 0,
             'callSound'                 => 0,
+            'callSoundId'               => 0,
             'dialingSound'              => 0,
+            'dialingSoundId'            => 0,
             'modernBorderRadius'        => 0,
             'attachmentsMaxNumber'      => 0,
             'deleteOldMessages'         => 0
@@ -1059,6 +1085,28 @@ class Better_Messages_Options
 
                 }
 
+            }
+        }
+
+        $sounds_keys = [
+            'notificationSound',
+            'sentSound',
+            'callSound',
+            'dialingSound'
+        ];
+
+        foreach ( $sounds_keys as $key ) {
+            if(  $this->settings[ $key . 'Id'] > 0 ){
+                $attachment_url = wp_get_attachment_url( $settings[$key . 'Id'] );
+                if( $attachment_url && str_ends_with( $attachment_url, '.mp3' ) ){
+                    $this->settings[$key . 'Url'] = $attachment_url;
+                } else {
+                    $this->settings[$key . 'Id'] = 0;
+                    $this->settings[$key . 'Url'] = '';
+                }
+            } else {
+                $this->settings[$key . 'Id'] = 0;
+                $this->settings[$key . 'Url'] = '';
             }
         }
 

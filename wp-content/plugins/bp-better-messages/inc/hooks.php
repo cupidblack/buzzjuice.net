@@ -72,7 +72,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                 add_action( 'better_messages_before_new_thread', array( $this, 'disable_thread_for_blocked_restricted_role' ), 10, 2);
 
                 if( Better_Messages()->settings['restrictNewThreadsRemoveNewThreadButton'] === '1' ){
-                    $this->disable_new_thread_button_if_needed();
+                    add_filter('bp_better_messages_script_variable', array( $this, 'disable_new_thread_button_if_needed' ), 10, 1 );
                 }
             }
 
@@ -89,7 +89,6 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                 isset(Better_Messages()->settings['restrictRoleBlock'])
                 && is_array(Better_Messages()->settings['restrictRoleBlock'])
                 && count(Better_Messages()->settings['restrictRoleBlock']) > 0
-                && ! current_user_can('manage_options')
             ) {
                 add_filter( 'better_messages_can_send_message',          array( $this, 'disable_replied_role_to_role_block' ), 10, 3 );
                 add_filter( 'better_messages_before_new_thread',         array( $this, 'disable_start_thread_role_to_role_block' ), 10, 2 );
@@ -97,7 +96,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
             }
 
 
-            if(  Better_Messages()->settings['restrictRoleType'] === 'disallow' && ! current_user_can('manage_options') ){
+            if(  Better_Messages()->settings['restrictRoleType'] === 'disallow' ){
                 add_filter( 'better_messages_can_send_message',          array( $this, 'disable_replied_role_to_role_allow' ), 10, 3 );
                 add_filter( 'better_messages_before_new_thread',         array( $this, 'disable_start_thread_role_to_role_allow' ), 10, 2 );
                 add_filter( 'better_messages_search_user_sql_condition', array( $this, 'role_to_role_allow_search_user_sql_condition'), 10, 4 );
@@ -324,6 +323,11 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                 Better_Messages_Fluent_Community::instance();
             }
 
+            if( class_exists('DaftPlug\Progressify\Plugin') ){
+                require_once Better_Messages()->path . 'addons/progressify.php';
+                Better_Messages_Progressify::instance();
+            }
+
             add_action('template_redirect', array( $this, 'redirect_to_messages'), 0 );
 
             if( Better_Messages()->settings['redirectUnlogged'] === '1' ){
@@ -399,6 +403,8 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                 $bottom  = (int) BP_Better_Messages()->settings['mobilePopupLocationBottom'];
                 $rules[] = '#bp-better-messages-mini-mobile-open{bottom:' . $bottom . 'px!important}';
             }
+
+            $rules = apply_filters( 'better_messages_css_customizations', $rules );
 
             ob_start();
 
@@ -534,6 +540,10 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
 
         public function role_to_role_allow_search_user_sql_condition( $sql_array, $user_ids, $search, $user_id )
         {
+            if( user_can($user_id, 'manage_options') ){
+                return $sql_array;
+            }
+
             global $wpdb;
 
             $restrict_to = Better_Messages()->functions->get_restrict_to_roles( $user_id );
@@ -558,6 +568,10 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
         }
 
         public function role_to_role_block_search_user_sql_condition( $sql_array, $user_ids, $search, $user_id ){
+            if( user_can($user_id, 'manage_options') ){
+                return $sql_array;
+            }
+
             global $wpdb;
 
             $restrict_to = Better_Messages()->functions->get_restrict_to_roles( $user_id );
@@ -580,6 +594,12 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
         }
 
         public function disable_start_thread_role_to_role_allow(&$args, &$errors){
+            $user_id = Better_Messages()->functions->get_current_user_id();
+
+            if( user_can($user_id, 'manage_options') ){
+                return null;
+            }
+
             $recipients = $args['recipients'];
             if( ! is_array( $recipients ) ) return false;
             if( count($recipients) === 0 ) return false;
@@ -609,6 +629,12 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
         }
 
         public function disable_start_thread_role_to_role_block(&$args, &$errors){
+            $user_id = Better_Messages()->functions->get_current_user_id();
+
+            if( user_can($user_id, 'manage_options') ){
+                return null;
+            }
+
             $recipients = $args['recipients'];
             if( ! is_array( $recipients ) ) return false;
             if( count($recipients) === 0 ) return false;
@@ -639,6 +665,10 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
 
         public function disable_replied_role_to_role_block( $allowed, $user_id, $thread_id ){
             $user_id = Better_Messages()->functions->get_current_user_id();
+
+            if( user_can($user_id, 'manage_options') ){
+                return $allowed;
+            }
 
             $restrict_to = Better_Messages()->functions->get_restrict_to_roles( $user_id );
 
@@ -684,6 +714,10 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
 
         public function disable_replied_role_to_role_allow( $allowed, $user_id, $thread_id ){
             $user_id = Better_Messages()->functions->get_current_user_id();
+
+            if( user_can($user_id, 'manage_options') ){
+                return $allowed;
+            }
 
             $restrict_to = Better_Messages()->functions->get_restrict_to_roles( $user_id );
 
@@ -764,7 +798,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
         }
 
         public function woocommerce_messages_content(){
-            echo Better_Messages()->functions->get_page( true );
+            echo Better_Messages()->functions->get_page();
         }
 
         public function reply_message_formatting( $message, $message_id, $context, $user_id ){
@@ -1051,7 +1085,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                     $asgarosforum->profile->show_profile_navigation($userData);
 
                     echo '<div id="profile-content" style="padding: 0">';
-                    echo Better_Messages()->functions->get_page( true );
+                    echo Better_Messages()->functions->get_page();
                     echo '</div>';
                 }
             } else {
@@ -1572,8 +1606,11 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
             return $message;
         }
 
-        public function disable_new_thread_button_if_needed(){
+        public function disable_new_thread_button_if_needed( $vars ){
             $user_id          = Better_Messages()->functions->get_current_user_id();
+
+            if( $user_id > 0 && user_can( $user_id, 'manage_options' ) ) return $vars;
+
             $restricted_roles = (array)  Better_Messages()->settings['restrictNewThreads'];
             $user_roles       = Better_Messages()->functions->get_user_roles( $user_id );
 
@@ -1585,8 +1622,10 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
             }
 
             if( $is_restricted ) {
-                Better_Messages()->settings['disableNewThread'] = '1';
+                $vars['newThread'] = '0';
             }
+
+            return $vars;
         }
 
         public function disable_new_thread_button_if_disallowed(){
@@ -1856,9 +1895,9 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                 if( ! $hasaccess ) return $content;
             }
 
-            $messages_content = Better_Messages()->functions->get_page( true );
+            $messages_content = Better_Messages()->functions->get_page();
 
-            if( strpos($content, '[bp-better-messages]') !== FALSE ){
+            if( strpos($content, '[bp-better-messages]') !== FALSE || strpos($content, 'wp-block-better-messages-user-inbox') !== FALSE ){
                 $content = str_replace( '[bp-better-messages]', $messages_content, $content );
             } else {
                 $content = $messages_content;
@@ -1945,6 +1984,11 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
             $schedules['better_messages_cleaner_job'] = array(
                 'interval' => 60 * 5,
                 'display' => 'Better Messages Cleaner Job Interval',
+            );
+
+            $schedules['better_messages_ai_ensure_completion_job'] = array(
+                'interval' => 60 * 5,
+                'display' => 'Better Messages AI Bots Ensure Completion Interval',
             );
 
             return $schedules;

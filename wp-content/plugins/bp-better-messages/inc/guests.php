@@ -328,7 +328,7 @@ if ( !class_exists( 'Better_Messages_Guests' ) ):
 
             $data = [];
 
-            $name = trim(sanitize_text_field( $request->get_param('name') ));
+            $name = sanitize_user( trim( sanitize_text_field( $request->get_param('name') ) ) );
 
             if( ! empty( $name ) ){
                 $data['name'] = $name;
@@ -430,7 +430,7 @@ if ( !class_exists( 'Better_Messages_Guests' ) ):
 
             $result = $wpdb->insert( $this->table, [
                 'secret' => $secret,
-                'name'   => $name,
+                'name'   => sanitize_user($name),
                 'email'  => $email,
                 'ip'     => $this->get_client_ip(),
             ] );

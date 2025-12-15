@@ -604,7 +604,9 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             $user_id   = intval( $request->get_param('user_id') );
             $create    = boolval( $request->get_param('create') );
             $subject   = trim( sanitize_text_field( urldecode( $request->get_param('subject') ) ) );
-            $uniqueKey = trim( sanitize_text_field( urldecode( $request->get_param('uniqueKey') ) ) );
+
+            $uniqueKeyParam = $request->get_param('uniqueKey');
+            $uniqueKey = $uniqueKeyParam !== null ? trim( sanitize_text_field( urldecode( $request->get_param('uniqueKey') ) ) ) : '';
 
             if( empty( $uniqueKey ) ){
                 $result = Better_Messages()->functions->get_pm_thread_id( $user_id, Better_Messages()->functions->get_current_user_id(), $create, $subject );
@@ -675,8 +677,16 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             global $wpdb;
 
             $thread_id  = intval($request->get_param('id'));
+            $user_id    = Better_Messages()->functions->get_current_user_id();
 
-            if( ! apply_filters( 'bp_better_messages_can_delete_thread', true, $thread_id, Better_Messages()->functions->get_current_user_id() ) ){
+            $has_access = (bool) $wpdb->get_var( $wpdb->prepare( "
+                SELECT COUNT(*)
+                FROM " . bm_get_table('recipients') . "
+                WHERE `thread_id`  = %d
+                AND   `user_id`    = %d
+            ", $thread_id, $user_id ) );
+
+            if( ! apply_filters( 'bp_better_messages_can_delete_thread', $has_access, $thread_id, Better_Messages()->functions->get_current_user_id() ) ){
                 return new WP_Error(
                     'rest_forbidden',
                     _x( 'Sorry, you are not allowed to delete this conversation', 'Rest API Error', 'bp-better-messages' ),
@@ -685,6 +695,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             }
 
             $delete_allowed = Better_Messages()->settings['restrictThreadsDeleting'] === '0';
+
             if( current_user_can('manage_options') ) {
                 $delete_allowed = true;
             }
@@ -1096,7 +1107,9 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 }
             }
 
-            $suggestions = Better_Messages_Search()->get_users_results( $search, $current_user_id, $exclude, $exclude_current_user );
+            $count = apply_filters('better_messages_search_users_limit', 50 );
+
+            $suggestions = Better_Messages_Search()->get_users_results( $search, $current_user_id, $exclude, $exclude_current_user, $count );
 
             $users = [];
 
@@ -1700,7 +1713,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 if( $personal_data && ! $accessChecked ){
                     $has_access = Better_Messages()->functions->check_access( $thread->thread_id, $current_user_id );
 
-                    if( ! $has_access && current_user_can('manage_options') ){
+                    if( ! $has_access && current_user_can('bm_can_administrate') ){
                         $has_access   = true;
                         $admin_access = true;
                     }
@@ -1731,11 +1744,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
 
                 $delete_allowed = Better_Messages()->settings['restrictThreadsDeleting'] === '0';
 
-                if( current_user_can('manage_options') ) {
-                    $delete_allowed = true;
-                }
-
-                if( $thread_type !== 'thread' ){
+                if( ! $is_participant || $thread_type !== 'thread' ){
                     $delete_allowed = false;
                 }
 
@@ -1779,7 +1788,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                         'isModerator'          => Better_Messages()->functions->is_thread_super_moderator( $current_user_id, $thread->thread_id ),
                         'deleteAllowed'        => $delete_allowed,
                         'canDeleteOwnMessages' => Better_Messages()->settings['allowDeleteMessages'] === '1',
-                        'canDeleteAllMessages' => current_user_can('manage_options'),
+                        'canDeleteAllMessages' => current_user_can('bm_can_administrate'),
                         'canEditOwnMessages'   => Better_Messages()->settings['allowEditMessages'] === '1',
                         'canFavorite'          => Better_Messages()->settings['disableFavoriteMessages'] !== '1',
                         'canMuteThread'        => ( Better_Messages()->settings['allowMuteThreads'] === '1' && ! $admin_access ),
@@ -1970,7 +1979,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 );
             }
 
-            $has_access = current_user_can('manage_options');
+            $has_access = current_user_can('bm_can_administrate');
 
             if( ! $has_access ) {
                 $has_access = Better_Messages()->functions->check_access($thread_id, $user_id);
