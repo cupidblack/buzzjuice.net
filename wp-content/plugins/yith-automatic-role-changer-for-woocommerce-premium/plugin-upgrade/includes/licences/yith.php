@@ -18,6 +18,7 @@ defined( 'ABSPATH' ) || exit;  // Exit if accessed directly.
 
 use Exception;
 use YITH\PluginUpgrade\Licence;
+use YITH\PluginUpgrade\Utils;
 use const HOUR_IN_SECONDS;
 
 if ( ! class_exists( 'YITH\PluginUpgrade\Licences\YITH' ) ) :
@@ -74,7 +75,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences\YITH' ) ) :
 					'licence_key' => '',
 					'product_id'  => '',
 					'secret_key'  => '',
-					'instance'    => yith_plugin_upgrade_get_home_url(),
+					'instance'    => Utils::get_home_url(),
 					'request'     => 'activation',
 				)
 			);
@@ -138,7 +139,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences\YITH' ) ) :
 					'licence_key' => '',
 					'product_id'  => '',
 					'secret_key'  => '',
-					'instance'    => yith_plugin_upgrade_get_home_url(),
+					'instance'    => Utils::get_home_url(),
 					'request'     => 'deactivation',
 				)
 			);
@@ -200,7 +201,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences\YITH' ) ) :
 					'licence_key' => '',
 					'product_id'  => '',
 					'secret_key'  => '',
-					'instance'    => yith_plugin_upgrade_get_home_url(),
+					'instance'    => Utils::get_home_url(),
 					'request'     => 'check',
 				)
 			);
@@ -223,10 +224,10 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences\YITH' ) ) :
 				throw new Exception( 'invalid_response' );
 			}
 
-			$success = isset( $body['success'] ) && true === $body['success'];
-			$code    = ! empty( $body['code'] ) ? (int) $body['code'] : 100;
+			$activated = isset( $body['activated'] ) && $body['activated'];
+			$code      = ! empty( $body['code'] ) ? (int) $body['code'] : 100;
 
-			if ( 100 === $code && $success ) {
+			if ( 100 === $code && $activated ) {
 				$this->data = array_merge(
 					$this->data,
 					array(
@@ -240,7 +241,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences\YITH' ) ) :
 						'is_membership'        => isset( $body['is_membership'] ) && ! ! $body['is_membership'],
 					)
 				);
-			} elseif ( 100 === $code && ! $success ) {
+			} elseif ( 100 === $code && ! $activated ) {
 				$this->data = array_merge(
 					$this->data,
 					array(
@@ -273,8 +274,8 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences\YITH' ) ) :
 				);
 			}
 
-			$this->data['licence_next_check'] = time() + ( 3 * HOUR_IN_SECONDS );
-			if ( ! $success ) {
+			$this->data['licence_next_check'] = time() + ( 6 * HOUR_IN_SECONDS );
+			if ( ! $activated ) {
 				throw new Exception( esc_html( $this->get_error_message( $code ) ) );
 			}
 
@@ -343,7 +344,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences\YITH' ) ) :
 					'licence_key' => $this->licence_key,
 					'product_id'  => $this->product_id,
 					'secret_key'  => $this->secret_key,
-					'instance'    => yith_plugin_upgrade_get_home_url(),
+					'instance'    => Utils::get_home_url(),
 				),
 				$url
 			);

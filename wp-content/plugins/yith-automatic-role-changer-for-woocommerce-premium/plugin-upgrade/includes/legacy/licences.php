@@ -20,6 +20,7 @@ use Exception;
 use YITH\PluginUpgrade\Admin\Panel;
 use YITH\PluginUpgrade\Licence;
 use YITH\PluginUpgrade\Network;
+use YITH\PluginUpgrade\Utils;
 
 if ( ! class_exists( 'YITH\PluginUpgrade\Legacy\Licences' ) ) :
 	/**
@@ -181,7 +182,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Legacy\Licences' ) ) :
 		 * @deprecated
 		 */
 		public function get_home_url(): string {
-			return yith_plugin_upgrade_get_home_url();
+			return Utils::get_home_url();
 		}
 
 		/**

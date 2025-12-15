@@ -14,11 +14,11 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 6px;
 }
 .yith-plugin-upgrade-licence-banner .yith-plugin-upgrade-licence-banner__content__head {
   color: #982A21;
-  font-size: 1.5em;
+  font-size: 1rem;
   line-height: 1.5;
   font-weight: 600;
 }
@@ -34,17 +34,19 @@
   margin-left: auto;
 }
 .yith-plugin-upgrade-licence-banner .yith-plugin-upgrade-licence-banner__actions > a.yith-plugin-fw__button {
-  padding: 4px 56px;
+  padding: 0 32px;
   text-align: center;
 }
 .yith-plugin-upgrade-licence-banner.yith-plugin-upgrade-licence-banner--inline {
-  margin: 40px 24px 16px 0;
+  margin: 30px 24px 16px 0;
   box-shadow: 1px 2px 8px 0 rgba(199, 0, 0, 0.1);
   background: #fff;
   padding: 24px;
+  max-width: 2175px;
+  box-sizing: border-box;
 }
 .yith-plugin-upgrade-licence-banner.yith-plugin-upgrade-licence-banner--inline .yith-plugin-upgrade-licence-banner__icon {
-  flex: 50px 0;
+  flex: 40px 0;
 }
 .yith-plugin-upgrade-licence-banner.yith-plugin-upgrade-licence-banner--inline .yith-plugin-upgrade-licence-banner--hide-inline {
   display: none;
@@ -53,7 +55,8 @@
   .yith-plugin-upgrade-licence-banner.yith-plugin-upgrade-licence-banner--inline {
     flex-direction: column;
     text-align: center;
-    margin-right: 8px;
+    margin-right: 10px;
+    gap: 8px;
   }
   .yith-plugin-upgrade-licence-banner.yith-plugin-upgrade-licence-banner--inline .yith-plugin-upgrade-licence-banner__icon {
     display: flex;
@@ -61,13 +64,13 @@
     justify-content: center;
   }
   .yith-plugin-upgrade-licence-banner.yith-plugin-upgrade-licence-banner--inline .yith-plugin-upgrade-licence-banner__icon svg {
-    max-width: 50px;
+    max-width: 40px;
   }
   .yith-plugin-upgrade-licence-banner.yith-plugin-upgrade-licence-banner--inline .yith-plugin-upgrade-licence-banner__actions {
     width: 100%;
   }
   .yith-plugin-upgrade-licence-banner.yith-plugin-upgrade-licence-banner--inline .yith-plugin-upgrade-licence-banner__actions > a.yith-plugin-fw__button {
-    padding: 12px;
+    padding: 8px;
     text-align: center;
   }
 }

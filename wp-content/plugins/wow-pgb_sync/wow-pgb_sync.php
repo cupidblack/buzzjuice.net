@@ -45,6 +45,43 @@ function create_wow_pgb_virtual_products() {
             $product->set_sold_individually(true);
             $product->save();
 
+            // ---------------------------
+            // AFTER $variation->save(); — set regular_price and subscription meta for PRO variations
+            // ---------------------------
+            $pro_prices_map = [
+                'wow-pgb_pro_1' => '27.00',  // Classic — 1 month
+                'wow-pgb_pro_2' => '50.00',  // Silver — every 3 months
+                'wow-pgb_pro_3' => '82.00',  // RockStar — every 6 months
+                'wow-pgb_pro_4' => '150.00', // Premium — 12 months / yearly
+            ];
+            
+            $subscription_meta_map = [
+                'wow-pgb_pro_1' => ['period' => 'month', 'interval' => 1, 'length' => 0],
+                'wow-pgb_pro_2' => ['period' => 'month', 'interval' => 3, 'length' => 0],
+                'wow-pgb_pro_3' => ['period' => 'month', 'interval' => 6, 'length' => 0],
+                'wow-pgb_pro_4' => ['period' => 'year',  'interval' => 1, 'length' => 0],
+            ];
+            
+            if (!empty($sku) && isset($pro_prices_map[$sku])) {
+                try {
+                    $variation->set_regular_price($pro_prices_map[$sku]);
+                    $variation->save();
+                    $variation_id = $variation->get_id();
+                    $product_ids[$sku] = $variation_id;
+                    update_option("wow_pgb_product_id_$sku", $product_ids[$sku]);
+                } catch (Exception $e) {
+                    error_log("Error setting variation price for $sku: " . $e->getMessage());
+                }
+            
+                if (isset($subscription_meta_map[$sku]) && !empty($variation_id)) {
+                    $meta = $subscription_meta_map[$sku];
+                    update_post_meta($variation_id, '_subscription_period', $meta['period']);
+                    update_post_meta($variation_id, '_subscription_interval', (int)$meta['interval']);
+                    update_post_meta($variation_id, '_subscription_length', (int)$meta['length']);
+                    update_post_meta($variation_id, '_subscription_period_interval', (int)$meta['interval']);
+                }
+            }
+
             $product_ids[$sku] = $product->get_id();
         } else {
             $product_ids[$sku] = $existing_product_id;
@@ -320,11 +357,20 @@ function wowonder_redirect_after_purchase($order_id) {
                         'next_payment_date' => $next_payment_date, // Include the next payment date
                         'status' => 'active',
                     ];
-
+                    
                     foreach ($order->get_items('line_item') as $line_item) {
+                        $product_id = $line_item->get_product_id();
+                        $quantity = max(1, $line_item->get_quantity());
+                        $line_total = floatval($line_item->get_total());
+                        $unit_price = number_format($line_total / $quantity, 2, '.', '');
+                        $subtotal = number_format($unit_price, 2, '.', '');
+                        $total = number_format($unit_price * $quantity, 2, '.', '');
+                    
                         $subscription_data['line_items'][] = [
-                            'product_id' => $line_item->get_product_id(),
-                            'quantity' => $line_item->get_quantity(),
+                            'product_id' => $product_id,
+                            'quantity' => $quantity,
+                            'subtotal' => $subtotal,
+                            'total' => $total,
                         ];
                     }
 
@@ -521,22 +567,29 @@ add_action('admin_init', 'wowonder_settings_init');
  * @param int $variation_id The variation product ID.
  * @return array An array containing the subscription period, interval, and full metadata.
  */
+// ---------------------------
+// Robust get_subscription_metadata()
+// ---------------------------
 function get_subscription_metadata($variation_id) {
-    $subscription_period = 'month'; // Default value
-    $subscription_interval = 1; // Default value
-    $full_metadata = []; // To store all metadata
+    $subscription_period = 'month';
+    $subscription_interval = 1;
+    $subscription_length = 0;
+    $full_metadata = [];
 
-    // Retrieve the product object for the variation
     $product = wc_get_product($variation_id);
     if ($product) {
-        // Loop through the product's metadata to find subscription-related keys
         foreach ($product->get_meta_data() as $meta) {
-            $full_metadata[$meta->key] = $meta->value; // Store all metadata
+            $full_metadata[$meta->key] = $meta->value;
             if ($meta->key === '_subscription_period') {
                 $subscription_period = $meta->value;
-            }
-            if ($meta->key === '_subscription_period_interval') {
-                $subscription_interval = (int) $meta->value;
+            } elseif ($meta->key === '_subscription_interval' || $meta->key === '_subscription_period_interval') {
+                $subscription_interval = (int)$meta->value;
+            } elseif ($meta->key === '_subscription_length') {
+                $subscription_length = (int)$meta->value;
+            } elseif ($meta->key === 'subscription_period') {
+                $subscription_period = $meta->value;
+            } elseif ($meta->key === 'subscription_interval') {
+                $subscription_interval = (int)$meta->value;
             }
         }
     }
@@ -547,7 +600,8 @@ function get_subscription_metadata($variation_id) {
     return [
         'subscription_period' => $subscription_period,
         'subscription_interval' => $subscription_interval,
-        'full_metadata' => $full_metadata, // Include all metadata in the return value
+        'subscription_length' => $subscription_length,
+        'full_metadata' => $full_metadata,
     ];
 }
 

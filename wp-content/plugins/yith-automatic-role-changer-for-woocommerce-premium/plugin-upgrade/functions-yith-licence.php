@@ -31,27 +31,3 @@ if ( ! function_exists( 'yith_plugin_onboarding_registration_hook' ) ) {
 		}
 	}
 }
-
-if ( ! function_exists( 'yith_plugin_upgrade_get_home_url' ) ) {
-	/**
-	 * Get the home url without protocol
-	 *
-	 * @since  5.0.0
-	 * @return string The home url.
-	 */
-	function yith_plugin_upgrade_get_home_url(): string {
-		$home_url = home_url();
-		$schemes  = array( 'https://', 'http://', 'www.' );
-
-		foreach ( $schemes as $scheme ) {
-			$home_url = str_replace( $scheme, '', $home_url );
-		}
-
-		if ( false !== strpos( $home_url, '?' ) ) {
-			list( $base, $query ) = explode( '?', $home_url, 2 );
-			$home_url             = $base;
-		}
-
-		return untrailingslashit( $home_url );
-	}
-}

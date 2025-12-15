@@ -83,7 +83,7 @@ defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 <?php wp_print_scripts( 'yith-licence-onboarding-js' ); ?>
 <script type="text/template" id="tmpl-success-message">
 	<div id="activation-success">
-		<img src="<?php echo esc_url( $assets_url . '/images/alldone.svg' ); ?>" width="60" height="60" alt="">
+		<img src="<?php echo esc_url( $assets_url . 'images/done.svg' ); ?>" width="60" height="60" alt="">
 		<p><?php esc_html_e( 'All done!', 'yith-plugin-upgrade-fw' ); ?></p>
 		<p><?php esc_html_e( 'Thank you for activating the plugin license.', 'yith-plugin-upgrade-fw' ); ?></p>
 		<a href="<?php echo esc_url( $return_url ); ?>" class="button"><?php esc_html_e( 'Go to plugin dashboard', 'yith-plugin-upgrade-fw' ); ?></a>

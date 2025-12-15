@@ -132,7 +132,7 @@ if ( ! function_exists( 'yit_plugin_content' ) ) {
 		// Splitting.
 		if ( count( $content ) >= $limit ) {
 			$split_content = '';
-			for ( $i = 0; $i < $limit; $i ++ ) {
+			for ( $i = 0; $i < $limit; $i++ ) {
 				$split_content .= $content[ $i ] . ' ';
 			}
 
@@ -360,7 +360,7 @@ if ( ! function_exists( 'yit_get_post_meta' ) ) {
 		$meta           = get_post_meta( $id, current( $sub_meta ), true );
 		$sub_meta_count = count( $sub_meta );
 
-		for ( $i = 1; $i < $sub_meta_count; $i ++ ) {
+		for ( $i = 1; $i < $sub_meta_count; $i++ ) {
 			$current_submeta = rtrim( $sub_meta[ $i ], ']' );
 			if ( ! isset( $meta[ $current_submeta ] ) ) {
 				return false;
@@ -446,7 +446,7 @@ if ( ! function_exists( 'yit_pagination' ) ) {
 				$html .= sprintf( '<a class="%s" href="%s">&lsaquo;</a>', 'yit_pagination_previous', get_pagenum_link( $paged - 1 ) );
 			}
 
-			for ( $i = 1; $i <= $pages; $i ++ ) {
+			for ( $i = 1; $i <= $pages; $i++ ) {
 				if ( 1 !== $pages && ( ! ( $i >= $paged + $range + 1 || $i <= $paged - $range - 1 ) || $pages <= $showitems ) ) {
 					$class = ( $paged === $i ) ? 'selected' : '';
 
@@ -589,7 +589,7 @@ if ( ! function_exists( 'yit_get_excluded_categories' ) ) {
 		foreach ( $cats as $cat ) {
 			$query .= ",-$cat";
 
-			$i ++;
+			$i++;
 		}
 
 		ltrim( ',', $query );
@@ -648,7 +648,7 @@ if ( ! function_exists( 'yit_ie_version' ) ) {
 	function yit_ie_version() {
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput
 		if ( ! isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
-			return - 1;
+			return -1;
 		}
 		preg_match( '/MSIE ([0-9]+\.[0-9])/', $_SERVER['HTTP_USER_AGENT'], $reg );
 
@@ -656,7 +656,7 @@ if ( ! function_exists( 'yit_ie_version' ) ) {
 		if ( ! isset( $reg[1] ) ) {
 			preg_match( '/rv:([0-9]+\.[0-9])/', $_SERVER['HTTP_USER_AGENT'], $reg );
 			if ( ! isset( $reg[1] ) ) {
-				return - 1;
+				return -1;
 			} else {
 				return floatval( $reg[1] );
 			}
@@ -989,7 +989,7 @@ if ( ! function_exists( 'yith_get_formatted_price' ) ) {
 		list ( $decimals, $decimal_separator, $thousand_separator, $price_format, $currency ) = yith_plugin_fw_extract( $args, 'decimals', 'decimal_separator', 'thousand_separator', 'price_format', 'currency' );
 
 		$negative = $price < 0;
-		$price    = apply_filters( 'raw_woocommerce_price', floatval( $negative ? $price * - 1 : $price ) );
+		$price    = apply_filters( 'raw_woocommerce_price', floatval( $negative ? $price * -1 : $price ) );
 		$price    = apply_filters( 'formatted_woocommerce_price', number_format( $price, $decimals, $decimal_separator, $thousand_separator ), $price, $decimals, $decimal_separator, $thousand_separator );
 
 		if ( apply_filters( 'woocommerce_price_trim_zeros', false ) && $decimals > 0 ) {
@@ -1117,7 +1117,7 @@ if ( ! function_exists( 'yith_plugin_fw_get_field' ) ) {
 			static $field_number = 1;
 
 			$field['id'] = "yith-plugin-fw-field__{$field_number}";
-			$field_number ++;
+			$field_number++;
 		}
 
 		if ( $field_template ) {
@@ -1272,7 +1272,7 @@ if ( ! function_exists( 'yit_add_select2_fields' ) ) {
 		$custom_attributes = implode( ' ', $custom_attributes );
 
 		if ( ! function_exists( 'WC' ) || version_compare( WC()->version, '2.7.0', '>=' ) ) {
-			if ( true === $args['data-multiple'] && substr( $args['name'], - 2 ) !== '[]' ) {
+			if ( true === $args['data-multiple'] && substr( $args['name'], -2 ) !== '[]' ) {
 				$args['name'] = $args['name'] . '[]';
 			}
 			$select2_template_name = 'select2.php';
@@ -1727,10 +1727,13 @@ if ( ! function_exists( 'yith_plugin_fw_add_utm_data' ) ) {
 	 * @param string $slug     Plugin slug.
 	 * @param string $campaign Campaign to track. Default: default.
 	 * @param string $source   Where the link came from. You can simply set it to the plugin version type(free, extended, premium) to get the correct source. Default: wp-dashboard.
+	 * @param string $content  Identifies what specifically was clicked to bring the user to the site, such as button-cta, link, and something similar.
+	 * @param string $term     A keyword representing something that brought the user to the site.
 	 *
 	 * @since 3.6.10
+	 * @since 4.5.8 Added $content and $term prams.
 	 */
-	function yith_plugin_fw_add_utm_data( $url, $slug, $campaign = 'default', $source = 'wp-dashboard' ) {
+	function yith_plugin_fw_add_utm_data( $url, $slug, $campaign = 'default', $source = 'wp-dashboard', $content = '', $term = '' ) {
 		$sources = array(
 			'free'     => 'wp-free-dashboard',
 			'extended' => 'wp-extended-dashboard',
@@ -1745,6 +1748,14 @@ if ( ! function_exists( 'yith_plugin_fw_add_utm_data' ) ) {
 				'utm_medium'   => $slug,
 				'utm_campaign' => $campaign,
 			);
+
+			if ( $content ) {
+				$utm_track_data['utm_content'] = $content;
+			}
+
+			if ( $term ) {
+				$utm_track_data['utm_term'] = $term;
+			}
 
 			$url = add_query_arg( $utm_track_data, $url );
 		}
@@ -2361,6 +2372,8 @@ if ( ! function_exists( 'yith_plugin_fw_kses_allowed_svg_tags' ) ) {
 				'class'           => true,
 				'd'               => true,
 				'fill'            => true,
+				'clip-rule'       => true,
+				'fill-rule'       => true,
 				'stroke-linecap'  => true,
 				'stroke-linejoin' => true,
 			),
@@ -2373,5 +2386,58 @@ if ( ! function_exists( 'yith_plugin_fw_kses_allowed_svg_tags' ) ) {
 				'height' => true,
 			),
 		);
+	}
+}
+
+if ( ! function_exists( 'yith_plugin_fw_load_plugin_textdomain' ) ) {
+	/**
+	 * Load plugin text-domain.
+	 *
+	 * @param string $domain         The text-domain.
+	 * @param string $languages_path Path of the "languages" plugin folder.
+	 *
+	 * @since 4.7.0
+	 * @since 4.7.3 Set NOOP_Translations for the specific text-domain if no translation was found.
+	 */
+	function yith_plugin_fw_load_plugin_textdomain( $domain, $languages_path ) {
+		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+		global $wp_textdomain_registry;
+
+		$locale = apply_filters( 'plugin_locale', determine_locale(), $domain ); // phpcs:ignore WooCommerce.Commenting.CommentHooks.MissingSinceComment
+
+		$plugin_mo_rel_path = trailingslashit( $languages_path ) . $domain . '-' . $locale . '.mo';
+		$plugin_mo_path     = trailingslashit( WP_PLUGIN_DIR ) . trim( $plugin_mo_rel_path, '/' );
+
+		unload_textdomain( $domain, true );
+
+		$mo_path = $wp_textdomain_registry->get( $domain, $locale );
+		$loaded  = false;
+
+		if ( $mo_path ) {
+			$template_directory   = trailingslashit( get_template_directory() );
+			$stylesheet_directory = trailingslashit( get_stylesheet_directory() );
+			if ( str_starts_with( $mo_path, $template_directory ) || str_starts_with( $mo_path, $stylesheet_directory ) ) {
+				$mo_file = "{$mo_path}{$locale}.mo";
+			} else {
+				$mo_file = "{$mo_path}{$domain}-{$locale}.mo";
+			}
+
+			$loaded = load_textdomain( $domain, $mo_file, $locale );
+		}
+
+		if ( load_textdomain( $domain, $plugin_mo_path, $locale ) ) {
+			$loaded = true;
+		}
+
+		if ( ! $loaded && class_exists( 'NOOP_Translations' ) ) {
+			global $l10n;
+
+			static $noop_translations = null;
+			if ( null === $noop_translations ) {
+				$noop_translations = new NOOP_Translations();
+			}
+
+			$l10n[ $domain ] = &$noop_translations;
+		}
 	}
 }

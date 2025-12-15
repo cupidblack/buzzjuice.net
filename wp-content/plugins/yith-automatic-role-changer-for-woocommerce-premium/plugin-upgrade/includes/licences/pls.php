@@ -18,6 +18,7 @@ defined( 'ABSPATH' ) || exit;  // Exit if accessed directly.
 
 use Exception;
 use YITH\PluginUpgrade\Licence;
+use YITH\PluginUpgrade\Utils;
 use const MINUTE_IN_SECONDS;
 
 if ( ! class_exists( 'YITH\PluginUpgrade\Licences\PLS' ) ) :
@@ -88,10 +89,11 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences\PLS' ) ) :
 				return;
 			}
 
-			$transient_name = 'yith_pls_is_activating_licence_' . md5( $this->data['licence_key'] );
+			$hook_name      = 'yith_pls_retry_licence_activation_' . $this->data['product_id'];
+			$transient_name = 'yith_pls_is_activating_licence_' . $this->data['product_id'];
 			$is_executing   = ! ! get_transient( $transient_name );
 
-			if ( $is_executing || $this->data['attempts'] >= self::MAX_ATTEMPTS ) {
+			if ( $is_executing || ( function_exists( 'as_next_scheduled_action' ) && as_next_scheduled_action( $hook_name ) ) || $this->data['attempts'] >= self::MAX_ATTEMPTS ) {
 				return;
 			}
 
@@ -101,8 +103,8 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences\PLS' ) ) :
 
 				$this->data['attempts'] = 0; // If activation process is completed, reset attempts.
 			} catch ( Exception $e ) {
-				if ( function_exists( 'as_next_scheduled_action' ) ) {
-					as_schedule_single_action( time() + 10 * MINUTE_IN_SECONDS, 'yith_pls_retry_licence_activation_' . $this->data['product_id'] );
+				if ( function_exists( 'as_schedule_single_action' ) ) {
+					as_schedule_single_action( time() + 10 * MINUTE_IN_SECONDS, $hook_name );
 				}
 
 				++$this->data['attempts'];
@@ -124,7 +126,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences\PLS' ) ) :
 				$this->data['product_id'],
 				$this->data['licence_key'],
 				array(
-					'instance' => yith_plugin_upgrade_get_home_url(),
+					'instance' => Utils::get_home_url(),
 					'email'    => get_bloginfo( 'admin_email' ),
 				)
 			);
@@ -166,7 +168,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences\PLS' ) ) :
 				array(
 					'licence_key'    => $this->data['licence_key'],
 					'software_id'    => $this->data['product_id'],
-					'activation_key' => rawurlencode( $this->activation_key ),
+					'activation_key' => rawurlencode( \NewfoldLabs\WP\PLS\PLS::get_activation_key( $this->data['licence_key'] ) ),
 				),
 				$url
 			);

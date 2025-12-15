@@ -22,7 +22,7 @@ use YITH\PluginUpgrade\Licence;
 
 <form class="yith-licence-activation-form">
 	<span class="yith-licence-product">
-		<img src="<?php echo esc_url( YITH_PLUGIN_UPGRADE_URL ); ?>/assets/images/alert.svg" width="20px" alt=""/>
+		<img src="<?php echo esc_url( YITH_PLUGIN_UPGRADE_URL ); ?>/assets/images/alert.svg" width="25px" alt=""/>
 		<span>
 			<?php echo esc_html( Utils::display_product_name( $init ) ); ?>
 			<br><span class="yith-licence-activation-alert"><?php echo esc_html__( 'Please activate your license', 'yith-plugin-upgrade-fw' ); ?></span>

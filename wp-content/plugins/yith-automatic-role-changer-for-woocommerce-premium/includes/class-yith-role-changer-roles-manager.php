@@ -1,40 +1,23 @@
 <?php
 /**
- * This file belongs to the YIT Framework.
- *
- * This source file is subject to the GNU GENERAL PUBLIC LICENSE (GPL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://www.gnu.org/licenses/gpl-3.0.txt
+ * Class YITH_Role_Changer_Roles_Manager
  *
  * @package YITH\AutomaticRoleChanger\Classes
  */
 
-if ( ! defined( 'YITH_WCARC_VERSION' ) ) {
-	exit( 'Direct access forbidden.' );
-}
-
-/**
- * The changer roles manager.
- *
- * @class      YITH_Role_Changer_Roles_Manager
- * @package    YITH\AutomaticRoleChanger\Classes
- * @since      Version 1.0.0
- * @author     YITH <plugins@yithemes.com>
- */
+defined( 'YITH_WCARC_VERSION' ) || exit; // Exit if accessed directly.
 
 if ( ! class_exists( 'YITH_Role_Changer_Roles_Manager' ) ) {
 	/**
 	 * Class YITH_Role_Changer_Roles_Manager
-	 *
 	 */
 	class YITH_Role_Changer_Roles_Manager {
+		use YITH_WCARC_Singleton_Trait;
+
 		/**
 		 * Construct
-		 *
-		 * @since 1.0.0
 		 */
-		public function __construct() {
+		protected function __construct() {
 			add_action( 'admin_head', array( $this, 'hide_role_select' ) );
 			add_action( 'show_user_profile', array( $this, 'profile_fields' ) );
 			add_action( 'edit_user_profile', array( $this, 'profile_fields' ) );
@@ -43,14 +26,17 @@ if ( ! class_exists( 'YITH_Role_Changer_Roles_Manager' ) ) {
 
 		/** Hide the Role Select */
 		public function hide_role_select() {
-			?><style type="text/css">.user-role-wrap{ display: none !important; }</style>
+			?>
+			<style type="text/css">.user-role-wrap {
+                    display : none !important;
+                }</style>
 			<?php
 		}
 
 		/**
 		 * Paint the current user's profile.
 		 *
-		 * @param  mixed $user Current user.
+		 * @param mixed $user Current user.
 		 */
 		public function profile_fields( $user ) {
 			global $wp_roles;
@@ -94,7 +80,7 @@ if ( ! class_exists( 'YITH_Role_Changer_Roles_Manager' ) ) {
 		/**
 		 * Update role to a certain user.
 		 *
-		 * @param  mixed $user_id Current User ID.
+		 * @param mixed $user_id Current User ID.
 		 */
 		public function role_update( $user_id ) {
 			if ( ! current_user_can( 'promote_users' ) || ! current_user_can( 'edit_user', $user_id ) ) {
@@ -122,11 +108,10 @@ if ( ! class_exists( 'YITH_Role_Changer_Roles_Manager' ) ) {
 				}
 			} else {
 				foreach ( (array) $user->roles as $old_role ) {
-						$user->remove_role( $old_role );
+					$user->remove_role( $old_role );
 				}
 			}
 		}
-
 
 
 	}

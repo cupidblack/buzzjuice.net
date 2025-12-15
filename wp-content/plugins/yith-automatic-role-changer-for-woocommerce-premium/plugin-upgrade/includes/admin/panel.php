@@ -15,6 +15,7 @@ declare( strict_types = 1 );
 namespace YITH\PluginUpgrade\Admin;
 
 use Exception;
+use YITH\PluginUpgrade\Licence;
 
 defined( 'ABSPATH' ) || exit;  // Exit if accessed directly.
 
@@ -54,6 +55,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Admin\Panel' ) ) :
 			add_action( 'admin_menu', array( $this, 'add_page' ), 99 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_register_scripts' ), 20 );
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ), 100 );
+			add_action( 'admin_init', array( $this, 'licence_check' ) );
 			// Handle AJAX request.
 			add_action( 'wp_ajax_yith_licence_ajax_request', array( $this, 'handle_ajax_request' ) );
 		}
@@ -77,7 +79,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Admin\Panel' ) ) :
 			$licences_to_activate = count( $this->get_licences_to_activate() );
 			$bubble               = ! empty( $licences_to_activate ) ? " <span data-count='$licences_to_activate' id='yith-licence-to-activate-count' class='awaiting-mod count-$licences_to_activate'><span class='expired-count'>$licences_to_activate</span></span>" : '';
 
-			$title = __( 'License Activation', 'yith-plugin-upgrade-fw' );
+			$title = __( 'License Panel', 'yith-plugin-upgrade-fw' );
 			$args  = array(
 				'manage_options',
 				self::PANEL_SLUG,
@@ -113,6 +115,23 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Admin\Panel' ) ) :
 			$activated_licences   = $this->get_licences_activated();
 			$licences_to_activate = $this->get_licences_to_activate();
 			$upsell_products      = $this->get_upsell_products();
+
+			// Check if there are expired licences. This is useful to print the update status notice.
+			$have_expired_licences = ! empty(
+				array_filter(
+					$activated_licences,
+					function ( Licence $licence ) {
+						return $licence->is_expired();
+					}
+				)
+			);
+
+			$licence_check_status_url = $this->get_url(
+				array(
+					'action'   => 'yith-licences-check',
+					'security' => wp_create_nonce( 'yith-licences-check' ),
+				)
+			);
 
 			include YITH_PLUGIN_UPGRADE_PATH . '/templates/panel/activation-panel.php';
 		}
@@ -243,13 +262,21 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Admin\Panel' ) ) :
 		}
 
 		/**
-		 * Deactivate a licence from panel
+		 * Check licences status from panel
 		 *
 		 * @since 5.0.0
 		 * @return void
 		 * @throw Exception Errors on licence activation process
 		 */
-		protected function licence_check() {
+		public function licence_check() {
+
+			if ( ! isset( $_GET['action'], $_GET['security'] ) ||
+				'yith-licences-check' !== sanitize_text_field( wp_unslash( $_GET['action'] ) ) ||
+				! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['security'] ) ), 'yith-licences-check' )
+			) {
+				return;
+			}
+
 			foreach ( $this->get_licences_activated() as $licence ) {
 				try {
 					$licence->check( array(), true );
@@ -257,6 +284,9 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Admin\Panel' ) ) :
 					// catch exceptions to let all licences check its status.
 				}
 			}
+
+			wp_safe_redirect( $this->get_url() );
+			exit;
 		}
 
 		/**
@@ -311,8 +341,9 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Admin\Panel' ) ) :
 
 				// Store response in transient.
 				$products = ( is_wp_error( $response ) || empty( $response['body'] ) ) ? array() : json_decode( $response['body'], true );
+				$products = ! is_array( $products ) ? array() : $products;
 				$products = array_map(
-					function( $product ) {
+					function ( $product ) {
 						$product['permalink'] = add_query_arg(
 							array(
 								'utm_source'   => 'wp-premium-dashboard',
@@ -358,7 +389,13 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Admin\Panel' ) ) :
 				);
 			}
 
+			// Register style.
 			wp_register_style( 'yith-licence-panel', YITH_PLUGIN_UPGRADE_URL . '/assets/css/panel.css', array( 'yith-plugin-ui' ), YITH_PLUGIN_UPGRADE_VERSION );
+
+			// Register scrips.
+			if ( ! wp_script_is( 'jquery-blockui', 'registered' ) ) {
+				wp_register_script( 'jquery-blockui', YITH_PLUGIN_UPGRADE_URL . "/assets/js/jquery-blockui/jquery.blockUI$suffix.js", array( 'jquery' ), '2.70', true );
+			}
 			wp_register_script( 'yith-licence-panel', YITH_PLUGIN_UPGRADE_URL . "/assets/js/panel$suffix.js", array( 'jquery', 'jquery-blockui', 'yith-ui' ), YITH_PLUGIN_UPGRADE_VERSION, true );
 
 			// translators: You can find the License e-mail and the License key in your License & Download page.
@@ -407,7 +444,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Admin\Panel' ) ) :
 		public function admin_enqueue_scripts() {
 			// Enqueue scripts only in Licence Activation page of plugins and themes.
 			$current_screen = get_current_screen();
-			if ( empty( $current_screen ) || false === strpos( $current_screen->id, self::PANEL_SLUG ) ) {
+			if ( empty( $current_screen ) || false === strpos( strval( $current_screen->id ), self::PANEL_SLUG ) ) {
 				return;
 			}
 

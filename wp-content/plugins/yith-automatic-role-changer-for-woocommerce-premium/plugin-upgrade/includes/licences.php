@@ -25,7 +25,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences' ) ) :
 	/**
 	 * Licences main class.
 	 *
-	 * @since 5.0.0
+	 * @since   5.0.0
 	 * @package YITH/PluginUpgrade
 	 */
 	class Licences extends LicencesLegacy {
@@ -95,10 +95,11 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences' ) ) :
 
 			$classname = $this->get_classname_from_product_id( $product_id );
 			$data_key  = strtolower( str_replace( 'YITH\PluginUpgrade\Licences\\', '', $classname ) );
-			$data      = $this->data[ $data_key ][ $product_id ] ?? array(
+			$default   = array(
 				'secret_key' => $secret_key,
 				'product_id' => $product_id,
 			);
+			$data      = isset( $this->data[ $data_key ][ $product_id ] ) ? array_merge( $this->data[ $data_key ][ $product_id ], $default ) : $default;
 
 			$this->licences[ $plugin_init ] = new $classname( $plugin_init, $data );
 		}
@@ -121,7 +122,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences' ) ) :
 		/**
 		 * Maybe load onboarding class
 		 *
-		 * @since 4.3.0
+		 * @since  4.3.0
 		 * @author Francesco Licandro
 		 * @return void
 		 */
@@ -132,7 +133,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences' ) ) :
 		/**
 		 * Maybe load onboarding class
 		 *
-		 * @since 4.3.0
+		 * @since  4.3.0
 		 * @author Francesco Licandro
 		 * @return void
 		 */
@@ -316,7 +317,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Licences' ) ) :
 		protected function load_data() {
 			// Build data array.
 			foreach ( $this->licence_types as $type => $option_name ) {
-				$this->data[ $type ] = get_option( $option_name, array() );
+				$this->data[ $type ] = get_option( $option_name, array() ) ?: array();
 			}
 		}
 	}

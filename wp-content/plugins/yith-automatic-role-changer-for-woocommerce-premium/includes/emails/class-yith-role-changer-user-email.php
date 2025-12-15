@@ -38,45 +38,72 @@ if ( ! class_exists( 'YITH_Role_Changer_User_Email' ) ) {
 			$this->customer_email = true;
 
 			$this->title       = esc_html__( 'Automatic Role Changer email for User', 'yith-automatic-role-changer-for-woocommerce' );
-			$this->description = esc_html__(
-				'The user will receive an email when a order with roles to be 
-				granted passes to "Completed" or "Processing" status.',
-				'yith-automatic-role-changer-for-woocommerce'
-			);
+			$this->description = esc_html__( 'The user will receive an email when an order with roles to be assigned goes to the "Completed" or "Processing" status.', 'yith-automatic-role-changer-for-woocommerce' );
 
-			$this->heading = esc_html__( "You've earned roles", 'yith-automatic-role-changer-for-woocommerce' );
-			$this->subject = esc_html__( "You've earned roles", 'yith-automatic-role-changer-for-woocommerce' );
+			$this->heading = esc_html__( 'Your new role on {site_title}!', 'yith-automatic-role-changer-for-woocommerce' );
+			$this->subject = esc_html__( 'Your new role on {site_title}!', 'yith-automatic-role-changer-for-woocommerce' );
 
 			$this->template_html = 'emails/role-changer-user.php';
 
-			add_action( 'send_email_to_user', array( $this, 'trigger' ), 10, 3 );
+			add_action( 'yith_wcarc_granted_roles_notification', array( $this, 'trigger' ), 10, 3 );
 			add_filter( 'woocommerce_email_styles', array( $this, 'style' ) );
 
 			parent::__construct();
 		}
 
 		/**
-		 * Function that changes class variables.
+		 * The trigger to change all class variables.
 		 *
-		 * @param  mixed $valid_rules Valid rules.
-		 * @param  mixed $user_id ID to be changed.
-		 * @param  mixed $order_id Order ID to be changed.
-		 * @return void
+		 * @param array    $rules   Valid Rules.
+		 * @param int      $user_id ID of affected user.
+		 * @param WC_Order $order   ID of order.
 		 */
-		public function trigger( $valid_rules, $user_id, $order_id ) {
-			if ( ! $this->is_enabled() ) {
+		public function trigger( $rules, $user_id, $order ) {
+			if ( ! $this->is_enabled() || ! $rules ) {
 				return;
 			}
-			$this->object   = $valid_rules;
-			$this->user_id  = $user_id;
-			$this->order_id = $order_id;
 
-			$order = wc_get_order( $order_id );
-			if ( $order instanceof WC_Data ) {
-				$this->recipient = $order->get_billing_email();
-			} else {
-				$this->recipient = $order->billing_email;
+			$this->recipient = $order->get_billing_email();
+
+			$user     = new WP_User( $user_id );
+			$username = $user->display_name ? $user->display_name : $user->nickname;
+			$roles    = [];
+
+			foreach ( $rules as $rule ) {
+				$rule_to_display = yith_wcarc_get_rule_data_to_display( $rule );
+				if ( ! empty( $rule_to_display['roles'] ) ) {
+					foreach ( $rule_to_display['roles'] as $role_name ) {
+						$roles[] = array(
+							'name' => $role_name,
+							'from' => $rule_to_display['from'] ?? '',
+							'to'   => $rule_to_display['to'] ?? '',
+						);
+					}
+				}
 			}
+
+			$message = _n(
+				"Hi {customer_name},\nThank you for your purchase!\nYou've been assigned a new role on our site:\n{roles_details}\nRegards,\n{site_title}",
+				"Hi {customer_name},\nThank you for your purchase!\nYou've been assigned new roles on our site:\n{roles_details}\nRegards,\n{site_title}",
+				count( $roles ),
+				'yith-automatic-role-changer-for-woocommerce'
+			);
+
+			$this->placeholders['{customer_name}'] = $username;
+			$this->placeholders['{roles_details}'] = wc_get_template_html(
+				'emails/email-roles-details.php',
+				array(
+					'roles'         => $roles,
+					'username'      => $username,
+					'sent_to_admin' => false,
+				),
+				'',
+				YITH_WCARC_TEMPLATE_PATH
+			);
+
+			$message = $this->format_string( $message );
+
+			$this->object = compact( 'message', 'roles' );
 
 			$this->send(
 				$this->get_recipient(),
@@ -90,26 +117,31 @@ if ( ! class_exists( 'YITH_Role_Changer_User_Email' ) ) {
 		/**
 		 * Return class' custom style.
 		 *
-		 * @param  mixed $style Previous style (if there is one).
+		 * @param mixed $style Previous style (if there is one).
 		 */
 		public function style( $style ) {
-			$style = $style .
-				'.ywarc_metabox_gained_role {
-				border: #dcdada solid 1px;
-				padding: 15px;
-				text-align: center;
-				margin: 10px auto;
-				width: 270px;
+			$style .= '.yith_wcarc_gained_role{
+					background: #f6f6f6;
+					padding: 24px;
+					text-align: center;
+					line-height: 1.5;
+					margin-top: 20px;
+					margin-bottom: 20px;
 				}
 				
-				.ywarc_metabox_role_name {
-				font-size: 24px;
-				color: grey;
+				.yith_wcarc_gained_role__message{
+					font-size: .9em;
 				}
-				.ywarc_metabox_dates {
-				font-size: 12px;
-				margin-top: 10px;
+				.yith_wcarc_gained_role__role{
+					font-size: 2em;
+					font-weight: 500;
+				}
+				
+				.yith_wcarc_gained_role__dates{
+					font-size: .9em;
+					margin-top: 4px;
 				}';
+
 			return $style;
 		}
 
@@ -117,11 +149,14 @@ if ( ! class_exists( 'YITH_Role_Changer_User_Email' ) ) {
 		public function get_content_html() {
 			return wc_get_template_html(
 				$this->template_html,
-				array(
-					'email_heading' => $this->get_heading(),
-					'sent_to_admin' => false,
-					'plain_text'    => false,
-					'email'         => $this,
+				array_merge(
+					array(
+						'email_heading' => $this->get_heading(),
+						'sent_to_admin' => false,
+						'plain_text'    => false,
+						'email'         => $this,
+					),
+					$this->object
 				),
 				'',
 				YITH_WCARC_TEMPLATE_PATH
@@ -174,7 +209,7 @@ if ( ! class_exists( 'YITH_Role_Changer_User_Email' ) ) {
 					'title'       => esc_html__( 'Email type', 'yith-automatic-role-changer-for-woocommerce' ),
 					'type'        => 'select',
 					/* translators: %s is replaced with default email type. */
-					'description' => esc_html__( 'Choose which format of email to send.', 'yith-automatic-role-changer-for-woocommerce' ),
+					'description' => esc_html__( 'Choose the format of the email to send.', 'yith-automatic-role-changer-for-woocommerce' ),
 					'default'     => 'html',
 					'class'       => 'email_type wc-enhanced-select',
 					'options'     => $this->get_email_type_options(),

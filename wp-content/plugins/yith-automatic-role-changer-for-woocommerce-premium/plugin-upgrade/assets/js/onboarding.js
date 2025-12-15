@@ -96,7 +96,7 @@
 			let data = self.getFormData();
 			data.push(
 				{name: 'action', value: onboardingJS.ajaxAction},
-				{name: 'request', value: 'license_activation'},
+				{name: 'request', value: 'licence_activation'},
 				{name: 'security', value: onboardingJS.ajaxNonce}
 			);
 

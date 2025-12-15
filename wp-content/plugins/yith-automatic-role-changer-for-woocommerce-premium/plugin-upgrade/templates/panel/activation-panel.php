@@ -11,6 +11,8 @@
  * @package YITH/PluginUpgrade
  * @var array $activated_licences An array of activated licences.
  * @var array $licences_to_activate An array of licences to activate.
+ * @var boolean $have_expired_licences True if there are expired licences, false otherwise.
+ * @var string $licence_check_status_url The licence check status URL.
  */
 
 defined( 'ABSPATH' ) || exit;  // Exit if accessed directly.
@@ -44,6 +46,23 @@ defined( 'ABSPATH' ) || exit;  // Exit if accessed directly.
 			);
 			?>
 		</p>
+
+		<?php if ( $have_expired_licences ) : ?>
+
+		<div class="yith-licences-update-status">
+			<img src="<?php echo esc_url( YITH_PLUGIN_UPGRADE_URL ); ?>/assets/images/alert-rounded.svg" width="25px" alt=""/>
+			<span>
+				<strong><?php esc_html_e( 'Some of your licenses have expired.', 'yith-plugin-upgrade-fw' ); ?></strong>
+				<?php esc_html_e( 'If you have already renewed your subscription, click the button to update your license information.', 'yith-plugin-upgrade-fw' ); ?>
+			</span>
+			<span class="licence-update-status">
+				<a href="<?php echo esc_url( $licence_check_status_url ); ?>" class="button-licence" title="<?php esc_attr_e( 'Update licence information', 'yith-plugin-upgrade-fw' ); ?>">
+					<?php esc_html_e( 'Update', 'yith-plugin-upgrade-fw' ); ?>
+				</a>
+			</span>
+		</div>
+
+		<?php endif; ?>
 
 		<div class="yith-licences-list">
 

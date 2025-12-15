@@ -105,7 +105,7 @@ error_log( "
     QDW Order ID: 	        $qdw_order_id,
     WooCommerce Order ID:   $woo_order_id,
     Status: 				$order_status" );
-/*error_log( "
+/* error_log( "
             Variation ID:           $variation_id,
             WoW Post ID:            $wow_post_id,
             WooCommerce Product ID: $woo_product_id,
@@ -115,7 +115,7 @@ error_log( "
 */
 // Print the detailed WooCommerce Webhook responses for debugging
 error_log("WooCommerce Webhook Data Received. Processing Order....");
-//error_log("WooCommerce Webhook Data: " . print_r($data, true));
+error_log("WooCommerce Webhook Data: " . print_r($data, true));
 
 // Update WoWonder user balance on successful payment
 if (in_array($order_status, ["completed"])) {
@@ -246,6 +246,14 @@ if (in_array($order_status, ["completed"])) {
             $_SESSION[ 'userEdited' ] = true;
             error_log("Pro membership activated for user ID: $user_id with Pro Type: $pro_type");
         }
+        
+        
+        
+        
+
+        
+        
+        
 
     } else {
         error_log("User ID not found for email: $customer_email");
@@ -279,6 +287,13 @@ if (in_array($order_status, ["completed"])) {
     }
 	
 }
+
+
+
+
+
+
+
 
 include_once 'assets/wow-pgb/check_wp_role.php';
 

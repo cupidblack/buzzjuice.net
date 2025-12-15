@@ -48,7 +48,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Admin\Banner' ) ) :
 			$suffix = defined( 'SCRIPT_DEBUG' ) && \SCRIPT_DEBUG ? '' : '.min';
 
 			wp_register_style( 'yith-licence-banner', YITH_PLUGIN_UPGRADE_URL . '/assets/css/banner.css', array(), YITH_PLUGIN_UPGRADE_VERSION );
-			wp_register_script( 'yith-licence-banner', YITH_PLUGIN_UPGRADE_URL . "/assets/js/banner$suffix.js", array( 'jquery' ), YITH_PLUGIN_UPGRADE_VERSION, true );
+			wp_register_script( 'yith-licence-banner', YITH_PLUGIN_UPGRADE_URL . "/assets/js/banner$suffix.js", array( 'jquery', 'yith-ui' ), YITH_PLUGIN_UPGRADE_VERSION, true );
 		}
 
 		/**

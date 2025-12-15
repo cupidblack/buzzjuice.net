@@ -291,7 +291,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Upgrade' ) ) :
 		 * @param int    $network_id ID of the network.
 		 * @return mixed
 		 */
-		public function avoid_auto_update_bulk( $value, $old_value, string $option, int $network_id ) {
+		public function avoid_auto_update_bulk( $value, $old_value, $option, $network_id ) {
 			return array_filter(
 				$value,
 				function ( $p ) {
@@ -340,7 +340,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Upgrade' ) ) :
 		 *                        should be checked.
 		 * @return void
 		 */
-		public function catch_plugin_upgrading( string $type, object $item, string $context ) {
+		public function catch_plugin_upgrading( $type, $item, $context ) {
 			if ( 'plugin' !== $type || empty( $item->plugin ) ) {
 				return;
 			}
@@ -421,8 +421,12 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Upgrade' ) ) :
 
 			foreach ( $this->plugins as $init => $plugin ) {
 
+				$licence = Licences::instance()->get_single_licence( $init );
+				if ( empty( $licence ) ) {
+					continue;
+				}
+
 				$update_data  = $this->get_update_data( $init );
-				$licence      = Licences::instance()->get_single_licence( $init );
 				$is_activated = $licence->is_activated();
 
 				$item = array(
@@ -448,7 +452,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Upgrade' ) ) :
 				if ( ! empty( $update_data ) ) {
 					$wp_version = preg_replace( '/-.*$/', '', get_bloginfo( 'version' ) );
 					if ( strpos( $wp_version, $update_data['tested_up_to'] ) !== false ) {
-						$core_updates                = get_core_updates();
+						$core_updates                = function_exists( 'get_core_updates' ) ? get_core_updates() : false;
 						$update_data['tested_up_to'] = false !== $core_updates && ! empty( $core_updates[0]->current ) ? $core_updates[0]->current : $wp_version;
 					}
 
@@ -480,13 +484,13 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Upgrade' ) ) :
 		 * Retrieve the zip package file
 		 *
 		 * @since  5.0.0
-		 * @param bool        $reply    Whether to bail without returning the package. Default false.
+		 * @param mixed       $reply    Whether to bail without returning the package. Default false.
 		 * @param string      $package  The package file name.
 		 * @param WP_Upgrader $upgrader WP_Upgrader instance.
 		 * @return string|WP_Error
 		 * @see    wp-admin/includes/class-wp-upgrader.php
 		 */
-		public function upgrader_pre_download( bool $reply, string $package, WP_Upgrader $upgrader ) {
+		public function upgrader_pre_download( $reply, $package, $upgrader ) {
 
 			$plugin_init = $this->get_plugin_upgrading( $upgrader );
 			if ( empty( $plugin_init ) || ! isset( $this->plugins[ $plugin_init ] ) ) {
@@ -531,11 +535,14 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Upgrade' ) ) :
 			$is_manage_wp = $upgrader->skin instanceof \MWP_Updater_TraceableUpdaterSkin;
 
 			if ( $is_wp_cli || $is_manage_wp ) {
-				$plugins = Licences::instance()->get_products();
-				foreach ( $plugins as $init => $info ) {
-					if ( $upgrader->skin->plugin_info['Name'] === $info['Name'] ) {
-						$plugin_upgrading = $init;
-						break;
+				$plugin_info_name = $upgrader->skin->plugin_info['Name'] ?? '';
+				if ( ! empty( $plugin_info_name ) ) {
+					$plugins = Licences::instance()->get_products();
+					foreach ( $plugins as $init => $info ) {
+						if ( html_entity_decode( $plugin_info_name ) === html_entity_decode( $info['Name'] ) ) {
+							$plugin_upgrading = $init;
+							break;
+						}
 					}
 				}
 			} elseif ( ! $is_bulk && ! $is_bulk_ajax ) {
@@ -599,12 +606,15 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Upgrade' ) ) :
 		 */
 		public function filter_site_transient_update_plugins( $update_plugins ) {
 			global $pagenow;
+
 			if ( 'plugins.php' === $pagenow || 'update-core.php' === $pagenow ) {
 				$yith_plugins = array_keys( Licences::instance()->get_licences() );
 				foreach ( $yith_plugins as $init ) {
-					if ( 'plugins.php' === $pagenow && isset( $update_plugins->response[ $init ]->slug ) ) {
+					if ( 'plugins.php' === $pagenow ) {
 						unset( $update_plugins->response[ $init ]->slug );
-					} elseif ( 'update-core.php' === $pagenow && isset( $update_plugins->response[ $init ] ) && ! $this->is_enabled_in_all_blogs( $init ) ) {
+						unset( $update_plugins->no_update[ $init ]->slug );
+
+					} elseif ( 'update-core.php' === $pagenow && ! $this->is_enabled_in_all_blogs( $init ) ) {
 						unset( $update_plugins->response[ $init ] );
 					}
 				}
@@ -781,7 +791,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Upgrade' ) ) :
 		protected function get_xml_url( string $plugin_init ): string {
 			$args = array(
 				'plugin'                => isset( $this->plugins[ $plugin_init ] ) ? $this->plugins[ $plugin_init ]['slug'] : false,
-				'instance'              => md5( $_SERVER['SERVER_NAME'] ),
+				'instance'              => md5( $_SERVER['SERVER_NAME'] ?? get_bloginfo( 'url' ) ),
 				'licence'               => '',
 				'is_membership_licence' => false,
 				'server_ip'             => isset( $_SERVER['SERVER_NAME'] ) ? gethostbyname( $_SERVER['SERVER_NAME'] ) : '127.0.0.1',

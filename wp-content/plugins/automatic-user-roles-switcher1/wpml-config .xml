@@ -1,0 +1,23 @@
+<wpml-config>
+  <custom-types>
+    <custom-type translate="0">automatic_rc</custom-type>
+  </custom-types>
+  <custom-fields>
+    <custom-field action="ignore">enable_gain</custom-field>
+    <custom-field action="ignore">chose_options</custom-field>
+    <custom-field action="ignore">select_cat</custom-field>
+    <custom-field action="ignore">select_user_from_switch</custom-field>
+    <custom-field action="ignore">select_user_to_switch</custom-field>
+    <custom-field action="ignore">arc_all_user_roles</custom-field>
+    <custom-field action="ignore">date_start</custom-field>
+    <custom-field action="ignore">date_end</custom-field>
+    <custom-field action="ignore">amount_start</custom-field>
+    <custom-field action="ignore">amount_end</custom-field>
+    <custom-field action="ignore">chose_product_gainrole</custom-field>
+    <custom-field action="ignore">roles_duration</custom-field>
+    <custom-field action="translate">arc_editor_content</custom-field>
+  </custom-fields>
+  <admin-texts>
+    <key name="arc_email_field"/>
+  </admin-texts>
+</wpml-config>

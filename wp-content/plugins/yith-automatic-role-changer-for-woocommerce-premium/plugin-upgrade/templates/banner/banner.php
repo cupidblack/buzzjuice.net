@@ -37,7 +37,7 @@ $classes = implode( ' ', array( 'yith-plugin-upgrade-licence-banner', "yith-plug
 		</div>
 		<div class="yith-plugin-upgrade-licence-banner__actions">
 			<a class="yith-plugin-fw__button yith-plugin-fw__button--primary" href="<?php echo esc_attr( $activation_url ); ?>"><?php echo esc_html__( 'Enter your license key', 'yith-plugin-upgrade-fw' ); ?></a>
-			<a class="yith-plugin-fw__button yith-plugin-fw__button--secondary" href="<?php echo esc_attr( $landing_url ); ?>"><?php echo esc_html__( 'Buy a license', 'yith-plugin-upgrade-fw' ); ?></a>
+			<a class="yith-plugin-fw__button yith-plugin-fw__button--secondary" href="<?php echo esc_attr( $landing_url ); ?>" target="_blank"><?php echo esc_html__( 'Buy a license', 'yith-plugin-upgrade-fw' ); ?></a>
 		</div>
 	</div>
 <?php

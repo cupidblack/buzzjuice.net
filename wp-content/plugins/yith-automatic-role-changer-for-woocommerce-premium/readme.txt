@@ -2,13 +2,100 @@
 
 Contributors: yithemes
 Tags: woocommerce, e-commerce, shop, automatic, customer, grant, role, changer, change, roles, rule, rules, coupon, sales, yit, yith, yithemes
-Requires at least: 6.2
-Tested up to: 6.4
-Stable tag: 1.37.0
+Requires at least: 6.5
+Tested up to: 6.7.x
+Stable tag: 2.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 == Changelog ==
+
+= 2.3.0 - Released on 27 August 2025 =
+
+* New: support for WooCommerce 10.1
+* New: support for WooCommerce Email Preview feature
+
+= 2.2.0 - Released on 22 July 20255 =
+
+* New: support for WooCommerce 10.0
+* Update: plugin framework
+
+= 2.1.0 - Released on 17 June 2025 =
+
+* New: support for WooCommerce 9.9
+
+= 2.0.0 - Released on 22 April 2025 =
+
+* New: panel UI
+* Update: plugin framework
+* Update: language files and translations
+
+= 1.50.0 - Released on 25 March 2025 =
+
+* New: support for WooCommerce 9.8
+
+= 1.49.0 - Released on 17 February 2025 =
+
+* New: support for WooCommerce 9.7
+
+= 1.48.0 - Released on 23 January 2025 =
+
+* New: support for WooCommerce 9.6
+* Update: YITH plugin framework
+
+= 1.47.0 - Released on 17 December 2024 =
+
+* New: support for WooCommerce 9.5
+* Update: YITH plugin framework
+
+= 1.46.0 - Released on 07 November 2024 =
+
+* New: support for WordPress 6.7
+* New: support for WooCommerce 9.4
+* Update: YITH plugin framework
+
+= 1.45.0 - Released on 18 September 2024 =
+
+* New: support for WooCommerce 9.3
+* Update: YITH plugin framework
+
+= 1.44.0 - Released on 22 August 2024 =
+
+* New: support for WooCommerce 9.2
+* Update: YITH plugin framework
+
+= 1.43.0 - Released on 30 July 2024 =
+
+* New: support for WordPress 6.6
+* New: support for WooCommerce 9.1
+* Update: YITH plugin framework
+
+= 1.42.0 - Released on 27 June 2024 =
+
+* New: support for WooCommerce 9.0
+* Update: YITH plugin framework
+
+= 1.41.0 - Released on 27 May 2024 =
+
+* New: support for WooCommerce 8.9
+* Update: YITH plugin framework
+
+= 1.40.0 - Released on 19 April 2024 =
+
+* New: support for WooCommerce 8.8
+* Update: YITH plugin framework
+
+= 1.39.0 - Released on 27 March 2024 =
+
+* New: support for WordPress 6.5
+* New: support for WooCommerce 8.7
+* Update: YITH plugin framework
+
+= 1.38.0 - Released on 20 February 2024 =
+
+* New: support for WooCommerce 8.6
+* Update: YITH plugin framework
+
 = 1.37.0 - Released on 16 January 2024 =
 
 * New: support for WooCommerce 8.5

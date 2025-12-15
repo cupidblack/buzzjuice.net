@@ -33,8 +33,8 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Loader', false ) ) :
 		public static function init() {
 			self::define_constant();
 
-			// Include common functions file.
-			include_once YITH_PLUGIN_UPGRADE_PATH . '/functions-yith-licence.php';
+			// Load legacy function file to grant backward compatibility.
+			include_once YITH_PLUGIN_UPGRADE_PATH . '/includes/legacy/functions.php';
 			// Register module autoloader.
 			if ( function_exists( '__autoload' ) ) {
 				spl_autoload_register( '__autoload' );

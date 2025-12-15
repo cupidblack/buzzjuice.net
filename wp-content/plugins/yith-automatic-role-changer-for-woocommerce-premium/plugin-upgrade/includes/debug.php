@@ -32,7 +32,17 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Debug' ) ) :
 		 * @return boolean
 		 */
 		public static function is_enabled(): bool {
-			return ( defined( 'YIT_LICENCE_DEBUG' ) && \YIT_LICENCE_DEBUG ) || ! empty( $_REQUEST['yith-license-debug'] ); // phpcs:ignore
+			return defined( 'YIT_LICENCE_DEBUG' ) && \YIT_LICENCE_DEBUG;
+		}
+
+		/**
+		 * Check if log is enabled
+		 *
+		 * @since 5.0.0
+		 * @return bool
+		 */
+		public static function is_log_enabled() {
+			return self::is_enabled() || ( isset( $_REQUEST['yith-license-debug'] ) && 'true' === sanitize_text_field( wp_unslash( $_REQUEST['yith-license-debug'] ) ) ); // phpcs:ignore
 		}
 
 		/**
@@ -43,7 +53,7 @@ if ( ! class_exists( 'YITH\PluginUpgrade\Debug' ) ) :
 		 * @return void
 		 */
 		public static function log( string $entry ) {
-			if ( ! self::is_enabled() ) {
+			if ( ! self::is_log_enabled() ) {
 				return;
 			}
 

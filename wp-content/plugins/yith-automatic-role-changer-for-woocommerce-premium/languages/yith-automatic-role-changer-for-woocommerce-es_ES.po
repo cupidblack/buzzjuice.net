@@ -1,572 +1,539 @@
-# Translation of YITH Automatic Role Changer for WooCommerce in Spanish (Spain)
-# This file is distributed under the same license as the YITH Automatic Role Changer for WooCommerce package.
 msgid ""
 msgstr ""
 "Project-Id-Version: YITH Automatic Role Changer for WooCommerce\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/yith-woocommerce-"
-"automatic-role-changer.premium\n"
-"POT-Creation-Date: 2024-01-16 15:27:25+00:00\n"
-"PO-Revision-Date: 2022-07-15 12:27:20+0000\n"
-"Language: es\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2025-06-17T10:40:21+00:00\n"
+"PO-Revision-Date: 2025-04-22 05:00:56+0000\n"
+"Language: es\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: GlotPress/3.0.0-alpha.2\n"
 
-#: includes/class-yith-role-changer-admin-premium.php:143
-msgid "User purchases a specific product"
-msgstr "Compre un producto específico"
+#: assets/js/src/shared/hooks/usePreventLeavePage.js:5
+msgid "Leaving this page now will discard the changes. Are you sure you want to proceed?"
+msgstr "Si abandonas esta página ahora, se descartarán los cambios. ¿Está seguro de que quieres continuar?"
 
-#: includes/class-yith-role-changer-admin-premium.php:161
-msgid "Order total is within the following price range"
-msgstr "El total del pedido esté dentro del siguiente rango de precios"
+#: assets/js/src/shared/components/entities-select/index.jsx:110
+msgid "Searching..."
+msgstr "Buscando..."
 
-#: includes/class-yith-role-changer-admin-premium.php:179
-msgid "Customer's total spend falls within the following price range"
-msgstr "El gasto total del usuario esté dentro del siguiente rango de precios"
+#: assets/js/src/shared/components/entities-select/index.jsx:25
+msgid "No results for \"%s\"."
+msgstr "Sin resultados para «%s»."
 
-#: includes/class-yith-role-changer-admin-premium.php:197
-msgid "User purchases products from specific categories or tags"
-msgstr "Compre productos de categorías o etiquetas específicas"
+#: assets/js/src/shared/components/entities-select/index.jsx:23
+msgid "Type to search..."
+msgstr "Escribe para buscar..."
 
-#: includes/class-yith-role-changer-admin-premium.php:222
-msgid "Select a price range: "
-msgstr "Selecciona un rango de precios: "
+#: assets/js/src/admin/rules-panel/utils/rules/index.js:42
+msgid "Please, select at least one tag or category."
+msgstr "Por favor, selecciona al menos una etiqueta o categoría."
 
-#: includes/class-yith-role-changer-admin-premium.php:223
-msgid "Fill at least one"
-msgstr "Rellena al menos una"
+#: assets/js/src/admin/rules-panel/utils/rules/index.js:41
+msgid "Please, select either a minimum or maximum price."
+msgstr "Por favor, selecciona un precio mínimo o máximo."
 
-#: includes/class-yith-role-changer-admin-premium.php:235
-#: includes/class-yith-role-changer-admin-premium.php:245
-msgid "Amount&hellip;"
-msgstr "Cantidad&hellip;"
+#: assets/js/src/admin/rules-panel/utils/rules/index.js:40
+msgid "Please, select a product."
+msgstr "Por favor, selecciona un producto."
 
-#: includes/class-yith-role-changer-admin-premium.php:246
-msgid "\"To\" field must be greather than \"From\" field"
-msgstr "El campo \"Desde\" debe ser mayor que el campo \"Hasta\""
+#: assets/js/src/admin/rules-panel/utils/rules/index.js:37
+msgid "Please, select the roles."
+msgstr "Por favor, selecciona los perfiles."
 
-#: includes/class-yith-role-changer-admin-premium.php:252
-msgid "Select a taxonomy: "
-msgstr "Selecciona una taxonomía: "
+#: assets/js/src/admin/rules-panel/utils/rules/index.js:36
+msgid "Please, select a role."
+msgstr "Por favor, selecciona el perfil."
 
-#: includes/class-yith-role-changer-admin-premium.php:268
-msgid "Category"
-msgstr "Categoría"
+#: assets/js/src/admin/rules-panel/utils/rules/index.js:35
+msgid "The rule name cannot be empty."
+msgstr "El nombre de la regla no puede estar vacío."
 
-#: includes/class-yith-role-changer-admin-premium.php:283
-msgid "Tag"
-msgstr "Etiqueta"
+#: assets/js/src/admin/rules-panel/components/RulesEmptyState.jsx:19
+msgid "You have no rules!"
+msgstr "¡No tienes reglas!"
 
-#: includes/class-yith-role-changer-admin-premium.php:305
-msgid "Search for a category&hellip;"
-msgstr "Buscar por una categoría&hellip;"
+#: assets/js/src/admin/rules-panel/components/Rules.jsx:20
+#: assets/js/src/admin/rules-panel/components/RulesEmptyState.jsx:24
+msgid "Add rule"
+msgstr "Añadir regla"
 
-#: includes/class-yith-role-changer-admin-premium.php:334
-msgid "Search for a tag&hellip;"
-msgstr "Buscar por una etiqueta&hellip;"
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:205
+msgid "Roles to exclude"
+msgstr "Perfiles a excluir"
 
-#: includes/class-yith-role-changer-admin-premium.php:349
-msgid "Set a date range: "
-msgstr "Establecer un rango de fechas: "
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:201
+msgid "Enable to exclude users for this rule."
+msgstr "Activa para excluir usuarios de esta regla."
 
-#: includes/class-yith-role-changer-admin-premium.php:351
-#: includes/class-yith-role-changer-admin-premium.php:397
-#: includes/class-yith-role-changer-admin-premium.php:431
-msgid "(Optional)"
-msgstr "(Opcional)"
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:195
+msgid "Exclude users"
+msgstr "Excluye usuarios"
 
-#: includes/class-yith-role-changer-admin-premium.php:355
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:191
+msgid "day"
+msgstr "día"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:191
+msgid "days"
+msgstr "días"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:184
+msgid "The role will be switched back in"
+msgstr "El perfil se cambiará en"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:180
+msgid "Enable to set an expiration in days for this rule."
+msgstr "Activa para establecer una caducidad en días para esta regla."
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:174
+msgid "Enable role expiration"
+msgstr "Activa la caducidad del perfil"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:165
+msgid "Enable to set a start/end date for this rule."
+msgstr "Activa para establecer una fecha de inicio y de fin para esta regla."
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:158
+msgid "Schedule rule"
+msgstr "Regla de programación"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:148
+msgid "Categories"
+msgstr "Categorías"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:139
+msgid "Tags"
+msgstr "Etiquetas"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:111
+msgid "Set a price range"
+msgstr "Establece un rango de precio"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:106
+msgid "Select a product"
+msgstr "Selecciona un producto"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:102
+msgid "Product to purchase"
+msgstr "Producto a comprar"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:89
+msgid "When"
+msgstr "Cuando"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:34
+msgid "The user will switch the role"
+msgstr "El usuario cambiará el perfil"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:33
+msgid "The user will gain the role"
+msgstr "El usuario obtendrá el perfil"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:29
+msgid "User role assignment"
+msgstr "Asignación de perfiles a los usuarios"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:24
+msgid "Rule name"
+msgstr "Nombre de regla"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditModal.jsx:60
+msgid "Edit rule"
+msgstr "Editar regla"
+
+#: assets/js/src/admin/rules-panel/components/RuleCreateModal.jsx:63
+#: assets/js/src/admin/rules-panel/components/RuleEditModal.jsx:68
+msgid "Save"
+msgstr "Guardar"
+
+#: assets/js/src/admin/rules-panel/components/RuleCreateModal.jsx:63
+#: assets/js/src/admin/rules-panel/components/RuleEditModal.jsx:68
+msgid "Saving..."
+msgstr "Guardando..."
+
+#: assets/js/src/admin/rules-panel/components/RuleCreateModal.jsx:55
+msgctxt "Modal title"
+msgid "Create new rule"
+msgstr "Crear nueva regla"
+
+#: assets/js/src/admin/rules-panel/components/Rule.jsx:107
+msgid "Yes, delete"
+msgstr "Sí, borrar"
+
+#: assets/js/src/admin/rules-panel/components/Rule.jsx:103
+msgid "No"
+msgstr "No"
+
+#: assets/js/src/admin/rules-panel/components/Rule.jsx:99
+msgid "This action cannot be undone and you will not be able to recover this data."
+msgstr "Esta acción no se puede deshacer y no podrás recuperar estos datos."
+
+#: assets/js/src/admin/rules-panel/components/Rule.jsx:92
+msgid "Confirm delete"
+msgstr "Confirmar borrar"
+
+#: assets/js/src/admin/rules-panel/components/Rule.jsx:69
+#: assets/js/src/admin/rules-panel/components/Rule.jsx:95
+msgid "Untitled"
+msgstr "Sin título"
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:277
+msgid "Apply rules"
+msgstr "Aplicar reglas"
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:270
+msgid "Apply"
+msgstr "Aplicar"
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:270
+msgid "Applying..."
+msgstr "Aplicando..."
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:252
+#: assets/js/src/admin/rules-panel/components/DateRange.jsx:39
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:72
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:125
+msgid "To"
+msgstr "A"
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:243
+#: assets/js/src/admin/rules-panel/components/DateRange.jsx:24
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:59
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:114
+msgid "From"
+msgstr "De"
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:234
+msgid "Apply to"
+msgstr "Aplicar a"
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:231
+msgid "Apply rules to orders"
+msgstr "Aplicar reglas a los pedidos"
+
+#. translators: number of processed orders.
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:217
+msgid "Rules applied to %s orders."
+msgstr "Reglas aplicadas a %s pedidos."
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:210
+msgid "Process completed!"
+msgstr "¡Proceso completado!"
+
+#. translators: 1. number of processed orders; 2. number of total orders.
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:200
+msgid "%1$s / %2$s orders processed."
+msgstr "%1$s / %2$s pedidos procesados."
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:192
+msgid "Applying rules to orders"
+msgstr "Aplicando reglas a pedidos"
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:184
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:225
+msgid "Close"
+msgstr "Cerrar"
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:176
+msgid "Error"
+msgstr "Error"
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:152
+msgid "No orders found."
+msgstr "No se han encontrado pedidos."
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:86
+msgid "Orders filtered by paid date"
+msgstr "Pedidos filtrados por fecha de pago"
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:85
+msgid "Orders filtered by completed date"
+msgstr "Pedidos filtrados por fecha de finalización"
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:84
+msgid "Orders filtered by creation date"
+msgstr "Pedidos filtrados por fecha de creación"
+
+#: assets/js/src/admin/rules-panel/components/ApplyRulesSection.jsx:83
+msgid "All orders"
+msgstr "Todos los pedidos"
+
+#. translators: This message is followed by the role name; i.e.: You're now a Reseller.
+#: templates/emails/email-roles-details.php:38
+#: templates/myaccount/ywarc-gained-roles.php:54
+msgctxt "Role pre-message"
+msgid "You're now a"
+msgstr "Ahora eres"
+
+#. translators: The placeholder is the username; This message is followed by the role name; i.e.: John Doe is now a Reseller.
+#: templates/emails/email-roles-details.php:35
+msgctxt "Role pre-message"
+msgid "%s is now a"
+msgstr "%s es ahora"
+
+#. translators: %s is the end date.
+#: templates/emails/email-roles-details.php:25
+#: templates/myaccount/ywarc-gained-roles.php:45
+#: views/order-gained-roles-meta-box.php:52
+msgid "To: %s"
+msgstr "A: %s"
+
+#. translators: %s is the start date.
+#: templates/emails/email-roles-details.php:23
+#: templates/myaccount/ywarc-gained-roles.php:43
+#: views/order-gained-roles-meta-box.php:50
+msgid "From: %s"
+msgstr "De: %s"
+
+#: includes/rest-api/controllers/v1/class-yith-wcarc-rest-rules-controller.php:404
+msgid "Sorry, you cannot apply rules."
+msgstr "Lo siento, no puedes aplicar reglas."
+
+#: includes/rest-api/controllers/v1/class-yith-wcarc-rest-rules-controller.php:389
+msgid "Sorry, you cannot delete this resource."
+msgstr "Lo siento, no puedes borrar este recurso."
+
+#: includes/rest-api/controllers/v1/class-yith-wcarc-rest-rules-controller.php:374
+msgid "Sorry, you cannot update this resource."
+msgstr "Lo siento, no puedes actualizar este recurso."
+
+#: includes/rest-api/controllers/v1/class-yith-wcarc-rest-rules-controller.php:359
+msgid "Sorry, you cannot create this resource."
+msgstr "Lo siento, no puedes crear este recurso."
+
+#: includes/rest-api/controllers/v1/class-yith-wcarc-rest-rules-controller.php:344
+#: includes/rest-api/controllers/v1/class-yith-wcarc-rest-rules-controller.php:419
+msgid "Sorry, you cannot view this resource."
+msgstr "Lo siento, no puedes ver este recurso."
+
+#. translators: %s is the list of missing params.
+#: includes/rest-api/controllers/v1/class-yith-wcarc-rest-rules-controller.php:291
+msgid "The following parameters are required: %."
+msgstr "Los siguientes parámetros son obligatorios: %."
+
+#: includes/rest-api/controllers/v1/class-yith-wcarc-rest-rules-controller.php:268
+msgid "Rule not found!"
+msgstr "¡Regla no encontrada!"
+
+#: includes/emails/class-yith-role-changer-user-email.php:85
 msgid ""
-"Note: If you do not either enter any end date or a duration in days, this "
-"role will be valid forever"
-msgstr ""
-"Nota: Si no introduces ninguna fecha o duración en días, el rol será válido "
-"permanentemente"
-
-#: includes/class-yith-role-changer-admin-premium.php:389
-msgid "Set a duration for the roles (days): "
-msgstr "Establece una duración para el rol o los roles: "
-
-#: includes/class-yith-role-changer-admin-premium.php:402
-msgid ""
-"Note: This role will last as long as specified in these settings, even "
-"though an end date for this rule has been already specified. If the rule has "
-"no end date, and you leave this field empty, the role will never be removed."
-msgstr ""
-"Nota: Este rol durará tanto como se especifique en estos ajustes, aunque ya "
-"se haya especificado una fecha de finalización. Si la regla no tiene fecha "
-"de finalización, y has dejado este campo vacío, el rol nunca será eliminado."
-
-#: includes/class-yith-role-changer-admin-premium.php:423
-msgid "Do not apply this rule to users with the following role(s):"
-msgstr "No aplicar esta regla a los usuarios con el siguiente rol o roles:"
-
-#: includes/class-yith-role-changer-admin-premium.php:585
-#: includes/class-yith-role-changer-admin.php:522
-msgid "Please, name this rule."
-msgstr "Por favor, pon un nombre a esta regla."
-
-#: includes/class-yith-role-changer-admin-premium.php:586
-#: includes/class-yith-role-changer-admin.php:523
-msgid ""
-"This name already exists and is used to identify another rule. Please, try "
-"name."
-msgstr ""
-"Este nombre ya existe y se usa para identificar otra regla. Por favor, "
-"prueba otro."
-
-#: includes/class-yith-role-changer-admin-premium.php:587
-#: includes/class-yith-role-changer-admin.php:524
-msgid "Are you sure you want to delete this rule?"
-msgstr "¿Estás seguro de que quieres borrar esta regla?"
-
-#: includes/class-yith-role-changer-admin-premium.php:588
-#: includes/class-yith-role-changer-admin.php:525
-msgid "Are you sure you want to delete all the rules? This cannot be undone."
-msgstr ""
-"¿Estás seguro de que quieres borrar todas las reglas? Esta acción no puede "
-"deshacerse."
-
-#: includes/class-yith-role-changer-admin-premium.php:590
-msgid "Are you sure you want to apply this action? This cannot be undone."
-msgstr ""
-"¿Estás seguro de que quieres aplicar esta acción? Esto no se puede deshacer."
-
-#: includes/class-yith-role-changer-admin-premium.php:591
-msgid ""
-"All the orders with valid rules will be processed and assign/switch user "
-"roles automatically."
-msgstr ""
-"Todos los pedidos con reglas validas serán procesados y asignados/cambiados "
-"los roles de usuario automáticamente."
-
-#: includes/class-yith-role-changer-admin-premium.php:592
-msgid ""
-"All orders with valid rules between {date_from} and {date_to} will be "
-"processed and will assign/switch user roles automatically."
-msgstr ""
-"Todos los pedidos con reglas válidas entre {date_from} y {date_to} serán "
-"procesados y asignados/cambiados los roles de usuario automáticamente."
-
-#: includes/class-yith-role-changer-admin-premium.php:593
-msgid ""
-"All the orders with valid rules since {date_from} will be processed and will "
-"assign/switch user roles automatically."
-msgstr ""
-"Todos los pedidos con reglas válidas desde {date_from} serán procesados y "
-"asignados/cambiados los roles de usuario automáticamente."
-
-#: includes/class-yith-role-changer-admin-premium.php:594
-msgid ""
-"All the orders with valid rules until {date_to} will be processed and will "
-"assign/switch user roles automatically."
-msgstr ""
-"Todos los pedidos con reglas válidas hasta {date_to} serán procesados y "
-"asignados/cambiados los roles de usuario automáticamente."
-
-#: includes/class-yith-role-changer-admin-premium.php:595
-msgid "Warning: \"From\" field must not be greater than \"To\" field"
-msgstr "Advertencia: El campo ‘’De’’ no debe ser mayor que el campo ‘’Para’’"
-
-#: includes/class-yith-role-changer-admin.php:146
-msgid "Rules"
-msgstr "Reglas"
-
-#: includes/class-yith-role-changer-admin.php:151
-msgid "Premium Version"
-msgstr "Versión Pemium"
-
-#: includes/class-yith-role-changer-admin.php:233
-msgid "Plugin documentation"
-msgstr "Documentación del plugin"
-
-#: includes/class-yith-role-changer-admin.php:237
-msgid "Help Center"
-msgstr "Centro de Ayuda"
-
-#: includes/class-yith-role-changer-admin.php:244
-msgid "Discover the premium version"
-msgstr "Descubre la versión premium"
-
-#: includes/class-yith-role-changer-admin.php:249
-msgid "Free vs Premium"
-msgstr "Free vs Premium"
-
-#: includes/class-yith-role-changer-admin.php:254
-msgid "Premium live demo"
-msgstr "Live demo premium"
-
-#: includes/class-yith-role-changer-admin.php:259
-msgid "WordPress support forum"
-msgstr "Foro de soporte de WordPress"
-
-#: includes/class-yith-role-changer-admin.php:264
-#: includes/class-yith-role-changer-admin.php:276
-msgid "Changelog"
-msgstr "Historial de cambios"
-
-#: includes/class-yith-role-changer-admin.php:264
-#: includes/class-yith-role-changer-admin.php:276
-msgid "current version"
-msgstr "versión actual"
-
-#: includes/class-yith-role-changer-admin.php:271
-msgid "Support platform"
-msgstr "Plataforma de soporte"
-
-#: includes/class-yith-role-changer-admin.php:385
-msgid "Automatic role changer"
-msgstr "Automatic Role Changer"
-
-#: includes/class-yith-role-changer-admin.php:418
-msgid "Customer gains the following role: "
-msgid_plural "Customer gains the following roles: "
-msgstr[0] "El usuario obtiene el siguientes rol: "
-msgstr[1] "El usuario obtiene los siguientes roles: "
-
-#. translators: %s is replaced with number of roles.
-#: includes/class-yith-role-changer-admin.php:472
-msgid "%d new role gained with this order"
-msgid_plural "%d new roles gained with this order"
-msgstr[0] "Se ha obtenido %d nuevo perfil con este pedido"
-msgstr[1] "Se han obtenido %d perfiles con este pedido"
-
-#: includes/class-yith-role-changer-roles-manager.php:69
-msgid "Roles"
-msgstr "Roles"
-
-#: includes/class-yith-role-changer-roles-manager.php:74
-msgid "User Roles"
-msgstr "Roles de usuario"
-
-#: includes/class-yith-role-changer-set-roles-premium.php:523
-#: includes/class-yith-role-changer-set-roles-premium.php:527
-msgid "Activation date: "
-msgstr "Fecha de activación: "
-
-#: includes/class-yith-role-changer-set-roles-premium.php:530
-msgid "Activated at the time of purchase"
-msgstr "Activado en el momento de la compra"
-
-#: includes/class-yith-role-changer-set-roles-premium.php:536
-#: includes/class-yith-role-changer-set-roles-premium.php:540
-msgid "Valid until: "
-msgstr "Válido hasta: "
-
-#: includes/class-yith-role-changer-set-roles-premium.php:543
-msgid "Permanent role"
-msgstr "Rol permanente"
-
-#: includes/emails/class-yith-role-changer-admin-email.php:39
-msgid "Automatic Role Changer email for Admin"
-msgstr "Email Automatic Role Changer al admin"
-
-#: includes/emails/class-yith-role-changer-admin-email.php:40
-msgid ""
-"The administrator will receive an email when a order with roles to be \n"
-"\t\t\t\tgranted passes to \"Completed\" or \"Processing\" status."
-msgstr ""
-"El administrador recibirá un correo electrónico cuando un pedido que dé "
-"roles\n"
-"pase de estado «Completado» a «Procesando»."
-
-#: includes/emails/class-yith-role-changer-admin-email.php:46
-#: includes/emails/class-yith-role-changer-admin-email.php:47
-msgid "New roles will be added to user"
-msgstr "Se añadirán nuevos roles al usuario"
-
-#: includes/emails/class-yith-role-changer-admin-email.php:133
-#: includes/emails/class-yith-role-changer-user-email.php:150
-msgid "Enable/Disable"
-msgstr "Habilitar/Deshabilitar"
-
-#: includes/emails/class-yith-role-changer-admin-email.php:135
-#: includes/emails/class-yith-role-changer-user-email.php:152
-msgid "Enable this email notification"
-msgstr "Habilitar esta notificación email"
-
-#: includes/emails/class-yith-role-changer-admin-email.php:139
-msgid "Recipient(s)"
-msgstr "Destinatario(s)"
-
-#. translators: %s is replaced with default recipients.
-#: includes/emails/class-yith-role-changer-admin-email.php:142
-msgid "Enter recipients (comma separated) for this email. Defaults to %s."
-msgstr ""
-"Introducir destinatarios (separados por coma) para este correo electrónico. "
-"Por defecto a %s."
-
-#: includes/emails/class-yith-role-changer-admin-email.php:148
-#: includes/emails/class-yith-role-changer-user-email.php:156
-msgid "Subject"
-msgstr "Asunto"
-
-#. translators: %s is replaced with default subject
-#. translators: %s is replaced with default subject.
-#: includes/emails/class-yith-role-changer-admin-email.php:151
-#: includes/emails/class-yith-role-changer-user-email.php:159
-msgid ""
-"This controls the email subject line. Leave blank to use the default "
-"subject: <code>%s</code>."
-msgstr ""
-"Esto controla la línea del asunto del email. Déjalo en blanco para usar el "
-"asunto por defecto: <code>%s</code>."
-
-#: includes/emails/class-yith-role-changer-admin-email.php:157
-#: includes/emails/class-yith-role-changer-user-email.php:165
-msgid "Email Heading"
-msgstr "Encabezado del email"
-
-#. translators: %s is replaced with default heading
-#. translators: %s is replaced with default heading.
-#: includes/emails/class-yith-role-changer-admin-email.php:160
-#: includes/emails/class-yith-role-changer-user-email.php:168
-msgid ""
-"This controls the main heading included in the email notification. Leave "
-"blank to use the default heading: <code>%s</code>."
-msgstr ""
-"Esto controla el encabezado principal incluido en la notificación por email. "
-"Déjalo en blanco para usar el encabezado por defecto <code>%s</code>."
-
-#: includes/emails/class-yith-role-changer-user-email.php:40
-msgid "Automatic Role Changer email for User"
-msgstr "Email Automatic Role Changer al usuario"
-
-#: includes/emails/class-yith-role-changer-user-email.php:41
-msgid ""
-"The user will receive an email when a order with roles to be \n"
-"\t\t\t\tgranted passes to \"Completed\" or \"Processing\" status."
-msgstr ""
-"El usuario recibirá un correo electrónico cuando un pedido que dé perfiles\n"
-"pase de estado «Completado» a «Procesando»."
-
-#: includes/emails/class-yith-role-changer-user-email.php:47
-#: includes/emails/class-yith-role-changer-user-email.php:48
-msgid "You've earned roles"
-msgstr "Has obtenido roles"
-
-#: includes/emails/class-yith-role-changer-user-email.php:174
-msgid "Email type"
-msgstr "Tipo de email"
-
-#. translators: %s is replaced with default email type.
-#: includes/emails/class-yith-role-changer-user-email.php:177
-msgid "Choose which format of email to send."
-msgstr "Elige qué formato de email enviar."
-
-#: init.php:85
-msgid ""
-"YITH Automatic Role Changer for WooCommerce is enabled but not effective. It "
-"requires WooCommerce in order to work."
-msgstr ""
-"YITH Automatic Role Changer para WooCommerce está habilitado pero no es "
-"efectivo. Requiere WooCommerce para funcionar."
-
-#: templates/admin/add-rule.php:36
-msgid "The user will:"
-msgstr "El usuario"
-
-#: templates/admin/add-rule.php:97
-msgid "Choose a product: "
-msgstr "Elige un producto: "
-
-#: templates/admin/add-rule.php:126
-msgid "Search for a product&hellip;"
-msgstr "Buscar un producto&hellip;"
-
-#: templates/admin/add-rule.php:143
-msgid "Save rule"
-msgstr "Guardar regla"
-
-#: templates/admin/add-rule.php:147
-msgid "Delete"
-msgstr "Borrar"
-
-#: templates/admin/load-rules.php:29
-msgid "MY RULES"
-msgstr "MIS REGLAS"
-
-#: templates/admin/rules-tab-premium.php:22 templates/admin/rules-tab.php:22
-msgid ""
-"Here you can create and configure your own rules for automatic role switch."
-msgstr ""
-"Aquí puedes crear y configurar tus propias reglas para el cambio automático "
-"de rol."
-
-#: templates/admin/rules-tab-premium.php:32 templates/admin/rules-tab.php:32
-msgid ""
-"To start, click on 'Add new rule', name your rule and set it up as you wish. "
-"Don't forget to save the settings when you're finished."
-msgstr ""
-"Para empezar, haz clic en 'Añadir nueva regla', nombra tu regla y "
-"configúrala como quieras. No olvides guardar los ajustes cuando hayas "
-"terminado."
-
-#: templates/admin/rules-tab-premium.php:44 templates/admin/rules-tab.php:45
-msgid "Name the rule..."
-msgstr "Nombre de la regla..."
-
-#: templates/admin/rules-tab-premium.php:47 templates/admin/rules-tab.php:48
-msgid "Add new rule"
-msgstr "Añadir nueva regla"
-
-#: templates/admin/rules-tab-premium.php:52
-msgid ""
-"This will check all your current orders and search for those matching your "
-"current rules. This will set as many user roles as many that it will find. "
-"This procedure cannot be undone. Use with caution."
-msgstr ""
-"Esto verificará todos tus pedidos actuales y buscará aquellos que coincidan "
-"con tus reglas actuales. Esto establecerá tantos roles de usuario como "
-"encuentre. Este procedimiento no se puede deshacer. Úselo con precaución."
-
-#: templates/admin/rules-tab-premium.php:55
-msgid "Force apply rules"
-msgstr "Forzar la aplicación de reglas"
-
-#: templates/admin/rules-tab-premium.php:58
-msgid "Set a date range to filter the search"
-msgstr "Establecer un rango de fecha para filtrar la búsqueda"
-
-#: templates/admin/rules-tab-premium.php:59
-msgid "Set dates"
-msgstr "Establecer fechas"
-
-#: templates/admin/rules-tab-premium.php:68
-msgid "Search for orders by:"
-msgstr "Buscar pedidos por:"
-
-#: templates/admin/rules-tab-premium.php:71
-msgid "Created date"
-msgstr "Fecha creada"
-
-#: templates/admin/rules-tab-premium.php:75
-msgid "Completed date"
-msgstr "Fecha completada"
-
-#: templates/admin/rules-tab-premium.php:79
-msgid "Paid date"
-msgstr "Fecha paga"
-
-#: templates/admin/rules-tab-premium.php:91
-msgid "From:"
-msgstr "De:"
-
-#: templates/admin/rules-tab-premium.php:96
-msgid "To:"
-msgstr "Para:"
-
-#. translators: %1$s is replaced with user,  %2$s is replaced with Roles_count
-#: templates/emails/role-changer-admin.php:41
-msgid "The user %1$s gained the following role with the order %2$s: "
-msgid_plural "The user %1$s gained the following roles with the order %2$s: "
+"Hi {customer_name},\n"
+"Thank you for your purchase!\n"
+"You've been assigned a new role on our site:\n"
+"{roles_details}\n"
+"Regards,\n"
+"{site_title}"
+msgid_plural ""
+"Hi {customer_name},\n"
+"Thank you for your purchase!\n"
+"You've been assigned new roles on our site:\n"
+"{roles_details}\n"
+"Regards,\n"
+"{site_title}"
 msgstr[0] ""
-"El usuario %1$s ha conseguido el siguiente perfil con el pedido %2$s: "
+"Hola {customer_name},\n"
+"¡Gracias por tu compra!\n"
+"Se te ha asignado un nuevo perfil en nuestro sitio:\n"
+"{roles_details}\n"
+"Saludos,\n"
+"{site_title}"
 msgstr[1] ""
-"El usuario %1$s ha conseguido los siguientes perfiles con el pedido %2$s: "
+"Hola {customer_name},\n"
+"¡Gracias por tu compra!\n"
+"Se te han asignado nuevos perfiles en nuestro sitio:\n"
+"{roles_details}\n"
+"Saludos,\n"
+"{site_title}"
 
-#: templates/emails/role-changer-user.php:40
-msgid "Hi, thanks for your purchase."
-msgstr "Hola, gracias por tu compra."
+#: includes/emails/class-yith-role-changer-user-email.php:43
+#: includes/emails/class-yith-role-changer-user-email.php:44
+msgid "Your new role on {site_title}!"
+msgstr "¡Tu nuevo perfil en {site_title}!"
 
-#. translators: %1$s is replaced with curent order
-#: templates/emails/role-changer-user.php:44
-msgid "You've earned the following role with your order %s: "
-msgid_plural "You've earned the following roles with your order %s: "
-msgstr[0] "Has conseguido el siguiente rol con tu pedido %s: "
-msgstr[1] "Has conseguido los siguientes roles con tu pedido %s: "
+#: includes/emails/class-yith-role-changer-admin-email.php:72
+msgid ""
+"Hi \n"
+"Order {order_number_link} on {site_title} triggered a role change for the user {customer_name}:\n"
+"{roles_details}\n"
+"Regards,\n"
+"{site_title}"
+msgstr ""
+"Hola\n"
+"El pedido {order_number_link} en {site_title} desencadenó un cambio de perfil para el usuario {customer_name}:\n"
+"{roles_details}\n"
+"Saludos,\n"
+"{site_title}"
+
+#: includes/emails/class-yith-role-changer-admin-email.php:30
+#: includes/emails/class-yith-role-changer-admin-email.php:31
+msgid "{site_title} - new role change"
+msgstr "{site_title} - nuevo cambio de perfil"
+
+#. translators: Description of "YITH Email Templates" plugin in the "Your Store Tools" tab.
+#: includes/class-yith-role-changer-admin.php:158
+msgid "Manage and customize the templates of the emails sent from your store for a more professional look."
+msgstr "Gestiona y personaliza las plantillas de los correos electrónicos enviados desde tu tienda para darles un aspecto más profesional."
+
+#: includes/class-yith-role-changer-admin.php:150
+msgid "Display a filter section on your store page and allow your customers to easily filter products by their requirements (price, size, color, model, etc.)."
+msgstr "Muestra una sección de filtros en la página de tu tienda y permite a tus clientes filtrar fácilmente los productos según sus requisitos (precio, talla, color, modelo, etc.)."
+
+#: includes/class-yith-role-changer-admin.php:143
+msgid "Add an intelligent search engine to your store so that your customers can quickly find the products they are looking for."
+msgstr "Añade un motor de búsqueda inteligente a tu tienda para que tus clientes puedan encontrar rápidamente los productos que buscan."
+
+#: includes/class-yith-role-changer-admin.php:136
+msgid "The best-selling plugin for creating promotions and upsell strategies in your store: 3x2, 2x1, BOGO, free products in the cart, quantity discounts, last-minute offers, and more."
+msgstr "El plugin más vendido para crear promociones y estrategias de venta dirigida en tu tienda: 3x2, 2x1, BOGO, productos gratis en el carrito, descuentos por cantidad, ofertas de última hora y mucho más."
+
+#: includes/class-yith-role-changer-admin.php:129
+msgid "Let your customers save products to wishlists to share with family and friends, and create targeted email campaigns that encourage them to buy."
+msgstr "Permite que tus clientes guarden productos en listas de deseos para compartirlos con familiares y amigos, y crea campañas de correo electrónico específicas que les animen a comprar."
+
+#: includes/class-yith-role-changer-admin.php:122
+msgid "The essential tool for selling gift cards in your store, increasing your conversion rate, and attracting new customers."
+msgstr "La herramienta esencial para vender tarjetas regalo en tu tienda, aumentar tu tasa de conversión y atraer a nuevos clientes."
+
+#: includes/class-yith-role-changer-admin.php:115
+msgid "Allows generating recurring payments for your products. Let your customers join a subscription plan with a payment cycle of your choice and many other options."
+msgstr "Permite generar pagos recurrentes para tus productos. Permite que tus clientes se unan a un plan de suscripción con un ciclo de pago de tu elección y muchas otras opciones."
+
+#: includes/class-yith-role-changer-admin.php:107
+msgid "Allows you to show different prices based on the role your users have, and offer dedicated discounts or increase the product prices."
+msgstr "Te permite mostrar diferentes precios en función del perfil que tengan tus usuarios, y ofrecer descuentos dedicados o aumentar los precios de los productos."
+
+#: includes/class-yith-role-changer-admin.php:79
+msgid "Create and configure your own rules for automatic role switching."
+msgstr "Crea y configura tus propias reglas para el cambio automático de perfil."
+
+#. Description of the plugin
+#: init.php
+msgid "<code><strong>YITH Automatic Role Changer for WooCommerce Premium</strong></code> assigns a new or a different role to your shop customers automatically based on what they have bought. <a href=\"https://yithemes.com/\" target=\"_blank\">Get more plugins for your e-commerce on <strong>YITH</strong></a>."
+msgstr "<code><strong>YITH Automatic Role Changer for WooCommerce Premium</strong></code> asigna un nuevo o diferente perfil a los clientes de tu tienda basado en qué han comprado. <a href=\"https://yithemes.com/\" target=\"_blank\">Obtén más plugins para tu comercio electrónico en <strong>YITH</strong></a>."
+
+#. Plugin URI of the plugin
+#: init.php
+msgid "https://yithemes.com/themes/plugins/yith-woocommerce-automatic-role-changer"
+msgstr "https://yithemes.com/themes/plugins/yith-woocommerce-automatic-role-changer"
 
 #: templates/myaccount/ywarc-gained-roles.php:33
 msgid "Roles gained"
-msgstr "Roles ganados"
+msgstr "Perfiles obtenidos"
 
-#. Description of the plugin/theme
-msgid ""
-"<code><strong>YITH Automatic Role Changer for WooCommerce Premium</strong></"
-"code> assigns a new or a different role to your shop customers automatically "
-"based on what they have bought. <a href=\"https://yithemes.com/\" "
-"target=\"_blank\">Get more plugins for your e-commerce on <strong>YITH</"
-"strong></a>."
-msgstr ""
-"<code><strong>YITH Automatic Role Changer for WooCommerce Premium</strong></"
-"code> asigna un nuevo o diferente rol a los clientes de tu tienda basado en "
-"qué han comprado. <a href=\"https://yithemes.com/\" target=\"_blank\">Obtén "
-"más plugins para tu e-commerce en <strong>YITH</strong></a>."
+#: init.php:90
+msgid "YITH Automatic Role Changer for WooCommerce is enabled but not effective. It requires WooCommerce in order to work."
+msgstr "YITH Automatic Role Changer para WooCommerce está activo pero no es efectivo. Requiere WooCommerce para funcionar."
 
-#: includes/class-yith-role-changer-admin-premium.php:122
-msgctxt ""
-"As used in the following sentence: \"The user will adquire the role WHEN\": "
-msgid "When:"
-msgstr "Cuando:"
+#. translators: %s is replaced with default email type.
+#: includes/emails/class-yith-role-changer-user-email.php:212
+msgid "Choose the format of the email to send."
+msgstr "Elige qué formato de correo electrónico enviar."
 
-#: includes/class-yith-role-changer-admin-premium.php:227
-#: includes/class-yith-role-changer-admin-premium.php:362
-msgctxt "start date"
-msgid "From: "
-msgstr "Desde:"
+#: includes/emails/class-yith-role-changer-user-email.php:209
+msgid "Email type"
+msgstr "Tipo de correo electrónico"
 
-#: includes/class-yith-role-changer-admin-premium.php:237
-#: includes/class-yith-role-changer-admin-premium.php:372
-msgctxt "end date"
-msgid "To: "
-msgstr "Hasta: "
+#: includes/emails/class-yith-role-changer-user-email.php:41
+msgid "The user will receive an email when an order with roles to be assigned goes to the \"Completed\" or \"Processing\" status."
+msgstr "El usuario recibirá un correo electrónico cuando un pedido con perfiles pase de estado «completado» a «procesando»."
 
-#: includes/class-yith-role-changer-admin-premium.php:370
-msgctxt "placeholder"
-msgid "From&hellip;"
-msgstr "Desde&hellip;"
+#: includes/emails/class-yith-role-changer-user-email.php:40
+msgid "Automatic Role Changer email for User"
+msgstr "Automatic Role Changer: correo electrónico para el usuario"
 
-#: includes/class-yith-role-changer-admin-premium.php:380
-msgctxt "placeholder"
-msgid "To&hellip;"
-msgstr "Hasta&hellip;"
+#. translators: %s is replaced with default heading
+#. translators: %s is replaced with default heading.
+#: includes/emails/class-yith-role-changer-admin-email.php:186
+#: includes/emails/class-yith-role-changer-user-email.php:203
+msgid "This controls the main heading included in the email notification. Leave blank to use the default heading: <code>%s</code>."
+msgstr "Esto controla el encabezado principal incluido en la notificación por correo electrónico. Déjalo en blanco para usar el encabezado por defecto <code>%s</code>."
 
-#: templates/admin/add-rule.php:51
-msgctxt "Complete sentence: The user will gain the role"
-msgid "gain the role"
-msgstr "ganará el rol"
+#: includes/emails/class-yith-role-changer-admin-email.php:183
+#: includes/emails/class-yith-role-changer-user-email.php:200
+msgid "Email Heading"
+msgstr "Encabezado del correo electrónico"
 
-#: templates/admin/add-rule.php:65
-msgctxt "Complete sentence: The user will switch from this role to this one"
-msgid "switch"
-msgstr "cambiará"
+#. translators: %s is replaced with default subject
+#. translators: %s is replaced with default subject.
+#: includes/emails/class-yith-role-changer-admin-email.php:177
+#: includes/emails/class-yith-role-changer-user-email.php:194
+msgid "This controls the email subject line. Leave blank to use the default subject: <code>%s</code>."
+msgstr "Esto controla la línea del asunto del correo electrónico. Déjalo en blanco para usar el asunto por defecto: <code>%s</code>."
 
-#: templates/admin/add-rule.php:77
-msgctxt "Complete sentence: The user will switch from this role to this one"
-msgid "from this role:"
-msgstr "este rol:"
+#: includes/emails/class-yith-role-changer-admin-email.php:174
+#: includes/emails/class-yith-role-changer-user-email.php:191
+msgid "Subject"
+msgstr "Asunto"
 
-#: templates/admin/add-rule.php:83
-msgctxt "Complete sentence: The user will switch from this role to this one"
-msgid "to this one:"
-msgstr "a este otro:"
+#. translators: %s is replaced with default recipients.
+#: includes/emails/class-yith-role-changer-admin-email.php:168
+msgid "Enter the recipients (comma-separated) for this email. Defaults to %s."
+msgstr "Introduce destinatarios (separados por coma) para este correo electrónico. Por defecto a %s."
 
-#: templates/admin/load-rules.php:32
-msgctxt "toggle button label."
-msgid "Show"
-msgstr "Mostrar"
+#: includes/emails/class-yith-role-changer-admin-email.php:165
+msgid "Recipient(s)"
+msgstr "Destinatario(s)"
 
-#: templates/admin/load-rules.php:34
-msgctxt "toggle button label."
-msgid "Hide"
-msgstr "Ocultar"
+#: includes/emails/class-yith-role-changer-admin-email.php:161
+#: includes/emails/class-yith-role-changer-user-email.php:187
+msgid "Enable this email notification"
+msgstr "Activa este aviso por correo electrónico"
 
-#: templates/admin/load-rules.php:36
-msgctxt "toggle button label."
-msgid "Delete"
-msgstr "Borrar"
+#: includes/emails/class-yith-role-changer-admin-email.php:159
+#: includes/emails/class-yith-role-changer-user-email.php:185
+msgid "Enable/Disable"
+msgstr "Activar/desactivar"
 
-#. translators: %1$s,  %2$s, %3$s is replaced with show/hide/delete
-#: templates/admin/load-rules.php:43
-msgctxt "\"Show\" / \"Hide\" / \"Delete\" all rules"
-msgid "( %1$s / %2$s / %3$s all rules )"
-msgstr "( %1$s / %2$s / %3$s todas las reglas )"
+#: includes/emails/class-yith-role-changer-admin-email.php:28
+msgid "The administrator will receive an email when an order with roles to be assigned goes to the \"Completed\" or \"Processing\" status."
+msgstr "El administrador recibirá un correo electrónico cuando un pedido con perfiles pase de estado «completado» a «procesando»."
 
-#: templates/admin/rules-tab-premium.php:84
-msgctxt ""
-"Date format. (Do not change the format to local format, the format must be "
-"YYYY-MM-DD always)"
-msgid "YYYY-MM-DD"
-msgstr "AAAA-MM-DD"
+#: includes/emails/class-yith-role-changer-admin-email.php:27
+msgid "Automatic Role Changer email for Admin"
+msgstr "Automatic Role Changer: correo electrónico para el administrador"
+
+#. translators: %s is replaced with number of roles.
+#: includes/class-yith-role-changer-admin.php:264
+msgid "%d new role gained with this order"
+msgid_plural "%d new roles gained with this order"
+msgstr[0] "%d nuevo perfil obtenido con este pedido"
+msgstr[1] "%d nuevos perfiles obtenidos con este pedido"
+
+#: views/order-gained-roles-meta-box.php:33
+msgid "Customer gained the following role:"
+msgid_plural "Customer gained the following roles:"
+msgstr[0] "El cliente obtiene el siguiente perfil: "
+msgstr[1] "El cliente obtiene los siguientes perfiles: "
+
+#: includes/class-yith-role-changer-admin.php:212
+msgid "Automatic role changer"
+msgstr "Automatic Role Changer"
+
+#: includes/class-yith-role-changer-admin.php:77
+msgid "Rules"
+msgstr "Reglas"
+
+#: assets/js/src/admin/rules-panel/components/Rule.jsx:95
+msgid "Are you sure you want to delete the \"%s\" rule?"
+msgstr "¿Estás seguro que quieres borrar la regla «%s»?"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:95
+msgid "User purchases products from specific categories or tags"
+msgstr "Compre productos de categorías o etiquetas específicas"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:94
+msgid "Customer's total spend falls within the following price range"
+msgstr "El gasto total del usuario esté dentro del siguiente rango de precios"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:93
+msgid "Order total is within the following price range"
+msgstr "El total del pedido esté dentro del siguiente rango de precios"
+
+#: assets/js/src/admin/rules-panel/components/RuleEditor.jsx:92
+msgid "User purchases a specific product"
+msgstr "Compre un producto específico"

@@ -1,0 +1,34 @@
+.yith_wcarc_gained_roles {
+    display        : flex;
+    flex-direction : column;
+    gap            : 16px;
+}
+
+.yith_wcarc_gained_role {
+    background  : #f6f6f6;
+    padding     : 24px;
+    text-align  : center;
+    line-height : 1.5;
+}
+
+.yith_wcarc_gained_role__role {
+    font-size   : 2em;
+    font-weight : 500;
+}
+
+.yith_wcarc_gained_role__dates {
+    font-size  : .9em;
+    margin-top : 4px;
+}
+
+tbody#the-list td.order_status img.ywarc_role_icon, tbody#the-list td.order_number img.ywarc_role_icon {
+    width  : 25px;
+    margin : 10px 0;
+    cursor : help;
+}
+
+tbody#the-list td.order_number img.ywarc_role_icon {
+    margin-left    : 10px;
+    vertical-align : middle;
+    cursor         : help;
+}

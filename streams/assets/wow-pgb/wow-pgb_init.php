@@ -514,28 +514,27 @@ if ($transaction_kind == 'PRODUCT' || $transaction_kind == 'SALE' || $transactio
 
 
    // 9. Pro Package → Subscription Details
-    /*$subscription_period = 'month';
+    // ---------------------------
+    // Restore PRO package subscription metadata extraction
+    // ---------------------------
+    $subscription_period = 'month';
     $subscription_interval = 1;
     $subscription_length = 0;
-
-    foreach ($wo["pro_packages"] as $package) {
-        if ((int)$package['id'] === (int)$wow_post_id) {
-            $subscription_period = $package['time'] ?? 'month';
-            $subscription_interval = $package['count'] ?? 1;
-            $subscription_length = $package['time_count'] ?? 0;
-            break;
+    
+    if ($transaction_kind === 'PRO') {
+        if (!empty($wo['pro_packages']) && is_array($wo['pro_packages'])) {
+            foreach ($wo['pro_packages'] as $package) {
+                if ((int)($package['id'] ?? 0) === (int)$wow_post_id) {
+                    $subscription_period = $package['time'] ?? 'month';
+                    $subscription_interval = (int)($package['count'] ?? 1);
+                    $subscription_length = (int)($package['time_count'] ?? 0);
+                    if (empty($subscription_period)) $subscription_period = 'month';
+                    if ($subscription_interval < 1) $subscription_interval = 1;
+                    break;
+                }
+            }
         }
     }
-
-    // Add variation ID for PRO package
-    if (isset($transaction_kind) && $transaction_kind === 'PRO') {
-        $line_item['variation_id'] = $wow_product_kind ?? 0;
-        $line_item['meta_data'] = [
-            ['key' => '_subscription_period', 'value' => $subscription_period ?? 'month'],
-            ['key' => '_subscription_interval', 'value' => $subscription_interval ?? 1],
-            ['key' => '_subscription_length', 'value' => $subscription_length ?? 0],
-        ];
-    }*/
 
 
 
@@ -571,49 +570,59 @@ if ($transaction_kind == 'PRODUCT' || $transaction_kind == 'SALE' || $transactio
     /**
      * Prepare WooCommerce order data with variation metadata.
      */
+     
+    // ---------------------------
+    // Replace prepareOrderData() with explicit per-line pricing + subscription meta
+    // ---------------------------
     function prepareOrderData($params, $wordpress_user_id, $userid, $request_id, $consumer_key, $consumer_secret, $woocommerce_api_url)
     {
         // Log customer ID for debugging
         //error_log("Request ID: $request_id - Using WordPress User ID as WooCommerce Customer ID: $wordpress_user_id");
 
-        // Fetch variation metadata if variation_id is provided
-        /*$variation_metadata = null;
-        if (!empty($params['variation_id'])) {
-            $variation_metadata = get_variation_metadata($params['variation_id'], $consumer_key, $consumer_secret, $woocommerce_api_url);
-
-            // Log variation metadata for debugging
-            error_log("Request ID: $request_id - Fetched Variation Metadata: " . print_r($variation_metadata, true));
-        }
-            */
-
-        // Construct the base line item
+        $unit_price = number_format((float)($params['product_price'] ?? 0.00), 2, '.', '');
+        $quantity = max(1, intval($params['product_units'] ?? 1));
+        $line_total = number_format((float)($params['amount'] ?? ($unit_price * $quantity)), 2, '.', '');
+    
         $line_item = [
-            'name' => $params['product_name'],
-            'product_id' => $params['product_id'] ?? 694, // Replace with logic to fetch product ID
-            'quantity' => $params['product_units'],
-            'total' => sprintf('%.2f', $params['amount']),
-        ];
-
-        // Add variation metadata to the line item if available
-        if (!empty($variation_metadata)) {
-            $line_item['variation_id'] = $params['variation_id'];
-            //$line_item['variation_metadata'] = [$variation_metadata];
-        }
-            
-
-        // Prepare the base order data
-        $order_data = [
-            'customer_id' => $wordpress_user_id,
-            'currency' => $params['wow_currency_code'],
-            'set_paid' => false,
-            'line_items' => [$line_item], // Ensure line_items is a flat array
-            'meta_data' => [
-                ['key' => 'wow_order_id', 'value' => $params['wow_order_id']],
-                ['key' => 'wow_post_id', 'value' => $params['wow_post_id']],
+            'name'       => $params['product_name'] ?? 'Product',
+            'product_id' => (int)($params['product_id'] ?? 0),
+            'variation_id' => !empty($params['variation_id']) ? (int)$params['variation_id'] : null,
+            'quantity'   => $quantity,
+            'price'      => $unit_price,
+            'subtotal'   => $unit_price,
+            'total'      => $line_total,
+            'meta_data'  => [
+                ['key' => 'wow_order_id', 'value' => $params['wow_order_id'] ?? ''],
+                ['key' => 'wow_post_id', 'value' => $params['wow_post_id'] ?? 0],
                 ['key' => 'userid', 'value' => $userid],
             ],
         ];
-
+    
+        $meta_data = [
+            ['key' => 'wow_order_id', 'value' => $params['wow_order_id'] ?? ''],
+            ['key' => 'wow_post_id', 'value' => $params['wow_post_id'] ?? 0],
+            ['key' => 'userid', 'value' => $userid],
+        ];
+    
+        if (!empty($params['subscription_period'])) {
+            $meta_data[] = ['key' => '_subscription_period', 'value' => $params['subscription_period']];
+        }
+        if (!empty($params['subscription_interval'])) {
+            $meta_data[] = ['key' => '_subscription_interval', 'value' => (int)$params['subscription_interval']];
+            $meta_data[] = ['key' => '_subscription_period_interval', 'value' => (int)$params['subscription_interval']];
+        }
+        if (isset($params['subscription_length'])) {
+            $meta_data[] = ['key' => '_subscription_length', 'value' => (int)$params['subscription_length']];
+        }
+    
+        $order_data = [
+            'customer_id' => (int)$wordpress_user_id,
+            'currency'    => $params['wow_currency_code'] ?? 'GHS',
+            'set_paid'    => false,
+            'line_items'  => [$line_item],
+            'meta_data'   => $meta_data,
+        ];
+    
         // Log the prepared order data for debugging
         //error_log("✅ WooCommerce Pre-Order Data:\n" . print_r($order_data, true));
 
@@ -621,24 +630,31 @@ if ($transaction_kind == 'PRODUCT' || $transaction_kind == 'SALE' || $transactio
     }
 
     // --- Prepare Order Data ---
+    // ---------------------------
+    // When calling prepareOrderData: pass the subscription meta and product_price
+    // ---------------------------
     $order_data = prepareOrderData(
-        [   
+        [
             'customer_id' => $wordpress_user_id,
             'product_name' => $product_name,
             'product_id' => $wow_product_kind,
+            'product_price' => $product_price,
             'product_units' => $product_units,
             'amount' => $amount,
             'wow_currency_code' => $wow_currency_code,
             'wow_post_id' => $wow_post_id,
             'wow_order_id' => $wow_order_id,
-            'variation_id' => $wow_product_kind,
+            'variation_id' => $transaction_kind === 'PRO' ? $wow_product_kind : null,
+            'subscription_period' => $subscription_period,
+            'subscription_interval' => $subscription_interval,
+            'subscription_length' => $subscription_length,
         ],
         $wordpress_user_id,
         $userid,
         uniqid('req_'),
-        $consumer_key, // Pass the consumer key
-        $consumer_secret, // Pass the consumer secret
-        $woocommerce_api_url // Pass the WooCommerce API URL
+        $consumer_key,
+        $consumer_secret,
+        $woocommerce_api_url
     );
 
     // Debug: Log the full structure for inspection
