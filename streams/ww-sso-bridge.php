@@ -141,8 +141,8 @@ if ($loop_count > 4) {
 
 
 // --- INSERT near the top of streams/ww-sso-bridge.php (after bootstrap require, before session init) ---
-if (!function_exists('bz_b64url_decode')) {
-    function bz_b64url_decode($str) {
+if (!function_exists('_bz_b64url_decode')) {
+    function _bz_b64url_decode($str) {
         $s = strtr($str, '-_', '+/');
         $pad = strlen($s) % 4;
         if ($pad) $s .= str_repeat('=', 4 - $pad);
@@ -154,8 +154,8 @@ if (!empty($_REQUEST['sso_token'])) {
     $token = (string) $_REQUEST['sso_token'];
     $parts = explode('.', $token, 2);
     if (count($parts) === 2 && $__buzz_sso_secret) {
-        $json = bz_b64url_decode($parts[0]);
-        $sig  = bz_b64url_decode($parts[1]);
+        $json = _bz_b64url_decode($parts[0]);
+        $sig  = _bz_b64url_decode($parts[1]);
         if ($json !== false && $sig !== false) {
             $calc = hash_hmac('sha256', $json, (string)$__buzz_sso_secret, true);
             if (hash_equals($calc, $sig)) {
