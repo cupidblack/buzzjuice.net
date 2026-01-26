@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-19 13:59:35+00:00\n"
+"POT-Creation-Date: 2025-12-16 12:46:23+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -175,10 +175,10 @@ msgid "Super Sticky"
 msgstr ""
 
 #: bbpress/content-single-topic-lead.php:90 bbpress/loop-replies.php:90
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:296
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:297
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:374
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:298
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:375
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:376
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/buddyboss_legacy.php:593
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/genericon.php:203
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/genericon.php:208
@@ -243,9 +243,9 @@ msgstr ""
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/buddyboss_legacy.php:1958
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/fa.php:2594
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/genericon.php:623
-#: inc/plugins/learndash-compat.php:63 inc/theme/template-functions.php:906
-#: inc/theme/template-functions.php:1950 inc/theme/template-functions.php:1963
-#: inc/theme/template-functions.php:2072 inc/theme/template-functions.php:2087
+#: inc/plugins/learndash-compat.php:63 inc/theme/template-functions.php:905
+#: inc/theme/template-functions.php:1920 inc/theme/template-functions.php:1933
+#: inc/theme/template-functions.php:2042 inc/theme/template-functions.php:2057
 #: learndash/ld30/focus/comments_list.php:120
 #: tutor/dashboard/question-answer/answers.php:107
 #: tutor/single/lesson/comments-loop.php:37
@@ -275,7 +275,7 @@ msgstr ""
 msgid "Start of Discussion"
 msgstr ""
 
-#: bbpress/content-single-topic.php:149 learndash/ld30/lesson.php:129
+#: bbpress/content-single-topic.php:149 learndash/ld30/lesson.php:216
 #: learndash/ld30/quiz.php:100
 #: lifterlms/assignment/template-single-assignment-content.php:61
 #: lifterlms/lesson/template-single-lesson-content.php:63
@@ -506,7 +506,7 @@ msgstr ""
 msgid "This content has been hidden from site admin."
 msgstr ""
 
-#: bbpress/loop-replies.php:139 functions.php:100
+#: bbpress/loop-replies.php:139 functions.php:102
 msgid "updated"
 msgstr ""
 
@@ -606,16 +606,16 @@ msgstr ""
 
 #: bbpress/user-details.php:74
 #: buddypress/members/single/profile/profile-loop.php:26
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:299
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:300
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:377
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:301
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:378
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:379
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/buddyboss_legacy.php:833
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/dashicons.php:569
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/elusive.php:456
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/fa.php:1129
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/genericon.php:303
-#: inc/theme/template-functions.php:917
+#: inc/theme/template-functions.php:916
 #: template-parts/header-profile-menu.php:29
 #: woocommerce/myaccount/dashboard.php:194
 #: woocommerce/myaccount/my-address.php:73
@@ -720,8 +720,8 @@ msgstr ""
 #: buddypress/media/actions.php:38
 #: inc/admin/buddyboss-extensions/extensions/repeater/repeater/field_repeater.php:186
 #: inc/admin/buddyboss-extensions/extensions/repeater/repeater/field_repeater.php:229
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:324
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:332
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:325
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:333
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/buddyboss_legacy.php:793
 #: tutor/dashboard/settings/profile.php:101
 msgid "Delete"
@@ -794,7 +794,6 @@ msgid "Name"
 msgstr ""
 
 #: buddypress/members/single/invites/sent-invites.php:99
-#: inc/lib/buddyboss-updater/includes/views/package.php:69
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/dashicons.php:689
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/dashicons.php:694
 #: inc/theme/login.php:179 learndash/ld30/modules/login-modal.php:404
@@ -911,12 +910,12 @@ msgstr ""
 msgid "No results for '%s'"
 msgstr ""
 
-#: buddypress.php:24 inc/lib/buddyboss-updater/includes/views/package.php:37
+#: buddypress.php:24
 #: inc/plugins/elementor/widgets/bb-profile-completion.php:958
 #: inc/plugins/lifterlms-helper.php:1873 inc/plugins/lifterlms-helper.php:1952
-#: inc/theme/login.php:487 inc/theme/template-functions.php:857
-#: learndash/ld30/learndash-sidebar.php:184
-#: learndash/ld30/learndash-sidebar.php:208
+#: inc/theme/login.php:487 inc/theme/template-functions.php:856
+#: learndash/ld30/learndash-sidebar.php:189
+#: learndash/ld30/learndash-sidebar.php:213
 #: learndash/ld30/shortcodes/course_list_grid_template.php:382
 #: learndash/ld30/template-course-item.php:90
 #: learndash/ld30/template-course-item.php:114
@@ -968,42 +967,42 @@ msgstr ""
 msgid "My Groups"
 msgstr ""
 
-#: functions.php:13
+#: functions.php:15
 msgid "Could not load the starter file!"
 msgstr ""
 
-#: functions.php:73 inc/theme-activation.php:288
+#: functions.php:75 inc/theme-activation.php:288
 msgid "Install Required Plugins"
 msgstr ""
 
-#: functions.php:74 inc/theme-activation.php:289
+#: functions.php:76 inc/theme-activation.php:289
 msgid "Install Plugins"
 msgstr ""
 
-#: functions.php:75 inc/theme-activation.php:291
+#: functions.php:77 inc/theme-activation.php:291
 #. translators: %s: plugin name.
 msgid "Installing Plugin: %s"
 msgstr ""
 
-#: functions.php:77 inc/theme-activation.php:294
+#: functions.php:79 inc/theme-activation.php:294
 msgid "Something went wrong with the plugin API."
 msgstr ""
 
-#: functions.php:78 inc/theme-activation.php:296
+#: functions.php:80 inc/theme-activation.php:296
 #. translators: 1: plugin name(s).
 msgid "This theme requires the following plugin: %1$s."
 msgid_plural "This theme requires the following plugins: %1$s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: functions.php:80 inc/theme-activation.php:302
+#: functions.php:82 inc/theme-activation.php:302
 #. translators: 1: plugin name(s).
 msgid "This theme recommends the following plugin: %1$s."
 msgid_plural "This theme recommends the following plugins: %1$s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: functions.php:82
+#: functions.php:84
 msgid ""
 "Sorry, but you do not have the correct permissions to install the %s "
 "plugin. Contact the administrator of this site for help on getting the "
@@ -1015,21 +1014,21 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: functions.php:84 inc/theme-activation.php:320
+#: functions.php:86 inc/theme-activation.php:320
 #. translators: 1: plugin name(s).
 msgid "The following required plugin is currently inactive: %1$s."
 msgid_plural "The following required plugins are currently inactive: %1$s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: functions.php:86 inc/theme-activation.php:326
+#: functions.php:88 inc/theme-activation.php:326
 #. translators: 1: plugin name(s).
 msgid "The following recommended plugin is currently inactive: %1$s."
 msgid_plural "The following recommended plugins are currently inactive: %1$s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: functions.php:88
+#: functions.php:90
 msgid ""
 "Sorry, but you do not have the correct permissions to activate the %s "
 "plugin. Contact the administrator of this site for help on getting the "
@@ -1041,7 +1040,7 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: functions.php:90 inc/theme-activation.php:308
+#: functions.php:92 inc/theme-activation.php:308
 #. translators: 1: plugin name(s).
 msgid ""
 "The following plugin needs to be updated to its latest version to ensure "
@@ -1052,7 +1051,7 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: functions.php:92
+#: functions.php:94
 msgid ""
 "Sorry, but you do not have the correct permissions to update the %s plugin. "
 "Contact the administrator of this site for help on getting the plugin "
@@ -1064,31 +1063,31 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: functions.php:94 inc/theme-activation.php:331
+#: functions.php:96 inc/theme-activation.php:331
 msgid "Begin installing plugin"
 msgid_plural "Begin installing plugins"
 msgstr[0] ""
 msgstr[1] ""
 
-#: functions.php:95
+#: functions.php:97
 msgid "Activate installed plugin"
 msgid_plural "Activate installed plugins"
 msgstr[0] ""
 msgstr[1] ""
 
-#: functions.php:96 inc/theme-activation.php:346
+#: functions.php:98 inc/theme-activation.php:346
 msgid "Return to Required Plugins Installer"
 msgstr ""
 
-#: functions.php:97 inc/theme-activation.php:348 inc/theme-activation.php:3202
+#: functions.php:99 inc/theme-activation.php:348 inc/theme-activation.php:3202
 msgid "Plugin activated successfully."
 msgstr ""
 
-#: functions.php:98
+#: functions.php:100
 msgid "All plugins installed and activated successfully. %s"
 msgstr ""
 
-#: inc/admin/admin-init.php:53 inc/admin/admin-init.php:56
+#: inc/admin/admin-init.php:205 inc/admin/admin-init.php:208
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-render.php:98
 #: inc/plugins/beaver-builder/header-bar/header-bar.php:18
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/buddyboss.php:44
@@ -1096,19 +1095,19 @@ msgstr ""
 msgid "BuddyBoss"
 msgstr ""
 
-#: inc/admin/admin-init.php:257
+#: inc/admin/admin-init.php:409
 msgid ""
 "Please click \"Reset All\" at the top, before doing an import in order for "
 "your changes to take effect."
 msgstr ""
 
-#: inc/admin/admin-init.php:284
+#: inc/admin/admin-init.php:437
 msgid ""
 "Warning: Access Restricted. Please enable BuddyBoss Theme License key <a "
 "href=\"%s\">HERE</a> and try again."
 msgstr ""
 
-#: inc/admin/admin-init.php:418 inc/admin/admin-init.php:494
+#: inc/admin/admin-init.php:570 inc/admin/admin-init.php:646
 #: inc/plugins/elementor/widgets/bb-dashboard-grid.php:663
 #: inc/plugins/elementor/widgets/bb-dashboard-intro.php:204
 #: inc/plugins/elementor/widgets/bb-forums-activity.php:267
@@ -1121,67 +1120,67 @@ msgstr ""
 msgid "Padding"
 msgstr ""
 
-#: inc/admin/admin-init.php:429
+#: inc/admin/admin-init.php:581
 msgid "Padding:"
 msgstr ""
 
-#: inc/admin/admin-init.php:539
+#: inc/admin/admin-init.php:691
 msgid ""
 "BuddyBoss Theme requires LearnDash 3.0 or above.  <a href=\"%s\">Update "
 "LearnDash</a>"
 msgstr ""
 
-#: inc/admin/admin-init.php:549
+#: inc/admin/admin-init.php:700
 msgid ""
 "BuddyBoss Theme requires the <strong>LearnDash 3.0</strong>  template, "
 "however you are using the <strong>Legacy</strong> template. <a "
 "href=\"%s\">Repair</a>"
 msgstr ""
 
-#: inc/admin/admin-init.php:575
+#: inc/admin/admin-init.php:726
 msgid "Default Fonts"
 msgstr ""
 
-#: inc/admin/admin-init.php:578 inc/admin/admin-init.php:586
+#: inc/admin/admin-init.php:729 inc/admin/admin-init.php:737
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-admin.php:138
 msgid "Normal 400"
 msgstr ""
 
-#: inc/admin/admin-init.php:579 inc/admin/admin-init.php:587
+#: inc/admin/admin-init.php:730 inc/admin/admin-init.php:738
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-admin.php:141
 msgid "Medium 500"
 msgstr ""
 
-#: inc/admin/admin-init.php:580
+#: inc/admin/admin-init.php:731
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-admin.php:147
 msgid "Bold 700"
 msgstr ""
 
-#: inc/admin/admin-init.php:585
+#: inc/admin/admin-init.php:736
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-admin.php:135
 msgid "Light 300"
 msgstr ""
 
-#: inc/admin/admin-init.php:588
+#: inc/admin/admin-init.php:739
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-admin.php:144
 msgid "Semi Bold 600"
 msgstr ""
 
-#: inc/admin/admin-init.php:589
+#: inc/admin/admin-init.php:740
 msgid "Light 300 Italic"
 msgstr ""
 
-#: inc/admin/admin-init.php:590
+#: inc/admin/admin-init.php:741
 msgid "Normal 400 Italic"
 msgstr ""
 
-#: inc/admin/admin-init.php:613
+#: inc/admin/admin-init.php:764
 msgid ""
 "Please update BuddyBoss Platform to v1.4.0 to maintain compatibility with "
 "BuddyBoss Theme. Some icons in your theme will look wrong until you update."
 msgstr ""
 
-#: inc/admin/admin-init.php:626
+#: inc/admin/admin-init.php:777
 msgid "This panel is set to be Read-Only. Saving is disabled."
 msgstr ""
 
@@ -1523,6 +1522,264 @@ msgstr ""
 #: inc/admin/buddyboss-extensions/extensions/repeater/repeater/field_repeater.php:251
 #: woocommerce/myaccount/my-address.php:73
 msgid "Add"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:306
+msgid "License activated successfully"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:321
+msgid "License deactivated successfully"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:378
+msgid "You do not have permission to activate a license"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:382
+#: inc/admin/mothership/class-bb-theme-license-manager.php:1096
+msgid "Invalid nonce"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:397
+msgid "License key is required"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:401
+msgid "Activation domain is required"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:438
+msgid ""
+"License activation failed. Please check your license key and try again. If "
+"the problem persists, contact support."
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:481
+#. translators: %s is the error message from API
+msgid "License activation failed: %s"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:502
+msgid ""
+"License activation failed: The stored product ID did not match your "
+"license. Please try activating again with your license key."
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:548
+#. translators: %d is the number of minutes to wait
+msgid ""
+"License activation failed: Too many activation requests. Please wait "
+"approximately %d minute(s) before trying again."
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:585
+msgid "License activation succeeded but failed to save. Please try again."
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:695
+#. translators: %d is the number of minutes to wait
+msgid ""
+"Too many activation requests. Please wait approximately %d minute(s) before "
+"trying again."
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:734
+#. translators: 1: Expected product, 2: Actual product from license
+msgid ""
+"Product validation failed: Your license is for \"%2$s\" but the system was "
+"configured for \"%1$s\". The configuration has been reset. Please try "
+"activating again."
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:806
+#: inc/admin/mothership/class-bb-theme-license-page.php:48
+msgid "License Activation"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:812
+msgid "License Key"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:815
+#: inc/admin/mothership/class-bb-theme-license-manager.php:869
+msgid "Enter your license key"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:823
+msgid "Activate License"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:846
+msgid "License Management"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:851
+msgid "%1$s of %2$s sites have been activated with this license key"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:857
+msgid "License Key: "
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:858
+msgid "Status: "
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:859
+msgid "Product: "
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:860
+msgid "Activations: "
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:873
+msgid "Deactivate License"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:955
+#. translators: %d is the number of minutes to wait
+msgid ""
+"Rate limit exceeded. Please wait approximately %d minute(s) before trying "
+"again."
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:1101
+msgid "You do not have permission to perform this action"
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:1166
+msgid ""
+"License settings have been reset successfully. You can now activate your "
+"license with the correct license key."
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-manager.php:1173
+msgid ""
+"Failed to reset license settings. Please try again or contact support if "
+"the problem persists."
+msgstr ""
+
+#: inc/admin/mothership/class-bb-theme-license-page.php:33
+msgid "BuddyBoss Theme Activation"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:12
+msgid "Auto Connect (Recommended)"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:14
+msgid ""
+"Click the \"Connect to BuddyBoss\" button to log into your BuddyBoss "
+"account. Then click \"Allow\" to have your license automatically filled in "
+"to activate your products."
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:18
+msgid "Connect to BuddyBoss"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:20
+msgid "Connecting"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:26
+msgid "Manual Connect"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:29
+msgid "Log into %s"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:32
+msgid "Go to your %s"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:35
+msgid "Go to the \"Subscriptions\" tab"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:38
+msgid "Find your product's license key"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:41
+msgid "Enter your license key below"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:44
+msgid "Enter your BuddyBoss account email"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:47
+msgid "Click \"Update License\""
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:55
+msgid "Benefits of a License"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:58
+msgid "Stay Up to Date"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:59
+msgid "Get the latest features right away"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:62
+msgid "Admin Notifications"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:63
+msgid "Get updates in WordPress"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:66
+msgid "Professional Support"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:67
+msgid "Get help with any questions"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:87
+msgid "Troubleshooting"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:88
+msgid ""
+"If you're experiencing activation issues, you can reset all license "
+"settings and try again."
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:89
+msgid "Warning:"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:89
+msgid ""
+"This will clear all license data including activation status. You will need "
+"to re-activate your license after resetting."
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:91
+msgid "Reset License Settings"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:103
+msgid ""
+"Are you sure you want to reset all license settings? This will clear your "
+"license activation and you will need to re-activate."
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:138
+msgid "An error occurred"
+msgstr ""
+
+#: inc/admin/mothership/views/admin.php:148
+msgid "Network error. Please try again."
 msgstr ""
 
 #: inc/admin/options/custom-css.php:863
@@ -3409,7 +3666,6 @@ msgid "Theme Options"
 msgstr ""
 
 #: inc/admin/options-init.php:2949
-#: inc/lib/buddyboss-updater/includes/functions.php:124
 msgid "BuddyBoss Theme"
 msgstr ""
 
@@ -3525,7 +3781,7 @@ msgid "Comment"
 msgstr ""
 
 #: inc/core/deprecated/deprecated-functions.php:167
-#: inc/theme/template-functions.php:1717
+#: inc/theme/template-functions.php:1711
 msgid "You need to be loggedin."
 msgstr ""
 
@@ -3552,8 +3808,8 @@ msgid "Black 900"
 msgstr ""
 
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-admin.php:156
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:290
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:368
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:291
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:369
 #: inc/plugins/elementor/widgets/bb-dashboard-grid.php:487
 #: inc/plugins/elementor/widgets/bb-forums-activity.php:512
 #: inc/plugins/elementor/widgets/bb-forums-activity.php:704
@@ -3607,12 +3863,12 @@ msgid "Create New Font"
 msgstr ""
 
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:89
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:316
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:324
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:332
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:394
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:402
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:410
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:317
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:325
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:333
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:395
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:403
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:411
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/buddyboss_legacy.php:2303
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/dashicons.php:1094
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/elusive.php:1446
@@ -3671,73 +3927,72 @@ msgid "Font Squirrel"
 msgstr ""
 
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:229
-#: inc/lib/buddyboss-updater/includes/views/package.php:20
 msgid "View Tutorial"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:259
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:260
 msgid ""
 "Warning: Access Restricted. Please enable BuddyBoss Theme License key <a "
 "href=\"%s\">here</a> and try again."
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:273
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:351
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:274
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:352
 msgid "Weight:"
-msgstr ""
-
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:276
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:354
-msgid "100 - Thin"
 msgstr ""
 
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:277
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:355
-msgid "200 - Extra Light"
+msgid "100 - Thin"
 msgstr ""
 
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:278
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:356
-msgid "300 - Light"
+msgid "200 - Extra Light"
 msgstr ""
 
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:279
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:357
-msgid "400 - Normal"
+msgid "300 - Light"
 msgstr ""
 
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:280
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:358
-msgid "500 - Medium"
+msgid "400 - Normal"
 msgstr ""
 
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:281
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:359
-msgid "600 - Semi Bold"
+msgid "500 - Medium"
 msgstr ""
 
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:282
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:360
-msgid "700 - Bold"
+msgid "600 - Semi Bold"
 msgstr ""
 
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:283
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:361
-msgid "800 - Extra Bold"
+msgid "700 - Bold"
 msgstr ""
 
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:284
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:362
+msgid "800 - Extra Bold"
+msgstr ""
+
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:285
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:363
 msgid "900 - Black"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:287
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:365
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:288
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:366
 msgid "Style:"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:291
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:369
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:292
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:370
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/buddyboss_legacy.php:1393
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/dashicons.php:389
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/elusive.php:836
@@ -3747,37 +4002,37 @@ msgstr ""
 msgid "Italic"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:294
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:372
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:295
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:373
 msgid "Font Files:"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:304
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:382
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:305
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:383
 msgid "Are you sure?"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:304
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:305
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:382
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:306
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:383
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:384
 msgid "Delete Font Variation"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:312
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:390
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:313
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:391
 msgid "WOFF File"
-msgstr ""
-
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:315
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:393
-msgid "The Web Open Font Format, Used by Modern Browsers"
 msgstr ""
 
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:316
 #: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:394
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:402
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:410
+msgid "The Web Open Font Format, Used by Modern Browsers"
+msgstr ""
+
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:317
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:395
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:403
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:411
 #: inc/plugins/buddyboss-menu-icons/includes/picker.php:234
 #: inc/plugins/buddyboss-menu-icons/includes/picker.php:237
 #: inc/plugins/buddyboss-menu-icons/includes/settings.php:902
@@ -3786,334 +4041,58 @@ msgstr ""
 msgid "Remove"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:316
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:394
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:317
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:395
 msgid "Upload font .woff file"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:316
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:394
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:317
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:395
 msgid "Select .woff file"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:320
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:398
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:321
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:399
 msgid "WOFF2 File"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:323
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:401
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:324
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:402
 msgid "The Web Open Font Format 2, Used by Modern Browsers"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:324
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:402
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:325
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:403
 msgid "Upload font .woff2 file"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:324
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:402
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:325
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:403
 msgid "Select .woff2 file"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:328
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:406
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:329
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:407
 msgid "TTF File"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:331
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:409
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:332
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:410
 msgid "TrueType Fonts, Used for better supporting Safari, Android, iOS"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:332
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:410
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:333
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:411
 msgid "Upload font .ttf file"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:332
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:410
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:333
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:411
 msgid "Select .ttf file"
 msgstr ""
 
-#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:343
+#: inc/custom-fonts/classes/class-buddyboss-custom-fonts-cpt.php:344
 msgid "Add New Variation"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/buddyboss-updater.php:66
-msgid "Once every 4 hours"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/admin.php:249
-msgid "BuddyBoss License Keys"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/admin.php:249
-msgid "License Keys"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/admin.php:550
-msgid "Dismiss this notice."
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/admin.php:582
-msgid "activate your product licenses"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/admin.php:583
-msgid ""
-"<strong>Your BuddyBoss products are almost ready.</strong> To get started, "
-"please %s."
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/admin.php:612
-msgid "here"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/admin.php:613
-msgid "This license for <strong>%s</strong> is invalid or incomplete. %s"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/admin.php:771
-#: inc/lib/buddyboss-updater/includes/admin.php:803
-#: inc/lib/buddyboss-updater/includes/admin.php:893
-#: inc/lib/buddyboss-updater/includes/admin.php:899
-msgid ""
-"Your account was successfully connected. No new activations have been made. "
-"If you are attempting to activate a new license key, please make sure that "
-"the product is installed on your site, and that an active license key is "
-"available in your BuddyBoss.com account."
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/admin.php:864
-msgid ""
-"Congratulations! License keys for the following product(s) have been "
-"activated: %s"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/admin.php:888
-#: inc/lib/buddyboss-updater/includes/admin.php:901
-msgid ""
-"The connection was successful, however, no license key was activated. We "
-"could not find any active license in your account, for any of the installed "
-"BuddyBoss products."
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:84
-#: inc/lib/buddyboss-updater/includes/functions.php:88
-msgid "Boss Theme"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:101
-#: inc/lib/buddyboss-updater/includes/functions.php:105
-#: inc/lib/buddyboss-updater/includes/functions.php:265
-#: inc/lib/buddyboss-updater/includes/functions.php:351
-msgid "OneSocial Theme"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:118
-msgid "BB Theme & Platform Pro"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:128
-#: inc/lib/buddyboss-updater/includes/functions.php:169
-msgid "BuddyBoss Platform Pro"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:165
-msgid "BB Platform Pro"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:182
-#: inc/lib/buddyboss-updater/includes/functions.php:186
-msgid "BuddyBoss Media"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:199
-#: inc/lib/buddyboss-updater/includes/functions.php:203
-msgid "BuddyBoss Wall"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:214
-#: inc/lib/buddyboss-updater/includes/functions.php:218
-msgid "Location Autocomplete"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:231
-msgid "Social Learner - Learndash"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:240
-msgid "Boss for Learndash"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:244
-msgid "Boss"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:257
-#: inc/lib/buddyboss-updater/includes/functions.php:261
-msgid "Social MarketPlace"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:278
-#: inc/lib/buddyboss-updater/includes/functions.php:282
-msgid "BuddyPress Member Types"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:326
-#: inc/lib/buddyboss-updater/includes/functions.php:330
-#: inc/lib/buddyboss-updater/includes/functions.php:347
-msgid "BuddyPress User Blog"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/functions.php:343
-msgid "Social Blogger"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/vendor/license.php:127
-#: inc/lib/buddyboss-updater/includes/vendor/license.php:164
-msgid ""
-"We've checked the license key, but it <strong>doesn't appear to be a valid "
-"BuddyBoss license.</strong> Please double check the license key and try "
-"again."
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/vendor/license.php:144
-msgid "We are unable to validate the license key. Service unavailable."
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/vendor/updater.php:410
-msgid ""
-"An Unexpected HTTP Error occurred during the API request.</p> <p><a "
-"href=\"?\" onclick=\"document.location.reload(); return false;\">Try "
-"again</a>"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/vendor/updater.php:414
-#: inc/lib/buddyboss-updater/includes/vendor/updater.php:415
-msgid "An unknown error occurred"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:8
-msgid "Auto Connect (Recommended)"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:10
-msgid ""
-"Click the \"Connect to BuddyBoss\" button to log into your BuddyBoss "
-"account. Then click \"Allow\" to have your license automatically filled in "
-"to activate your products."
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:14
-msgid "Connect to BuddyBoss"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:16
-msgid "Connecting"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:22
-msgid "Manual Connect"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:25
-msgid "Log into %s"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:28
-msgid "Go to your %s"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:31
-msgid "Go to the \"Subscriptions\" tab"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:34
-msgid "Find your product's license key"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:37
-msgid "Enter your license key below"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:40
-msgid "Enter your BuddyBoss account email"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:43
-msgid "Click \"Update License\""
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:51
-msgid "Benefits of a License"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:54
-msgid "Stay Up to Date"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:55
-msgid "Get the latest features right away"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:58
-msgid "Admin Notifications"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:59
-msgid "Get updates in WordPress"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:62
-msgid "Professional Support"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/admin.php:63
-msgid "Get help with any questions"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/intro.php:2
-msgid "How does BuddyBoss subscriptions work?"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/intro.php:3
-#: inc/lib/buddyboss-updater/includes/views/intro.php:7
-msgid ""
-"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor "
-"placerat ipsum. Maecenas venenatis euismod urna pretium faucibus. Fusce at "
-"interdum neque, vitae cursus augue. In ac dignissim mi. Quisque et nulla "
-"commodo, elementum dui at, tempus magna. Nam fringilla ac ipsum non tempor."
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/package.php:8
-msgid "Update License"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/package.php:29
-msgid "Product(s)"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/package.php:46
-msgid "License Key"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/package.php:50
-msgid ""
-"You can find the license key for your product by going to the <a "
-"href=\"https://my.buddyboss.com/my-account/?tab=mysubscriptions\" "
-"target=\"_blank\" rel=\"noopener\" >My Subscriptions</a> page in your "
-"account area."
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/package.php:59
-#: inc/lib/buddyboss-updater/includes/views/package.php:83
-msgid "Toggle"
-msgstr ""
-
-#: inc/lib/buddyboss-updater/includes/views/package.php:73
-msgid "This is your account email you use to log into your BuddyBoss.com account."
 msgstr ""
 
 #: inc/maintenance-mode/views/maintenance.php:36
@@ -6230,7 +6209,7 @@ msgid "Log In"
 msgstr ""
 
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/buddyboss_legacy.php:1518
-#: inc/theme/functions.php:1677 inc/theme/template-functions.php:1561
+#: inc/theme/functions.php:1677 inc/theme/template-functions.php:1555
 #: paid-memberships-pro/pages/account.php:252
 #: template-parts/header-profile-menu.php:569
 msgid "Log Out"
@@ -6267,7 +6246,7 @@ msgstr ""
 
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/buddyboss_legacy.php:1553
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/genericon.php:468
-#: learndash/ld30/learndash-sidebar.php:88 template-parts/header-aside.php:30
+#: learndash/ld30/learndash-sidebar.php:93 template-parts/header-aside.php:30
 msgid "Maximize"
 msgstr ""
 
@@ -6316,7 +6295,7 @@ msgstr ""
 
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/buddyboss_legacy.php:1618
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/genericon.php:483
-#: learndash/ld30/learndash-sidebar.php:89 template-parts/header-aside.php:31
+#: learndash/ld30/learndash-sidebar.php:94 template-parts/header-aside.php:31
 msgid "Minimize"
 msgstr ""
 
@@ -11106,7 +11085,7 @@ msgstr ""
 msgid "Content Color"
 msgstr ""
 
-#: inc/plugins/elementor/widgets/bb-activity.php:801
+#: inc/plugins/elementor/widgets/bb-activity.php:830
 msgid "Post an Update"
 msgstr ""
 
@@ -12527,7 +12506,7 @@ msgstr ""
 
 #: inc/plugins/elementor/widgets/courses/templates/learndash-activity-template.php:118
 #: inc/plugins/elementor/widgets/courses/templates/lifterlms-activity-template.php:103
-#: learndash/ld30/learndash-sidebar.php:227
+#: learndash/ld30/learndash-sidebar.php:232
 msgid "% Completed"
 msgstr ""
 
@@ -12708,7 +12687,7 @@ msgid "Logo Position"
 msgstr ""
 
 #: inc/plugins/elementor/widgets/header-bar/bb-header-bar.php:360
-#: learndash/ld30/learndash-sidebar.php:85 template-parts/header-aside.php:27
+#: learndash/ld30/learndash-sidebar.php:90 template-parts/header-aside.php:27
 #: template-parts/header-mobile.php:77
 msgid "Dark Mode"
 msgstr ""
@@ -12987,11 +12966,11 @@ msgid "Continue"
 msgstr ""
 
 #: inc/plugins/lifterlms-helper.php:1671
-#: learndash/ld30/learndash-sidebar.php:223
-#: learndash/ld30/learndash-sidebar.php:296
-#: learndash/ld30/learndash-sidebar.php:342
-#: learndash/ld30/learndash-sidebar.php:406
-#: learndash/ld30/learndash-sidebar.php:476
+#: learndash/ld30/learndash-sidebar.php:228
+#: learndash/ld30/learndash-sidebar.php:301
+#: learndash/ld30/learndash-sidebar.php:347
+#: learndash/ld30/learndash-sidebar.php:411
+#: learndash/ld30/learndash-sidebar.php:481
 #: learndash/ld30/shortcodes/course_list_grid_template.php:158
 #: learndash/ld30/shortcodes/course_list_grid_template.php:178
 #: learndash/ld30/shortcodes/course_list_grid_template.php:212
@@ -13469,26 +13448,26 @@ msgstr ""
 msgid "The search widget area. Only appears if widgets are added."
 msgstr ""
 
-#: inc/theme/template-functions.php:786 template-parts/buddypanel.php:14
+#: inc/theme/template-functions.php:785 template-parts/buddypanel.php:14
 #: template-parts/header-2.php:4 template-parts/header-3.php:8
 #: template-parts/header.php:11
 msgid "Toggle Side Panel"
 msgstr ""
 
-#: inc/theme/template-functions.php:870
+#: inc/theme/template-functions.php:869
 #. translators: %s: Author comment date.
 msgid "%1$s"
 msgstr ""
 
-#: inc/theme/template-functions.php:880
+#: inc/theme/template-functions.php:879
 msgid "Your comment is awaiting moderation."
 msgstr ""
 
-#: inc/theme/template-functions.php:955
+#: inc/theme/template-functions.php:954
 msgid "Load More"
 msgstr ""
 
-#: inc/theme/template-functions.php:2273
+#: inc/theme/template-functions.php:2243
 msgid "Edit Post Privacy"
 msgstr ""
 
@@ -13921,55 +13900,55 @@ msgstr ""
 msgid "Approved"
 msgstr ""
 
-#: learndash/ld30/course.php:180
+#: learndash/ld30/course.php:181
 msgid "You've earned a certificate!"
 msgstr ""
 
-#: learndash/ld30/course.php:184 learndash/ld30/modules/certificate-link.php:31
+#: learndash/ld30/course.php:185 learndash/ld30/modules/certificate-link.php:31
 msgid "Download Certificate"
 msgstr ""
 
-#: learndash/ld30/course.php:360 learndash/ld30/course.php:364
+#: learndash/ld30/course.php:361 learndash/ld30/course.php:365
 #: learndash/ld30/shortcodes/profile.php:196
 #: learndash/ld30/shortcodes/profile.php:201
 msgid "Expand All"
 msgstr ""
 
-#: learndash/ld30/course.php:361 learndash/ld30/shortcodes/profile.php:197
+#: learndash/ld30/course.php:362 learndash/ld30/shortcodes/profile.php:197
 msgid "Collapse All"
 msgstr ""
 
-#: learndash/ld30/learndash-sidebar.php:86 template-parts/header-aside.php:28
+#: learndash/ld30/learndash-sidebar.php:91 template-parts/header-aside.php:28
 #: template-parts/header-mobile.php:78
 msgid "Light Mode"
 msgstr ""
 
-#: learndash/ld30/learndash-sidebar.php:142
-#: learndash/ld30/learndash-sidebar.php:448
+#: learndash/ld30/learndash-sidebar.php:147
+#: learndash/ld30/learndash-sidebar.php:453
 #: learndash/ld30/lesson/partials/row.php:45
 #: learndash/ld30/quiz/partials/row.php:32
 msgid "You don't currently have access to this content"
 msgstr ""
 
-#: learndash/ld30/learndash-sidebar.php:143
+#: learndash/ld30/learndash-sidebar.php:148
 msgid "Course locked"
 msgstr ""
 
-#: learndash/ld30/learndash-sidebar.php:225
-#: learndash/ld30/learndash-sidebar.php:302
-#: learndash/ld30/learndash-sidebar.php:350
-#: learndash/ld30/learndash-sidebar.php:412
-#: learndash/ld30/learndash-sidebar.php:482
+#: learndash/ld30/learndash-sidebar.php:230
+#: learndash/ld30/learndash-sidebar.php:307
+#: learndash/ld30/learndash-sidebar.php:355
+#: learndash/ld30/learndash-sidebar.php:417
+#: learndash/ld30/learndash-sidebar.php:487
 #: learndash/ld30/shortcodes/course_list_grid_template.php:170
 msgid "Not Completed"
 msgstr ""
 
-#: learndash/ld30/learndash-sidebar.php:501
+#: learndash/ld30/learndash-sidebar.php:506
 #: lifterlms/lesson/template-single-lesson-sidebar.php:110
 msgid "Participants"
 msgstr ""
 
-#: learndash/ld30/learndash-sidebar.php:550
+#: learndash/ld30/learndash-sidebar.php:555
 #: lifterlms/lesson/template-single-lesson-sidebar.php:149
 msgid "Show more"
 msgstr ""
@@ -13978,13 +13957,13 @@ msgstr ""
 msgid "Please login to view sample content"
 msgstr ""
 
-#: learndash/ld30/lesson.php:145 learndash/ld30/quiz.php:111
-#: learndash/ld30/topic.php:155
+#: learndash/ld30/lesson.php:232 learndash/ld30/quiz.php:111
+#: learndash/ld30/topic.php:246
 msgid "Expires at"
 msgstr ""
 
-#: learndash/ld30/lesson.php:145 learndash/ld30/quiz.php:111
-#: learndash/ld30/topic.php:155
+#: learndash/ld30/lesson.php:232 learndash/ld30/quiz.php:111
+#: learndash/ld30/topic.php:246
 msgid "Expired at"
 msgstr ""
 
@@ -14463,7 +14442,7 @@ msgstr ""
 
 #: lifterlms/myaccount/view-order.php:108
 #: woocommerce/checkout/review-order.php:24
-#: woocommerce/checkout/review-order.php:132
+#: woocommerce/checkout/review-order.php:134
 #: woocommerce/myaccount/dashboard.php:80
 #: woocommerce/myaccount/my-orders.php:17
 #: woocommerce/order/order-details-item.php:64
@@ -15449,11 +15428,11 @@ msgstr ""
 msgid "Remove this item"
 msgstr ""
 
-#: woocommerce/checkout/review-order.php:66
+#: woocommerce/checkout/review-order.php:67
 msgid "Qty:"
 msgstr ""
 
-#: woocommerce/checkout/review-order.php:85
+#: woocommerce/checkout/review-order.php:87
 msgid "Subtotal"
 msgstr ""
 
@@ -15712,16 +15691,16 @@ msgstr ""
 msgid "View order"
 msgstr ""
 
-#: woocommerce/myaccount/view-order.php:29
+#: woocommerce/myaccount/view-order.php:38
 #. translators: 1: order number 2: order date 3: order status
 msgid "Order #%1$s was placed on %2$s and is currently %3$s."
 msgstr ""
 
-#: woocommerce/myaccount/view-order.php:38
+#: woocommerce/myaccount/view-order.php:51
 msgid "Order updates"
 msgstr ""
 
-#: woocommerce/myaccount/view-order.php:44
+#: woocommerce/myaccount/view-order.php:57
 msgid "l jS \\o\\f F Y, h:ia"
 msgstr ""
 
@@ -18833,11 +18812,6 @@ msgctxt "ui"
 msgid "Invalid Coupon"
 msgstr ""
 
-#: inc/lib/buddyboss-updater/includes/views/package.php:36
-msgctxt "Conjuction joining different product names"
-msgid " and "
-msgstr ""
-
 #: inc/plugins/learndash-compat.php:49
 #: learndash/ld30/focus/comments_list.php:102
 #. translators: placeholders: %1$s: Comment Date, %2$s: Comment Time
@@ -18887,13 +18861,13 @@ msgctxt "placeholders: points current, points max"
 msgid "%1$s/%2$s Points Awarded "
 msgstr ""
 
-#: learndash/ld30/course.php:296
+#: learndash/ld30/course.php:297
 #. translators: placeholder: Course.
 msgctxt "placeholder: Course"
 msgid "%s Content"
 msgstr ""
 
-#: learndash/ld30/learndash-sidebar.php:97
+#: learndash/ld30/learndash-sidebar.php:102
 msgctxt "link: Back to Course"
 msgid "Back to %s"
 msgstr ""

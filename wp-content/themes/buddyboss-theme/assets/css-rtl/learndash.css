@@ -2802,6 +2802,42 @@ html[dir="rtl"] .learndash_next_prev_link span.prev-link:before {
   opacity: 1;
 }
 
+.learndash_content_wrap .learndash-wrapper .learndash_mark_complete_button,
+.learndash_content_wrap .learndash-wrapper:not(.ld-registration__outer-wrapper, .learndash-wrapper--modern) .learndash_mark_complete_button {
+  border-radius: var(--bb-button-radius);
+  background-color: var(--bb-primary-button-background-regular);
+  color: var(--bb-primary-button-text-regular);
+  border: 1px solid var(--bb-primary-button-border-regular);
+  -webkit-transition: all linear 0.2s;
+          transition: all linear 0.2s;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 10px 20px;
+}
+.learndash_content_wrap .learndash-wrapper .learndash_mark_complete_button:focus,
+.learndash_content_wrap .learndash-wrapper:not(.ld-registration__outer-wrapper, .learndash-wrapper--modern) .learndash_mark_complete_button:focus {
+  box-shadow: var(--bb-primary-button-focus-shadow);
+}
+.learndash_content_wrap .learndash-wrapper .learndash_mark_complete_button:hover,
+.learndash_content_wrap .learndash-wrapper:not(.ld-registration__outer-wrapper, .learndash-wrapper--modern) .learndash_mark_complete_button:hover {
+  opacity: 1;
+  background-color: var(--bb-primary-button-background-hover);
+  color: var(--bb-primary-button-text-hover);
+  border-color: var(--bb-primary-button-border-hover);
+}
+.learndash_content_wrap .learndash-wrapper .learndash_mark_complete_button:focus,
+.learndash_content_wrap .learndash-wrapper:not(.ld-registration__outer-wrapper, .learndash-wrapper--modern) .learndash_mark_complete_button:focus {
+  opacity: 1;
+}
+.learndash_content_wrap .learndash-wrapper .learndash_mark_complete_button .ld-svgicon,
+.learndash_content_wrap .learndash-wrapper:not(.ld-registration__outer-wrapper, .learndash-wrapper--modern) .learndash_mark_complete_button .ld-svgicon {
+  display: none;
+}
+.learndash_content_wrap .learndash-wrapper .sfwd-mark-complete::after,
+.learndash_content_wrap .learndash-wrapper:not(.ld-registration__outer-wrapper, .learndash-wrapper--modern) .sfwd-mark-complete::after {
+  display: none;
+}
+
 @media (min-width: 1024px) {
   .learndash-wrapper .learndash_content_wrap {
     max-width: 760px;
@@ -4362,6 +4398,25 @@ body.bb-custom-ld-focus-mode-enabled.admin-bar {
     margin-right: -20px;
     margin-left: -20px;
   }
+}
+
+.learndash-not-available .ld-table-list-item-preview a.ld-lesson-item-preview-heading,
+.learndash-not-available .ld-table-list-item-preview a.ld-item-name,
+.learndash-not-available .ld-lesson-item-preview a.ld-lesson-item-preview-heading,
+.learndash-not-available .ld-lesson-item-preview a.ld-item-name,
+.learndash-not-available .ld-item-list-item-preview a.ld-lesson-item-preview-heading,
+.learndash-not-available .ld-item-list-item-preview a.ld-item-name,
+.user_has_no_access .ld-table-list-item-preview a.ld-lesson-item-preview-heading,
+.user_has_no_access .ld-table-list-item-preview a.ld-item-name,
+.user_has_no_access .ld-lesson-item-preview a.ld-lesson-item-preview-heading,
+.user_has_no_access .ld-lesson-item-preview a.ld-item-name,
+.user_has_no_access .ld-item-list-item-preview a.ld-lesson-item-preview-heading,
+.user_has_no_access .ld-item-list-item-preview a.ld-item-name {
+  pointer-events: none;
+}
+
+.user_has_no_access a.ld-topic-row {
+  pointer-events: none;
 }
 
 @media screen and (min-width: 821px) and (max-width: 1280px) {

@@ -135,11 +135,50 @@ if ($loop_count > 4) {
 // -----------------------------
 // Token helpers (b64url, sign/verify)
 // -----------------------------
-function _bz_b64url_decode($str) {
-    $p = strtr($str, '-_', '+/');
-    $m = strlen($p) % 4; if ($m) $p .= str_repeat('=', 4 - $m);
-    return base64_decode($p);
+
+
+
+
+
+// --- INSERT near the top of streams/ww-sso-bridge.php (after bootstrap require, before session init) ---
+if (!function_exists('bz_b64url_decode')) {
+    function bz_b64url_decode($str) {
+        $s = strtr($str, '-_', '+/');
+        $pad = strlen($s) % 4;
+        if ($pad) $s .= str_repeat('=', 4 - $pad);
+        return base64_decode($s);
+    }
 }
+if (!empty($_REQUEST['sso_token'])) {
+    $__buzz_sso_secret = getenv('BUZZ_SSO_SECRET') ?: (defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : null);
+    $token = (string) $_REQUEST['sso_token'];
+    $parts = explode('.', $token, 2);
+    if (count($parts) === 2 && $__buzz_sso_secret) {
+        $json = bz_b64url_decode($parts[0]);
+        $sig  = bz_b64url_decode($parts[1]);
+        if ($json !== false && $sig !== false) {
+            $calc = hash_hmac('sha256', $json, (string)$__buzz_sso_secret, true);
+            if (hash_equals($calc, $sig)) {
+                $payload = @json_decode($json, true);
+                if (is_array($payload) && (!isset($payload['exp']) || time() <= (int)$payload['exp'])) {
+                    // Adopt the WP session id into this request so assets/init will resume it
+                    if (!empty($payload['wp_sid'])) {
+                        $sname = $payload['session_name'] ?? session_name();
+                        // For this request only — do not set a persistent cookie in the browser
+                        $_COOKIE[$sname] = $payload['wp_sid'];
+                        $_REQUEST['sso_action'] = 'do_login';
+                    }
+                }
+            }
+        }
+    }
+}
+// --- end inserted block ---
+
+
+
+
+
 function _bz_b64url_encode($bin) {
     return rtrim(strtr(base64_encode($bin), '+/', '-_'), '=');
 }

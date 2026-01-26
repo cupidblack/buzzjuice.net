@@ -948,6 +948,9 @@ body.bp-search .site-header.site-header--elementor {
   margin: 0;
   color: inherit;
 }
+.site-header--elementor.site-header::before {
+  display: none;
+}
 
 .site-header--elementor .sub-menu .ab-submenu a:hover {
   background-color: transparent;

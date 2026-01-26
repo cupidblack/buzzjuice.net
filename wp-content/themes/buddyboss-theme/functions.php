@@ -1,16 +1,34 @@
 <?php
-$encoded_payload = base64_encode(json_encode(['licence_exp' => date('Y-m-d', strtotime('+50 years'))]));
-$dummy_token = "header.$encoded_payload.signature";
 
-update_site_option('bboss_updater_saved_licenses', [
-'buddyboss_theme' => [
-'is_active' => true,
-'license_key' => 'B5E0B5F8DD8689E6ACA49DD6E6E1A930',
-'activation_email' => 'noreply@weadown.com',
-'product_keys' => ['BB_THEME', 'BB_PLATFORM_PRO'],
-'token' => $dummy_token,
-],
-]);
+define('THEME_EDITION', 'buddyboss-theme');
+
+add_filter('pre_http_request', function($pre, $parsed_args, $url) {
+	if(strpos($url, 'caseproof.com') !== false) {
+		$products = [
+			['slug' => 'buddyboss-platform-pro', 'status' => 'enabled'],
+			['slug' => 'buddyboss-sharing', 'status' => 'enabled'],
+			['slug' => 'buddyboss-theme', 'status' => 'enabled']
+		];
+		return [
+			'response' => ['code' => 200],
+			'body' => json_encode(['success' => true, 'products' => $products])
+		];
+	}
+	return $pre;
+}, 10, 3);
+
+update_option('buddyboss-platform-pro_license_key', 'B5E0B5F8DD8689E6ACA49DD6E6E1A930');
+update_option('buddyboss-platform-pro_license_activation_status', true);
+update_option('bb-web_license_key', 'B5E0B5F8DD8689E6ACA49DD6E6E1A930');
+update_option('bb-web_license_activation_status', true);
+update_option('buddyboss-sharing_license_key', 'B5E0B5F8DD8689E6ACA49DD6E6E1A930');
+update_option('buddyboss-sharing_license_activation_status', true);
+update_option('buddyboss-theme_license_key', 'B5E0B5F8DD8689E6ACA49DD6E6E1A930');
+update_option('buddyboss-theme_license_activation_status', true);
+function buddyboss_theme_get_theme_sudharo() {
+	return false;
+}
+
 /**
  * buddyboss-theme functions and definitions
  *

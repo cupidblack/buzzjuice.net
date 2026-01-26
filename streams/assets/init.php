@@ -110,6 +110,43 @@ function bz_is_crawler_init() {
     return false;
 }
 
+
+
+
+
+
+// --- INSERT near top (after config require) to guard members-only paths ---
+if (!function_exists('is_user_logged_in')) {
+    $wp_load = realpath(__DIR__ . '/../..') . '/wp-load.php';
+    if (is_file($wp_load)) {
+        @require_once $wp_load;
+    }
+}
+$public_paths = [
+    '/social/social-login.php',
+    '/social/qd-sso-bridge.php',
+    '/social/wo_login.php',
+    '/social/bootstrap.php'
+];
+$uri = $_SERVER['REQUEST_URI'] ?? '/';
+$path = parse_url($uri, PHP_URL_PATH);
+$needs_auth = true;
+foreach ($public_paths as $p) {
+    if (strpos($path, $p) === 0) { $needs_auth = false; break; }
+}
+if ($needs_auth && function_exists('is_user_logged_in') && !is_user_logged_in()) {
+    $full = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
+           . "://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+    $login = site_url('/wp-login.php?redirect_to=' . rawurlencode($full));
+    header('Location: ' . $login);
+    exit;
+}
+// --- end inserted block ---
+
+
+
+
+
 // Heuristic to decide whether to start/resume a PHP session for this request.
 // Start only for SSO-relevant actions, non-GET state changes, admin/debug, or explicit bridge flows.
 function bz_request_needs_session_init() {

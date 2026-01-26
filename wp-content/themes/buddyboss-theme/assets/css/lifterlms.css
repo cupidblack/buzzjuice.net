@@ -6384,6 +6384,10 @@ body:not(.bb-page-loaded) .bb-course-items .bb-course-cover--videoTile {
   font-size: 0;
 }
 
+.bb-lms-pagination span.bb-rl-page-numbers.disabled {
+  display: none;
+}
+
 .single-llms_assignment .llms-donut svg path {
   stroke: var(--bb-success-color);
 }

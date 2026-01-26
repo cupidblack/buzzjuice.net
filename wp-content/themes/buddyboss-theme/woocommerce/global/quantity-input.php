@@ -12,7 +12,7 @@
  *
  * @see     https://woocommerce.com/document/template-structure/
  * @package WooCommerce\Templates
- * @version 9.4.0
+ * @version 10.1.0
  *
  * @var bool   $readonly If the input should be set to readonly mode.
  * @var string $type     The input type attribute.
@@ -51,7 +51,9 @@ if ( $max_value && $min_value === $max_value ) {
 			size="4"
 			<?php endif; ?>
 			min="<?php echo esc_attr( $min_value ); ?>"
-			max="<?php echo esc_attr( 0 < $max_value ? $max_value : '' ); ?>"
+			<?php if ( 0 < $max_value ) : ?>
+			max="<?php echo esc_attr( $max_value ); ?>"
+			<?php endif; ?>
 			<?php if ( ! $is_readonly ) : ?>
 				step="<?php echo esc_attr( $step ); ?>"
 				placeholder="<?php echo esc_attr( $placeholder ); ?>"

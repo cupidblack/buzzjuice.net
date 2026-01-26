@@ -1,15 +1,11 @@
 <?php
 /**
- * Child theme override of archive-sfwd-courses.php with the include moved earlier
- * so the top LearnDash Gutenberg blocks are rendered unconditionally as part of the
- * archive content wrapper.
+ * The template for displaying 404 pages (not found)
  *
- * Place at: wp-content/themes/buddyboss-child/archive-sfwd-courses.php
+ * @link https://codex.wordpress.org/Creating_an_Error_404_Page
  *
- * Note: this is a minimal relocation of the include only; the rest of the parent
- * template logic was preserved (search & filters, loop, pagination, sidebar, footer).
+ * @package BuddyBoss_Theme
  */
-
 global $wp_query;
 
 get_header();
@@ -25,7 +21,6 @@ $course_label      = LearnDash_Custom_Label::get_label( 'course' );
 	<div id="primary" class="content-area">
 		<main id="main" class="site-main">
 			<div id="learndash-content" class="learndash-course-list">
-
 				<form id="bb-courses-directory-form" class="bb-courses-directory" method="get" action="" data-courses_label='<?php echo esc_attr( $courses_label ); ?>' data-course_label='<?php echo esc_attr( $course_label ); ?>'>
 					<?php $paged = ( get_query_var( 'paged' ) ) ? get_query_var( 'paged' ) : 1; ?>
 					<input type="hidden" name="current_page" value="<?php echo esc_attr( $paged ); ?>" >
@@ -38,7 +33,6 @@ $course_label      = LearnDash_Custom_Label::get_label( 'course' );
 							</div>
 						</div>
 					</div>
-
 					<nav class="courses-type-navs main-navs bp-navs dir-navs bp-subnavs">
 						<ul class="component-navigation courses-nav">
 							<?php
@@ -152,6 +146,11 @@ $course_label      = LearnDash_Custom_Label::get_label( 'course' );
 									while ( have_posts() ) :
 										the_post();
 
+										/*
+										 * Include the Post-Format-specific template for the content.
+										 * If you want to override this in a child theme, then include a file
+										 * called content-___.php (where ___ is the Post Format name) and that will be used instead.
+										 */
 										get_template_part( 'learndash/ld30/template-course-item' );
 
 									endwhile;
@@ -188,22 +187,6 @@ $course_label      = LearnDash_Custom_Label::get_label( 'course' );
 						</div>
 					</div>
 				</form>
-
-				<?php
-				// Forum shortcode - replace with your forum shortcode if different.
-				if ( shortcode_exists( 'bbp-forum-index' ) || shortcode_exists( 'bbp-index' ) ) {
-					$f_shortcode = shortcode_exists( 'bbp-forum-index' ) ? '[bbp-forum-index]' : '[bbp-index]';
-					echo '<div class="bz-course-archive-forums">';
-					echo do_shortcode( $f_shortcode );
-					echo '</div>';
-				} else {
-					if ( current_user_can( 'manage_options' ) ) {
-						echo '<div class="bz-debug-forum-warning" style="background:#fff3cd;border:1px solid #ffeeba;padding:12px;margin-top:18px;">';
-						echo '<strong>BZ Debug:</strong> Forum shortcode not found. Install/activate bbPress or BuddyBoss forums, or update this template with the correct forum shortcode.';
-						echo '</div>';
-					}
-				}
-				?>
 
 			</div>
 

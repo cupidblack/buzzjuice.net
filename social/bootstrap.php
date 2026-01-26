@@ -38,6 +38,17 @@ require_once $_LIBS . 'webtopay.php';
 require $_BASEPATH . 'core.php';
 require $_LIBS . 'dataset.php';
 
+
+
+
+
+
+
+
+
+
+
+
 $config->isDailyCredit = IsGotCredit();
 if( ISSET( $_GET['theme'] ) && in_array($_GET['theme'], ['default', 'love'])){
     $_SESSION['theme'] = $_GET['theme'];

@@ -1,14 +1,8 @@
-/**
- * W E A D O W N . C O M
- * ---- weadown.com ----
- */
-
-
 === BuddyBoss Theme ===
 Contributors: BuddyBoss
 Requires at least: 4.9.1
 Tested up to: 6.8.1
-Version: 2.10.0
+Version: 2.16.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -24,6 +18,54 @@ BuddyBoss Theme is a community theme for the BuddyBoss Platform.
 4. Upload the file 'buddyboss-theme-child.zip'
 
 == Changelog ==
+
+= 2.16.1 =
+* Bug: Core - Enhanced the license activation system with improved rate limiting and stability fixes to strengthen security
+
+= 2.16.0 =
+* Bug: Elementor - Removed an unnecessary drop shadow from the Elementor Header Bar widget to improve visual consistency
+* Bug: Elementor - Resolved styling issues in the BuddyBoss Elementor templates modal, including header text visibility, search field background, and navigation hover states
+* Bug: LearnDash - Prevented inaccessible LearnDash lessons from being clickable, ensuring users can only open lessons they have access to
+* Bug: WooCommerce - Improved UI styling for WooCommerce cart, checkout, and variation layouts to ensure consistent theme appearance
+
+= 2.15.2 =
+* Enhancement: Core - Implemented a notice for media privacy change handling
+
+= 2.15.1 =
+* Enhancement: Core - Improved reliability of license status checks by optimizing API requests to prevent delays experience
+
+= 2.15.0 =
+* New Feature! - Added support for the new Sharing feature across the BuddyBoss Theme, enabling seamless post sharing within the community and to external social platforms
+
+= 2.14.4 =
+* Bug: Core - Fixed an issue where theme updates were not being received
+
+= 2.14.3 =
+* Bug: Core - Fixed the issue with license controller initialization
+
+= 2.14.2 =
+* Bug: Core - Fixed the theme installation issue
+
+= 2.14.1 =
+* Bug: Core - Fixed the license rate limit error and proper error handling
+
+= 2.14.0 =
+* New Feature! Core - Implemented a new licensing system for BuddyBoss plugins and theme
+
+= 2.13.1 =
+* Bug: LearnDash - Fixed BuddyBoss Theme compatibility with LearnDash Modern UI templates to ensure lessons, topics, and courses display correctly
+
+= 2.13.0 =
+* New Feature! Activity - Added Featured Image above post content in activity and group posts, making feeds more visual and engaging
+* New Feature! Activity - Added support for Post Titles and H3/H4 text formatting in activity feeds, helping communities stay organized and posts easier to read
+
+= 2.12.0 =
+* Bug: Core - Fixed an issue where SEO plugin breadcrumbs were displayed on the homepage
+* Bug: LifterLMS - Resolved pagination UI issues in course listings caused by ReadyLaunch
+* Bug: WooCommerce - Updated WooCommerce template files in Theme to remove outdated template file notice
+
+= 2.11.0 =
+* Bug: Styling - Fixed alignment, spacing, and text clipping issues in Buddypanel sub-menus and sections
 
 = 2.10.0 =
 * Bug: Core -  Fixed accessibility issues across Platform and Theme for improved usability

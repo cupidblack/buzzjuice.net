@@ -704,6 +704,26 @@ class BBP_Activity extends Widget_Base {
 														}
 													?>
 												</span>
+												<?php
+												if (
+													function_exists( 'bb_pro_activity_post_feature_image_instance' ) &&
+													bb_pro_activity_post_feature_image_instance() &&
+													method_exists( bb_pro_activity_post_feature_image_instance(), 'bb_get_feature_image_data' )
+												) {
+													?>
+													<div class="activity-feature-image">
+														<?php
+														$feature_image_data = bb_pro_activity_post_feature_image_instance()->bb_get_feature_image_data( $bp_activity_id );
+														if ( ! empty( $feature_image_data ) ) {
+															?>
+															<img class="activity-feature-image-media" src="<?php echo esc_url( $feature_image_data['url'] ); ?>" alt="<?php echo esc_attr( $feature_image_data['title'] ); ?>" />
+															<?php
+														}
+														?>
+													</div>
+													<?php
+												}
+												?>
 												<div class="bp-activity-head">
 													<?php if ( $settings['switch_avatar'] ) : ?>
 														<div class="activity-avatar item-avatar">
@@ -744,6 +764,15 @@ class BBP_Activity extends Widget_Base {
 												if ( $bp_nouveau_activity_has_content && $settings['switch_content'] ) { ?>
 													<div class="activity-content <?php echo $settings['switch_media'] ? '' : 'no-media'; ?>">
 														<?php bp_nouveau_activity_hook( 'before', 'activity_content' ); ?>
+														<?php
+														if ( function_exists( 'bb_activity_has_post_title' ) && bb_activity_has_post_title() ) {
+															?>
+															<div class="activity-title">
+																<h2><?php echo wp_kses_post( bb_activity_post_title() ); ?></h2>
+															</div>
+															<?php
+														}
+														?>
 														<div class="activity-inner"><?php bp_nouveau_activity_content(); ?></div>
 														<?php bp_nouveau_activity_hook( 'after', 'activity_content' ); ?>
 														<div <?php echo $this->get_render_attribute_string( 'do-state' ); ?>>

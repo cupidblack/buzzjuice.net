@@ -57,6 +57,7 @@ if ( LearnDash_Theme_Register::get_active_theme_instance()->supports_views( LDLM
 	$quizzes                    = $course->get_quizzes();
 	$lesson_progression_enabled = learndash_lesson_progression_enabled( $course_id );
 	$has_topics                 = $course->get_topics_number() > 0;
+	$lesson_topics              = array(); // Initialize lesson_topics array.
 
 	if ( ! empty( $lessons ) ) {
 		foreach ( $lessons as $lesson ) {

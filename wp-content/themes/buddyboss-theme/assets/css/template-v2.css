@@ -3247,6 +3247,10 @@ body.bb-template-v2 #buddypress:not(.round-avatars) .groups-header #item-header-
   width: -webkit-calc(100% - 45px);
   width: calc(100% - 45px);
 }
+.bb-template-v2.buddypanel-open .buddypanel ul.buddypanel-menu.has-section-menu > li:not(.bb-menu-section) .sub-menu a {
+  width: -webkit-calc(100% - 67px);
+  width: calc(100% - 67px);
+}
 
 .bb-template-v2 .side-panel-inner.is_block .buddypanel-menu-block li.bb-menu-section a {
   padding-left: 20px;

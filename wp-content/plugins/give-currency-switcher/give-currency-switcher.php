@@ -143,27 +143,38 @@ if ( ! class_exists( 'Give_Currency_Switcher' ) ) :
 		 *
 		 * @return void
 		 */
-		public function init() {
-
-			if ( ! self::$instance->check_environment() ) {
-				return;
-			}
-
-			// Define the sections for various currency switcher settings.
-			self::$section_tab = [
-				'general-settings' => __( 'General', 'give-currency-switcher' ),
-				'geolocation'      => __( 'Geolocation', 'give-currency-switcher' ),
-				'payment-gateway'  => __( 'Payment Gateways', 'give-currency-switcher' ),
-			];
-
-			if ( is_admin() ) {
-				self::$instance->activation();
-			}
-			self::$instance->hooks();
-			self::$instance->licensing();
-			self::$instance->includes();
-
-		}
+        public function init() {
+    
+            // Load translations as early as possible to avoid "too early" warnings.
+            // This ensures any later use of __(), _x(), etc. in this method or
+            // included files won't trigger the "too early" warning.
+            if ( method_exists( $this, 'load_textdomain' ) ) {
+                // If plugin has its own loader, use it.
+                $this->load_textdomain();
+            } else {
+                // Fallback: try standard plugin textdomain loading.
+                // Use @ to avoid noisy warnings if languages are not present.
+                @load_plugin_textdomain( 'give-currency-switcher', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+            }
+    
+            if ( ! self::$instance->check_environment() ) {
+                return;
+            }
+    
+            // Define the sections for various currency switcher settings.
+            self::$section_tab = [
+                'general-settings' => __( 'General', 'give-currency-switcher' ),
+                'geolocation'      => __( 'Geolocation', 'give-currency-switcher' ),
+                'payment-gateway'  => __( 'Payment Gateways', 'give-currency-switcher' ),
+            ];
+    
+            if ( is_admin() ) {
+                self::$instance->activation();
+            }
+            self::$instance->hooks();
+            self::$instance->licensing();
+            self::$instance->includes();
+        }
 
 		/**
 		 * Check plugin environment.
