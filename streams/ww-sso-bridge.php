@@ -57,6 +57,94 @@ require_once __DIR__ . '/../shared/db_helpers.php'; // adjust if shared path dif
 // Insert after the other require_once lines near the top of the file
 require_once __DIR__ . '/../shared/sso_bridge_helpers.php';
 
+
+
+
+
+// Backwards-compatible wrapper for base64url decode (safe, never returns null)
+if ( ! function_exists( '_bz_b64url_decode' ) ) {
+    /**
+     * Decode base64url-encoded string safely.
+     * Guarantees not to return null (returns '' on failure).
+     *
+     * @param string|null $str
+     * @return string Decoded binary string, or empty string on failure/empty input.
+     */
+    function _bz_b64url_decode( $str ) {
+        // Prefer canonical implementation if present
+        if ( function_exists( 'bz_b64url_decode' ) ) {
+            try {
+                $r = bz_b64url_decode( $str );
+                return $r === null ? '' : $r;
+            } catch ( \Throwable $e ) {
+                return '';
+            }
+        }
+
+        if ( $str === null || $str === '' ) {
+            return '';
+        }
+
+        $s = (string) $str;
+        $s = strtr( $s, '-_', '+/' );
+        $pad = strlen( $s ) % 4;
+        if ( $pad ) {
+            $s .= str_repeat( '=', 4 - $pad );
+        }
+
+        $decoded = base64_decode( $s, true );
+        return $decoded === false ? '' : $decoded;
+    }
+}
+
+// Utility: clear the bridge loop cookie (safe no-op if helper not present)
+if ( ! function_exists( 'bz_clear_bridge_loop_cookie' ) ) {
+    function bz_clear_bridge_loop_cookie() {
+        @setcookie( 'bz_bridge_loop', '', time() - 3600, '/' );
+        if ( isset( $_COOKIE['bz_bridge_loop'] ) ) {
+            unset( $_COOKIE['bz_bridge_loop'] );
+        }
+    }
+}
+
+// Render a minimal non-redirect HTML failure page and exit. Use when SSO verify fails to avoid redirect loops.
+if ( ! function_exists( 'bz_bridge_fail_gracefully' ) ) {
+    function bz_bridge_fail_gracefully( $msg = '', $debug_ctx = [] ) {
+        // Log if logging helper exists
+        if ( function_exists( 'bz_bridge_log' ) ) {
+            bz_bridge_log( 'SSO bridge failing gracefully: ' . $msg, $debug_ctx );
+        } else {
+            // fallback to PHP error_log
+            error_log( '[bz_bridge] ' . $msg . ' | ' . json_encode( $debug_ctx ) );
+        }
+
+        // Clear loop cookie to reduce risk of immediate repeat loop
+        bz_clear_bridge_loop_cookie();
+
+        // Minimal HTML response to stop redirect churn
+        http_response_code(200);
+        header( 'Content-Type: text/html; charset=UTF-8' );
+        $continue = isset( $_GET['redirect_to'] ) ? htmlspecialchars( $_GET['redirect_to'], ENT_QUOTES | ENT_SUBSTITUTE ) : '/';
+        echo '<!doctype html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">';
+        echo '<title>Single sign-on helper</title>';
+        echo '<style>body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;background:#fff;color:#111;padding:28px;max-width:720px;margin:40px auto;}a{color:#0073aa}</style></head><body>';
+        echo '<h2>Single sign-on — helper</h2>';
+        echo '<p>We were unable to complete the cross-site sign-in for external services. You are still signed in to WordPress.</p>';
+        if ( ! empty( $msg ) ) {
+            echo '<p><strong>Reason:</strong> ' . htmlspecialchars( $msg, ENT_QUOTES | ENT_SUBSTITUTE ) . '</p>';
+        }
+        echo '<p><a href="' . $continue . '">Continue to the site</a></p>';
+        echo '</body></html>';
+        exit;
+    }
+}
+
+// --- END INSERT ---
+
+
+
+
+
 // -----------------------------
 // Config & defaults
 // -----------------------------
