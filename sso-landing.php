@@ -12,14 +12,6 @@
  * - Stateless, bounded retries, and best-effort beaconing for telemetry
  */
 
-if (!function_exists('is_user_logged_in')) {
-    $wp = __DIR__ . '/wp-load.php';
-    if (is_file($wp)) {
-        // Boot WP so we can check auth; silent fallback if missing
-        require_once $wp;
-    }
-}
-
 // If WP bootstrap wasn't available, redirect to root (safe fallback)
 if (!function_exists('is_user_logged_in')) {
     header('Location: /');

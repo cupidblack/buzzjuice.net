@@ -4,6 +4,10 @@
 require_once __DIR__ . '/../assets/init.php';
 require_once __DIR__ . '/../../shared/db_helpers.php';
 
+// Ensure bridge helpers can be used
+$bridge_helpers = __DIR__ . '/../../shared/sso_bridge_helpers.php';
+if (file_exists($bridge_helpers)) require_once $bridge_helpers;
+
 // --- Background POST invalidate ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && stripos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== false) {
     if (session_status() !== PHP_SESSION_ACTIVE) @session_start();
@@ -67,9 +71,26 @@ if (preg_match($cabin_home_pattern, $current_url)) {
     exit();
 } elseif (preg_match($social_home_pattern, $current_url)) {
     // Final step: request WP logout URL with nonce from orchestrator and redirect to it
-    $resp = file_get_contents('https://buzzjuice.net/shared/sso-logout.php?wp_final_logout=1');
-    if (preg_match('/Location:\s*([^\s]+)/i', $http_response_header[0] ?? '', $m)) {
-        header('Location: ' . $m[1]);
+    $sso_json = 'https://buzzjuice.net/shared/sso-logout.php?wp_final_logout=1&format=json';
+    $wp_logout_location = false;
+
+    // Try JSON server-to-server fetch first (preferred)
+    $ctx = stream_context_create(['http'=>['method'=>'GET','timeout'=>5,'ignore_errors'=>true]]);
+    $body = @file_get_contents($sso_json, false, $ctx);
+    if ($body) {
+        $data = @json_decode($body, true);
+        if (is_array($data) && !empty($data['logout_url'])) {
+            $wp_logout_location = $data['logout_url'];
+        }
+    }
+
+    // If JSON failed, try to fetch redirect Location header (robust helper)
+    if (!$wp_logout_location && function_exists('bz_fetch_remote_location')) {
+        $wp_logout_location = bz_fetch_remote_location('https://buzzjuice.net/shared/sso-logout.php?wp_final_logout=1', 5);
+    }
+
+    if ($wp_logout_location) {
+        header('Location: ' . $wp_logout_location);
         exit();
     } else {
         // Fallback: WP logout without nonce

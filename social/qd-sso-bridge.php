@@ -718,13 +718,14 @@ if (!function_exists('qd_register_user')) {
             qd_bridge_log('qd_register_user: users endpoint missing or register() not available', ['user_resource_exists'=> (bool)$user]);
             return 0;
         }
+
         $preferred_login = isset($_SESSION['wp_user_login']) && $_SESSION['wp_user_login'] !== '' ? (string)$_SESSION['wp_user_login'] : (string)$login;
         $username = preg_replace('~[^a-z0-9_.-]~i', '', $preferred_login) ?: 'wpuser' . (int)$wp_user_id;
 
         $conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
         $wp_full = (function_exists('wp_get_full_user_data') && $conn && $wp_user_id) ? wp_get_full_user_data($conn, $wp_user_id) : [];
         $avatar = $wp_full['xprofile']['avatar'] ?? $wp_full['meta']['avatar'] ?? ($GLOBALS['config']->userDefaultAvatar ?? '');
-        // DON'T include 'cover' by default — some QuickDate installations lack that column
+
         $password = bin2hex(random_bytes(8));
         if ($conn && $wp_user_id) {
             $res = @mysqli_query($conn, "SELECT user_pass FROM wp_users WHERE ID='" . intval($wp_user_id) . "' LIMIT 1");
@@ -733,6 +734,7 @@ if (!function_exists('qd_register_user')) {
                 if (!empty($row['user_pass'])) $password = $row['user_pass'];
             }
         }
+
         $imported_avatar = $avatar;
         if (!empty($avatar) && method_exists($user, 'ImportImageFromLogin')) {
             try {
@@ -742,7 +744,17 @@ if (!function_exists('qd_register_user')) {
                 qd_bridge_log('qd_register_user: ImportImageFromLogin failed', ['ex'=>$e->getMessage(),'avatar'=>$avatar]);
             }
         }
+
         $now = time();
+
+        // language fallback: accept either correctly-spelled or existing misspelled key to avoid breaking configs
+        $lang = 'english';
+        if (isset($GLOBALS['config']->defaultLang) && !empty($GLOBALS['config']->defaultLang)) {
+            $lang = $GLOBALS['config']->defaultLang;
+        } elseif (isset($GLOBALS['config']->defualtLang) && !empty($GLOBALS['config']->defualtLang)) {
+            $lang = $GLOBALS['config']->defualtLang;
+        }
+
         $re_data = [
             'username'      => $username,
             'password'      => $password,
@@ -752,7 +764,7 @@ if (!function_exists('qd_register_user')) {
             'src'           => 'wp-sso',
             'wp_user_id'    => (int)$wp_user_id,
             'ip_address'    => function_exists('get_ip_address') ? get_ip_address() : ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0'),
-            'language'      => $GLOBALS['config']->defualtLang ?? 'english',
+            'language'      => $lang,
             'registered'    => date('Y-m-d H:i:s', $now),
             'social_login'  => 1,
             'start_up'      => 0
@@ -764,12 +776,14 @@ if (!function_exists('qd_register_user')) {
             $re_data['first_name'] = $wp_full['meta']['first_name'] ?? '';
             $re_data['last_name']  = $wp_full['meta']['last_name'] ?? '';
         }
+
         try {
             $reg = $user->register($re_data);
         } catch (Throwable $e) {
             qd_bridge_log('qd_register_user: user->register() exception', ['ex'=>$e->getMessage(), 'payload'=>$re_data]);
             return 0;
         }
+
         if (is_array($reg) && isset($reg['code']) && intval($reg['code']) === 200 && !empty($reg['userId'])) {
             $created_id = (int)$reg['userId'];
         } elseif (is_array($reg) && !empty($reg['id'])) {
@@ -778,6 +792,7 @@ if (!function_exists('qd_register_user')) {
             qd_bridge_log('qd_register_user: register() returned unexpected result', ['result'=>$reg]);
             return 0;
         }
+
         try {
             if (method_exists($user, 'SetLoginWithSession') && !empty($email)) {
                 $user->SetLoginWithSession($email);
@@ -785,7 +800,130 @@ if (!function_exists('qd_register_user')) {
         } catch (Throwable $e) {
             qd_bridge_log('qd_register_user: SetLoginWithSession exception', ['ex'=>$e->getMessage()]);
         }
-        qd_bridge_log('qd_register_user: Auto-registered QuickDate user', ['id'=>$created_id,'username'=>$username,'email'=>$email,'re_data'=>$re_data]);
+
+        // Persist mapping to WP usermeta: meta_key='qd_user_id', user_id=$wp_user_id
+        $meta_key = 'qd_user_id';
+        $meta_value = (string)$created_id;
+        $did_write = false;
+
+        // Only attempt to persist if we have a WP user id
+        if (!empty($wp_user_id) && $wp_user_id > 0) {
+            // Ensure session started before any session usage
+            if (session_status() === PHP_SESSION_NONE) {
+                @session_start();
+            }
+
+            // 1) Preferred: use repository helper which understands various runtimes
+            if ($conn && function_exists('wp_update_usermeta')) {
+                try {
+                    // wp_update_usermeta supports signature: ($conn, $user_id, $meta_key, $meta_value)
+                    wp_update_usermeta($conn, (int)$wp_user_id, $meta_key, $meta_value);
+                    qd_bridge_log('Set wp_usermeta qd_user_id via wp_update_usermeta', ['wp_user_id'=>$wp_user_id,'qd_user_id'=>$created_id]);
+                    $did_write = true;
+                } catch (Throwable $e) {
+                    qd_bridge_log('wp_update_usermeta threw', ['error'=>$e->getMessage(),'wp_user_id'=>$wp_user_id,'qd_user_id'=>$created_id]);
+                }
+            }
+
+            // 2) If WP runtime present, use WP API
+            if (!$did_write && function_exists('update_user_meta')) {
+                try {
+                    update_user_meta((int)$wp_user_id, $meta_key, $meta_value);
+                    qd_bridge_log('Set wp_usermeta qd_user_id via update_user_meta', ['wp_user_id'=>$wp_user_id,'qd_user_id'=>$created_id]);
+                    $did_write = true;
+                } catch (Throwable $e) {
+                    qd_bridge_log('update_user_meta threw', ['error'=>$e->getMessage(),'wp_user_id'=>$wp_user_id,'qd_user_id'=>$created_id]);
+                }
+            }
+
+            // 3) Fallback: direct DB write (prepared statements), then raw queries
+            if (!$did_write && $conn && $wp_user_id) {
+                if (function_exists('wp_table')) {
+                    $um_table_sql = wp_table('usermeta');
+                } else {
+                    $prefix = defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_';
+                    if (defined('WP_DB_NAME')) {
+                        $um_table_sql = '`' . WP_DB_NAME . '`.`' . $prefix . 'usermeta`';
+                    } else {
+                        $um_table_sql = '`' . $prefix . 'usermeta`';
+                    }
+                }
+
+                $select_sql = "SELECT umeta_id FROM $um_table_sql WHERE user_id = ? AND meta_key = ? LIMIT 1";
+                $stmt = @mysqli_prepare($conn, $select_sql);
+                if ($stmt) {
+                    mysqli_stmt_bind_param($stmt, 'is', $wp_user_id, $meta_key);
+                    mysqli_stmt_execute($stmt);
+                    mysqli_stmt_store_result($stmt);
+                    if (mysqli_stmt_num_rows($stmt) > 0) {
+                        mysqli_stmt_bind_result($stmt, $umeta_id);
+                        mysqli_stmt_fetch($stmt);
+                        mysqli_stmt_close($stmt);
+                        $update_sql = "UPDATE $um_table_sql SET meta_value = ? WHERE umeta_id = ?";
+                        $upd = @mysqli_prepare($conn, $update_sql);
+                        if ($upd) {
+                            mysqli_stmt_bind_param($upd, 'si', $meta_value, $umeta_id);
+                            mysqli_stmt_execute($upd);
+                            mysqli_stmt_close($upd);
+                            qd_bridge_log('Updated wp_usermeta qd_user_id (direct prepared)', ['wp_user_id'=>$wp_user_id,'qd_user_id'=>$created_id,'umeta_id'=>$umeta_id]);
+                            $did_write = true;
+                        } else {
+                            qd_bridge_log('Failed to prepare update for wp_usermeta', ['sql'=>$update_sql,'error'=>$conn->error]);
+                        }
+                    } else {
+                        mysqli_stmt_close($stmt);
+                        $insert_sql = "INSERT INTO $um_table_sql (user_id, meta_key, meta_value) VALUES (?, ?, ?)";
+                        $ins = @mysqli_prepare($conn, $insert_sql);
+                        if ($ins) {
+                            mysqli_stmt_bind_param($ins, 'iss', $wp_user_id, $meta_key, $meta_value);
+                            mysqli_stmt_execute($ins);
+                            mysqli_stmt_close($ins);
+                            qd_bridge_log('Inserted wp_usermeta qd_user_id (direct prepared)', ['wp_user_id'=>$wp_user_id,'qd_user_id'=>$created_id]);
+                            $did_write = true;
+                        } else {
+                            qd_bridge_log('Failed to prepare insert for wp_usermeta', ['sql'=>$insert_sql,'error'=>$conn->error]);
+                        }
+                    }
+                } else {
+                    // Last resort: raw escaped queries
+                    $esc_val = mysqli_real_escape_string($conn, $meta_value);
+                    $esc_key = mysqli_real_escape_string($conn, $meta_key);
+                    $check_raw = "SELECT umeta_id FROM $um_table_sql WHERE user_id = " . intval($wp_user_id) . " AND meta_key = '$esc_key' LIMIT 1";
+                    $res = @$conn->query($check_raw);
+                    if ($res && $res->num_rows > 0) {
+                        $row = $res->fetch_assoc();
+                        $umeta_id = intval($row['umeta_id']);
+                        $raw_update = "UPDATE $um_table_sql SET meta_value = '$esc_val' WHERE umeta_id = $umeta_id";
+                        @$conn->query($raw_update);
+                        qd_bridge_log('Updated wp_usermeta qd_user_id (raw)', ['wp_user_id'=>$wp_user_id,'qd_user_id'=>$created_id,'umeta_id'=>$umeta_id,'error'=>$conn->error]);
+                        $did_write = true;
+                    } else {
+                        $raw_insert = "INSERT INTO $um_table_sql (user_id, meta_key, meta_value) VALUES (" . intval($wp_user_id) . ", '$esc_key', '$esc_val')";
+                        @$conn->query($raw_insert);
+                        qd_bridge_log('Inserted wp_usermeta qd_user_id (raw)', ['wp_user_id'=>$wp_user_id,'qd_user_id'=>$created_id,'error'=>$conn->error]);
+                        $did_write = true;
+                    }
+                }
+            }
+
+            if (!$did_write) {
+                qd_bridge_log('No WP DB connection or method available to set qd_user_id', ['wp_user_id'=>$wp_user_id,'qd_user_id'=>$created_id]);
+            }
+        } else {
+            qd_bridge_log('qd_register_user: no wp_user_id provided — skipping WP usermeta write', ['wp_user_id'=>$wp_user_id,'created_qd_id'=>$created_id]);
+        }
+
+        // Set session qd id for later mapping logic (best-effort; ensure session started)
+        if (session_status() === PHP_SESSION_NONE) {
+            @session_start();
+        }
+        try {
+            $_SESSION['qd_user_id'] = $created_id;
+        } catch (Throwable $e) {
+            qd_bridge_log('qd_register_user: failed to set session qd_user_id', ['ex'=>$e->getMessage()]);
+        }
+
+        qd_bridge_log('qd_register_user: Auto-registered QuickDate user', ['id'=>$created_id,'username'=>$username,'email'=>$email,'re_data'=>$re_data,'wp_write'=>$did_write]);
         return $created_id;
     }
 }

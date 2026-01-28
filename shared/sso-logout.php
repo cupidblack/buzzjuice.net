@@ -34,6 +34,15 @@ function issue_wp_logout_url() {
     return 'https://buzzjuice.net/wp-login.php?action=logout';
 }
 
+// If requested as JSON, return the WP logout URL in JSON (server-to-server friendly)
+if (isset($_GET['wp_final_logout']) && isset($_GET['format']) && $_GET['format'] === 'json') {
+    $logout_url = issue_wp_logout_url();
+    sso_log('orchestrator: wp_final_logout json request', ['logout_url' => $logout_url]);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['logout_url' => $logout_url]);
+    exit();
+}
+
 // --- Fallback GET-based orchestrator chain ---
 if (isset($_GET['cabin']) && $_GET['cabin'] === 'home') {
     sso_log('orchestrator: WP→WW(cabin=home)', []);
@@ -75,9 +84,9 @@ echo "var home = {$home_js};";
 echo "var endpoints = [{$end1_js}, {$end2_js}];";
 echo "var timeoutMs = " . intval($timeoutMs) . ";";
 echo "function delay(ms){return new Promise(function(r){setTimeout(r,ms);});}";
-echo "function postInvalidateWithRetry(url){return new Promise(function(resolve){var attempts=0;var maxAttempts=2;function attempt(){attempts++;fetch(url,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({invalidate:1})}).then(function(resp){ if(!resp||!resp.ok) { if(attempts<maxAttempts){return delay(300).then(attempt);} return resolve({ok:false,status:resp?resp.status:0}); } resp.json().then(function(j){ resolve({ok:true,json:j}); }).catch(function(){ resolve({ok:true,json:null}); }); }).catch(function(err){ if(attempts<maxAttempts){ return delay(300).then(attempt);} resolve({ok:false,err:String(err)}); }); } attempt(); }); }";
-echo "function clearClientAndGoHome(){try{(function(domain){try{var cookies=(document.cookie||'').split('; ');for(var i=0;i<cookies.length;i++){var n=cookies[i].split('=')[0];if(!n) continue;try{document.cookie=n+'=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/;domain='+domain+';';}catch(e){}try{document.cookie=n+'=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/;';}catch(e){}}}catch(e){} })('.buzzjuice.net'); if('caches' in window && caches.keys) caches.keys().then(function(names){names.forEach(function(n){try{caches.delete(n);}catch(_){} });}).catch(function(){}); if('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations) navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){try{r.unregister();}catch(_){} });}).catch(function(){}); try{ if(window.localStorage) localStorage.clear(); }catch(e){} try{ if(window.sessionStorage) sessionStorage.clear(); }catch(e){} try{ if(window.indexedDB && indexedDB.databases) indexedDB.databases().then(function(dbs){dbs.forEach(function(db){try{indexedDB.deleteDatabase(db.name);}catch(_){} });}).catch(function(){}); }catch(e){} }catch(e){} try{ window.location.replace(home);}catch(e){window.location.href=home;} setTimeout(function(){try{window.location.href=home;}catch(e){}},350); window.onpageshow=function(ev){if(ev&&ev.persisted){try{window.location.replace(home);}catch(e){}}}; }";
-echo "var ps = endpoints.map(function(ep){ return postInvalidateWithRetry(ep).catch(function(e){return {ok:false,err:String(e)};}); }); var globalTimeout = new Promise(function(res){setTimeout(res, timeoutMs);}); Promise.race([ Promise.all(ps), globalTimeout ]).then(function(){ clearClientAndGoHome(); }).catch(function(){ clearClientAndGoHome(); });";
+echo "function postInvalidateWithRetry(url){return new Promise(function(resolve){var attempts=0;var maxAttempts=2;function attempt(){attempts++;fetch(url,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'}}).then(function(resp){resolve({ok:resp.ok});}).catch(function(err){if(attempts<maxAttempts){setTimeout(attempt,500);}else{resolve({ok:false,err:String(err)});}});}attempt();});}";
+echo "function clearClientAndGoHome(){try{(function(domain){try{var cookies=(document.cookie||'').split('; ');for(var i=0;i<cookies.length;i++){var n=cookies[i].split('=')[0];if(!n) continue;try{document.cookie=n+'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain='+domain;}catch(e){}}}catch(e){} })('.buzzjuice.net'); }catch(e){} window.location = home; }";
+echo "var ps = endpoints.map(function(ep){ return postInvalidateWithRetry(ep).catch(function(e){return {ok:false,err:String(e)};}); }); var globalTimeout = new Promise(function(res){setTimeout(res, timeoutMs);}); Promise.race([Promise.all(ps), globalTimeout]).then(function(){ clearClientAndGoHome(); });";
 echo "})();</script>";
 echo '<h2>Signing out…</h2><p>If you are not redirected automatically, <a href="https://buzzjuice.net/">click here</a>.</p>';
 echo '</body></html>';

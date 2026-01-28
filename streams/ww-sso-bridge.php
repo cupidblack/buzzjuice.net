@@ -979,18 +979,29 @@ function bz_update_wo_mapping($wo_user_id, $wp_user_id) {
 }
 function bz_register_wo_user($wp_user_id, $login, $email) {
     global $wo, $conn;
-    $conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
-    if (!function_exists('Wo_RegisterUser')) { bz_bridge_log('Wo_RegisterUser missing'); return 0; }
-    $username = preg_replace('~[^a-z0-9_.-]~i','',(string)$login);
-    if (!$username) $username = bz_safe_username_from_login($login, $email);
-    $base = substr($username,0,20); $i = 0;
-    while (function_exists('Wo_UsernameExists') && Wo_UsernameExists($username)) {
-        $i++; $username = $base . '-' . $i; if ($i > 200) { $username = $base . '-' . bin2hex(random_bytes(3)); break; }
+
+    // Prefer an explicit WP DB connection helper but fall back to existing $conn if necessary.
+    $wp_conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : ($conn ?? null);
+
+    if (!function_exists('Wo_RegisterUser')) {
+        bz_bridge_log('Wo_RegisterUser missing');
+        return 0;
     }
 
+    $username = preg_replace('~[^a-z0-9_.-]~i', '', (string)$login);
+    if (!$username) $username = bz_safe_username_from_login($login, $email);
+    $base = substr($username, 0, 20);
+    $i = 0;
+    while (function_exists('Wo_UsernameExists') && Wo_UsernameExists($username)) {
+        $i++;
+        $username = $base . '-' . $i;
+        if ($i > 200) { $username = $base . '-' . bin2hex(random_bytes(3)); break; }
+    }
+
+    // Default password fallback (will be replaced by WP's stored hash if available)
     $password = bin2hex(random_bytes(8));
-    if ($conn && $wp_user_id) {
-        $res = @mysqli_query($conn, "SELECT user_pass FROM wp_users WHERE ID='" . intval($wp_user_id) . "' LIMIT 1");
+    if ($wp_conn && $wp_user_id) {
+        $res = @mysqli_query($wp_conn, "SELECT user_pass FROM wp_users WHERE ID='" . intval($wp_user_id) . "' LIMIT 1");
         if ($res && mysqli_num_rows($res) > 0) {
             $row = mysqli_fetch_assoc($res);
             $password = $row['user_pass'];
@@ -1007,42 +1018,152 @@ function bz_register_wo_user($wp_user_id, $login, $email) {
         }
     }
 
-    $user_data = function_exists('wp_get_full_user_data') && $conn ? wp_get_full_user_data($conn, $wp_user_id) : [];
+    $user_data = (function_exists('wp_get_full_user_data') && $wp_conn) ? wp_get_full_user_data($wp_conn, $wp_user_id) : [];
     $avatar = $user_data['xprofile']['avatar'] ?? $user_data['meta']['avatar'] ?? ($wo['config']['userDefaultAvatar'] ?? '');
     $cover  = $user_data['xprofile']['cover'] ?? $user_data['meta']['cover'] ?? '';
 
     $re_data = [
-        'username'      => $username,
-        'password'      => $password,
-        'email'         => $email,
-        'avatar'        => $avatar,
-        'cover'         => $cover,
-        'active'        => 1,
-        'src'           => 'wp-sso',
-        'wp_user_id'    => (int)$wp_user_id,
-        'ip_address'    => Wo_Secure($ip),
-        'language'      => $language,
-        'order_posts_by'=> $wo['config']['order_posts_by'] ?? '',
-        'registered'    => date('n') . '/' . date("Y"),
-        'joined'        => time(),
+        'username'       => $username,
+        'password'       => $password,
+        'email'          => $email,
+        'avatar'         => $avatar,
+        'cover'          => $cover,
+        'active'         => 1,
+        'src'            => 'wp-sso',
+        'wp_user_id'     => (int)$wp_user_id,
+        'ip_address'     => Wo_Secure($ip),
+        'language'       => $language,
+        'order_posts_by' => $wo['config']['order_posts_by'] ?? '',
+        'registered'     => date('n') . '/' . date("Y"),
+        'joined'         => time(),
     ];
 
     $created = Wo_RegisterUser($re_data);
+
     if ($created) {
         $wo_user_id = function_exists('Wo_UserIdFromEmail') ? Wo_UserIdFromEmail($email) : 0;
         if ($wo_user_id) {
+
+            // Ensure WP usermeta 'wo_user_id' = $wo_user_id exists for $wp_user_id.
+            $meta_key = 'wo_user_id';
+            $meta_value = (string)$wo_user_id;
+            $did_write = false;
+
+            // 1) Preferred: use the repository helper which understands different runtimes.
+            if ($wp_conn && function_exists('wp_update_usermeta')) {
+                try {
+                    // wp_update_usermeta supports ($conn, $user_id, $meta_key, $meta_value)
+                    wp_update_usermeta($wp_conn, (int)$wp_user_id, $meta_key, $meta_value);
+                    bz_bridge_log('Set wp_usermeta wo_user_id via wp_update_usermeta', ['wp_user_id' => $wp_user_id, 'wo_user_id' => $wo_user_id]);
+                    $did_write = true;
+                } catch (Throwable $e) {
+                    bz_bridge_log('wp_update_usermeta threw', ['error' => $e->getMessage(), 'wp_user_id' => $wp_user_id, 'wo_user_id' => $wo_user_id]);
+                }
+            }
+
+            // 2) If WP runtime present, use WP API
+            if (!$did_write && function_exists('update_user_meta')) {
+                try {
+                    update_user_meta((int)$wp_user_id, $meta_key, $meta_value);
+                    bz_bridge_log('Set wp_usermeta wo_user_id via update_user_meta', ['wp_user_id' => $wp_user_id, 'wo_user_id' => $wo_user_id]);
+                    $did_write = true;
+                } catch (Throwable $e) {
+                    bz_bridge_log('update_user_meta threw', ['error' => $e->getMessage(), 'wp_user_id' => $wp_user_id, 'wo_user_id' => $wo_user_id]);
+                }
+            }
+
+            // 3) Fallback: direct DB write (prepared statements), then raw queries
+            if (!$did_write && $wp_conn && $wp_user_id) {
+                // Determine fully-qualified/backticked usermeta table
+                if (function_exists('wp_table')) {
+                    // wp_table('usermeta') returns something like `db`.`wp_usermeta` if available
+                    $um_table_sql = wp_table('usermeta');
+                } else {
+                    $prefix = defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_';
+                    if (defined('WP_DB_NAME')) {
+                        $um_table_sql = '`' . WP_DB_NAME . '`.`' . $prefix . 'usermeta`';
+                    } else {
+                        $um_table_sql = '`' . $prefix . 'usermeta`';
+                    }
+                }
+
+                // Attempt prepared select/insert/update
+                $select_sql = "SELECT umeta_id FROM $um_table_sql WHERE user_id = ? AND meta_key = ? LIMIT 1";
+                $stmt = @mysqli_prepare($wp_conn, $select_sql);
+                if ($stmt) {
+                    mysqli_stmt_bind_param($stmt, 'is', $wp_user_id, $meta_key);
+                    mysqli_stmt_execute($stmt);
+                    mysqli_stmt_store_result($stmt);
+                    if (mysqli_stmt_num_rows($stmt) > 0) {
+                        mysqli_stmt_bind_result($stmt, $umeta_id);
+                        mysqli_stmt_fetch($stmt);
+                        mysqli_stmt_close($stmt);
+                        $update_sql = "UPDATE $um_table_sql SET meta_value = ? WHERE umeta_id = ?";
+                        $upd = @mysqli_prepare($wp_conn, $update_sql);
+                        if ($upd) {
+                            mysqli_stmt_bind_param($upd, 'si', $meta_value, $umeta_id);
+                            mysqli_stmt_execute($upd);
+                            mysqli_stmt_close($upd);
+                            bz_bridge_log('Updated wp_usermeta wo_user_id (direct prepared)', ['wp_user_id' => $wp_user_id, 'wo_user_id' => $wo_user_id, 'umeta_id' => $umeta_id]);
+                            $did_write = true;
+                        } else {
+                            bz_bridge_log('Failed to prepare update for wp_usermeta', ['sql' => $update_sql, 'error' => $wp_conn->error]);
+                        }
+                    } else {
+                        mysqli_stmt_close($stmt);
+                        $insert_sql = "INSERT INTO $um_table_sql (user_id, meta_key, meta_value) VALUES (?, ?, ?)";
+                        $ins = @mysqli_prepare($wp_conn, $insert_sql);
+                        if ($ins) {
+                            mysqli_stmt_bind_param($ins, 'iss', $wp_user_id, $meta_key, $meta_value);
+                            mysqli_stmt_execute($ins);
+                            mysqli_stmt_close($ins);
+                            bz_bridge_log('Inserted wp_usermeta wo_user_id (direct prepared)', ['wp_user_id' => $wp_user_id, 'wo_user_id' => $wo_user_id]);
+                            $did_write = true;
+                        } else {
+                            bz_bridge_log('Failed to prepare insert for wp_usermeta', ['sql' => $insert_sql, 'error' => $wp_conn->error]);
+                        }
+                    }
+                } else {
+                    // Last resort: raw escaped queries (still attempt to escape via mysqli_real_escape_string)
+                    $esc_val = mysqli_real_escape_string($wp_conn, $meta_value);
+                    $esc_key = mysqli_real_escape_string($wp_conn, $meta_key);
+                    $check_raw = "SELECT umeta_id FROM $um_table_sql WHERE user_id = " . intval($wp_user_id) . " AND meta_key = '$esc_key' LIMIT 1";
+                    $res = @$wp_conn->query($check_raw);
+                    if ($res && $res->num_rows > 0) {
+                        $row = $res->fetch_assoc();
+                        $umeta_id = intval($row['umeta_id']);
+                        $raw_update = "UPDATE $um_table_sql SET meta_value = '$esc_val' WHERE umeta_id = $umeta_id";
+                        @$wp_conn->query($raw_update);
+                        bz_bridge_log('Updated wp_usermeta wo_user_id (raw)', ['wp_user_id' => $wp_user_id, 'wo_user_id' => $wo_user_id, 'umeta_id' => $umeta_id, 'error' => $wp_conn->error]);
+                        $did_write = true;
+                    } else {
+                        $raw_insert = "INSERT INTO $um_table_sql (user_id, meta_key, meta_value) VALUES (" . intval($wp_user_id) . ", '$esc_key', '$esc_val')";
+                        @$wp_conn->query($raw_insert);
+                        bz_bridge_log('Inserted wp_usermeta wo_user_id (raw)', ['wp_user_id' => $wp_user_id, 'wo_user_id' => $wo_user_id, 'error' => $wp_conn->error]);
+                        $did_write = true;
+                    }
+                }
+            }
+
+            if (!$did_write) {
+                bz_bridge_log('No WP DB connection or method available to set wo_user_id', ['wp_user_id' => $wp_user_id, 'wo_user_id' => $wo_user_id]);
+            }
+
+            // Persist and update WoWonder mapping + run auto-actions
             bz_update_wo_mapping($wo_user_id, $wp_user_id);
             if (function_exists('Wo_UpdateUserData')) {
-                Wo_UpdateUserData($wo_user_id, ['wp_user_id'=>(int)$wp_user_id,'src'=>'wp-sso']);
+                Wo_UpdateUserData($wo_user_id, ['wp_user_id' => (int)$wp_user_id, 'src' => 'wp-sso']);
             }
             if (!empty($wo['config']['auto_friend_users'])) Wo_AutoFollow($wo_user_id);
             if (!empty($wo['config']['auto_page_like'])) Wo_AutoPageLike($wo_user_id);
             if (!empty($wo['config']['auto_group_join'])) Wo_AutoGroupJoin($wo_user_id);
-            bz_bridge_log('Auto-registered Wo user (success)', ['wp_user_id'=>$wp_user_id,'wo_user_id'=>$wo_user_id,'username'=>$username]);
+
+            bz_bridge_log('Auto-registered Wo user (success)', ['wp_user_id' => $wp_user_id, 'wo_user_id' => $wo_user_id, 'username' => $username]);
             return (int)$wo_user_id;
         }
     }
-    bz_bridge_log('Auto-register failed', ['attempt'=>$re_data]);
+
+    bz_bridge_log('Auto-register failed', ['attempt' => $re_data]);
     return 0;
 }
 
@@ -1373,7 +1494,7 @@ function Wo_SSO_Login() {
             'match_count'=>$match_count
         ]);
 
-        if ($match_count >= 3) {
+        if ($match_count >= 2) {
             $accepted_user_id = $db_user_id;
             $accepted_reason = implode('|', array_filter([
                 $cmp_user_id ? 'user_id' : null,
