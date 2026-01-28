@@ -35,13 +35,13 @@
     
     <div class="bottom-footer-menu">
         <ul>
-    			<li><a href="/streams/messages"><i class="fa fa-comments"></i> Chat</a></li>
-                <li><a href="/streams/common_things"><i class="fa fa-th-list"></i> Blogs</a></li>
-                <li><a href="/streams"><i class="fa fa-image"></i> Streams</a></li>
-                <li><a href="/"><i class="fa fa-home"></i> Cabin</a></li>
-                <li><a href="/courses"><i class="fa fa-leanpub"></i> Courses</a></li>
-                <li><a href="/social/login"><i class="fa fa-users"></i> Social</a></li>
-                <li><a href="/streams/setting"><i class="fa fa-tachometer"></i> Dashboard</a></li>
+        			<li><a href="/chat"><i class="fa fa-comments"></i> Chat</a></li>
+                    <li><a href="/streams/blogs"><i class="fa fa-th-list"></i> Blogs</a></li>
+                    <li><a href="/streams"><i class="fa fa-image"></i> Streams</a></li>
+                    <li><a href="/"><i class="fa fa-home"></i> Cabin</a></li>
+                    <li><a href="/courses"><i class="fa fa-leanpub"></i> Courses</a></li>
+                    <li><a href="/social/find-matches"><i class="fa fa-users"></i> Social</a></li>
+                    <li><a href="/streams/setting"><i class="fa fa-tachometer"></i> Dashboard</a></li>
         </ul>
     </div>
 
