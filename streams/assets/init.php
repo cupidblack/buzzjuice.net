@@ -300,6 +300,17 @@ if (session_status() === PHP_SESSION_NONE) {
 // Keep original behavior for other includes
 @ini_set('gd.jpeg_ignore_warning', 1);
 
+// Auto-drain WWQD sync queue on safe requests.
+// This replays deferred profile-sync jobs created during SSO rehydration when it is safe to do so.
+if (function_exists('wwqd_safe_autodrain')) {
+    try {
+        wwqd_safe_autodrain();
+    } catch (Throwable $e) {
+        // Use the init debug logger to record failures without throwing
+        if (function_exists('bz_debug_log_init')) bz_debug_log_init('wwqd_safe_autodrain_failed', ['error' => $e->getMessage()]);
+    }
+}
+
 require_once('assets/libraries/DB/vendor/joshcam/mysqli-database-class/MySQL-Maria.php');
 require_once('includes/cache.php');
 require_once('includes/functions_general.php');

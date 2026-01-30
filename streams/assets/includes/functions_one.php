@@ -1554,58 +1554,42 @@ function Wo_DeleteUser($user_id)
 
 
 
-// WWQD helpers + finalized Wo_UpdateUserData()
-// Place into streams/assets/includes/functions_one.php replacing the previous Wo_UpdateUserData implementation.
+// --- WWQD-safe Wo_UpdateUserData replacement ---
+// Place this function into streams/assets/includes/functions_one.php
+// Requires shared/wwqd_bridge.php to be available (get_wp_db_conn(), _wwqd_* helpers)
 
 require_once dirname(__DIR__, 3) . '/shared/wwqd_bridge.php';
 
-/**
- * Attempt to map WoWonder user_id -> WP user ID
- */
-if (!function_exists('get_wp_user_id_by_wowonder_id')) {
-    function get_wp_user_id_by_wowonder_id($wo_user_id) {
-        if (!function_exists('get_wp_db_conn')) return 0;
-        $conn = get_wp_db_conn();
-        if (!$conn) return 0;
-
-        $prefixes = [defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_', 'wp_'];
-        foreach ($prefixes as $p) {
-            $table = $p . 'usermeta';
-            $table_safe = $conn->real_escape_string($table);
-            $meta_key = $conn->real_escape_string('wo_user_id');
-            $q = "SELECT user_id FROM `{$table_safe}` WHERE meta_key = '{$meta_key}' AND meta_value = '{$conn->real_escape_string($wo_user_id)}' LIMIT 1";
-            $r = @ $conn->query($q);
-            if ($r && $r->num_rows > 0) {
-                $row = $r->fetch_assoc();
-                return (int)$row['user_id'];
-            }
-        }
-        return 0;
+if (!function_exists('wwqd_debug')) {
+    function wwqd_debug($msg, $ctx = []) {
+        if (!defined('WWQD_DEBUG') || !WWQD_DEBUG) return;
+        $log = defined('WWQD_DEBUG_LOG') ? WWQD_DEBUG_LOG : sys_get_temp_dir() . '/wwqd_debug.log';
+        $line = '[' . gmdate('Y-m-d H:i:s') . '] ' . $msg . ' | ' . json_encode($ctx, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) . PHP_EOL;
+        @file_put_contents($log, $line, FILE_APPEND);
     }
 }
 
 /**
- * Attempt to map WoWonder user_id -> QuickDate user id (best-effort)
+ * Helper: find WP xProfile fields/data tables (returns [fields_table, data_table] or [null,null])
  */
-if (!function_exists('get_quickdate_id_by_wowonder_id')) {
-    function get_quickdate_id_by_wowonder_id($wo_user_id) {
-        if (!function_exists('get_qd_db_conn')) return 0;
-        $conn = get_qd_db_conn();
-        if (!$conn) return 0;
+if (!function_exists('wwqd_find_wp_xprofile_tables')) {
+    function wwqd_find_wp_xprofile_tables($wp_conn) {
+        $candidates = [
+            (defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'bp_xprofile_fields' => (defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'bp_xprofile_data',
+            (defined('BP_TABLE_PREFIX') ? BP_TABLE_PREFIX : 'wp_') . 'bp_xprofile_fields' => (defined('BP_TABLE_PREFIX') ? BP_TABLE_PREFIX : 'wp_') . 'bp_xprofile_data',
+            'bp_xprofile_fields' => 'bp_xprofile_data',
+            (defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'xprofile_fields' => (defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'xprofile_data',
+            'xprofile_fields' => 'xprofile_data'
+        ];
 
-        $candidates = [defined('QD_USERS_TABLE') ? QD_USERS_TABLE : 'users', 'users'];
-        foreach ($candidates as $t) {
-            $t_safe = $conn->real_escape_string($t);
-            $col = 'wo_user_id';
-            if (!_wwqd_table_has_column($conn, $t_safe, $col)) continue;
-            $q = "SELECT id FROM `{$t_safe}` WHERE `wo_user_id` = '{$conn->real_escape_string($wo_user_id)}' LIMIT 1";
-            $r = @ $conn->query($q);
+        foreach ($candidates as $f => $d) {
+            $f_safe = $wp_conn->real_escape_string($f);
+            $r = @ $wp_conn->query("SHOW TABLES LIKE '{$f_safe}'");
             if ($r && $r->num_rows > 0) {
-                $row = $r->fetch_assoc();
-                return (int)$row['id'];
+                return [$f, $d];
             }
         }
-        return 0;
+        return [null, null];
     }
 }
 
@@ -1615,7 +1599,7 @@ if (!function_exists('Wo_UpdateUserData')) {
         global $wo, $sqlConnect, $cache;
 
         // === Preserve original early checks ===
-        if ($wo['loggedin'] == false) {
+        if (isset($wo['loggedin']) && $wo['loggedin'] === false) {
             return false;
         }
         if (empty($user_id) || !is_numeric($user_id) || $user_id < 0) {
@@ -1625,13 +1609,12 @@ if (!function_exists('Wo_UpdateUserData')) {
             return false;
         }
 
-        // Run original permission and validation checks
+        // Original permission & validation
         $user_id = Wo_Secure($user_id);
-
         $is_mod = Wo_IsModerator();
         $is_admin = Wo_IsAdmin();
         if ($is_admin === false && $is_mod === false) {
-            if ($wo['user']['user_id'] != $user_id) {
+            if (isset($wo['user']['user_id']) && $wo['user']['user_id'] != $user_id) {
                 return false;
             }
         }
@@ -1649,12 +1632,12 @@ if (!function_exists('Wo_UpdateUserData')) {
         }
         if ($is_mod) {
             $user_data_ = Wo_UserData($user_id);
-            if (!empty($user_data_) && $user_data_['admin'] == 1) {
+            if (!empty($user_data_) && !empty($user_data_['admin']) && $user_data_['admin'] == 1) {
                 return false;
             }
         }
 
-        // Relationship / country validation as original
+        // Relationship / country validation
         if (!empty($update_data['relationship'])) {
             if (!array_key_exists($update_data['relationship'], $wo['relationship'])) {
                 $update_data['relationship_id'] = 1;
@@ -1670,195 +1653,212 @@ if (!function_exists('Wo_UpdateUserData')) {
             }
         }
         if (!isset($update_data['relationship_id'])) {
-            $update_data['relationship_id'] = $wo['user']['relationship_id'];
+            $update_data['relationship_id'] = $wo['user']['relationship_id'] ?? 0;
         }
 
-        // === Acquire per-origin lock AFTER permission checks ===
+        // If we are running during SSO login-phase for this user, do NOT mutate critical auth/state.
+        if (function_exists('wwqd_in_login_phase') && wwqd_in_login_phase($user_id)) {
+            // Queue the profile sync for later; do not perform writes that could invalidate session.
+            $safedata = [];
+            foreach ($update_data as $k => $v) {
+                $kl = strtolower((string)$k);
+                if (in_array($kl, ['password','user_pass','user_pass_hash','auth_token','session_id','php_sessid','lastseen','last_login','last_login_data'], true)) {
+                    continue;
+                }
+                $safedata[$k] = $v;
+            }
+            if (!empty($safedata) && function_exists('wwqd_queue_profile_sync')) {
+                wwqd_queue_profile_sync('WoWonder', $user_id, $safedata);
+                wwqd_debug('Wo_UpdateUserData_queued_during_login', ['user'=>$user_id, 'keys'=>array_keys($safedata)]);
+            }
+            // Return true to indicate the update was handled (deferred)
+            return true;
+        }
+
+        // Acquire per-origin lock AFTER permission checks
         if (function_exists('_wwqd_acquire_sync_lock')) {
             if (!_wwqd_acquire_sync_lock('WoWonder', (int)$user_id)) {
-                // Another WoWonder-origin sync is running for this user — abort safely
+                wwqd_debug('lock_acquire_failed', ['origin'=>'WoWonder','user'=>$user_id]);
                 return false;
             }
         }
 
         try {
-            // Capture pre-update WoWonder data
+            // Capture pre-update WoWonder data for email lookup
             $wowonder_user = Wo_UserData($user_id);
             $wowonder_email = $wowonder_user['email'] ?? '';
 
-            // Build SQL update clauses (preserve original Wo_Secure behavior)
+            // Build WoWonder native update clauses
             $update_clauses = [];
             foreach ($update_data as $field => $data) {
+                // Preserve original field-specific escaping
                 $filter = ['first_name', 'last_name', 'about'];
                 $finalData = in_array($field, $filter) ? Wo_Secure($data, 1) : Wo_Secure($data, 0);
 
-                // Skip 'pro_' special-case as original logic did
-                if ($field == 'pro_') {
+                // skip pro_ special case
+                if ($field == 'pro_') continue;
+
+                // NEVER propagate passwords or auth fields from WW to other platforms here
+                if (strtolower($field) === 'password' || strtolower($field) === 'user_pass') {
+                    wwqd_debug('skipping_password_field', ['user'=>$user_id, 'field'=>$field]);
+                    // still store in WoWonder DB field if desired? original code stored in WoWonder - preserve that.
+                    $escaped_val = $sqlConnect ? $sqlConnect->real_escape_string($finalData) : addslashes($finalData);
+                    $update_clauses[] = '`' . $field . '` = \'' . $escaped_val . '\'';
                     continue;
                 }
 
-                // Password handling: create WP phpass where possible and store phpass in WoWonder
-                if ($field === 'password') {
-                    $to_store_in_ww = $finalData;
-                    $wp_hash = null;
-                    $phpass_path = dirname(__DIR__, 4) . '/wp-includes/class-phpass.php';
-                    if (!class_exists('PasswordHash') && file_exists($phpass_path)) {
-                        @require_once $phpass_path;
-                    }
-                    if (class_exists('PasswordHash')) {
-                        try {
-                            $wp_hasher = new PasswordHash(8, true);
-                            $wp_hash = $wp_hasher->HashPassword($data);
-                            $to_store_in_ww = $wp_hash;
-                        } catch (Exception $e) {
-                            // fallback to original finalData
-                            $to_store_in_ww = $finalData;
-                        }
-                    }
-
-                    // Prepare WoWonder clause (escaped)
-                    $escaped = $sqlConnect ? $sqlConnect->real_escape_string($to_store_in_ww) : addslashes($to_store_in_ww);
-                    $update_clauses[] = "`password` = '{$escaped}'";
-
-                    // If WP mapping exists, attempt to update WP user_pass
-                    if (!empty($wowonder_email) && function_exists('get_wp_db_conn')) {
-                        $wp_user_id = function_exists('get_wp_user_id_by_wowonder_id') ? get_wp_user_id_by_wowonder_id($user_id) : 0;
-                        if (!$wp_user_id) {
-                            // fallback to lookup by email
-                            $wp_conn = get_wp_db_conn();
-                            if ($wp_conn) {
-                                $users_table = (defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'users';
-                                $email_safe = $wp_conn->real_escape_string($wowonder_email);
-                                $q = "SELECT ID FROM `{$users_table}` WHERE user_email = '{$email_safe}' LIMIT 1";
-                                $r = @ $wp_conn->query($q);
-                                if ($r && $r->num_rows > 0) {
-                                    $row = $r->fetch_assoc();
-                                    $wp_user_id = (int)$row['ID'];
-                                }
-                            }
-                        }
-
-                        if ($wp_user_id && isset($wp_hash)) {
-                            $wp_conn = get_wp_db_conn();
-                            if ($wp_conn) {
-                                $wp_users_table = $wp_conn->real_escape_string((defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'users');
-                                $escaped_wp_hash = $wp_conn->real_escape_string($wp_hash);
-                                @ $wp_conn->query("UPDATE `{$wp_users_table}` SET user_pass = '{$escaped_wp_hash}' WHERE ID = {$wp_user_id}");
-                            }
-                        }
-                    }
-
-                    // done with password handling; continue to next field
-                    continue;
-                }
-
-                // Normal fields: add to WoWonder update (escaped)
                 $escaped_val = $sqlConnect ? $sqlConnect->real_escape_string($finalData) : addslashes($finalData);
                 $update_clauses[] = '`' . $field . '` = \'' . $escaped_val . '\'';
             }
 
-            // Perform WoWonder SQL update (preserve original semantics)
+            // Execute WoWonder native update
             $impload = implode(', ', $update_clauses);
-            $query_one = " UPDATE " . T_USERS . " SET {$impload} WHERE `user_id` = {$user_id} ";
-            $query1 = @mysqli_query($sqlConnect, $query_one);
+            if ($impload !== '') {
+                $query_one = "UPDATE " . T_USERS . " SET {$impload} WHERE `user_id` = {$user_id}";
+                $query1 = @mysqli_query($sqlConnect, $query_one);
+            } else {
+                // nothing to update in main table
+                $query1 = true;
+            }
 
-            // Preserve original unverify logic
+            // Preserve original unverify behavior
             if ($unverify == true) {
-                $query_two = " UPDATE " . T_USERS . " SET `verified` = '0' WHERE `user_id` = {$user_id} ";
+                $query_two = "UPDATE " . T_USERS . " SET `verified` = '0' WHERE `user_id` = {$user_id}";
                 @mysqli_query($sqlConnect, $query_two);
             }
 
-            // If WoWonder update succeeded, do WP/QD sync and housekeeping
-            if ($query1) {
-                // Clear user cache and update username-in-notifications as original
-                cache($user_id, 'users', 'delete');
-                if (!empty($update_data['username'])) {
-                    Wo_UpdateUsernameInNotifications($user_id, $update_data['username']);
-                }
+            if (!$query1) {
+                wwqd_debug('wowonder_update_failed', ['user'=>$user_id, 'sql_error'=>mysqli_error($sqlConnect)]);
+                return false;
+            }
 
-                // Prepare field maps
-                $maps = function_exists('_wwqd_field_maps') ? _wwqd_field_maps() : ['public_open_fields' => [], 'private_secure_fields' => []];
-                $public_fields = is_array($maps['public_open_fields']) ? $maps['public_open_fields'] : [];
-                $private_fields = is_array($maps['private_secure_fields']) ? $maps['private_secure_fields'] : [];
+            // Post-update housekeeping (original semantics)
+            if (function_exists('cache')) {
+                @cache($user_id, 'users', 'delete');
+            }
+            if (!empty($update_data['username']) && function_exists('Wo_UpdateUsernameInNotifications')) {
+                @Wo_UpdateUsernameInNotifications($user_id, $update_data['username']);
+            }
 
-                // Resolve WP and QD targets (best-effort)
-                $wp_user_id = 0;
-                if (!empty($wowonder_email) && function_exists('get_wp_db_conn')) {
-                    $wp_user_id = function_exists('get_wp_user_id_by_wowonder_id') ? get_wp_user_id_by_wowonder_id($user_id) : 0;
-                    if (!$wp_user_id) {
-                        $wp_conn = get_wp_db_conn();
-                        if ($wp_conn) {
-                            $users_table = (defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'users';
-                            $email_safe = $wp_conn->real_escape_string($wowonder_email);
-                            $q = "SELECT ID FROM `{$users_table}` WHERE user_email = '{$email_safe}' LIMIT 1";
-                            $r = @ $wp_conn->query($q);
-                            if ($r && $r->num_rows > 0) {
-                                $row = $r->fetch_assoc();
-                                $wp_user_id = (int)$row['ID'];
-                            }
-                        }
+            // Prepare field maps and targets
+            $maps = function_exists('_wwqd_field_maps') ? _wwqd_field_maps() : ['public_open_fields' => [], 'private_secure_fields' => []];
+            $public_fields = is_array($maps['public_open_fields']) ? $maps['public_open_fields'] : [];
+            $private_fields = is_array($maps['private_secure_fields']) ? $maps['private_secure_fields'] : [];
+
+            // Resolve WP user id (DB-level)
+            $wp_user_id = 0;
+            if (!empty($wowonder_email) && function_exists('get_wp_db_conn')) {
+                $wp_conn = get_wp_db_conn();
+                if ($wp_conn) {
+                    $users_table = $wp_conn->real_escape_string((defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'users');
+                    $email_safe = $wp_conn->real_escape_string($wowonder_email);
+                    $q = "SELECT ID FROM `{$users_table}` WHERE user_email = '{$email_safe}' LIMIT 1";
+                    $r = @$wp_conn->query($q);
+                    if ($r && $r->num_rows > 0) {
+                        $row = $r->fetch_assoc();
+                        $wp_user_id = (int)$row['ID'];
                     }
                 }
+            }
 
-                $qd_user_id = function_exists('get_quickdate_id_by_wowonder_id') ? (int)get_quickdate_id_by_wowonder_id($user_id) : 0;
+            // If WP user exists, do DB-level upserts into bp_xprofile_data or wp_usermeta as appropriate
+            if ($wp_user_id > 0 && function_exists('get_wp_db_conn')) {
+                $wp_conn = get_wp_db_conn();
+                if ($wp_conn) {
 
-                // Sync to WordPress (public -> xProfile, private -> usermeta) if WP user exists
-                if ($wp_user_id > 0) {
-                    // Acquire a short WP-specific lock to avoid race/recursion with WP-origin operations
+                    // Acquire short WP-specific lock to avoid recursion
                     if (function_exists('_wwqd_acquire_sync_lock')) {
                         @ _wwqd_acquire_sync_lock('WoWonder->WP', $user_id);
                     }
 
-                    $wp_conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
+                    // detect xprofile tables
+                    list($fields_table, $data_table) = wwqd_find_wp_xprofile_tables($wp_conn);
 
+                    // For each updated field, route accordingly
                     foreach ($update_data as $field => $data) {
                         if ($data === null) continue;
-                        if ($field === 'password') {
-                            // password handled above
+                        $fld_l = strtolower((string)$field);
+                        if ($fld_l === 'password' || $fld_l === 'user_pass') {
+                            // Skip password propagation to WP (already stored in WW DB if present)
                             continue;
                         }
-                        $to_store = in_array($field, ['first_name','last_name','about']) ? Wo_Secure($data,1) : Wo_Secure($data,0);
 
-                        if (array_key_exists($field, $public_fields)) {
-                            // Ensure the xProfile field exists in WP, then set it
+                        $to_store = in_array($field, ['first_name','last_name','about']) ? Wo_Secure($data,1) : Wo_Secure($data,0);
+                        $to_store_db = $wp_conn->real_escape_string($to_store);
+
+                        // Public fields -> xProfile (only if field listed as public)
+                        if (array_key_exists($field, $public_fields) && $fields_table && $data_table) {
+                            // Ensure xProfile schema exists (attempt)
                             if (function_exists('_wwqd_ensure_wp_field')) {
                                 @ _wwqd_ensure_wp_field($field);
                             }
-                            if (function_exists('xprofile_set_field_data')) {
-                                @ xprofile_set_field_data($field, $wp_user_id, $to_store);
-                                continue;
+
+                            $field_safe = $wp_conn->real_escape_string($field);
+                            $fid_q = "SELECT id FROM `{$fields_table}` WHERE `name` = '{$field_safe}' LIMIT 1";
+                            $fid_r = @ $wp_conn->query($fid_q);
+                            $field_id = 0;
+                            if ($fid_r && $fid_r->num_rows > 0) {
+                                $frow = $fid_r->fetch_assoc();
+                                $field_id = (int)$frow['id'];
                             }
-                            // fallback: store in usermeta if xprofile function missing
-                            if ($wp_conn) {
-                                $meta_table = $wp_conn->real_escape_string((defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'usermeta');
-                                $meta_key = $wp_conn->real_escape_string($field);
-                                $meta_value = $wp_conn->real_escape_string($to_store);
-                                $q = "SELECT umeta_id FROM `{$meta_table}` WHERE user_id = {$wp_user_id} AND meta_key = '{$meta_key}' LIMIT 1";
-                                $r = @ $wp_conn->query($q);
-                                if ($r && $r->num_rows > 0) {
-                                    $wp_conn->query("UPDATE `{$meta_table}` SET meta_value = '{$meta_value}' WHERE user_id = {$wp_user_id} AND meta_key = '{$meta_key}'");
+
+                            if ($field_id > 0) {
+                                // Upsert into data_table (set last_updated if available)
+                                // Check for column presence of last_updated
+                                $has_last_updated = _wwqd_table_has_column($wp_conn, $data_table, 'last_updated');
+                                $val_safe = $to_store_db;
+                                $check_q = "SELECT id FROM `{$data_table}` WHERE user_id = {$wp_user_id} AND field_id = {$field_id} LIMIT 1";
+                                $check_r = @ $wp_conn->query($check_q);
+                                if ($check_r && $check_r->num_rows > 0) {
+                                    if ($has_last_updated) {
+                                        $wp_conn->query("UPDATE `{$data_table}` SET `value` = '{$val_safe}', `last_updated` = NOW() WHERE user_id = {$wp_user_id} AND field_id = {$field_id}");
+                                    } else {
+                                        $wp_conn->query("UPDATE `{$data_table}` SET `value` = '{$val_safe}' WHERE user_id = {$wp_user_id} AND field_id = {$field_id}");
+                                    }
                                 } else {
-                                    $wp_conn->query("INSERT INTO `{$meta_table}` (user_id, meta_key, meta_value) VALUES ({$wp_user_id}, '{$meta_key}', '{$meta_value}')");
+                                    if ($has_last_updated) {
+                                        $wp_conn->query("INSERT INTO `{$data_table}` (`field_id`,`user_id`,`value`,`last_updated`) VALUES ({$field_id}, {$wp_user_id}, '{$val_safe}', NOW())");
+                                    } else {
+                                        $wp_conn->query("INSERT INTO `{$data_table}` (`field_id`,`user_id`,`value`) VALUES ({$field_id}, {$wp_user_id}, '{$val_safe}')");
+                                    }
                                 }
-                                continue;
+                            } else {
+                                // fallback to usermeta if field id not found
+                                $meta_key = $wp_conn->real_escape_string($field);
+                                $qmeta = "SELECT umeta_id FROM `" . $wp_conn->real_escape_string((defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'usermeta') . "` WHERE user_id = {$wp_user_id} AND meta_key = '{$meta_key}' LIMIT 1";
+                                $rmeta = @ $wp_conn->query($qmeta);
+                                if ($rmeta && $rmeta->num_rows > 0) {
+                                    $wp_conn->query("UPDATE `" . $wp_conn->real_escape_string((defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'usermeta') . "` SET meta_value = '{$to_store_db}' WHERE user_id = {$wp_user_id} AND meta_key = '{$meta_key}'");
+                                } else {
+                                    $wp_conn->query("INSERT INTO `" . $wp_conn->real_escape_string((defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'usermeta') . "` (user_id, meta_key, meta_value) VALUES ({$wp_user_id}, '{$meta_key}', '{$to_store_db}')");
+                                }
                             }
+
+                            // bump avatar/cover version meta if relevant (signal clients)
+                            if (in_array($field, ['avatar','cover'], true)) {
+                                $ver_key = ($field === 'avatar') ? 'avatar_version' : 'cover_version';
+                                $ver_val = time();
+                                $umeta = $wp_conn->real_escape_string((defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'usermeta');
+                                $mkey = $wp_conn->real_escape_string($ver_key);
+                                $qv = "SELECT umeta_id FROM `{$umeta}` WHERE user_id = {$wp_user_id} AND meta_key = '{$mkey}' LIMIT 1";
+                                $rv = @ $wp_conn->query($qv);
+                                if ($rv && $rv->num_rows > 0) {
+                                    $wp_conn->query("UPDATE `{$umeta}` SET meta_value = '{$ver_val}' WHERE user_id = {$wp_user_id} AND meta_key = '{$mkey}'");
+                                } else {
+                                    $wp_conn->query("INSERT INTO `{$umeta}` (user_id, meta_key, meta_value) VALUES ({$wp_user_id}, '{$mkey}', '{$ver_val}')");
+                                }
+                            }
+
                         } else {
                             // Private fields or unknown → store in usermeta
-                            if (function_exists('update_user_meta')) {
-                                @ update_user_meta($wp_user_id, $field, $to_store);
-                                continue;
-                            } elseif ($wp_conn) {
-                                $meta_table = $wp_conn->real_escape_string((defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'usermeta');
-                                $meta_key = $wp_conn->real_escape_string($field);
-                                $meta_value = $wp_conn->real_escape_string($to_store);
-                                $q = "SELECT umeta_id FROM `{$meta_table}` WHERE user_id = {$wp_user_id} AND meta_key = '{$meta_key}' LIMIT 1";
-                                $r = @ $wp_conn->query($q);
-                                if ($r && $r->num_rows > 0) {
-                                    $wp_conn->query("UPDATE `{$meta_table}` SET meta_value = '{$meta_value}' WHERE user_id = {$wp_user_id} AND meta_key = '{$meta_key}'");
-                                } else {
-                                    $wp_conn->query("INSERT INTO `{$meta_table}` (user_id, meta_key, meta_value) VALUES ({$wp_user_id}, '{$meta_key}', '{$meta_value}')");
-                                }
-                                continue;
+                            $umeta_table = $wp_conn->real_escape_string((defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'usermeta');
+                            $meta_key = $wp_conn->real_escape_string($field);
+                            $qmeta = "SELECT umeta_id FROM `{$umeta_table}` WHERE user_id = {$wp_user_id} AND meta_key = '{$meta_key}' LIMIT 1";
+                            $rmeta = @ $wp_conn->query($qmeta);
+                            if ($rmeta && $rmeta->num_rows > 0) {
+                                $wp_conn->query("UPDATE `{$umeta_table}` SET meta_value = '{$to_store_db}' WHERE user_id = {$wp_user_id} AND meta_key = '{$meta_key}'");
+                            } else {
+                                $wp_conn->query("INSERT INTO `{$umeta_table}` (user_id, meta_key, meta_value) VALUES ({$wp_user_id}, '{$meta_key}', '{$to_store_db}')");
                             }
                         }
                     } // end foreach update_data
@@ -1867,27 +1867,31 @@ if (!function_exists('Wo_UpdateUserData')) {
                     if (function_exists('_wwqd_release_sync_lock')) {
                         @ _wwqd_release_sync_lock('WoWonder->WP', $user_id);
                     }
-                } // end WP sync
+                } // end if wp_conn
+            } // end wp_user_id > 0
 
-                // Sync to QuickDate only for columns QD supports (origin-aware)
-                if ($qd_user_id > 0 && function_exists('get_qd_db_conn')) {
+            // QuickDate conditional sync using origin-aware do_platform_update
+            if (function_exists('get_qd_db_conn')) {
+                $qd_user_id = function_exists('get_quickdate_id_by_wowonder_id') ? (int)get_quickdate_id_by_wowonder_id($user_id) : 0;
+                if ($qd_user_id > 0) {
                     $qd_conn = get_qd_db_conn();
                     $qd_table = defined('QD_USERS_TABLE') ? QD_USERS_TABLE : 'users';
                     foreach ($update_data as $field => $value) {
                         if ($value === null) continue;
+                        $fl = strtolower((string)$field);
+                        if ($fl === 'password' || $fl === 'user_pass') continue;
                         $canUpdate = function_exists('_wwqd_can_update_target') ? _wwqd_can_update_target('WoWonder', $qd_conn, $qd_table, $field) : false;
                         if ($canUpdate) {
                             @ do_platform_update($qd_conn, $qd_table, 'id', $qd_user_id, [$field => $value], 'QuickDate', 'WoWonder');
+                        } else {
+                            wwqd_debug('qd_update_skipped', ['field'=>$field, 'user'=>$user_id]);
                         }
                     }
                 }
-
-                // Final: return true because WoWonder update succeeded (preserves original semantics)
-                return true;
-            } else {
-                // original behavior: if WoWonder update failed, return false
-                return false;
             }
+
+            return true;
+
         } finally {
             // Always release main lock
             if (function_exists('_wwqd_release_sync_lock')) {

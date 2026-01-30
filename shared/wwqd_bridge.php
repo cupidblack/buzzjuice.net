@@ -212,15 +212,38 @@ if (!function_exists('get_table_columns')) {
         $cache_key = "$platform:$table";
         if (isset($cache[$cache_key])) return $cache[$cache_key];
 
-        $result = $conn->query("SHOW COLUMNS FROM `$table`");
-        if (!$result) {
-            log_sync_debug("Failed to fetch columns for $table: " . $conn->error, $platform);
-            return [];
-        }
-
+        // Support table names with optional db prefix (db.table) and quote parts safely.
+        $table = trim($table);
         $columns = [];
-        while ($row = $result->fetch_assoc()) {
-            $columns[] = $row['Field'];
+        try {
+            if (strpos($table, '.') !== false) {
+                $parts = explode('.', $table);
+                $quoted = [];
+                foreach ($parts as $p) {
+                    $quoted[] = '`' . $conn->real_escape_string(trim($p, '`')) . '`';
+                }
+                $table_query = implode('.', $quoted);
+            } else {
+                $table_query = '`' . $conn->real_escape_string(trim($table, '`')) . '`';
+            }
+
+            // Prefer to catch mysqli exceptions; also suppress warnings for older setups
+            $result = @ $conn->query("SHOW COLUMNS FROM {$table_query}");
+            if (!$result) {
+                // Log and return empty list when table is missing or inaccessible
+                $err = isset($conn->error) ? $conn->error : 'unknown error';
+                log_sync_debug("Failed to fetch columns for {$table_query}: {$err}", $platform);
+                $cache[$cache_key] = [];
+                return [];
+            }
+
+            while ($row = $result->fetch_assoc()) {
+                $columns[] = $row['Field'];
+            }
+        } catch (Exception $e) {
+            log_sync_debug("Exception fetching columns for {$table}: " . $e->getMessage(), $platform);
+            $cache[$cache_key] = [];
+            return [];
         }
 
         $cache[$cache_key] = $columns;
@@ -296,15 +319,184 @@ if (!function_exists('_wwqd_field_maps')) {
     }
 }
 
+/**
+ * Conditional debug logger for WWQD bridge.
+ * Enable by defining WWQD_DEBUG = true (e.g., in .env/db_helpers) or env WWQD_DEBUG=1
+ */
+if (!function_exists('wwqd_debug')) {
+    /**
+     * Conditional debug logger for WWQD bridge.
+     * Accepts a message and optional context (string or array). Will no-op unless WWQD_DEBUG is set.
+     */
+    function wwqd_debug(string $msg, $ctx = null) {
+        $enabled = false;
+        if (defined('WWQD_DEBUG') && WWQD_DEBUG) $enabled = true;
+        if (getenv('WWQD_DEBUG')) $enabled = true;
+        if (!$enabled) return;
+        $file = defined('WWQD_DEBUG_log') ? WWQD_DEBUG_log : (__DIR__ . '/wwqd_debug.log');
+        $ts = date('Y-m-d H:i:s');
+        if (is_array($ctx) || is_object($ctx)) {
+            $ctx_s = json_encode($ctx, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        } elseif (is_scalar($ctx)) {
+            $ctx_s = (string)$ctx;
+        } else {
+            $ctx_s = '';
+        }
+        $prefix = $ctx_s !== '' ? "[$ctx_s] " : '';
+        error_log("[$ts] {$prefix}{$msg}\n", 3, $file);
+    }
+}
+
+/* --------------------------------------------------------------------------
+ * WWQD: Login-phase helpers + durable profile-sync queue
+ * - Prevents destructive writes during SSO rehydration/login
+ * - Simple file-based queue for deferred profile sync jobs
+ * -------------------------------------------------------------------------- */
+if (!function_exists('wwqd_enter_login_phase')) {
+    function wwqd_enter_login_phase(int $wp_user_id, int $ttlSeconds = 15) {
+        $dir = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'wwqd_login';
+        if (!is_dir($dir)) @mkdir($dir, 0755, true);
+        $file = $dir . DIRECTORY_SEPARATOR . 'login_' . intval($wp_user_id);
+        $payload = json_encode(['ts' => time(), 'ttl' => intval($ttlSeconds)]);
+        @file_put_contents($file, $payload, LOCK_EX);
+    }
+}
+
+if (!function_exists('wwqd_exit_login_phase')) {
+    function wwqd_exit_login_phase(int $wp_user_id) {
+        $file = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'wwqd_login' . DIRECTORY_SEPARATOR . 'login_' . intval($wp_user_id);
+        if (file_exists($file)) @unlink($file);
+    }
+}
+
+if (!function_exists('wwqd_in_login_phase')) {
+    function wwqd_in_login_phase(int $wp_user_id): bool {
+        $file = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'wwqd_login' . DIRECTORY_SEPARATOR . 'login_' . intval($wp_user_id);
+        if (!file_exists($file)) return false;
+        $contents = @file_get_contents($file);
+        if (!$contents) { @unlink($file); return false; }
+        $d = @json_decode($contents, true);
+        if (!is_array($d) || !isset($d['ts']) || !isset($d['ttl'])) { @unlink($file); return false; }
+        $ts = intval($d['ts']); $ttl = intval($d['ttl']);
+        if ($ts + $ttl < time()) { @unlink($file); return false; }
+        return true;
+    }
+}
+
+if (!function_exists('wwqd_queue_profile_sync')) {
+    function wwqd_queue_profile_sync(string $origin, int $user_id, array $data) {
+        $dir = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'wwqd_sync_queue';
+        if (!is_dir($dir)) @mkdir($dir, 0755, true);
+        $job = [
+            'origin' => $origin,
+            'user'   => intval($user_id),
+            'data'   => $data,
+            'ts'     => time()
+        ];
+        $name = $dir . DIRECTORY_SEPARATOR . uniqid('job_', true) . '.json';
+        @file_put_contents($name, json_encode($job), LOCK_EX);
+        wwqd_debug('queued_profile_sync', ['file' => $name, 'origin' => $origin, 'user' => $user_id, 'keys' => array_keys($data)]);
+        return true;
+    }
+}
+
+if (!function_exists('wwqd_drain_sync_queue')) {
+    function wwqd_drain_sync_queue(int $max = 25) {
+        $dir = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'wwqd_sync_queue';
+        if (!is_dir($dir)) return;
+        $files = glob($dir . DIRECTORY_SEPARATOR . '*.json');
+        $count = 0;
+        foreach ($files as $f) {
+            if ($count >= $max) break;
+            $raw = @file_get_contents($f);
+            if (!$raw) { @unlink($f); continue; }
+            $job = @json_decode($raw, true);
+            if (!is_array($job) || empty($job['user']) || empty($job['data'])) { @unlink($f); continue; }
+            $uid = intval($job['user']);
+            // Skip if login-phase for that user (defer)
+            if (function_exists('wwqd_in_login_phase') && wwqd_in_login_phase($uid)) {
+                wwqd_debug('drain_skipped_login_phase', ['file'=>$f,'user'=>$uid]);
+                continue;
+            }
+            try {
+                if (!empty($job['origin']) && $job['origin'] === 'WordPress') {
+                    if (function_exists('sync_wp_user_to_platforms')) {
+                        sync_wp_user_to_platforms($uid, 'deferred');
+                    }
+                } else {
+                    if (function_exists('Wo_UpdateUserData')) {
+                        Wo_UpdateUserData($uid, $job['data']);
+                    }
+                }
+            } catch (Throwable $e) {
+                wwqd_debug('drain_job_exception', ['file'=>$f, 'error'=>$e->getMessage()]);
+            }
+            @unlink($f);
+            $count++;
+        }
+    }
+}
+
+if (!function_exists('wwqd_safe_autodrain')) {
+    function wwqd_safe_autodrain() {
+        if (defined('DOING_AJAX') && DOING_AJAX) return;
+        wwqd_drain_sync_queue(10);
+    }
+}
+
+if (!function_exists('_wwqd_sensitive_fields')) {
+    function _wwqd_sensitive_fields(): array {
+        static $list = null;
+        if ($list !== null) return $list;
+        $base = [
+            'phpsessid','php_sessid','php_session_id','session','jwt',
+            'buzz_sso','buzz_sso_serialized','buzz_sso_last','buzz_sso_last_sync',
+            'wp_sso','wp_sso_login','wp_session_name',
+            'user_pass','password','user_pass_hash','auth_token','two_factor_hash',
+            'web_device_id','android_m_device_id','ios_m_device_id',
+            'last_login_data','lastseen','last_email_sent','session_id','device_id','ip_address'
+        ];
+        $maps = function_exists('_wwqd_field_maps') ? _wwqd_field_maps() : ['private_secure_fields' => []];
+        if (!empty($maps['private_secure_fields']) && is_array($maps['private_secure_fields'])) {
+            $private = array_map('strtolower', array_values($maps['private_secure_fields']));
+            $base = array_merge($base, $private);
+        }
+        $normalized = [];
+        foreach ($base as $k) {
+            $k2 = strtolower(trim((string)$k));
+            if ($k2 === '') continue;
+            $normalized[$k2] = $k2;
+        }
+        $list = array_values($normalized);
+        return $list;
+    }
+}
+
 if (!function_exists('_wwqd_table_has_column')) {
     function _wwqd_table_has_column($conn, string $table, string $column): bool {
         if (!$conn || !$table || !$column) return false;
-        $table = trim($table, '`');
-        $table_safe  = $conn->real_escape_string($table);
-        $column_safe = $conn->real_escape_string($column);
-        $q = "SHOW COLUMNS FROM `{$table_safe}` LIKE '{$column_safe}'";
-        $res = @ $conn->query($q);
-        return ($res && $res->num_rows > 0);
+        $table = trim($table);
+        $column_safe = $conn->real_escape_string(trim($column, '`'));
+
+        try {
+            if (strpos($table, '.') !== false) {
+                $parts = explode('.', $table);
+                $quoted = [];
+                foreach ($parts as $p) {
+                    $quoted[] = '`' . $conn->real_escape_string(trim($p, '`')) . '`';
+                }
+                $table_query = implode('.', $quoted);
+            } else {
+                $table_query = '`' . $conn->real_escape_string(trim($table, '`')) . '`';
+            }
+
+            $q = "SHOW COLUMNS FROM {$table_query} LIKE '{$column_safe}'";
+            $res = @ $conn->query($q);
+            return ($res && $res->num_rows > 0);
+        } catch (Exception $e) {
+            log_sync_debug("_wwqd_table_has_column exception for {$table}: " . $e->getMessage(), 'WWQD');
+            return false;
+        }
     }
 }
 
@@ -1131,6 +1323,19 @@ if (!function_exists('do_platform_update')) {
             $allowed[$k] = $v;
         }
 
+        // If origin is WordPress, enforce a whitelist and exclude sensitive keys
+        if (strtolower(trim((string)$origin)) === 'wordpress') {
+            $maps = _wwqd_field_maps();
+            $whitelist = array_merge(array_keys($maps['public_open_fields']), array_keys($maps['private_secure_fields']));
+            $sensitive = _wwqd_sensitive_fields();
+            foreach ($allowed as $k => $_v) {
+                if (!in_array($k, $whitelist, true) || in_array($k, $sensitive, true)) {
+                    wwqd_debug("Dropping WP-origin field '{$k}' because it's not whitelisted or is sensitive", 'do_platform_update');
+                    unset($allowed[$k]);
+                }
+            }
+        }
+
         if (empty($allowed)) {
             return ['success' => false, 'reason' => 'no_supported_fields'];
         }
@@ -1169,75 +1374,132 @@ if (!function_exists('do_platform_update')) {
 /**
  * Unified sync function to update user data across all platforms
  */
+/* Replacement: sync_wp_user_to_platforms() — whitelist-only, lock-wrapped, debug-enabled.
+   This function intentionally only forwards username, email and public xProfile fields.
+*/
 if (!function_exists('sync_wp_user_to_platforms')) {
     function sync_wp_user_to_platforms($user_id, $sync_type = 'both') {
-        $user = get_userdata($user_id);
-        if (!$user || !$user->user_email) {
-            log_sync_debug("Invalid user_id or missing email: $user_id");
-            return false;
-        }
+        if (empty($user_id)) return false;
 
-        $metadata = get_user_field_metadata();
-        $wp_usermeta_fields = array_keys($metadata['private_secure_fields']);
-        $wp_xprofile_fields = array_keys($metadata['public_open_fields']);
-
-        // Build base user data
-        $user_data = [
-            'username' => $user->user_login,
-            'email' => $user->user_email,
-            //'password' => $user->user_pass
-        ];
-
-        // Add metadata
-        foreach ($wp_usermeta_fields as $field) {
-            $val = get_user_meta($user_id, $field, true);
-            if ($val !== '' && $val !== null) {
-                $user_data[$field] = $val;
+        // Acquire a WordPress-origin per-user lock to prevent recursion/races
+        if (function_exists('_wwqd_acquire_sync_lock')) {
+            if (!_wwqd_acquire_sync_lock('WordPress', (int)$user_id)) {
+                wwqd_debug('sync_wp_user_to_platforms_locked', ['user'=>$user_id]);
+                return false;
             }
         }
 
-        // Add xProfile data if needed
-        if ($sync_type === 'both' || $sync_type === 'xprofile') {
-            foreach ($wp_xprofile_fields as $field) {
-                $val = function_exists('xprofile_get_field_data') ? 
-                    xprofile_get_field_data($field, $user_id) : null;
-                    
-                if ($val !== '' && $val !== null) {
-                    if ($field === 'avatar') {
-                        $val = normalize_avatar_url($val);
-                    }
-                    $user_data[$field] = $val;
+        try {
+            // Get runtime user info if available
+            $user_login = null;
+            $user_email = null;
+            if (function_exists('get_userdata')) {
+                $u = @get_userdata($user_id);
+                if ($u) {
+                    $user_login = $u->user_login ?? null;
+                    $user_email = $u->user_email ?? null;
                 }
             }
-        }
 
-        // Sync to WoWonder
-        $wowonder_id = ww_get_user_id_by_email($user->user_email);
-        if ($wowonder_id) {
-            do_platform_update(
-                get_wowonder_db(),
-                'Wo_Users',
-                'user_id',
-                $wowonder_id,
-                $user_data,
-                'WoWonder'
-            );
-        }
+            // DB fallback if runtime not available
+            if ((empty($user_login) || empty($user_email)) && function_exists('get_wp_db_conn')) {
+                $wp_conn = get_wp_db_conn();
+                if ($wp_conn) {
+                    $users_table = (defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'users';
+                    $users_table = $wp_conn->real_escape_string($users_table);
+                    $q = "SELECT ID, user_login, user_email FROM `{$users_table}` WHERE ID = " . intval($user_id) . " LIMIT 1";
+                    $r = @$wp_conn->query($q);
+                    if ($r && $r->num_rows > 0) {
+                        $row = $r->fetch_assoc();
+                        $user_login = $row['user_login'];
+                        $user_email = $row['user_email'];
+                    }
+                }
+            }
 
-        // Sync to QuickDate
-        $qd_id = qd_get_user_id_by_email($user->user_email);
-        if ($qd_id) {
-            do_platform_update(
-                get_qd_db_conn(),
-                QD_USERS_TABLE,
-                'id',
-                $qd_id,
-                $user_data,
-                'QuickDate'
-            );
-        }
+            if (empty($user_login) || empty($user_email)) {
+                wwqd_debug('sync_wp_user_to_platforms_missing_user', ['user_id'=>$user_id]);
+                return false;
+            }
 
-        return true;
+            $maps = _wwqd_field_maps();
+            $public_fields_map = is_array($maps['public_open_fields']) ? $maps['public_open_fields'] : [];
+            $sensitive = _wwqd_sensitive_fields();
+
+            // Build a strict whitelist payload
+            $payload = [
+                'username' => (string)$user_login,
+                'email'    => (string)$user_email
+            ];
+
+            // Only include public xProfile fields defined in metadata (defensive)
+            foreach (array_keys($public_fields_map) as $field) {
+                $kl = strtolower((string)$field);
+                if (in_array($kl, $sensitive, true)) continue;
+
+                $val = null;
+                if (function_exists('xprofile_get_field_data')) {
+                    $val = @xprofile_get_field_data($field, $user_id);
+                }
+
+                // DB fallback to xprofile storage if runtime not available
+                if (($val === null || $val === '') && function_exists('get_wp_db_conn')) {
+                    $wp_conn = get_wp_db_conn();
+                    if ($wp_conn) {
+                        $fields_table = (defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'bp_xprofile_fields';
+                        $data_table   = (defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'bp_xprofile_data';
+                        $f_safe = $wp_conn->real_escape_string($field);
+                        $fid_r = @ $wp_conn->query("SELECT id FROM `{$fields_table}` WHERE `name` = '{$f_safe}' LIMIT 1");
+                        if ($fid_r && $fid_r->num_rows > 0) {
+                            $fr = $fid_r->fetch_assoc();
+                            $field_id = (int)$fr['id'];
+                            $val_r = @ $wp_conn->query("SELECT `value` FROM `{$data_table}` WHERE `field_id` = {$field_id} AND `user_id` = " . intval($user_id) . " LIMIT 1");
+                            if ($val_r && $val_r->num_rows > 0) {
+                                $vr = $val_r->fetch_assoc();
+                                $val = $vr['value'];
+                            }
+                        }
+                    }
+                }
+
+                if ($val !== null && $val !== '') {
+                    if ($field === 'avatar' && function_exists('normalize_avatar_url')) {
+                        $val = normalize_avatar_url($val);
+                    }
+                    $payload[$field] = $val;
+                }
+            }
+
+            // Defensive removal of any password or auth-like keys
+            foreach (['_password','password','user_pass','pass'] as $forbidden) {
+                if (isset($payload[$forbidden])) unset($payload[$forbidden]);
+            }
+
+            wwqd_debug('sync_wp_user_to_platforms_payload', ['user'=>$user_id, 'payload_keys'=>array_keys($payload)]);
+
+            // Send only to mapped targets (if mapping helpers present)
+            $wowonder_id = null;
+            if (function_exists('ww_get_user_id_by_email')) {
+                $wowonder_id = @ww_get_user_id_by_email($user_email);
+            }
+            if ($wowonder_id) {
+                @do_platform_update(get_wowonder_db(), 'Wo_Users', 'user_id', $wowonder_id, $payload, 'WoWonder', 'WordPress');
+            }
+
+            $qd_id = null;
+            if (function_exists('qd_get_user_id_by_email')) {
+                $qd_id = @qd_get_user_id_by_email($user_email);
+            }
+            if ($qd_id) {
+                @do_platform_update(get_qd_db_conn(), defined('QD_USERS_TABLE') ? QD_USERS_TABLE : 'users', 'id', $qd_id, $payload, 'QuickDate', 'WordPress');
+            }
+
+            return true;
+        } finally {
+            if (function_exists('_wwqd_release_sync_lock')) {
+                _wwqd_release_sync_lock('WordPress', (int)$user_id);
+            }
+        }
     }
 }
 

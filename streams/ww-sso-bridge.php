@@ -686,7 +686,37 @@ function bz_attempt_session_reconciliation_if_required_bridge() {
     @session_start();
 
     // Rehydrate local session from available WP payload (cookie or shadow)
-    bz_rehydrate_session_from_wp_payload_bridge($wp_payload);
+    // Enter a short login-phase so other code avoids destructive writes during rehydration.
+    $wp_user_id = !empty($wp_payload['wp_user_id']) ? (int)$wp_payload['wp_user_id'] : 0;
+    if ($wp_user_id === 0 && !empty($wp_payload['wp_user_email'])) {
+        // best-effort: if a helper exists to resolve WP id by email, use it
+        if (function_exists('ww_get_user_id_by_email')) {
+            $wp_user_id = (int) @ww_get_user_id_by_email($wp_payload['wp_user_email']);
+        }
+    }
+
+    if ($wp_user_id > 0 && function_exists('wwqd_enter_login_phase')) {
+        // short TTL - enough for rehydrate
+        wwqd_enter_login_phase($wp_user_id, 12);
+    }
+
+    try {
+        bz_rehydrate_session_from_wp_payload_bridge($wp_payload);
+
+        // Queue a small safe profile payload for deferred application (do NOT mutate during rehydration)
+        $allowed_fields = ['first_name','last_name','about','avatar','cover','country_id','city','state','zip','timezone'];
+        $safe_profile = [];
+        foreach ($allowed_fields as $f) {
+            if (isset($wp_payload[$f])) $safe_profile[$f] = $wp_payload[$f];
+        }
+        if (!empty($safe_profile) && $wp_user_id > 0 && function_exists('wwqd_queue_profile_sync')) {
+            wwqd_queue_profile_sync('WordPress', $wp_user_id, $safe_profile);
+        }
+    } finally {
+        if ($wp_user_id > 0 && function_exists('wwqd_exit_login_phase')) {
+            wwqd_exit_login_phase($wp_user_id);
+        }
+    }
 
     // Additionally: ensure canonical shadow file exists (write it). This will also remove mismatched shadow files earlier if present.
     try {
