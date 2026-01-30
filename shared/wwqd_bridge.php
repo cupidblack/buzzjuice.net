@@ -229,6 +229,165 @@ if (!function_exists('get_table_columns')) {
 }
 
 /* --------------------------------------------------------------------------
+ * WWQD: additional helpers (locking, field maps, schema decisions)
+ * These are part of the proposed integration to make updates origin-aware.
+ * -------------------------------------------------------------------------- */
+
+if (!function_exists('_wwqd_acquire_sync_lock')) {
+    function _wwqd_acquire_sync_lock(string $origin, int $user_id = 0, int $ttl = 10): bool {
+        $key  = md5($origin . ':' . $user_id);
+        $file = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . "wwqd_sync_{$key}.lock";
+
+        if (file_exists($file)) {
+            $data = @json_decode(@file_get_contents($file), true);
+            $ts = isset($data['ts']) ? intval($data['ts']) : 0;
+            if ($ts + $ttl > time()) {
+                return false;
+            }
+            @unlink($file);
+        }
+
+        $payload = json_encode([
+            'origin' => $origin,
+            'user'   => $user_id,
+            'ts'     => time()
+        ]);
+        @file_put_contents($file, $payload, LOCK_EX);
+        return file_exists($file);
+    }
+}
+
+if (!function_exists('_wwqd_release_sync_lock')) {
+    function _wwqd_release_sync_lock(string $origin, int $user_id = 0): void {
+        $key  = md5($origin . ':' . $user_id);
+        $file = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . "wwqd_sync_{$key}.lock";
+        if (file_exists($file)) @unlink($file);
+    }
+}
+
+if (!function_exists('_wwqd_field_maps')) {
+    function _wwqd_field_maps(): array {
+        static $maps = null;
+        if ($maps !== null) return $maps;
+
+        $maps = [
+            'public_open_fields'    => [],
+            'private_secure_fields' => []
+        ];
+
+        $candidates = [
+            __DIR__ . '/buzz_metadata.json',
+            dirname(__DIR__) . '/data/user_field_metadata.json',
+            dirname(__DIR__, 2) . '/data/user_field_metadata.json'
+        ];
+
+        foreach ($candidates as $p) {
+            if (!file_exists($p)) continue;
+            $json = @file_get_contents($p);
+            if (!$json) continue;
+            $d = @json_decode($json, true);
+            if (!is_array($d)) continue;
+            $maps['public_open_fields']    = isset($d['public_open_fields']) && is_array($d['public_open_fields']) ? $d['public_open_fields'] : $maps['public_open_fields'];
+            $maps['private_secure_fields'] = isset($d['private_secure_fields']) && is_array($d['private_secure_fields']) ? $d['private_secure_fields'] : $maps['private_secure_fields'];
+            break;
+        }
+
+        return $maps;
+    }
+}
+
+if (!function_exists('_wwqd_table_has_column')) {
+    function _wwqd_table_has_column($conn, string $table, string $column): bool {
+        if (!$conn || !$table || !$column) return false;
+        $table = trim($table, '`');
+        $table_safe  = $conn->real_escape_string($table);
+        $column_safe = $conn->real_escape_string($column);
+        $q = "SHOW COLUMNS FROM `{$table_safe}` LIKE '{$column_safe}'";
+        $res = @ $conn->query($q);
+        return ($res && $res->num_rows > 0);
+    }
+}
+
+if (!function_exists('_wwqd_ensure_wp_field')) {
+    function _wwqd_ensure_wp_field(string $field): bool {
+        $field = trim((string)$field);
+        if ($field === '') return false;
+
+        $maps = _wwqd_field_maps();
+        // Only attempt for public xProfile fields
+        if (!array_key_exists($field, $maps['public_open_fields'])) {
+            return true; // nothing to create for private fields
+        }
+
+        if (!function_exists('get_wp_db_conn')) return false;
+        $conn = get_wp_db_conn();
+        if (!$conn) return false;
+
+        // Candidate table names (adjust if your BP table names differ)
+        $candidates = [
+            WP_TABLE_PREFIX . 'bp_xprofile_fields',
+            BP_TABLE_PREFIX . 'bp_xprofile_fields',
+            WP_TABLE_PREFIX . 'xprofile_fields',
+            BP_TABLE_PREFIX . 'xprofile_fields',
+            'bp_xprofile_fields',
+            'xprofile_fields'
+        ];
+
+        $found = null;
+        foreach ($candidates as $t) {
+            $t_safe = $conn->real_escape_string(trim($t, '`'));
+            $rs = @ $conn->query("SHOW TABLES LIKE '{$t_safe}'");
+            if ($rs && $rs->num_rows > 0) {
+                $found = $t_safe;
+                break;
+            }
+        }
+
+        if (!$found) {
+            // Cannot find xprofile table in WP DB
+            return false;
+        }
+
+        // Check existence by name
+        $field_safe = $conn->real_escape_string($field);
+        $r = @ $conn->query("SELECT id FROM `{$found}` WHERE `name` = '{$field_safe}' LIMIT 1");
+        if ($r && $r->num_rows > 0) return true;
+
+        // Insert a minimal textbox xProfile field; keep safe
+        $stmt = @ $conn->prepare("INSERT INTO `{$found}` (`name`,`type`,`description`,`can_delete`,`position`,`is_required`,`is_unique`,`is_register`,`is_default`) VALUES (?,?,?,?,?,?,?,?,?)");
+        if (!$stmt) {
+            return false;
+        }
+        $type = 'textbox';
+        $description = "Auto-created by WWQD bridge for field '{$field}'";
+        $can_delete = 0;
+        $position = 0;
+        $is_required = 0;
+        $is_unique = 0;
+        $is_register = 0;
+        $is_default = 0;
+        $stmt->bind_param('sssiissii', $field, $type, $description, $can_delete, $position, $is_required, $is_unique, $is_register, $is_default);
+        $ok = $stmt->execute();
+        $stmt->close();
+        return (bool)$ok;
+    }
+}
+
+if (!function_exists('_wwqd_can_update_target')) {
+    function _wwqd_can_update_target(string $origin, $target_conn, string $table, string $field): bool {
+        $origin = strtolower(trim((string)$origin));
+        if ($origin === 'wordpress') {
+            return _wwqd_table_has_column($target_conn, $table, $field);
+        }
+
+        // Ensure WP has public xProfile field when origin is WW or QD
+        @ _wwqd_ensure_wp_field($field);
+        // Still only update target if target has column
+        return _wwqd_table_has_column($target_conn, $table, $field);
+    }
+}
+
+/* --------------------------------------------------------------------------
  * Metadata loader
  * - Reads shared/buzz_metadata.json (preferred local file), falls back to remote URL
  * -------------------------------------------------------------------------- */
@@ -957,40 +1116,53 @@ if (!function_exists('sync_user_to_quickdate')) {
  * Generic database update function for both WoWonder and QuickDate
  */
 if (!function_exists('do_platform_update')) {
-    function do_platform_update($conn, $table, $id_field, $id, $fields, $platform = 'General') {
-        if (!$conn || !$id || empty($fields)) {
-            log_sync_debug("[$platform] Update skipped: invalid parameters");
-            return false;
+    /**
+     * Origin-aware do_platform_update
+     * See proposal: only updates columns supported by target, optionally creating WP xProfile fields
+     */
+    function do_platform_update($conn, $table, $id_field, $id, $fields, $platform = 'General', $origin = 'WordPress') {
+        if (!$conn || !$table || !$id_field || !$id || !is_array($fields) || empty($fields)) return false;
+
+        $allowed = [];
+        foreach ($fields as $k => $v) {
+            if ($v === null) continue;
+            $should = _wwqd_can_update_target($origin, $conn, $table, $k);
+            if (!$should) continue;
+            $allowed[$k] = $v;
         }
 
-        $table_columns = get_table_columns($conn, $table, $platform);
-        $set = [];
-
-        foreach ($fields as $field => $value) {
-            if (!in_array($field, $table_columns)) {
-                log_sync_debug("[$platform] Skipping unknown column: $field");
-                continue;
-            }
-            
-            $escaped = $conn->real_escape_string($value);
-            $set[] = "`$field` = '$escaped'";
+        if (empty($allowed)) {
+            return ['success' => false, 'reason' => 'no_supported_fields'];
         }
 
-        if (empty($set)) {
-            log_sync_debug("[$platform] No valid columns to update for $table ID $id");
-            return false;
+        $set_parts = [];
+        $types = '';
+        $values = [];
+        foreach ($allowed as $k => $v) {
+            $set_parts[] = "`" . $conn->real_escape_string($k) . "` = ?";
+            $types .= (is_int($v) || (is_string($v) && ctype_digit($v))) ? 'i' : 's';
+            $values[] = $v;
         }
 
-        $sql = "UPDATE `$table` SET " . implode(',', $set) . " WHERE $id_field = $id";
-        $success = $conn->query($sql);
-
-        if (!$success) {
-            log_sync_debug("[$platform] Update failed: " . $conn->error);
-            return false;
+        $set_sql = implode(', ', $set_parts);
+        $sql = "UPDATE `{$table}` SET {$set_sql} WHERE `{$id_field}` = ?";
+        $stmt = @ $conn->prepare($sql);
+        if (!$stmt) {
+            return ['success' => false, 'reason' => 'prepare_failed', 'error' => $conn->error];
         }
 
-        log_sync_debug("[$platform] Successfully updated $table ID $id");
-        return true;
+        $types .= (is_int($id) || (is_string($id) && ctype_digit($id))) ? 'i' : 's';
+        $bind_params = array_merge([$types], $values, [$id]);
+
+        // mysqli bind_param requires references
+        $refs = [];
+        foreach ($bind_params as $i => $p) $refs[$i] = &$bind_params[$i];
+        call_user_func_array([$stmt, 'bind_param'], $refs);
+
+        $ok = $stmt->execute();
+        $err = $stmt->error;
+        $stmt->close();
+        return ['success' => (bool)$ok, 'error' => $err ?: ''];
     }
 }
 

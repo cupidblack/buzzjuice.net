@@ -1553,156 +1553,348 @@ function Wo_DeleteUser($user_id)
 }
 
 
-//BlueCrownR&D
-function Wo_UpdateUserData($user_id, $update_data, $unverify = false) {
-    global $wo, $sqlConnect, $cache, $wp_db_conn; // Include $wp_db_conn here
-    require_once __DIR__ . '/../../../shared/wwqd_bridge.php'; // Ensure this file is included
 
-    $wp_db_conn = get_wp_db() ?: get_wp_db_conn();
+// WWQD helpers + finalized Wo_UpdateUserData()
+// Place into streams/assets/includes/functions_one.php replacing the previous Wo_UpdateUserData implementation.
 
-    if (!$user_id || !is_numeric($user_id) || empty($update_data)) {
-        return false;
-    }
-    $user_id = Wo_Secure($user_id);
-    $is_mod = Wo_IsModerator();
-    $is_admin = Wo_IsAdmin();
+require_once dirname(__DIR__, 3) . '/shared/wwqd_bridge.php';
 
-    // Permission checks
-    if (!$wo['loggedin'] || (!$is_admin && !$is_mod && $wo['user']['user_id'] != $user_id)) return false;
-    if (!empty($update_data['admin']) && $update_data['admin'] == 1 && !$is_admin) return false;
-    if (isset($update_data['verified']) && empty($update_data['pro_']) && !$is_admin && !$is_mod) return false;
-    if ($is_mod) {
-        $target = Wo_UserData($user_id);
-        if (!empty($target['admin']) && $target['admin'] == 1) return false;
-    }
-    // Validate enumerations
-    if (!empty($update_data['relationship']) && !array_key_exists($update_data['relationship'], $wo['relationship'])) {
-        $update_data['relationship_id'] = 1;
-    }
-    if (!empty($update_data['country_id']) && !array_key_exists($update_data['country_id'], $wo['countries_name'])) {
-        $update_data['country_id'] = 1;
-    }
-    if (!isset($update_data['relationship_id'])) {
-        $update_data['relationship_id'] = $wo['user']['relationship_id'] ?? 0;
-    }
-    // Field maps to sync
-    $metadata = get_user_field_metadata();
-    $wp_usermeta_fields = $metadata['private_secure_fields'];
-    $wp_xprofile_fields = $metadata['public_open_fields'];
-    $sql_update = [];
-    $synced_wp = false;
-    $wowonder_user = Wo_UserData($user_id);
-    $wp_user_data = wp_get_user_by_login_or_email($sqlConnect, $wowonder_user['email']);
-    $wp_user_id = $wp_user_data ? $wp_user_data['ID'] : 0;
-    if (!$wp_user_id) {
-        wp_log("ERROR: Could not find WordPress user with email=" . $wowonder_user['email']);
-        return false; // ⛔ Don't sync if WP user not found
-    }
+/**
+ * Attempt to map WoWonder user_id -> WP user ID
+ */
+if (!function_exists('get_wp_user_id_by_wowonder_id')) {
+    function get_wp_user_id_by_wowonder_id($wo_user_id) {
+        if (!function_exists('get_wp_db_conn')) return 0;
+        $conn = get_wp_db_conn();
+        if (!$conn) return 0;
 
-    // Prep QuickDate sync payloads
-    $quickdate_usermeta = [];
-    $quickdate_xprofile = [];
-
-    foreach ($update_data as $field => $data) {
-
-        // --- PASSWORD SYNC LOGIC ---
-        if ($field === 'password') {
-            // Hash password using WordPress phpass
-            if (!class_exists('PasswordHash')) {
-                require_once __DIR__ . '/../../../wp-includes/class-phpass.php';
+        $prefixes = [defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_', 'wp_'];
+        foreach ($prefixes as $p) {
+            $table = $p . 'usermeta';
+            $table_safe = $conn->real_escape_string($table);
+            $meta_key = $conn->real_escape_string('wo_user_id');
+            $q = "SELECT user_id FROM `{$table_safe}` WHERE meta_key = '{$meta_key}' AND meta_value = '{$conn->real_escape_string($wo_user_id)}' LIMIT 1";
+            $r = @ $conn->query($q);
+            if ($r && $r->num_rows > 0) {
+                $row = $r->fetch_assoc();
+                return (int)$row['user_id'];
             }
-            $wp_hasher = new PasswordHash(8, true);
-            $wp_hash = $wp_hasher->HashPassword($data);
+        }
+        return 0;
+    }
+}
 
-            // Update WoWonder SQL
-            $escaped_ww_hash = mysqli_real_escape_string($sqlConnect, $wp_hash);
-            $sql_update[] = "`password` = '$escaped_ww_hash'";
+/**
+ * Attempt to map WoWonder user_id -> QuickDate user id (best-effort)
+ */
+if (!function_exists('get_quickdate_id_by_wowonder_id')) {
+    function get_quickdate_id_by_wowonder_id($wo_user_id) {
+        if (!function_exists('get_qd_db_conn')) return 0;
+        $conn = get_qd_db_conn();
+        if (!$conn) return 0;
 
-            // Update WordPress user_pass field directly in wp_users
-            if ($wp_db_conn && $wp_user_id) {
-                $escaped_wp_hash = mysqli_real_escape_string($wp_db_conn, $wp_hash);
-                $query = "UPDATE " . wp_table('users') . " SET user_pass = '$escaped_wp_hash' WHERE ID = $wp_user_id";
-                $success = mysqli_query($wp_db_conn, $query);
-                $synced_wp = $synced_wp || $success;
-                wp_log("Password sync: user_pass updated for WP user_id=$wp_user_id → " . ($success ? "OK" : "FAIL"));
+        $candidates = [defined('QD_USERS_TABLE') ? QD_USERS_TABLE : 'users', 'users'];
+        foreach ($candidates as $t) {
+            $t_safe = $conn->real_escape_string($t);
+            $col = 'wo_user_id';
+            if (!_wwqd_table_has_column($conn, $t_safe, $col)) continue;
+            $q = "SELECT id FROM `{$t_safe}` WHERE `wo_user_id` = '{$conn->real_escape_string($wo_user_id)}' LIMIT 1";
+            $r = @ $conn->query($q);
+            if ($r && $r->num_rows > 0) {
+                $row = $r->fetch_assoc();
+                return (int)$row['id'];
+            }
+        }
+        return 0;
+    }
+}
+
+if (!function_exists('Wo_UpdateUserData')) {
+    function Wo_UpdateUserData($user_id, $update_data, $unverify = false)
+    {
+        global $wo, $sqlConnect, $cache;
+
+        // === Preserve original early checks ===
+        if ($wo['loggedin'] == false) {
+            return false;
+        }
+        if (empty($user_id) || !is_numeric($user_id) || $user_id < 0) {
+            return false;
+        }
+        if (empty($update_data) || !is_array($update_data)) {
+            return false;
+        }
+
+        // Run original permission and validation checks
+        $user_id = Wo_Secure($user_id);
+
+        $is_mod = Wo_IsModerator();
+        $is_admin = Wo_IsAdmin();
+        if ($is_admin === false && $is_mod === false) {
+            if ($wo['user']['user_id'] != $user_id) {
+                return false;
+            }
+        }
+        if (!empty($update_data['admin']) && $update_data['admin'] == 1) {
+            if ($is_admin === false) {
+                return false;
+            }
+        }
+        if (isset($update_data['verified'])) {
+            if (empty($update_data['pro_'])) {
+                if ($is_admin === false && $is_mod === false) {
+                    return false;
+                }
+            }
+        }
+        if ($is_mod) {
+            $user_data_ = Wo_UserData($user_id);
+            if (!empty($user_data_) && $user_data_['admin'] == 1) {
+                return false;
+            }
+        }
+
+        // Relationship / country validation as original
+        if (!empty($update_data['relationship'])) {
+            if (!array_key_exists($update_data['relationship'], $wo['relationship'])) {
+                $update_data['relationship_id'] = 1;
+            }
+        } else if (isset($update_data['relationship'])) {
+            if (!array_key_exists($update_data['relationship'], $wo['relationship'])) {
+                $update_data['relationship_id'] = 0;
+            }
+        }
+        if (isset($update_data['country_id'])) {
+            if (!array_key_exists($update_data['country_id'], $wo['countries_name'])) {
+                $update_data['country_id'] = 1;
+            }
+        }
+        if (!isset($update_data['relationship_id'])) {
+            $update_data['relationship_id'] = $wo['user']['relationship_id'];
+        }
+
+        // === Acquire per-origin lock AFTER permission checks ===
+        if (function_exists('_wwqd_acquire_sync_lock')) {
+            if (!_wwqd_acquire_sync_lock('WoWonder', (int)$user_id)) {
+                // Another WoWonder-origin sync is running for this user — abort safely
+                return false;
+            }
+        }
+
+        try {
+            // Capture pre-update WoWonder data
+            $wowonder_user = Wo_UserData($user_id);
+            $wowonder_email = $wowonder_user['email'] ?? '';
+
+            // Build SQL update clauses (preserve original Wo_Secure behavior)
+            $update_clauses = [];
+            foreach ($update_data as $field => $data) {
+                $filter = ['first_name', 'last_name', 'about'];
+                $finalData = in_array($field, $filter) ? Wo_Secure($data, 1) : Wo_Secure($data, 0);
+
+                // Skip 'pro_' special-case as original logic did
+                if ($field == 'pro_') {
+                    continue;
+                }
+
+                // Password handling: create WP phpass where possible and store phpass in WoWonder
+                if ($field === 'password') {
+                    $to_store_in_ww = $finalData;
+                    $wp_hash = null;
+                    $phpass_path = dirname(__DIR__, 4) . '/wp-includes/class-phpass.php';
+                    if (!class_exists('PasswordHash') && file_exists($phpass_path)) {
+                        @require_once $phpass_path;
+                    }
+                    if (class_exists('PasswordHash')) {
+                        try {
+                            $wp_hasher = new PasswordHash(8, true);
+                            $wp_hash = $wp_hasher->HashPassword($data);
+                            $to_store_in_ww = $wp_hash;
+                        } catch (Exception $e) {
+                            // fallback to original finalData
+                            $to_store_in_ww = $finalData;
+                        }
+                    }
+
+                    // Prepare WoWonder clause (escaped)
+                    $escaped = $sqlConnect ? $sqlConnect->real_escape_string($to_store_in_ww) : addslashes($to_store_in_ww);
+                    $update_clauses[] = "`password` = '{$escaped}'";
+
+                    // If WP mapping exists, attempt to update WP user_pass
+                    if (!empty($wowonder_email) && function_exists('get_wp_db_conn')) {
+                        $wp_user_id = function_exists('get_wp_user_id_by_wowonder_id') ? get_wp_user_id_by_wowonder_id($user_id) : 0;
+                        if (!$wp_user_id) {
+                            // fallback to lookup by email
+                            $wp_conn = get_wp_db_conn();
+                            if ($wp_conn) {
+                                $users_table = (defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'users';
+                                $email_safe = $wp_conn->real_escape_string($wowonder_email);
+                                $q = "SELECT ID FROM `{$users_table}` WHERE user_email = '{$email_safe}' LIMIT 1";
+                                $r = @ $wp_conn->query($q);
+                                if ($r && $r->num_rows > 0) {
+                                    $row = $r->fetch_assoc();
+                                    $wp_user_id = (int)$row['ID'];
+                                }
+                            }
+                        }
+
+                        if ($wp_user_id && isset($wp_hash)) {
+                            $wp_conn = get_wp_db_conn();
+                            if ($wp_conn) {
+                                $wp_users_table = $wp_conn->real_escape_string((defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'users');
+                                $escaped_wp_hash = $wp_conn->real_escape_string($wp_hash);
+                                @ $wp_conn->query("UPDATE `{$wp_users_table}` SET user_pass = '{$escaped_wp_hash}' WHERE ID = {$wp_user_id}");
+                            }
+                        }
+                    }
+
+                    // done with password handling; continue to next field
+                    continue;
+                }
+
+                // Normal fields: add to WoWonder update (escaped)
+                $escaped_val = $sqlConnect ? $sqlConnect->real_escape_string($finalData) : addslashes($finalData);
+                $update_clauses[] = '`' . $field . '` = \'' . $escaped_val . '\'';
+            }
+
+            // Perform WoWonder SQL update (preserve original semantics)
+            $impload = implode(', ', $update_clauses);
+            $query_one = " UPDATE " . T_USERS . " SET {$impload} WHERE `user_id` = {$user_id} ";
+            $query1 = @mysqli_query($sqlConnect, $query_one);
+
+            // Preserve original unverify logic
+            if ($unverify == true) {
+                $query_two = " UPDATE " . T_USERS . " SET `verified` = '0' WHERE `user_id` = {$user_id} ";
+                @mysqli_query($sqlConnect, $query_two);
+            }
+
+            // If WoWonder update succeeded, do WP/QD sync and housekeeping
+            if ($query1) {
+                // Clear user cache and update username-in-notifications as original
+                cache($user_id, 'users', 'delete');
+                if (!empty($update_data['username'])) {
+                    Wo_UpdateUsernameInNotifications($user_id, $update_data['username']);
+                }
+
+                // Prepare field maps
+                $maps = function_exists('_wwqd_field_maps') ? _wwqd_field_maps() : ['public_open_fields' => [], 'private_secure_fields' => []];
+                $public_fields = is_array($maps['public_open_fields']) ? $maps['public_open_fields'] : [];
+                $private_fields = is_array($maps['private_secure_fields']) ? $maps['private_secure_fields'] : [];
+
+                // Resolve WP and QD targets (best-effort)
+                $wp_user_id = 0;
+                if (!empty($wowonder_email) && function_exists('get_wp_db_conn')) {
+                    $wp_user_id = function_exists('get_wp_user_id_by_wowonder_id') ? get_wp_user_id_by_wowonder_id($user_id) : 0;
+                    if (!$wp_user_id) {
+                        $wp_conn = get_wp_db_conn();
+                        if ($wp_conn) {
+                            $users_table = (defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'users';
+                            $email_safe = $wp_conn->real_escape_string($wowonder_email);
+                            $q = "SELECT ID FROM `{$users_table}` WHERE user_email = '{$email_safe}' LIMIT 1";
+                            $r = @ $wp_conn->query($q);
+                            if ($r && $r->num_rows > 0) {
+                                $row = $r->fetch_assoc();
+                                $wp_user_id = (int)$row['ID'];
+                            }
+                        }
+                    }
+                }
+
+                $qd_user_id = function_exists('get_quickdate_id_by_wowonder_id') ? (int)get_quickdate_id_by_wowonder_id($user_id) : 0;
+
+                // Sync to WordPress (public -> xProfile, private -> usermeta) if WP user exists
+                if ($wp_user_id > 0) {
+                    // Acquire a short WP-specific lock to avoid race/recursion with WP-origin operations
+                    if (function_exists('_wwqd_acquire_sync_lock')) {
+                        @ _wwqd_acquire_sync_lock('WoWonder->WP', $user_id);
+                    }
+
+                    $wp_conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
+
+                    foreach ($update_data as $field => $data) {
+                        if ($data === null) continue;
+                        if ($field === 'password') {
+                            // password handled above
+                            continue;
+                        }
+                        $to_store = in_array($field, ['first_name','last_name','about']) ? Wo_Secure($data,1) : Wo_Secure($data,0);
+
+                        if (array_key_exists($field, $public_fields)) {
+                            // Ensure the xProfile field exists in WP, then set it
+                            if (function_exists('_wwqd_ensure_wp_field')) {
+                                @ _wwqd_ensure_wp_field($field);
+                            }
+                            if (function_exists('xprofile_set_field_data')) {
+                                @ xprofile_set_field_data($field, $wp_user_id, $to_store);
+                                continue;
+                            }
+                            // fallback: store in usermeta if xprofile function missing
+                            if ($wp_conn) {
+                                $meta_table = $wp_conn->real_escape_string((defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'usermeta');
+                                $meta_key = $wp_conn->real_escape_string($field);
+                                $meta_value = $wp_conn->real_escape_string($to_store);
+                                $q = "SELECT umeta_id FROM `{$meta_table}` WHERE user_id = {$wp_user_id} AND meta_key = '{$meta_key}' LIMIT 1";
+                                $r = @ $wp_conn->query($q);
+                                if ($r && $r->num_rows > 0) {
+                                    $wp_conn->query("UPDATE `{$meta_table}` SET meta_value = '{$meta_value}' WHERE user_id = {$wp_user_id} AND meta_key = '{$meta_key}'");
+                                } else {
+                                    $wp_conn->query("INSERT INTO `{$meta_table}` (user_id, meta_key, meta_value) VALUES ({$wp_user_id}, '{$meta_key}', '{$meta_value}')");
+                                }
+                                continue;
+                            }
+                        } else {
+                            // Private fields or unknown → store in usermeta
+                            if (function_exists('update_user_meta')) {
+                                @ update_user_meta($wp_user_id, $field, $to_store);
+                                continue;
+                            } elseif ($wp_conn) {
+                                $meta_table = $wp_conn->real_escape_string((defined('WP_TABLE_PREFIX') ? WP_TABLE_PREFIX : 'wp_') . 'usermeta');
+                                $meta_key = $wp_conn->real_escape_string($field);
+                                $meta_value = $wp_conn->real_escape_string($to_store);
+                                $q = "SELECT umeta_id FROM `{$meta_table}` WHERE user_id = {$wp_user_id} AND meta_key = '{$meta_key}' LIMIT 1";
+                                $r = @ $wp_conn->query($q);
+                                if ($r && $r->num_rows > 0) {
+                                    $wp_conn->query("UPDATE `{$meta_table}` SET meta_value = '{$meta_value}' WHERE user_id = {$wp_user_id} AND meta_key = '{$meta_key}'");
+                                } else {
+                                    $wp_conn->query("INSERT INTO `{$meta_table}` (user_id, meta_key, meta_value) VALUES ({$wp_user_id}, '{$meta_key}', '{$meta_value}')");
+                                }
+                                continue;
+                            }
+                        }
+                    } // end foreach update_data
+
+                    // Release WP-specific short lock
+                    if (function_exists('_wwqd_release_sync_lock')) {
+                        @ _wwqd_release_sync_lock('WoWonder->WP', $user_id);
+                    }
+                } // end WP sync
+
+                // Sync to QuickDate only for columns QD supports (origin-aware)
+                if ($qd_user_id > 0 && function_exists('get_qd_db_conn')) {
+                    $qd_conn = get_qd_db_conn();
+                    $qd_table = defined('QD_USERS_TABLE') ? QD_USERS_TABLE : 'users';
+                    foreach ($update_data as $field => $value) {
+                        if ($value === null) continue;
+                        $canUpdate = function_exists('_wwqd_can_update_target') ? _wwqd_can_update_target('WoWonder', $qd_conn, $qd_table, $field) : false;
+                        if ($canUpdate) {
+                            @ do_platform_update($qd_conn, $qd_table, 'id', $qd_user_id, [$field => $value], 'QuickDate', 'WoWonder');
+                        }
+                    }
+                }
+
+                // Final: return true because WoWonder update succeeded (preserves original semantics)
+                return true;
             } else {
-                wp_log("Password sync: failed to update WP user_pass (no connection or user_id)");
+                // original behavior: if WoWonder update failed, return false
+                return false;
             }
-            continue; // Don't sync password to usermeta/xprofile
-        }
-
-        // Skip other fields related to pro_, user_id (not password)
-				// if (strpos($field, 'pro_') === 0 || in_array($field, ['password', 'user_id'])) {
-        if (strpos($field, 'pro_') === 0 || $field === 'user_id, password') {
-            wp_log("Skipping field: $field");
-            continue;
-        }																			
-																																									
-        $filtered = in_array($field, ['first_name', 'last_name', 'about']) ? Wo_Secure($data, 1) : Wo_Secure($data, 0);
-        // Ensure $wp_db_conn is valid before using it
-        if (!$wp_db_conn) {
-            wp_log("ERROR: MySQLi connection is not established.");
-            return false; // Handle the error as needed
-        }
-        $escaped = mysqli_real_escape_string($wp_db_conn, $filtered); // Only for SQL use
-        // WoWonder SQL prep
-        $sql_update[] = "`$field` = '$escaped'";
-        // WordPress sync
-        if (in_array($field, $wp_usermeta_fields)) {
-            $success = wp_update_usermeta($wp_db_conn, $wp_user_id, $field, $filtered);
-            $synced_wp = $synced_wp || $success;
-            wp_log("wp_usermeta[$field] = $filtered → " . ($success ? "OK" : "FAIL"));
-            $quickdate_usermeta[$field] = $filtered;
-        } elseif (in_array($field, $wp_xprofile_fields)) {
-            $success = wp_update_xprofile_field($wp_db_conn, $wp_user_id, $field, $filtered);
-            $synced_wp = $synced_wp || $success;
-            wp_log("xprofile[$field] = $filtered → " . ($success ? "OK" : "FAIL"));
-            $quickdate_xprofile[$field] = $filtered;
-        } else {
-            $fallback = wp_update_usermeta($wp_db_conn, $wp_user_id, $field, $filtered);
-            wp_log("fallback usermeta[$field] = $filtered → " . ($fallback ? "OK" : "FAIL"));
-        }
-    }
-
-    // 📡 QuickDate sync
-    $quickdate_synced = sync_user_to_quickdate($wowonder_user['email'], $quickdate_usermeta, $quickdate_xprofile);
-    wp_log("📡 QuickDate sync: " . ($quickdate_synced ? "SUCCESS" : "FAILURE"));
-
-    // 🗄️ WoWonder DB update
-    $sql_success = false;
-    
-    // 🚫 Ensure 'wo_user_id' never makes it into the update list
-    if (!empty($sql_update)) {
-        $sql_update = array_filter(
-            $sql_update,
-            function ($clause) {
-                return stripos($clause, 'wo_user_id') === false;
+        } finally {
+            // Always release main lock
+            if (function_exists('_wwqd_release_sync_lock')) {
+                _wwqd_release_sync_lock('WoWonder', (int)$user_id);
             }
-        );
-    
-        if (!empty($sql_update)) {
-            $query = "UPDATE " . T_USERS . " SET " . implode(', ', $sql_update) . " WHERE user_id = {$user_id}";
-            $sql_success = mysqli_query($sqlConnect, $query);
-            wp_log("WoWonder SQL update → " . ($sql_success ? "OK" : "FAIL"));
-        } else {
-            wp_log("WoWonder SQL update skipped → only invalid fields present");
         }
     }
-
-    // 🛑 Unverify
-    if ($unverify) {
-        mysqli_query($sqlConnect, "UPDATE " . T_USERS . " SET `verified` = '0' WHERE user_id = {$user_id}");
-        wp_update_usermeta($sqlConnect, $user_id, 'verified', 0);
-        $synced_wp = true;
-    }
-    // 🔄 Username change
-    if (!empty($update_data['username'])) {
-        Wo_UpdateUsernameInNotifications($user_id, $update_data['username']);
-    }
-    // ♻️ Cache clear
-    cache($user_id, 'users', 'delete');
-    // ✅ Return true if *any* sync was successful
-    return $sql_success || $synced_wp || $quickdate_synced;
 }
 
 function Wo_UpdateUsernameInNotifications($user_id = 0, $username = '')

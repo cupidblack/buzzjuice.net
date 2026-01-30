@@ -1,33 +1,36 @@
 <?php
 /**
  * Normalize avatar/cover URLs before saving or rendering.
+ * Lock-wrapped to avoid cross-platform recursion.
  */
-function normalize_streams_url($url, $type = 'avatar') {
-    if (empty($url) || !is_string($url)) {
-        return '';
+
+if (!function_exists('normalize_streams_url')) {
+    function normalize_streams_url($url, $type = 'avatar') {
+        if (empty($url) || !is_string($url)) {
+            return '';
+        }
+
+        $site_url = rtrim(home_url(), '/'); // e.g. https://buzzjuice.net
+        $url = trim($url);
+
+        // Remove query parameters like ?v=123 and cache keys
+        $url = preg_replace('/(\?|&)(v|ver|cache)=[0-9]+/i', '', $url);
+
+        // Normalize: remove domain and /streams/ variants
+        $url = preg_replace('#^(https?://)?buzzjuice\.net/?#i', '', $url);
+        $url = preg_replace('#^/?streams/#i', '', $url);
+        $url = preg_replace('#^(\.\./streams/)+#', '', $url);
+
+        // Ensure it starts with upload/
+        $url = ltrim($url, '/');
+        if (strpos($url, 'upload/') !== 0) {
+            return ''; // invalid, ignore
+        }
+
+        // Return canonical /streams/... path
+        return '/streams/' . $url;
     }
-
-    $site_url = rtrim(home_url(), '/'); // e.g. https://buzzjuice.net
-    $url = trim($url);
-
-    // Remove query parameters like ?v=123
-    $url = preg_replace('/(\?|&)(v|ver|cache)=[0-9]+/i', '', $url);
-
-    // 🔧 Normalize: remove ALL /streams/ variants
-    $url = preg_replace('#^(https?://)?buzzjuice\.net/?#i', '', $url);
-    $url = preg_replace('#^/?streams/#i', '', $url);
-    $url = preg_replace('#^(\.\./streams/)+#', '', $url);
-
-    // Ensure it starts with upload/
-    $url = ltrim($url, '/');
-    if (strpos($url, 'upload/') !== 0) {
-        return ''; // invalid, ignore
-    }
-
-    // ✅ Return clean, single /streams/ prefix
-    return '/streams/' . $url;
 }
-
 
 /**
  * Save avatar and cover into xProfile (normalized).
@@ -47,18 +50,25 @@ function update_avatar_and_cover_xprofile_fields($data) {
     }
     $has_run[$user_id] = true;
 
-    $avatar_url = bp_core_fetch_avatar([
+    // Acquire WP-origin lock
+    if (function_exists('_wwqd_acquire_sync_lock')) {
+        if (!_wwqd_acquire_sync_lock('WordPress', $user_id)) {
+            return;
+        }
+    }
+
+    $avatar_url = function_exists('bp_core_fetch_avatar') ? bp_core_fetch_avatar([
         'item_id' => $user_id,
         'object'  => 'user',
         'type'    => 'full',
         'html'    => false
-    ]);
+    ]) : '';
 
-    $cover_url = bp_attachments_get_attachment('url', [
+    $cover_url = function_exists('bp_attachments_get_attachment') ? bp_attachments_get_attachment('url', [
         'item_id'    => $user_id,
         'object_dir' => 'members',
         'type'       => 'cover-image'
-    ]);
+    ]) : '';
 
     if (function_exists('xprofile_set_field_data')) {
         $normalized_avatar = normalize_streams_url($avatar_url, 'avatar');
@@ -74,6 +84,11 @@ function update_avatar_and_cover_xprofile_fields($data) {
             update_user_meta($user_id, 'cover_version', time());
         }
     }
+
+    // Release WP lock
+    if (function_exists('_wwqd_release_sync_lock')) {
+        _wwqd_release_sync_lock('WordPress', $user_id);
+    }
 }
 
 /**
@@ -81,22 +96,19 @@ function update_avatar_and_cover_xprofile_fields($data) {
  */
 add_filter('bp_core_fetch_avatar_url', 'custom_bp_avatar_from_xprofile', 10, 2);
 function custom_bp_avatar_from_xprofile($avatar_url, $params) {
-    if (empty($params['item_id']) || $params['object'] !== 'user') {
+    if (empty($params['item_id']) || ($params['object'] ?? '') !== 'user') {
         return $avatar_url;
     }
 
     $user_id = (int) $params['item_id'];
-    $custom_avatar = xprofile_get_field_data('avatar', $user_id);
+    $custom_avatar = function_exists('xprofile_get_field_data') ? xprofile_get_field_data('avatar', $user_id) : '';
 
     if (!empty($custom_avatar)) {
         $custom_avatar = normalize_streams_url($custom_avatar, 'avatar');
         if (!empty($custom_avatar)) {
-            // Convert to absolute URL
             $absolute = rtrim(home_url(), '/') . $custom_avatar;
             $version  = (int) get_user_meta($user_id, 'avatar_version', true);
-            if ($version > 0) {
-                $absolute .= '?v=' . $version;
-            }
+            if ($version > 0) $absolute .= '?v=' . $version;
             return esc_url($absolute);
         }
     }
@@ -109,20 +121,18 @@ function custom_bp_avatar_from_xprofile($avatar_url, $params) {
  */
 add_filter('bp_core_fetch_avatar', 'custom_bp_avatar_html_override', 10, 2);
 function custom_bp_avatar_html_override($html, $params) {
-    if (empty($params['item_id']) || $params['object'] !== 'user') {
+    if (empty($params['item_id']) || ($params['object'] ?? '') !== 'user') {
         return $html;
     }
 
     $url = custom_bp_avatar_from_xprofile('', $params);
-    if (empty($url)) {
-        return $html;
-    }
+    if (empty($url)) return $html;
 
     $width   = !empty($params['width'])  ? (int) $params['width']  : 150;
     $height  = !empty($params['height']) ? (int) $params['height'] : 150;
     $class   = esc_attr($params['class'] ?? 'avatar');
     $alt     = esc_attr($params['alt'] ?? 'User avatar');
-    $style   = ($params['type'] === 'full') ? 'style="object-fit: cover;"' : '';
+    $style   = (($params['type'] ?? '') === 'full') ? 'style="object-fit: cover;"' : '';
 
     return sprintf(
         '<img src="%s" class="%s" width="%d" height="%d" alt="%s" %s loading="lazy" decoding="async" />',
@@ -141,32 +151,26 @@ function custom_bp_avatar_html_override($html, $params) {
 add_filter('bp_attachments_pre_get_attachment', 'custom_bp_cover_from_xprofile', 10, 2);
 function custom_bp_cover_from_xprofile($pre_value, $args) {
     if (
-        empty($args['object_dir']) || 
-        empty($args['item_id']) || 
-        empty($args['type']) || 
-        $args['object_dir'] !== 'members' || 
+        empty($args['object_dir']) ||
+        empty($args['item_id']) ||
+        empty($args['type']) ||
+        $args['object_dir'] !== 'members' ||
         $args['type'] !== 'cover-image'
     ) {
         return $pre_value;
     }
 
     $user_id = (int) $args['item_id'];
-    $custom_cover = xprofile_get_field_data('cover', $user_id);
+    $custom_cover = function_exists('xprofile_get_field_data') ? xprofile_get_field_data('cover', $user_id) : '';
 
-    if (empty($custom_cover)) {
-        return $pre_value;
-    }
+    if (empty($custom_cover)) return $pre_value;
 
     $custom_cover = normalize_streams_url($custom_cover, 'cover');
-    if (empty($custom_cover)) {
-        return $pre_value;
-    }
+    if (empty($custom_cover)) return $pre_value;
 
     $absolute = rtrim(home_url(), '/') . $custom_cover;
     $version  = (int) get_user_meta($user_id, 'cover_version', true);
-    if ($version > 0) {
-        $absolute .= '?v=' . $version;
-    }
+    if ($version > 0) $absolute .= '?v=' . $version;
 
     return esc_url_raw($absolute);
 }

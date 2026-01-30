@@ -1121,7 +1121,35 @@ Class Profile extends Aj {
                 if ($updated) {
                     
                     $quickdate_user = $db->where('id', self::ActiveUser()->id)->getOne('users');
-                    sync_quickdate_to_wordpress($quickdate_user);
+                    // --- WWQD QuickDate -> WordPress wrapper ---
+                    $qd_user_id = isset($quickdate_user['id']) ? (int)$quickdate_user['id'] : 0;
+
+                    if (function_exists('_wwqd_acquire_sync_lock')) {
+                        if (_wwqd_acquire_sync_lock('QuickDate', $qd_user_id)) {
+                            try {
+                                // Ensure WP public fields exist prior to sync
+                                if (function_exists('_wwqd_field_maps') && function_exists('_wwqd_ensure_wp_field')) {
+                                    $maps = _wwqd_field_maps();
+                                    foreach ($quickdate_user as $k => $v) {
+                                        if (array_key_exists($k, $maps['public_open_fields'])) {
+                                            @ _wwqd_ensure_wp_field($k);
+                                        }
+                                    }
+                                }
+
+                                // Original sync call
+                                sync_quickdate_to_wordpress($quickdate_user);
+
+                            } finally {
+                                if (function_exists('_wwqd_release_sync_lock')) _wwqd_release_sync_lock('QuickDate', $qd_user_id);
+                            }
+                        } else {
+                            // Concurrent QD sync in-flight — skip this sync to avoid loops
+                        }
+                    } else {
+                        // Bridge not available — fallback to original behavior
+                        sync_quickdate_to_wordpress($quickdate_user);
+                    }
                     
                     $_SESSION[ 'userEdited' ] = true;
                     return array(
@@ -1161,7 +1189,28 @@ Class Profile extends Aj {
                 if ($updated) {
                     
                     $quickdate_user = $db->where('id', self::ActiveUser()->id)->getOne('users');
-                    sync_quickdate_to_wordpress($quickdate_user);
+                    // --- WWQD QuickDate -> WordPress wrapper ---
+                    $qd_user_id = isset($quickdate_user['id']) ? (int)$quickdate_user['id'] : 0;
+
+                    if (function_exists('_wwqd_acquire_sync_lock')) {
+                        if (_wwqd_acquire_sync_lock('QuickDate', $qd_user_id)) {
+                            try {
+                                if (function_exists('_wwqd_field_maps') && function_exists('_wwqd_ensure_wp_field')) {
+                                    $maps = _wwqd_field_maps();
+                                    foreach ($quickdate_user as $k => $v) {
+                                        if (array_key_exists($k, $maps['public_open_fields'])) {
+                                            @ _wwqd_ensure_wp_field($k);
+                                        }
+                                    }
+                                }
+                                sync_quickdate_to_wordpress($quickdate_user);
+                            } finally {
+                                if (function_exists('_wwqd_release_sync_lock')) _wwqd_release_sync_lock('QuickDate', $qd_user_id);
+                            }
+                        }
+                    } else {
+                        sync_quickdate_to_wordpress($quickdate_user);
+                    }
                     
                     $media = $db->where('file', str_replace('_avatar.', '_full.', $id))->getOne('mediafiles', array(
                         'id'
@@ -1683,7 +1732,28 @@ Class Profile extends Aj {
                 if ($saved) {
                     
                     $quickdate_user = $db->where('id', self::ActiveUser()->id)->getOne('users');
-                    sync_quickdate_to_wordpress($quickdate_user);
+                    // --- WWQD QuickDate -> WordPress wrapper ---
+                    $qd_user_id = isset($quickdate_user['id']) ? (int)$quickdate_user['id'] : 0;
+
+                    if (function_exists('_wwqd_acquire_sync_lock')) {
+                        if (_wwqd_acquire_sync_lock('QuickDate', $qd_user_id)) {
+                            try {
+                                if (function_exists('_wwqd_field_maps') && function_exists('_wwqd_ensure_wp_field')) {
+                                    $maps = _wwqd_field_maps();
+                                    foreach ($quickdate_user as $k => $v) {
+                                        if (array_key_exists($k, $maps['public_open_fields'])) {
+                                            @ _wwqd_ensure_wp_field($k);
+                                        }
+                                    }
+                                }
+                                sync_quickdate_to_wordpress($quickdate_user);
+                            } finally {
+                                if (function_exists('_wwqd_release_sync_lock')) _wwqd_release_sync_lock('QuickDate', $qd_user_id);
+                            }
+                        }
+                    } else {
+                        sync_quickdate_to_wordpress($quickdate_user);
+                    }
 
                     $field_data = array();
                     if (!empty($_POST['custom_fields'])) {
@@ -1996,7 +2066,28 @@ Class Profile extends Aj {
                     if ($saved) {
                         
                     $quickdate_user = $db->where('id', self::ActiveUser()->id)->getOne('users');
-                    sync_quickdate_to_wordpress($quickdate_user);
+                    // --- WWQD QuickDate -> WordPress wrapper ---
+                    $qd_user_id = isset($quickdate_user['id']) ? (int)$quickdate_user['id'] : 0;
+
+                    if (function_exists('_wwqd_acquire_sync_lock')) {
+                        if (_wwqd_acquire_sync_lock('QuickDate', $qd_user_id)) {
+                            try {
+                                if (function_exists('_wwqd_field_maps') && function_exists('_wwqd_ensure_wp_field')) {
+                                    $maps = _wwqd_field_maps();
+                                    foreach ($quickdate_user as $k => $v) {
+                                        if (array_key_exists($k, $maps['public_open_fields'])) {
+                                            @ _wwqd_ensure_wp_field($k);
+                                        }
+                                    }
+                                }
+                                sync_quickdate_to_wordpress($quickdate_user);
+                            } finally {
+                                if (function_exists('_wwqd_release_sync_lock')) _wwqd_release_sync_lock('QuickDate', $qd_user_id);
+                            }
+                        }
+                    } else {
+                        sync_quickdate_to_wordpress($quickdate_user);
+                    }
                         
                         return array(
                             'status' => 200,
@@ -2139,7 +2230,27 @@ Class Profile extends Aj {
                 if ($saved) {
                     
                     $quickdate_user = $db->where('id', self::ActiveUser()->id)->getOne('users');
-                    sync_quickdate_to_wordpress($quickdate_user);
+                    // --- WWQD QuickDate -> WordPress wrapper ---
+                    $qd_user_id = isset($quickdate_user['id']) ? (int)$quickdate_user['id'] : 0;
+                    if (function_exists('_wwqd_acquire_sync_lock')) {
+                        if (_wwqd_acquire_sync_lock('QuickDate', $qd_user_id)) {
+                            try {
+                                if (function_exists('_wwqd_field_maps') && function_exists('_wwqd_ensure_wp_field')) {
+                                    $maps = _wwqd_field_maps();
+                                    foreach ($quickdate_user as $k => $v) {
+                                        if (array_key_exists($k, $maps['public_open_fields'])) {
+                                            @ _wwqd_ensure_wp_field($k);
+                                        }
+                                    }
+                                }
+                                sync_quickdate_to_wordpress($quickdate_user);
+                            } finally {
+                                if (function_exists('_wwqd_release_sync_lock')) _wwqd_release_sync_lock('QuickDate', $qd_user_id);
+                            }
+                        }
+                    } else {
+                        sync_quickdate_to_wordpress($quickdate_user);
+                    }
 
                     $field_data = array();
                     if (!empty($_POST['custom_fields'])) {
@@ -2228,7 +2339,28 @@ Class Profile extends Aj {
                 if ($saved) {
                     
                     $quickdate_user = $db->where('id', self::ActiveUser()->id)->getOne('users');
-                    sync_quickdate_to_wordpress($quickdate_user);
+                    // --- WWQD QuickDate -> WordPress wrapper ---
+                    $qd_user_id = isset($quickdate_user['id']) ? (int)$quickdate_user['id'] : 0;
+
+                    if (function_exists('_wwqd_acquire_sync_lock')) {
+                        if (_wwqd_acquire_sync_lock('QuickDate', $qd_user_id)) {
+                            try {
+                                if (function_exists('_wwqd_field_maps') && function_exists('_wwqd_ensure_wp_field')) {
+                                    $maps = _wwqd_field_maps();
+                                    foreach ($quickdate_user as $k => $v) {
+                                        if (array_key_exists($k, $maps['public_open_fields'])) {
+                                            @ _wwqd_ensure_wp_field($k);
+                                        }
+                                    }
+                                }
+                                sync_quickdate_to_wordpress($quickdate_user);
+                            } finally {
+                                if (function_exists('_wwqd_release_sync_lock')) _wwqd_release_sync_lock('QuickDate', $qd_user_id);
+                            }
+                        }
+                    } else {
+                        sync_quickdate_to_wordpress($quickdate_user);
+                    }
                     
                     if ($target_id == self::ActiveUser()->id) {
                         $_SESSION[ 'userEdited' ] = true;
