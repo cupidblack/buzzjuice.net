@@ -321,7 +321,7 @@ $(function() {
 
   <?php if ($wo['config']['google_map']) { ?>
   $(function () {
-     var autocomplete = new google.maps.places.Autocomplete(pac_input);
+     var autocomplete = new google.maps.places.PlaceAutocompleteElement(pac_input);
   });
   <?php }?>
 <?php if ($wo['config']['yandex_map'] == 1) { ?>

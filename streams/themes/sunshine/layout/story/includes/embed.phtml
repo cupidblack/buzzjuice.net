@@ -22,16 +22,36 @@
 </div>
 <?php } ?>
 <?php if(!empty($wo['story']['postFacebook'])) {  ?>
-  <div id="fb-root"></div>
-<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v18.0" nonce="LqLmfIxM"></script>
-<div class="fb-post" data-href="<?php echo $wo['story']['postFacebook'];?>" data-width="500" data-show-text="true"></div>
+
+
+
+<div id="fb-root"></div>
+
 <script>
-FB.init({
-      appId      : '374255706379985',
+  // Ensure FB.init is executed only after the SDK loads.
+  // If you already inserted the SDK in container.phtml via the recommended loader,
+  // fbAsyncInit will be called by the loaded SDK and initialize FB with the appId below.
+  window.fbAsyncInit = window.fbAsyncInit || function() {
+    FB.init({
+      appId      : '<?php echo !empty($wo["config"]["facebook_app_id"]) ? $wo["config"]["facebook_app_id"] : "YOUR_APP_ID"; ?>',
+      cookie     : true,
       xfbml      : true,
-      version    : 'v3.2'
-      });
+      version    : 'v18.0'
+    });
+  };
 </script>
+
+<!-- If you haven't added the SDK to the container globally, load it here:
+     (Prefer one global include on every page. Do not include it multiple times.)
+-->
+<script async defer crossorigin="anonymous"
+  src="https://connect.facebook.net/en_GB/sdk.js">
+</script>
+
+<div class="fb-post" data-href="<?php echo $wo['story']['postFacebook'];?>" data-width="500" data-show-text="true"></div>
+
+
+
 <div class="clear"></div>
 
 <?php } ?>

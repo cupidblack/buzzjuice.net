@@ -516,7 +516,23 @@
     <?php if ($wo['config']['live_video'] == 1 && !empty($wo['config']['agora_app_id']) && !empty($wo['config']['agora_customer_id']) && !empty($wo['config']['agora_customer_certificate'])) { ?>
       <script src="<?php echo $wo['config']['theme_url'];?>/javascript/hls.js?version=<?php echo $wo['config']['version']; ?>"></script>
     <?php } ?>
-    <script crossorigin="anonymous" src="<?php echo $wo['config']['theme_url'];?>/javascript/sdk.js?version=<?php echo $wo['config']['version']; ?>"></script>
+    
+    <!-- Load Facebook SDK from Facebook CDN (keeps it up to date; no 7-day warning) -->
+    <div id="fb-root"></div>
+    <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId      : '<?php echo !empty($wo["config"]["facebook_app_id"]) ? $wo["config"]["facebook_app_id"] : "YOUR_APP_ID"; ?>',
+          cookie     : true,
+          xfbml      : true,
+          version    : 'v18.0' // use a recent Graph API version
+        });
+      };
+    </script>
+    <script async defer crossorigin="anonymous"
+      src="https://connect.facebook.net/en_US/sdk.js">
+    </script>
+
     <?php if ($wo['config']['braintree_payment'] == '1') { ?>
     <script src="https://js.braintreegateway.com/web/dropin/1.36.0/js/dropin.js"></script>
     <?php } ?>
@@ -962,8 +978,33 @@
       <script type="text/javascript" src="<?php echo $wo['config']['theme_url'];?>/javascript/script.js<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>"></script>
       <?php if ($wo['loggedin'] == true) {?>
       <?php if ($wo['config']['google_map'] == 1) { ?>
-      <script src="https://maps.googleapis.com/maps/api/js?key=<?php echo $wo['config']['google_map_api'];?>&libraries=places"></script>
-      <?php } ?>
+      
+      
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=<?php echo $wo['config']['google_map_api'];?>&libraries=places&callback=initGoogleMaps"></script>
+        
+        <script>
+          // Called by the Maps API when it's fully loaded
+          window.initGoogleMaps = function() {
+            // initialize all map widgets that require google.maps
+            if (typeof window._queuedMapInits !== 'undefined') {
+              window._queuedMapInits.forEach(function(fn){ try{ fn(); }catch(e){console.error(e);} });
+              window._queuedMapInits = [];
+            }
+          };
+        
+          // Helper to run initialization code once google.maps is ready
+          function runWhenGoogleMapsReady(callback) {
+            if (window.google && window.google.maps) {
+              callback();
+            } else {
+              window._queuedMapInits = window._queuedMapInits || [];
+              window._queuedMapInits.push(callback);
+            }
+          }
+        </script>
+
+
+    <?php } ?>
       <script src="<?php echo $wo['config']['theme_url'];?>/javascript/audioRecord/recorder.js?version=<?php echo $wo['config']['version']; ?>"></script>
       <script src="<?php echo $wo['config']['theme_url'];?>/javascript/audioRecord/record.js?version=<?php echo $wo['config']['version']; ?>"></script>
       <?php } ?>
@@ -1564,25 +1605,34 @@
                         <?php } ?>
                                                   
 
-                        <?php if ($wo['config']['bank_payment'] == '1') { ?>
-                            <script>
-                                if (window.location.pathname.includes('/wallet/') || window.location.pathname.includes('/show_fund/')) {
-                                    document.write(`
-                                        <!-- Bank or Cash Transfer -->
-                                        <button 
-                                            class="bank_payment btn" 
-                                            onclick="Wo_BankTransferDynamic();">
-                                            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="47.001px" height="47.001px" viewBox="0 0 47.001 47.001" xml:space="preserve">
-                                                <path fill="currentColor" d="M44.845,42.718H2.136C0.956,42.718,0,43.674,0,44.855c0,1.179,0.956,2.135,2.136,2.135h42.708c1.18,0,2.136-0.956,2.136-2.135C46.979,43.674,46.023,42.718,44.845,42.718z"/>
-                                                <path fill="currentColor" d="M4.805,37.165c-1.18,0-2.136,0.956-2.136,2.136s0.956,2.137,2.136,2.137h37.37c1.18,0,2.136-0.957,2.136-2.137s-0.956-2.136-2.136-2.136h-0.533V17.945h0.533c0.591,0,1.067-0.478,1.067-1.067s-0.478-1.067-1.067-1.067H4.805c-0.59,0-1.067,0.478-1.067,1.067s0.478,1.067,1.067,1.067h0.534v19.219H4.805z M37.37,17.945v19.219h-6.406V17.945H37.37zM26.692,17.945v19.219h-6.406V17.945H26.692z M9.609,17.945h6.406v19.219H9.609V17.945z"/>
-                                                <path fill="currentColor" d="M2.136,13.891h42.708c0.007,0,0.015,0,0.021,0c1.181,0,2.136-0.956,2.136-2.136c0-0.938-0.604-1.733-1.443-2.021l-21.19-9.535c-0.557-0.25-1.194-0.25-1.752,0L1.26,9.808c-0.919,0.414-1.424,1.412-1.212,2.396C0.259,13.188,1.129,13.891,2.136,13.891z"/>
-                                            </svg>
-                                            <?php echo 'Bank Transfer or Cash Payment'; ?>
-                                        </button>
-                                    `);
-                                }
-                            </script>
-                        <?php } ?>
+                        <?php if ($wo['config']['bank_payment'] == '1') : ?>
+                        
+                          <?php
+                          // Server-side detection: show the bank payment button if we are rendering the wallet/fund pages.
+                          $request_path = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+                          $is_wallet_path = (stripos($request_path, '/wallet/') !== false) || ($wo['page'] === 'show_fund');
+                          ?>
+                        
+                          <?php if ($is_wallet_path) : ?>
+                            <!-- Bank or Cash Transfer (server-side rendered, avoids document.write) -->
+                            <button
+                              class="bank_payment btn"
+                              type="button"
+                              onclick="Wo_BankTransferDynamic();"
+                              aria-label="<?php echo htmlspecialchars($wo['lang']['bank_transfer'] ?? 'Bank Transfer', ENT_QUOTES); ?>">
+                              <svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="47.001px" height="47.001px" viewBox="0 0 47.001 47.001" xml:space="preserve" aria-hidden="true" focusable="false">
+                                <path fill="currentColor" d="M44.845,42.718H2.136C0.956,42.718,0,43.674,0,44.855c0,1.179,0.956,2.135,2.136,2.135h42.708c1.18,0,2.136-0.956,2.136-2.135C46.979,43.674,46.023,42.718,44.845,42.718z"/>
+                                <path fill="currentColor" d="M4.805,37.165c-1.18,0-2.136,0.956-2.136,2.136s0.956,2.137,2.136,2.137h37.37c1.18,0,2.136-0.957,2.136-2.137s-0.956-2.136-2.136-2.136h-0.533V17.945h0.533c0.591,0,1.067-0.478,1.067-1.067s-0.478-1.067-1.067-1.067H4.805c-0.59,0-1.067,0.478-1.067,1.067s0.478,1.067,1.067,1.067h0.534v19.219H4.805z M37.37,17.945v19.219h-6.406V17.945H37.37zM26.692,17.945v19.219h-6.406V17.945H26.692z M9.609,17.945h6.406v19.219H9.609V17.945z"/>
+                                <path fill="currentColor" d="M2.136,13.891h42.708c0.007,0,0.015,0,0.021,0c1.181,0,2.136-0.956,2.136-2.136c0-0.938-0.604-1.733-1.443-2.021l-21.19-9.535c-0.557-0.25-1.194-0.25-1.752,0L1.26,9.808c-0.919,0.414-1.424,1.412-1.212,2.396C0.259,13.188,1.129,13.891,2.136,13.891z"/>
+                              </svg>
+                              <?php echo htmlspecialchars($wo['lang']['bank_transfer_label'] ?? 'Bank Transfer or Cash Payment', ENT_QUOTES); ?>
+                            </button>
+                          <?php else: ?>
+                            <!-- Optional: placeholder if you want to allow client-side insertion later -->
+                            <div id="bank-payment-placeholder" data-bank-enabled="1" style="display:none"></div>
+                          <?php endif; ?>
+                        
+                        <?php endif; ?>
                     </div>	
                 </div>
                 <div class="modal-footer">
@@ -1933,19 +1983,119 @@
 	  
 
 
+<script>
+/*
+ Accessibility guard against "descendant retained focus" when modals are hidden.
+ - Stores the opener on show.bs.modal
+ - On hide.bs.modal or when aria-hidden becomes "true" for any .modal,
+   if the currently focused element is inside that modal it moves focus back to opener
+   or a safe fallback (temporary tabindex on document.body).
+*/
+(function($){
+  'use strict';
 
+  // Temporary fallback focus target (body) — used only if opener isn't available.
+  function focusFallback() {
+    try {
+      var b = document.body;
+      b.setAttribute('tabindex', '-1');
+      b.focus();
+      b.removeAttribute('tabindex');
+    } catch (err) {
+      // best-effort; ignore
+    }
+  }
 
+  // Record the opener when modal is shown
+  $(document).on('show.bs.modal', '.modal', function(e){
+    try {
+      // e.relatedTarget is the element that triggered the modal (if any).
+      var opener = (e && e.relatedTarget) ? e.relatedTarget : document.activeElement;
+      // store as jQuery data on the modal element (per-modal)
+      $(this).data('bs-opener', opener);
+    } catch (err) {
+      // ignore
+    }
+  });
 
+  // Before a modal hides (bootstrap) — ensure focus is not left inside the modal.
+  // Use 'hide.bs.modal' to run before aria-hidden toggles in typical bootstrap flows.
+  $(document).on('hide.bs.modal', '.modal', function(e){
+    try {
+      var active = document.activeElement;
+      if (!active) return;
+      if (this.contains(active)) {
+        var opener = $(this).data('bs-opener');
+        if (opener && typeof opener.focus === 'function') {
+          try { opener.focus(); return; } catch (err) {}
+        }
+        focusFallback();
+      }
+    } catch (err) {
+      // ignore
+    }
+  });
 
+  // MutationObserver to catch direct aria-hidden toggles performed by custom code
+  if (window.MutationObserver) {
+    var observer = new MutationObserver(function(mutations){
+      mutations.forEach(function(mutation){
+        if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+          var node = mutation.target;
+          try {
+            if (node.getAttribute('aria-hidden') === 'true') {
+              var active = document.activeElement;
+              if (active && node.contains(active)) {
+                var opener = $(node).data('bs-opener');
+                if (opener && typeof opener.focus === 'function') {
+                  try { opener.focus(); return; } catch (err) {}
+                }
+                focusFallback();
+              }
+            }
+          } catch (err) {
+            // ignore
+          }
+        }
+      });
+    });
 
+    // Observe all existing modal elements
+    $('.modal').each(function(){
+      try { observer.observe(this, { attributes: true, attributeFilter: ['aria-hidden'] }); } catch(e){}
+    });
 
+    // If modals are added dynamically, observe document and attach observer to new .modal nodes
+    var docMo = new MutationObserver(function(muts){
+      muts.forEach(function(m){
+        if (m.addedNodes && m.addedNodes.length) {
+          Array.prototype.forEach.call(m.addedNodes, function(n){
+            try {
+              if (n.nodeType === 1) {
+                if (n.matches && n.matches('.modal')) {
+                  observer.observe(n, { attributes: true, attributeFilter: ['aria-hidden'] });
+                } else if (n.querySelectorAll) {
+                  var modals = n.querySelectorAll('.modal');
+                  Array.prototype.forEach.call(modals, function(mm){
+                    try { observer.observe(mm, { attributes: true, attributeFilter: ['aria-hidden'] }); } catch(e){}
+                  });
+                }
+              }
+            } catch (err){}
+          });
+        }
+      });
+    });
+    try { docMo.observe(document.documentElement || document.body, { childList: true, subtree: true }); } catch(e){}
+  }
 
+})(jQuery);
+</script>
 
 
 
    </body>
 </html>
-
 
 
 

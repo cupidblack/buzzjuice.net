@@ -227,6 +227,16 @@ if (isset($_SESSION['open_chat'])) {
 	</div>
 </div>
 <script type="text/javascript">
+
+// Safe content check used across chat AJAX handlers
+function isNonEmpty(v) {
+  if (v === null || typeof v === 'undefined') return false;
+  if (Array.isArray(v)) return v.length > 0;
+  if (typeof v === 'string') return v.trim().length > 0;
+  if (typeof v === 'object') return Object.keys(v).length > 0;
+  return false;
+}
+
 function Wo_ShowMessageOptions(id) {
     $('.deleteMessage').hide();
     $('#messageId_' + id).find('.deleteMessage').show();
@@ -441,46 +451,80 @@ function Wo_ChatSide(id) {
     }
     var count_span = $('.count-online-users');
     $.get(Wo_Ajax_Requests_File(), {f:'chat', s:'chat_side', user_id:user_id, message_id:message_id, last_id:last_id,last_group:last_group}, function(data) {
-    	if (data.reactions) {
-	      	for (var i = data.reactions.length - 1; i >= 0; i--) {
-	      		$('.post-reactions-icons-m-'+data.reactions[i].id).html(data.reactions[i].reactions);
-
-	      	}
-	      }
-        if (data.status == 200  && data.chat_groups.length > 0) {
-          chat_groups.html(data.chat_groups);
+        
+        if (Array.isArray(data.reactions)) {
+          for (var i = data.reactions.length - 1; i >= 0; i--) {
+            $('.post-reactions-icons-m-' + data.reactions[i].id).html(data.reactions[i].reactions);
+          }
+        } else if (data.reactions) {
+          // If it's a string/HTML or object, attempt safe assignment (best-effort)
+          try {
+            data.reactions.forEach && data.reactions.forEach(function(r){
+              $('.post-reactions-icons-m-' + r.id).html(r.reactions);
+            });
+          } catch (e) { /* no-op */ }
         }
-        if (data.status == 200) {
+        
+        if (data.status == 200 && isNonEmpty(data.chat_groups)) {
+          // If server returned HTML string (common), insert as-is
+          $('.chat_groups').html(data.chat_groups);
+          // If server returned an array of items, convert appropriately:
+          // (server shape should be consistent; this attempts to be tolerant)
+        }
+        
+        if (typeof data.status !== 'undefined' && typeof data.count_chat !== 'undefined') {
+          if (data.status == 200) {
             count_span.html(data.count_chat);
+          }
         }
-        if (data.update_group_status.length > 0) {
-         if ('<?php echo $wo['page']; ?>' != 'messages') {
-          for (var i = 0; i < data.update_group_status.length; i++) {
-            if ($(".chat_group_"+data.update_group_status[i]).length == 0) {
-              $("[data-chat-group='"+ data.update_group_status[i] +"']").find('.group-lastseen').html('<i class="fa fa-circle main" style="font-size:10px;"></i>');
+        
+        if (isNonEmpty(data.update_group_status)) {
+          if ('<?php echo $wo['page']; ?>' != 'messages') {
+            for (var i = 0; i < data.update_group_status.length; i++) {
+              if ($(".chat_group_" + data.update_group_status[i]).length == 0) {
+                $("[data-chat-group='" + data.update_group_status[i] + "']").find('.group-lastseen').html('<i class="fa fa-circle main" style="font-size:10px;"></i>');
+              }
+            }
+          } else if ('<?php echo $wo['page']; ?>' == 'messages') {
+            for (var i = 0; i < data.update_group_status.length; i++) {
+              if ($(".chat_group_" + data.update_group_status[i]).length == 0 && $("#messages-group-id").val() != data.update_group_status[i]) {
+                $("#messages-group-" + data.update_group_status[i]).find('.group-lastseen').html('<i class="fa fa-circle main" style="font-size:10px;"></i>');
+              }
             }
           }
-         }
-         else if ('<?php echo $wo['page']; ?>' == 'messages') {}{
-          for (var i = 0; i < data.update_group_status.length; i++) {
-            if ($(".chat_group_"+data.update_group_status[i]).length == 0 && $("#messages-group-id").val() != data.update_group_status[i]) {
-              $("#messages-group-"+ data.update_group_status[i]).find('.group-lastseen').html('<i class="fa fa-circle main" style="font-size:10px;"></i>');
-            }
-          }
-         }
         }
-        if (data.online_users.length == 0) {
-            online_users_container.html('');
+        
+        
+        if (!isNonEmpty(data.online_users)) {
+          online_users_container.html('');
         } else {
+          // If server returned HTML, insert it. If it's an array/object, try to join or render safely
+          if (typeof data.online_users === 'string') {
             online_users_container.html(data.online_users);
-			$('[data-toggle="tooltip"]').tooltip();
+          } else if (Array.isArray(data.online_users)) {
+            online_users_container.html(data.online_users.join(''));
+          } else {
+            // object (server could return an object with html property)
+            online_users_container.html(data.online_users.html || '');
+          }
+          $('[data-toggle="tooltip"]').tooltip();
         }
-        if (data.offline_users.length == 0) {
-            offline_users_container.html('');
+        
+        
+        if (!isNonEmpty(data.offline_users)) {
+          offline_users_container.html('');
         } else {
+          if (typeof data.offline_users === 'string') {
             offline_users_container.html(data.offline_users);
-			$('[data-toggle="tooltip"]').tooltip();
+          } else if (Array.isArray(data.offline_users)) {
+            offline_users_container.html(data.offline_users.join(''));
+          } else {
+            offline_users_container.html(data.offline_users.html || '');
+          }
+          $('[data-toggle="tooltip"]').tooltip();
         }
+        
+        
         if (data.chat_user_tab == 200) {
             chat_user_tab.html('active');
         } else {
@@ -664,13 +708,14 @@ function Wo_ChatSearchUsers(search_query) {
         search_query: search_query
     }, function(data) {
         if (data.status == 200) {
-            if (data.html.length == 0) {
-                offline_users_container.html('<div class="empty_state single"><div class="chat_empty_user"><div class="item"><div class="avatar"></div></div><div class="item"><div class="avatar"></div></div><div class="item"><div class="avatar"></div></div></div> <?php echo $wo["lang"]["no_users_found"];?></div>');
+            if (!data.html || data.html.length === 0) {
+                offline_users_container.html('<div class="empty_state ..."><?php echo $wo["lang"]["no_users_found"];?></div>');
             } else {
                 offline_users_container.html(data.html);
-				$('[data-toggle="tooltip"]').tooltip();
             }
             $('.chat-container').scrollTop($('.chat-container')[0].scrollHeight);
+        } else {
+            console.warn('chat search returned unexpected response', data);
         }
     });
 }
