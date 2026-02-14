@@ -464,7 +464,15 @@
       <div class="modal-content">
         <p class="wo_error_messages">
           <svg enable-background="new 0 0 64 64" height="512" viewBox="0 0 64 64" width="512" xmlns="http://www.w3.org/2000/svg"><g id="Icons"><g><g><path d="m32 58c-14.359 0-26-11.641-26-26 0-14.359 11.641-26 26-26 14.359 0 26 11.641 26 26 0 14.359-11.641 26-26 26z" fill="#fa6450"/></g><g><path d="m10 32c0-13.686 10.576-24.894 24-25.916-.661-.05-1.326-.084-2-.084-14.359 0-26 11.641-26 26 0 14.359 11.641 26 26 26 .674 0 1.339-.034 2-.084-13.424-1.022-24-12.23-24-25.916z" fill="#dc4632"/></g><g><path d="m32 38c-2.209 0-4-1.791-4-4v-16c0-2.209 1.791-4 4-4 2.209 0 4 1.791 4 4v16c0 2.209-1.791 4-4 4z" fill="#f0f0f0"/></g><g><path d="m32 50c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4 2.209 0 4 1.791 4 4 0 2.209-1.791 4-4 4z" fill="#f0f0f0"/></g></g></g></svg>
-          <?php echo $wo['lang']['in_order_to_sell_your_content']; ?> <a href="<?php echo Wo_SeoLink('index.php?link1=setting&user=' . $wo['user']['username'] . '&page=monetization');?>"><?php echo $wo['lang']['monetization'];?></a>
+          <?php 
+            if (isset($wo['user']['username'])) {
+                // echo $wo['lang']['in_order_to_sell_your_content'] . ' <a href="' . Wo_SeoLink('index.php?link1=setting&user=' . $wo['user']['username'] . '&page=monetization') . '">' . $wo['lang']['click_here'] . '</a>';
+                echo 'In order to sell your content, please <a href="' . Wo_SeoLink('index.php?link1=setting&user=' . $wo['user']['username'] . '&page=monetization') . '">click here</a>';
+            } else {
+                // echo $wo['lang']['in_order_to_sell_your_content'];
+                echo 'In order to sell your content';
+            }
+          ?>
         </p>
       </div>
       

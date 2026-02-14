@@ -1,7 +1,7 @@
+@charset "UTF-8";
+
 @import "https://fonts.googleapis.com/css?family=Lato:400,700";
 @import "https://fonts.googleapis.com/css?family=Hind";
-
-@charset "UTF-8";
 
 /*Basic*/
 body,html{margin:0;padding:0}
@@ -107,7 +107,7 @@ iframe, .post-map img {border:none;border-radius:3px;}
 .post_drop_menu_loading .ball-pulse>div{padding:0!important}
 .app-website,.page-website{font-size: 12px;color:#999;margin-bottom:5px;margin-top:2px}
 .blog-com-wrapper .blog-comlist-container .blog-comment-item .blog-comment-item-body h5,.movies-com-wrapper .movies-comlist-container .movies-comment-item .movies-comment-item-body h5{margin-top:0}
-.faa-parent.animated-hover:hover>.faa-ring,.faa-ring.animated,.faa-ring.animated-hover:hover{animation:ring 2s ease infinite;transform-origin-x:50%;transform-origin-y:0;transform-origin-z:initial}
+.faa-parent.animated-hover:hover>.faa-ring,.faa-ring.animated,.faa-ring.animated-hover:hover{animation:ring 2s ease infinite;transform-origin:50% 0;}
 .list-group-item.black-list,.list-group-item.gray-list{padding:10px;font-size: 14.5px;transition:all .2s}
 .setting-well input[type=text],.setting-well input[type=password],.setting-well select{height:30px!important;color:#666!important;font-size: 14.5px;box-shadow:0 1px 0 0 #f0f2f5,0 0 0 1px #f0f2f5;border:none;border-radius:0}
 .movies-com-wrapper .movies-comlist-container .movies-comment-item .movies-comment-reply-box{padding:0;overflow:hidden}
@@ -715,8 +715,8 @@ body .open .dropdown-menu.create_head_menu.fulls:not(.notfi-dropdown) {
 .font-13{font-size: 14.5px}
 .no-padding-right{padding-right:0!important}
 .recent-searches{padding:6px 10px}
-.content-container{margin-top:78px}
-.page-margin{margin-top:20px;margin-bottom:20px}
+.content-container{margin-top:70px}
+.page-margin{margin-top:10px;margin-bottom:10px}
 
 /*Sidebar Invite*/
 .sidebar .wow_side_invite_prnt {box-shadow: 0 1px 3px rgba(129, 92, 0, 0.2);}
@@ -4420,7 +4420,7 @@ font-size: 14px;
 /*Post Images*/
 #fullsizeimg{max-height:600px;margin-left:-15px;width:calc(100% + 30px);overflow:hidden;margin-bottom: 5px;}
 .fluid_video_wrapper {max-height:600px;}
-#fullsizeimg img{max-height:none;border:0;padding:0;border-radius:0;min-height: 300px;}
+#fullsizeimg img{max-height:inherit;border:0;padding:0;border-radius:0;min-height: 300px;}
 #fullsizeimg img.fund {
     aspect-ratio: 4/3;
     object-fit: cover;
@@ -4567,6 +4567,11 @@ body .plyr__control--overlaid svg {
     font-weight: 400;
     font-size: 13px;
     line-height: 22px;
+}
+ul.list-inline.wo_pro_users {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .wo_game_list_info .page-website,.wo_game_list_info h3,.wo_game_style .game-name{word-break:break-all;white-space:nowrap;text-overflow:ellipsis}
@@ -8677,7 +8682,7 @@ line-height: 22px;}
 .wow_side_bday_usr .user-name a {text-decoration: none;color: #2f2f2f;font-weight: bold;text-transform: capitalize;}
 
 /*User Story*/
-.wow_story_mores {/*padding: 3px 15px 1px;*/}
+/* Removed empty ruleset for .wow_story_mores */
 .wow_story_mores ul.status-list {flex-wrap: wrap;}
 .wow_story_mores ul.status-list li {margin-top: 8px;}
 .wow_stroy_media, .wow_stroy_media img {min-height: 230px;max-height: 230px;}
@@ -9156,7 +9161,7 @@ height: 100%;
 }
 
 /*Purchased*/
-.my_purchased_content {}
+/*.my_purchased_content {}*/
 .my_purchased {position: relative;margin: 0 0 30px;padding: 15px;font-family: 'Poppins';}
 .my_purchased .title {font-weight: bold;font-size: 19px;color: inherit;display: block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;margin-bottom: 5px;}
 .my_purchased .price {
@@ -9293,9 +9298,9 @@ height: 100%;
 .type_market_full svg {
     margin-top: -2px;
 }
-.wo_post_prod_full_img_slider {text-align: center;margin-top: 15px;white-space: nowrap;overflow-x: auto;}
+.wo_post_prod_full_img_slider {text-align: center;margin-top: 5px;white-space: nowrap;overflow-x: auto;}
 .wo_post_prod_full_img_slider img {aspect-ratio: 1;width: 60px;border-radius: 3px;margin: 2px;}
-.wo_post_prod_full_img_slider .is-nav-selected img {/*box-shadow: 0 0 0 2px #4a4a4a;*/}
+/* Removed empty ruleset for .wo_post_prod_full_img_slider .is-nav-selected img */
 .wo_post_prod_full_name {word-wrap: break-word;
     line-height: 35px;
     font-family: 'Poppins';
@@ -10206,9 +10211,11 @@ body .green-audio-player .holder .play-pause-btn svg path {
     display: flex;
     align-items: center;
 }
+/*
 .popular_posts_hdr > h2.flex svg {
-    /*flex: 0 0 auto;margin: 0;*/
+    flex: 0 0 auto;margin: 0;
 }
+*/
 .popular_posts_hdr > h2.flex p {
     margin: 0;
 }
@@ -10943,9 +10950,11 @@ body span.flatpickr-weekday {
     transition: all 0.1s;
     margin: 0;
 }
+/*
 .wo_direct a:hover span {
-    /*transform: scale(1.1);*/
+    transform: scale(1.1);
 }
+*/
 .wo_direct a span svg {
     width: 30px;
     height: 30px;
@@ -11018,7 +11027,7 @@ body span.flatpickr-weekday {
 .pagination>li>a, .pagination>li>span {
     float: none;
     display: block;
-    vertical-align: middle;
+    /* Removed vertical-align: middle; as it is not applicable to block elements */
     min-width: 32px;
     border-radius: 16px !important;
     padding: 0px 4px !important;
@@ -11238,10 +11247,11 @@ body span.flatpickr-weekday {
     color: #b3b3b3;
     font-size: 14px;
 }
+/*
 .wo_imagecombo_lbox .comment-section .watch_videos_next+.wow_lightbox_right {
-    /*height: calc(100% - 343px);*/
+    height: calc(100% - 343px);
 }
-
+*/
 /*Switch Accounts*/
 body .navbar-default .dropdown-switch-account > .dropdown-menu {
     top: 70px;
@@ -12574,7 +12584,7 @@ to{opacity:1;margin-top:0}
 .profile-container .card.hovercard .user-avatar{width:95px;height:95px}
 #wo_post_stat_button .stat-item{font-size: 13px;font-weight:400;background: #fff !important;user-select: none;padding-left: 2px;
     padding-right: 2px;}
-#wo_post_stat_button .stat-item svg{/*width:16px;height:16px*/}
+/* Removed empty ruleset for #wo_post_stat_button .stat-item svg */
 #wo_post_stat_button .show_post_comm_mobi,#wo_post_stat_button .stat-item .like-btn-mobile{display:inline}
 #wo_post_stat_button .hide_post_comm_mobi{display:none}
 .show_post_comm_mobi{display:block}
@@ -13158,9 +13168,7 @@ div#modal_light_box {
     backdrop-filter: blur(7.5px);
 }
 @media (min-width: 1024px) {
-.wo_market .market_bottom .product .product_info.wow_main_mkt_prod {
-/*  height: 450px;*/
-}
+/* Removed empty ruleset for .wo_market .market_bottom .product .product_info.wow_main_mkt_prod */
 }
 
 .post-container.sun_post.job_apply {

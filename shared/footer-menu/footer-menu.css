@@ -7,6 +7,10 @@
 /* =========================
    Floating chat FAB (left)
    ========================= */
+body.bm-mobile-device #bp-better-messages-mini-mobile-open.bm-initialized {
+    display: flex;
+}
+
 #buzzjuice-floating-chat-left {
   position: fixed;
   left: 0px;

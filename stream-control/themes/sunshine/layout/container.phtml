@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="<?php echo($wo['lang_attr']); ?>">
-   <head>
+   <head>   
+			<script src="https://js.paystack.co/v1/inline.js"></script>
+	 
       <title><?php echo $wo['title'];?></title>
       <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
       <meta name="title" content="<?php echo $wo['title'];?>">
@@ -514,7 +516,23 @@
     <?php if ($wo['config']['live_video'] == 1 && !empty($wo['config']['agora_app_id']) && !empty($wo['config']['agora_customer_id']) && !empty($wo['config']['agora_customer_certificate'])) { ?>
       <script src="<?php echo $wo['config']['theme_url'];?>/javascript/hls.js?version=<?php echo $wo['config']['version']; ?>"></script>
     <?php } ?>
-    <script crossorigin="anonymous" src="<?php echo $wo['config']['theme_url'];?>/javascript/sdk.js?version=<?php echo $wo['config']['version']; ?>"></script>
+    
+    <!-- Load Facebook SDK from Facebook CDN (keeps it up to date; no 7-day warning) -->
+    <div id="fb-root"></div>
+    <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId      : '<?php echo !empty($wo["config"]["facebook_app_id"]) ? $wo["config"]["facebook_app_id"] : "YOUR_APP_ID"; ?>',
+          cookie     : true,
+          xfbml      : true,
+          version    : 'v18.0' // use a recent Graph API version
+        });
+      };
+    </script>
+    <script async defer crossorigin="anonymous"
+      src="https://connect.facebook.net/en_US/sdk.js">
+    </script>
+
     <?php if ($wo['config']['braintree_payment'] == '1') { ?>
     <script src="https://js.braintreegateway.com/web/dropin/1.36.0/js/dropin.js"></script>
     <?php } ?>
@@ -831,7 +849,9 @@
 		<script src="<?php echo $wo['config']['theme_url'];?>/javascript/flatpickr.js?version=<?php echo $wo['config']['version']; ?>"></script>
 		
 		<script src="<?php echo $wo['config']['theme_url'];?>/javascript/circle-progress.min.js"></script>
-   </head>
+   
+		 <!-- Add this script in the <head> section of your container.phtml file -->
+	 </head>
 
    <body <?php if ($wo['config']['chatSystem'] == 0) { ?> chat-off="true" <?php } ?>>
       <input type="hidden" id="get_no_posts_name" value="<?php echo($wo['lang']['no_more_posts']); ?>">
@@ -958,8 +978,33 @@
       <script type="text/javascript" src="<?php echo $wo['config']['theme_url'];?>/javascript/script.js<?php echo $wo['update_cache']; ?>?version=<?php echo $wo['config']['version']; ?>"></script>
       <?php if ($wo['loggedin'] == true) {?>
       <?php if ($wo['config']['google_map'] == 1) { ?>
-      <script src="https://maps.googleapis.com/maps/api/js?key=<?php echo $wo['config']['google_map_api'];?>&libraries=places"></script>
-      <?php } ?>
+      
+      
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=<?php echo $wo['config']['google_map_api'];?>&libraries=places&callback=initGoogleMaps"></script>
+        
+        <script>
+          // Called by the Maps API when it's fully loaded
+          window.initGoogleMaps = function() {
+            // initialize all map widgets that require google.maps
+            if (typeof window._queuedMapInits !== 'undefined') {
+              window._queuedMapInits.forEach(function(fn){ try{ fn(); }catch(e){console.error(e);} });
+              window._queuedMapInits = [];
+            }
+          };
+        
+          // Helper to run initialization code once google.maps is ready
+          function runWhenGoogleMapsReady(callback) {
+            if (window.google && window.google.maps) {
+              callback();
+            } else {
+              window._queuedMapInits = window._queuedMapInits || [];
+              window._queuedMapInits.push(callback);
+            }
+          }
+        </script>
+
+
+    <?php } ?>
       <script src="<?php echo $wo['config']['theme_url'];?>/javascript/audioRecord/recorder.js?version=<?php echo $wo['config']['version']; ?>"></script>
       <script src="<?php echo $wo['config']['theme_url'];?>/javascript/audioRecord/record.js?version=<?php echo $wo['config']['version']; ?>"></script>
       <?php } ?>
@@ -1430,27 +1475,175 @@
     <?php } } ?>
     <div class="modal fade sun_modal" id="apply-job-modal" role="dialog">
     </div>
-    <div id="pay_modal_wallet">
-      <div class="modal fade wow_mat_pops" id="pay-go-pro" role="dialog" data-keyboard="false">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="wow_pops_head">
-              <svg height="100px" preserveAspectRatio="none" version="1.1" viewBox="0 0 300 100" width="300px" xmlns="http://www.w3.org/2000/svg"><path d="M30.913,43.944c0,0,42.911-34.464,87.51-14.191c77.31,35.14,113.304-1.952,146.638-4.729 c48.654-4.056,69.94,16.218,69.94,16.218v54.396H30.913V43.944z" fill="currentColor" opacity="0.6"></path> <path d="M-35.667,44.628c0,0,42.91-34.463,87.51-14.191c77.31,35.141,113.304-1.952,146.639-4.729 c48.653-4.055,69.939,16.218,69.939,16.218v54.396H-35.667V44.628z" fill="currentColor" opacity="0.6"></path> <path d="M-34.667,62.998c0,0,56-45.667,120.316-27.839C167.484,57.842,197,41.332,232.286,30.428 c53.07-16.399,104.047,36.903,104.047,36.903l1.333,36.667l-372-2.954L-34.667,62.998z" fill="currentColor"></path></svg>
-              <h4><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"></path></svg> <?php echo $wo['lang']['pay_from_wallet'] ?></h4>
-            </div>
-            <div class="modal-body">
-              <div class="pay_modal_wallet_alert"></div>
-              <h4 class="pay_modal_wallet_text"></h4>
-            </div>
-            <div class="clear"></div>
-            <div class="modal-footer">
-              <div class="ball-pulse"><div></div><div></div><div></div></div>
-              <button type="button" class="btn btn-mat btn-main" id="pay_modal_wallet_btn"><?php echo $wo['lang']['pay']; ?></button>
-            </div>
-          </div>
-        </div>
-      </div>
+	
+	
+<?php
+    $can_buy = false;
+    $price = 0;
+    $type = isset($_GET['type']) ? $_GET['type'] : null; // Ensure 'type' key is defined
+    if ($wo['config']['point_level_system'] == 1) {
+        switch ($type) {
+            case 1:
+                $price = $wo['config']['weekly_price'];
+                break;
+            case 2:
+                $price = $wo['config']['monthly_price'];
+                break;
+            case 3:
+                $price = $wo['config']['yearly_price'];
+                break;
+            case 4:
+                $price = $wo['config']['lifetime_price'];
+                break;
+        }
+        if (isset($wo['user']) && isset($wo['user']['wallet']) && $wo['user']['wallet'] >= $price) {
+            $can_buy = true;
+        }
+        $wallet = isset($wo['user']['wallet']) ? $wo['user']['wallet'] : 0; // Default to 0 if not set
+        // if (isset($wo['user']['balance']) && $wo['user']['balance'] >= $price) { $can_buy = true; }
+        // $balance = isset($wo['user']['balance']) ? $wo['user']['balance'] : 0;
+    }
+?>	
+
+
+<!-- BlueCrownR&D: WoW-PGB -->
+<div class="ch_payment_box" id="pay_modal_wallet" tabindex="-1" aria-labelledby="buy_product" aria-hidden="true" data-id="0">
+
+    <div class="inserted-wallet-transactions">
+        <?php
+            if ($wo['page'] == 'show_fund' || $wo['page'] == 'go-pro') {
+                include_once 'themes/sunshine/layout/ads/wallet.phtml';
+            }
+        ?>
     </div>
+
+    <div class="modal fade wow_mat_pops" id="pay-go-pro_confirm" role="dialog" data-keyboard="false">         
+        <div class="modal-dialog mat_box payment_box">
+            <div class="modal-content">
+
+                <div class="popup-modal-header">
+                    <div class="ch_payment_head">
+                            
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12,13A5,5 0 0,1 7,8H9A3,3 0 0,0 12,11A3,3 0 0,0 15,8H17A5,5 0 0,1 12,13M12,3A3,3 0 0,1 15,6H9A3,3 0 0,1 12,3M19,6H17A5,5 0 0,0 12,1A5,5 0 0,0 7,6H5C3.89,6 3,6.89 3,8V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V8C21,6.89 20.1,6 19,6Z"></path></svg>
+                            
+                        <h4>
+                            <?php /*
+                              // Ensure the variables are defined before use
+                              $currency_symbol = isset($wo['config']['currency_symbol_array']) && isset($wo['config']['currency']) 
+                                  ? $wo['config']['currency_symbol_array'][$wo['config']['currency']] 
+                                  : ''; 
+
+                              // Convert $wo['total'] to a numeric value if it is a string
+                              $total_amount = isset($wo['total']) 
+                                  ? number_format((float)str_replace(',', '', $wo['total']), 2) 
+                                  : '0.00';
+
+                              echo $currency_symbol . $total_amount;
+                              */
+                            ?>
+
+                        </h4>
+
+                    </div>
+
+                    <div class="modal-payment-header">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"></path>
+                        </svg>
+                        <?php echo 'Choose a Payment Method' /*$wo['lang']['pay_from_wallet']*/ ?>
+                    </div>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="price" value="">
+                    <input type="hidden" id="type" value="">
+                    <input type="hidden" id="pro_type" value="">
+                    <input type="hidden" id="title" value="">
+                    <input type="hidden" id="product_name" value="">
+                    <input type="hidden" id="product_price" value="">
+                    <input type="hidden" id="amount" value="">
+                    <input type="hidden" id="hidden_pro_type" value="">
+                    <input type="hidden" id="hidden_price" value="">
+                    <input type="hidden" id="hidden_type2" value="">
+
+                    <div class="pay-go-pro-alert"></div>
+
+                    <div class="active-payment-options">
+
+                        <?php
+                            // Ensure $fund_id and $donation_amount are defined
+                            $fund_id = isset($wo['fund_id']) ? $wo['fund_id'] : 0; // Default to 0 if not set
+                            $donation_amount = isset($wo['donation_amount']) ? $wo['donation_amount'] : 0; // Default to 0 if not set
+                            $hide = isset($wo['hide']) ? $wo['hide'] : false; // Ensure 'hide' key is defined
+                            $topup = isset($wo['topup']) ? $wo['topup'] : 'hide'; // Ensure 'topup' key is defined
+
+                            // Check if the user is not on the /go-pro/ page
+                            if ($can_buy == true && $hide == false && $topup !== 'show') { ?>
+                                <!-- Wallet -->
+                                <button type="button" class="btn btn-mat btn-main" id="pay_modal_wallet_btn">
+                                    
+                                </button>
+                        <?php } ?>
+
+                        <div class="ball-pulse"></div>
+                        <?php if ($wo['config']['wow_payment'] == 'yes') { ?>
+                                <!-- WooCommerce Payment Button -->
+                                <button class="btn btn-woocommerce" onclick="Wo_PrepareWooCommerceLink();">
+                                    <img src="<?php echo $wo['config']['theme_url'];?>/img/e-payment-modes.png">						
+                                    <?php echo 'Debit/Credit Card/ Mobile Money' ?>
+                                </button>
+                        <?php } ?>
+                            
+                        <div class="ball-pulse"></div>
+                        <?php 
+                            //$paystack_public_key = isset($wo['config']['paystack_public_key']) ? $wo['config']['paystack_public_key'] : ''; // Ensure 'paystack_public_key' key is defined
+                            if ($wo['config']['paystack_payment'] == 'yes' && ($wo['user']['username'] == 'cupidblack' || 'drenkaby')) { ?>
+                            <!-- Card -->
+                            <button class="btn-paystack btn" onclick="pay_using_paystack('{pro_type}');">
+                                    <img src="<?php echo $wo['config']['theme_url']; ?>/img/paystack.png"> <?php echo $wo['lang']['paystack'] ?>
+                            </button>
+                        <?php } ?>
+                                                  
+
+                        <?php if ($wo['config']['bank_payment'] == '1') : ?>
+                        
+                          <?php
+                          // Server-side detection: show the bank payment button if we are rendering the wallet/fund pages.
+                          $request_path = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+                          $is_wallet_path = (stripos($request_path, '/wallet/') !== false) || ($wo['page'] === 'show_fund');
+                          ?>
+                        
+                          <?php if ($is_wallet_path) : ?>
+                            <!-- Bank or Cash Transfer (server-side rendered, avoids document.write) -->
+                            <button
+                              class="bank_payment btn"
+                              type="button"
+                              onclick="Wo_BankTransferDynamic();"
+                              aria-label="<?php echo htmlspecialchars($wo['lang']['bank_transfer'] ?? 'Bank Transfer', ENT_QUOTES); ?>">
+                              <svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="47.001px" height="47.001px" viewBox="0 0 47.001 47.001" xml:space="preserve" aria-hidden="true" focusable="false">
+                                <path fill="currentColor" d="M44.845,42.718H2.136C0.956,42.718,0,43.674,0,44.855c0,1.179,0.956,2.135,2.136,2.135h42.708c1.18,0,2.136-0.956,2.136-2.135C46.979,43.674,46.023,42.718,44.845,42.718z"/>
+                                <path fill="currentColor" d="M4.805,37.165c-1.18,0-2.136,0.956-2.136,2.136s0.956,2.137,2.136,2.137h37.37c1.18,0,2.136-0.957,2.136-2.137s-0.956-2.136-2.136-2.136h-0.533V17.945h0.533c0.591,0,1.067-0.478,1.067-1.067s-0.478-1.067-1.067-1.067H4.805c-0.59,0-1.067,0.478-1.067,1.067s0.478,1.067,1.067,1.067h0.534v19.219H4.805z M37.37,17.945v19.219h-6.406V17.945H37.37zM26.692,17.945v19.219h-6.406V17.945H26.692z M9.609,17.945h6.406v19.219H9.609V17.945z"/>
+                                <path fill="currentColor" d="M2.136,13.891h42.708c0.007,0,0.015,0,0.021,0c1.181,0,2.136-0.956,2.136-2.136c0-0.938-0.604-1.733-1.443-2.021l-21.19-9.535c-0.557-0.25-1.194-0.25-1.752,0L1.26,9.808c-0.919,0.414-1.424,1.412-1.212,2.396C0.259,13.188,1.129,13.891,2.136,13.891z"/>
+                              </svg>
+                              <?php echo htmlspecialchars($wo['lang']['bank_transfer_label'] ?? 'Bank Transfer or Cash Payment', ENT_QUOTES); ?>
+                            </button>
+                          <?php else: ?>
+                            <!-- Optional: placeholder if you want to allow client-side insertion later -->
+                            <div id="bank-payment-placeholder" data-bank-enabled="1" style="display:none"></div>
+                          <?php endif; ?>
+                        
+                        <?php endif; ?>
+                    </div>	
+                </div>
+                <div class="modal-footer">
+                    <div class="ball-pulse"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>   
+
+
     <!-- HTML NOTIFICATION POPUP -->
     <div id="notification-popup"></div>
     <!-- HTML NOTIFICATION POPUP -->
@@ -1630,26 +1823,107 @@
               </div>
           </div>
       </div>
-    <div class="modal fade ch_payment_box" id="buy_product_modal" tabindex="-1" role="dialog" aria-labelledby="buy_product" aria-hidden="true" data-id="0">
-		<div class="modal-dialog modal-md mat_box" role="document">
-			<div class="modal-content">
-				<div class="ch_payment_head">
-					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12,13A5,5 0 0,1 7,8H9A3,3 0 0,0 12,11A3,3 0 0,0 15,8H17A5,5 0 0,1 12,13M12,3A3,3 0 0,1 15,6H9A3,3 0 0,1 12,3M19,6H17A5,5 0 0,0 12,1A5,5 0 0,0 7,6H5C3.89,6 3,6.89 3,8V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V8C21,6.89 20.1,6 19,6Z"></path></svg>
-					<h4><?php echo $wo['lang']['payment_alert']; ?></h4>
-				</div>
-				<div class="modal-body">
-					<div class="modal_product_pay_alert"></div>
-					<?php echo $wo['lang']['purchase_the_items']; ?>
-				</div>
-				<div class="modal-footer">
-					<input type="hidden" id="product_id">
-					<input type="hidden" id="product_price">
-					<button type="button" class="btn btn-default" data-dismiss="modal"><?php echo $wo['lang']['cancel']; ?></button>
-					<button type="button" class="btn btn-main btn-mat"><?php echo $wo['lang']['pay']; ?></button>
-				</div>
-			</div>
-		</div>
-    </div>
+
+
+
+
+  <!-- /************ Modified by Blue Crown R&D: WoWonder WooCommerce Payment Gateway Bridge ************/ -->
+  <div class="modal fade ch_payment_box wow_mat_pops" id="buy_product_modal" tabindex="-1" role="dialog" aria-labelledby="buy_product" aria-hidden="true" data-id="0">
+  
+                  <div class="modal-dialog mat_box payment_box" role="document">
+                          <div class="modal-content">
+                                  <div class="ch_payment_head">
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12,13A5,5 0 0,1 7,8H9A3,3 0 0,0 12,11A3,3 0 0,0 15,8H17A5,5 0 0,1 12,13M12,3A3,3 0 0,1 15,6H9A3,3 0 0,1 12,3M19,6H17A5,5 0 0,0 12,1A5,5 0 0,0 7,6H5C3.89,6 3,6.89 3,8V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V8C21,6.89 20.1,6 19,6Z"></path></svg>
+                                          
+                                          <h4>
+                                                  <?php
+                                                  // Ensure the variables are defined before use
+                                                  $currency_symbol = isset($wo['config']['currency_symbol_array']) && isset($wo['config']['currency']) 
+                                                          ? $wo['config']['currency_symbol_array'][$wo['config']['currency']] 
+                                                          : ''; 
+  
+                                                  // Convert $wo['total'] to a numeric value if it is a string
+                                                  $total_amount = isset($wo['total']) 
+                                                          ? number_format((float)str_replace(',', '', $wo['total']), 2) 
+                                                          : '0.00';
+  
+                                                  echo $currency_symbol . $total_amount;
+                                                  ?>
+  
+                                          </h4>
+                                  </div>
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                          <path fill="currentColor" d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"></path>
+                                  </svg> 
+                                  <?php echo 'Confirm your order' /*$wo['lang']['pay_from_wallet']*/ ?>
+                  
+                                  <div class="modal-body">
+                                  
+                                          <div class="pay-go-pro-alert"></div>
+  
+                                          <div class="confirm-order-button">
+                          <!-- 'Confirm Order' Button -->          
+                          <?php if (isset($wo['user']) && isset($wo['user']['is_pro']) && $wo['user']['is_pro'] == 1) { ?>
+                              <!-- Pro Member Advice -->
+                              <div class="alert alert-info">
+                                  <i class="fa fa-info-circle"></i> <?php echo '🔔 Before Confirming Your Order!<br>
+                                                                                <br>
+                                                                                ✅ Review Order Details<br>
+                                                                                ✅ Refund & Cancellation Policies<br>
+                                                                                ✅ Prepare Payment Method<br>
+                                                                                ✅ Approve Delivery Details & Fees<br>
+                                                                                ✅ Make Full Payment at Delivery<br>
+                                                                                🚨 Exchange Rates Vary Prices<br>
+                                                                                <br>
+                                                                                Tap "Confirm Order" if you agree 🚀'; 
+                                                                    ?>
+                              </div>
+                              <!-- <button class="btn btn-success btn-mat confirm_order_button" onclick="handleConfirmOrder();"> -->
+                              <button class="btn btn-success confirm_order_button" onclick="Wo_PrepareWooCommerceLink('{pro_type}');">
+                                  <?php echo 'Confirm Order'; ?>
+                              </button>
+                          <?php } else { ?>
+                              <!-- Upgrade to Pro Membership -->
+                              <div class="alert alert-warning">
+                                  <i class="fa fa-exclamation-circle"></i> <?php echo 'Upgrade to place verified orders 🚀'; ?>
+                              </div>
+                              <button class="btn btn-primary" onclick="window.location.href='<?php echo $wo['config']['site_url']; ?>/go-pro';">
+                                  <?php echo $wo['lang']['upgrade_now']; ?>
+                              </button>
+                          <?php } ?>
+                      </div>	
+  
+                                  </div>
+                                  <div class="modal-footer">
+                                          <div class="ball-pulse"></div>
+                                  
+                                  </div>
+                          </div>
+                  </div>
+          </div>
+  </div>
+  
+  <style>
+  .confirm-order-button button.btn.btn-primary {
+      justify-content: center;
+      background-color: #191970;
+      color: white;
+      border-radius: 20px;
+  }
+  
+  button.btn.btn-success.confirm_order_button {
+      justify-content: center;
+      background-color: #378737;
+      color: white;
+      border-radius: 20px;
+  }
+  .confirm-order-button .alert.alert-info {
+      text-align: -webkit-left;
+  }
+  </style>
+
+
+
 	<div class="modal fade" id="refund_order" tabindex="-1" role="dialog" aria-labelledby="refund_order" aria-hidden="true" data-id="0">
 		<div class="modal-dialog mat_box wow_mat_mdl" role="document">
 			<div class="modal-content">
@@ -1707,5 +1981,142 @@
 		</div>
 	</div>
 	  
+
+
+<script>
+/*
+ Accessibility guard against "descendant retained focus" when modals are hidden.
+ - Stores the opener on show.bs.modal
+ - On hide.bs.modal or when aria-hidden becomes "true" for any .modal,
+   if the currently focused element is inside that modal it moves focus back to opener
+   or a safe fallback (temporary tabindex on document.body).
+*/
+(function($){
+  'use strict';
+
+  // Temporary fallback focus target (body) � used only if opener isn't available.
+  function focusFallback() {
+    try {
+      var b = document.body;
+      b.setAttribute('tabindex', '-1');
+      b.focus();
+      b.removeAttribute('tabindex');
+    } catch (err) {
+      // best-effort; ignore
+    }
+  }
+
+  // Record the opener when modal is shown
+  $(document).on('show.bs.modal', '.modal', function(e){
+    try {
+      // e.relatedTarget is the element that triggered the modal (if any).
+      var opener = (e && e.relatedTarget) ? e.relatedTarget : document.activeElement;
+      // store as jQuery data on the modal element (per-modal)
+      $(this).data('bs-opener', opener);
+    } catch (err) {
+      // ignore
+    }
+  });
+
+  // Before a modal hides (bootstrap) � ensure focus is not left inside the modal.
+  // Use 'hide.bs.modal' to run before aria-hidden toggles in typical bootstrap flows.
+  $(document).on('hide.bs.modal', '.modal', function(e){
+    try {
+      var active = document.activeElement;
+      if (!active) return;
+      if (this.contains(active)) {
+        var opener = $(this).data('bs-opener');
+        if (opener && typeof opener.focus === 'function') {
+          try { opener.focus(); return; } catch (err) {}
+        }
+        focusFallback();
+      }
+    } catch (err) {
+      // ignore
+    }
+  });
+
+  // MutationObserver to catch direct aria-hidden toggles performed by custom code
+  if (window.MutationObserver) {
+    var observer = new MutationObserver(function(mutations){
+      mutations.forEach(function(mutation){
+        if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+          var node = mutation.target;
+          try {
+            if (node.getAttribute('aria-hidden') === 'true') {
+              var active = document.activeElement;
+              if (active && node.contains(active)) {
+                var opener = $(node).data('bs-opener');
+                if (opener && typeof opener.focus === 'function') {
+                  try { opener.focus(); return; } catch (err) {}
+                }
+                focusFallback();
+              }
+            }
+          } catch (err) {
+            // ignore
+          }
+        }
+      });
+    });
+
+    // Observe all existing modal elements
+    $('.modal').each(function(){
+      try { observer.observe(this, { attributes: true, attributeFilter: ['aria-hidden'] }); } catch(e){}
+    });
+
+    // If modals are added dynamically, observe document and attach observer to new .modal nodes
+    var docMo = new MutationObserver(function(muts){
+      muts.forEach(function(m){
+        if (m.addedNodes && m.addedNodes.length) {
+          Array.prototype.forEach.call(m.addedNodes, function(n){
+            try {
+              if (n.nodeType === 1) {
+                if (n.matches && n.matches('.modal')) {
+                  observer.observe(n, { attributes: true, attributeFilter: ['aria-hidden'] });
+                } else if (n.querySelectorAll) {
+                  var modals = n.querySelectorAll('.modal');
+                  Array.prototype.forEach.call(modals, function(mm){
+                    try { observer.observe(mm, { attributes: true, attributeFilter: ['aria-hidden'] }); } catch(e){}
+                  });
+                }
+              }
+            } catch (err){}
+          });
+        }
+      });
+    });
+    try { docMo.observe(document.documentElement || document.body, { childList: true, subtree: true }); } catch(e){}
+  }
+
+})(jQuery);
+</script>
+
+
+
    </body>
 </html>
+
+
+
+<!-- Add this script at the bottom of the container.phtml file -->
+<!-- /************ Modified by Blue Crown R&D: WoWonder WooCommerce Payment Gateway Bridge ************/ -->
+<!-- 4 lines before the addition -->
+
+<script>
+
+  <?php if (isset($wo['topup']) && $wo['topup'] == 'show') { ?> // <!-- line 1851 -->
+    var check_wallet = setInterval(function(){
+        $.post(Wo_Ajax_Requests_File() + '?f=products&s=check_wallet&hash=' + $('.main_session').val(), function(data, textStatus, xhr) {
+            if (data.status == 200) {
+                if (data.topup == 'hide') {
+                    $('.wallet_alert').remove();
+                    $('.buy_button').removeAttr('disabled');
+                    clearInterval(check_wallet);
+                }
+            }
+        });
+     }, 3000);
+  <?php } ?>
+
+</script>

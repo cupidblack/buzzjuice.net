@@ -4,15 +4,39 @@
     $('#monetization_modal').modal('show');
   }
   
-  function CheckIfCanUse() {
+
+function CheckIfCanUse() {
     <?php if(!$wo['config']['can_use_chat']){ ?>
+        var restrictedContent = `
+            <div class="restricted_access">
+                <div class="dt_sections">
+                    <h5 id="restricted_access" class="empty_state">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M9,4A4,4 0 0,1 13,8A4,4 0 0,1 9,12A4,4 0 0,1 5,8A4,4 0 0,1 9,4M9,6A2,2 0 0,0 7,8A2,2 0 0,0 9,10A2,2 0 0,0 11,8A2,2 0 0,0 9,6M9,13C11.67,13 17,14.34 17,17V20H1V17C1,14.34 6.33,13 9,13M9,14.9C6.03,14.9 2.9,16.36 2.9,17V18.1H15.1V17C15.1,16.36 11.97,14.9 9,14.9M15,4A4,4 0 0,1 19,8A4,4 0 0,1 15,12C14.53,12 14.08,11.92 13.67,11.77C14.5,10.74 15,9.43 15,8C15,6.57 14.5,5.26 13.67,4.23C14.08,4.08 14.53,4 15,4M23,17V20H19V16.5C19,15.25 18.24,14.1 16.97,13.18C19.68,13.62 23,14.9 23,17Z"></path>
+                        </svg>
+                        <?php echo 'Get a subscription to message users!'; ?>
+                        <br><br><br>
+                        <a href="<?php echo Wo_SeoLink('index.php?link1=go-pro'); ?>" data-ajax="?link1=go-pro"><?php echo 'Subscribe Now!'; ?></a>
+                    </h5>
+                </div>
+            </div>
+        `;
+
+        $("#error_post").modal('show');
+        $('#error_post_text').html(restrictedContent);
+    <?php } ?>
+}
+
+
+//  function CheckIfCanUse() {
+    <?php /* if(!$wo['config']['can_use_chat']){ ?>
     $("#error_post").modal('show');
     $('#error_post_text').text("<?php echo $wo['lang']['can_not_use_feature'] ?>");
     Wo_Delay(function(){
         $("#error_post").modal('hide');
     },3000);
-    <?php } ?>
-  }
+    <?php } */ ?>
+//  }
   
 
      var create_bar = $('.create-product-bar');
@@ -950,6 +974,114 @@ function Wo_BankTransferDonate(fund_id,amount) {
         });
 }
 
+
+
+
+function Wo_BankTransferDynamic() {
+  
+    // Dynamically detect payment type based on the page
+    let paymentType = 'wallet'; // Default to wallet
+    if (window.location.pathname.includes('/show_fund/')) {
+        paymentType = 'funding';
+    } else if (window.location.pathname.includes('/wallet/')) {
+        paymentType = 'wallet';
+    }
+
+    // Dynamically scan for price or amount
+    let price = document.querySelector('.amount')?.value || 
+            document.querySelector('.price')?.value || 
+            document.querySelector('.fund_donate_amount')?.value || 
+            document.querySelector('.total')?.textContent || 
+            $('#amount').val() || 
+            $('#fund_donate_amount').val() || 
+                '<?php echo isset($wo['product']) && !empty(is_object($wo['product']) 
+                ? $wo['product']->price 
+                  : $wo['product']['price']) 
+                  ? $wo['product']['price'] : ''; ?>' || 
+            1; 
+            // Default to 1 if no price is found
+
+// Ensure the price is numeric and greater than 10
+if (isNaN(price) || price <= 0) {
+    console.error("Invalid price detected:", price);
+    alert("Please enter a valid price.");
+    return;
+}
+
+    // Dynamically set description based on payment type
+    let description = document.querySelector('.description-input')?.value || '';
+    if (!description) {
+        if (paymentType === 'wallet') {
+            description = 'Add to balance';
+        } else if (paymentType === 'funding') {
+            description = 'Crowdfund Donation';
+        } else {
+            description = 'Add to Buzzjuice Wallet';
+        }
+    }
+
+    // Dynamically acquire fund_id if payment type is funding
+    let fundId = null;
+    if (paymentType === 'funding') {
+        fundId = document.querySelector('.fund-id-input')?.value || 
+            '<?php echo isset($wo['fund']) && !empty($wo['fund']['id']) 
+                ? $wo['fund']['id'] : ''; ?>' || 
+            1;
+    }
+
+    // Set session hash_id and user_id
+    const hashId = '<?php echo Wo_CreateSession(); ?>';
+    const userId = '<?php echo $wo['user']['id']; ?>';
+
+    // Acquire thumbnail if available
+    const thumbnail = document.querySelector('input[name="thumbnail"]');
+    let thumbnailFile = null;
+    if (thumbnail && thumbnail.files.length) {
+        thumbnailFile = thumbnail.files[0];
+    }
+
+    // Populate the #bank_transfer_modal with the acquired data
+    try {
+        // Reset the form and prepare the modal
+        $('#configreset').click();
+
+        $("#blog-alert").html('');
+
+        // Populate modal fields
+        $('#user_id').val(userId);
+        $('#fund_id').val(fundId);
+        $('#bank_transfer_price').val(price);       
+        $('#bank_transfer_type').val(paymentType);
+        $('#payment_type').val(paymentType);
+        $('#bank_transfer_des').val(description);
+        $('#bank_transfer_hash_id').val(hashId);
+
+        // If a thumbnail is available, set it in the modal
+        if (thumbnailFile) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                $('#thumbnail_preview').attr('src', e.target.result); // Assuming there's an image preview element
+            };
+            reader.readAsDataURL(thumbnailFile);
+        } else {
+            $('#thumbnail_preview').attr('src', ''); // Clear the preview if no thumbnail is provided
+        }
+
+        // Show the bank transfer modal
+        $('#bank_transfer_modal').modal({
+            show: true
+        });
+    } catch (error) {
+        console.error("An unexpected error occurred in Wo_BankTransferDynamic:", error);
+        alert("An unexpected error occurred. Please try again.");
+    }
+}
+
+
+
+
+
+
 function Wo_BitcoinDonate(fund_id,amount) {
   if (!amount || !fund_id) {
     return false;
@@ -1391,7 +1523,7 @@ $(document).ready(function() {
       };
       $('.monetization_form').ajaxForm(options);
   });
-function BuyProducts(type = 'show',price) {
+  function BuyProducts(type = 'show', price) {
   if ($('.payment_address').length < 1) {
     $('.checkout_alert').html("<div class='alert alert-danger bg-danger'><i class='fa fa-info-circle'></i> <?php echo($wo['lang']['please_add_address']); ?></div>");
     return false;
@@ -1402,31 +1534,31 @@ function BuyProducts(type = 'show',price) {
   }
   address_id = $('input[name=choose-address]:checked').val();
   if (type == 'hide') {
-        $('#buy_product_modal').find('.btn-mat').html("<?php echo $wo['lang']['pay'].' '.$wo['config']['currency_symbol_array'][$wo['config']['currency']]; ?>"+price);
+        $('#buy_product_modal').find('.btn-mat').html("<?php echo 'Confirm Order'.' '.$wo['config']['currency_symbol_array'][$wo['config']['currency']]; ?>"+price);
         $('#buy_product_modal').find('.btn-mat').attr('onclick', "BuyProducts('show','"+price+"')");
         $('#buy_product_modal').modal('show');
         return false;
     }
     $('#buy_product_modal').find('.btn-mat').html("<?php echo($wo['lang']['please_wait']) ?>");
     $('#buy_product_modal').find('.btn-mat').attr('disabled', "true");
-  $.post(Wo_Ajax_Requests_File() + '?f=products&s=buy&hash=' + $('.main_session').val(),{address_id: address_id}, function(data, textStatus, xhr) {
+  $.post(Wo_Ajax_Requests_File() + '?f=products&s=buy&hash=' + $('.main_session').val(), {address_id: address_id}, function(data, textStatus, xhr) {
     $('#buy_product_modal').find('.btn-mat').removeAttr('disabled');
-    $('#buy_product_modal').find('.btn-mat').text("<?php echo $wo['lang']['pay'].' '.$wo['config']['classified_currency_s']; ?>"+price);
+    $('#buy_product_modal').find('.btn-mat').text("<?php echo 'Confirm Order'.' '.$wo['config']['classified_currency_s']; ?>"+price);
     if (data.status == 200) {
       <?php if ($wo['config']['node_socket_flow'] == 1) { ?>
-        socket.emit("checkout_notification", {user_id: _getCookie("user_id"), type: "added",users: data.users });
+        socket.emit("checkout_notification", {user_id: _getCookie("user_id"), type: "added", users: data.users });
       <?php } ?>
-      $('#buy_product_modal').find('.modal_product_pay_alert').html("<div class='alert alert-success bg-success'><i class='fa fa-check'></i> "+data.message+"</div>");
+      $('#buy_product_modal').find('.modal_product_pay_alert').html("<div class='alert alert-success bg-success'><i class='fa fa-check'></i> " + data.message + "</div>");
       setTimeout(function () {
         $('#buy_product_modal').find('.modal_product_pay_alert').html("");
         location.href = "<?php echo $wo['config']['site_url'];?>/purchased";
-      },2000);
-    }
-    else{
-      $('#buy_product_modal').find('.modal_product_pay_alert').html("<div class='alert alert-danger bg-danger'><i class='fa fa-info-circle'></i> "+data.message+"</div>");
+      }, 2000);
+    } else {
+      $('#buy_product_modal').find('.modal_product_pay_alert').html("<div class='alert alert-danger bg-danger'><i class='fa fa-info-circle'></i> " + data.message + "</div>");
     }
   });
 }
+
 function DownloadPurchased(id,type = 'order') {
   if (type == 'order') {
     url = '?f=products&s=download&hash=' + $('.main_session').val();
@@ -1449,6 +1581,7 @@ function ChangeStatus(self,hash_id) {
     $('#load_order').click();
   });
 }
+/*BlueCrownR&D*/
 function RefundOrder(hash_id,type = 'show') {
   if (type == 'hide') {
         $('#refund_order').find('.get_refnd').attr('onclick', "RefundOrder('"+hash_id+"')");
@@ -1474,6 +1607,61 @@ function RefundOrder(hash_id,type = 'show') {
     }
   });
 }
+
+
+
+/*
+function RefundOrder(hash_id, type = 'show') {
+    if (type == 'hide') {
+        $('#refund_order').find('.get_refnd').attr('onclick', "RefundOrder('" + hash_id + "')");
+        $('#refund_order').modal('show');
+        return false;
+    }
+    $('#refund_order').find('.get_refnd').html("<?php /* echo($wo['lang']['please_wait']) ?>");
+    $('#refund_order').find('.get_refnd').attr('disabled', "true");
+    const message = $('#refund_order_message').val();
+
+    // Send refund request and message to the server
+    $.post(Wo_Ajax_Requests_File() + '?f=products&s=refund&hash=' + $('.main_session').val(), {
+        hash_order: hash_id,
+        message: message
+    }, function (data, textStatus, xhr) {
+        $('#refund_order').find('.get_refnd').removeAttr('disabled');
+        $('#refund_order').find('.get_refnd').text("<?php echo($wo['lang']['request']) ?>");
+
+        if (data.status == 200) {
+            // Display success message
+            $('#refund_order').find('.modal_refund_order_modal_alert').html("<div class='alert alert-success bg-success'><i class='fa fa-check'></i> " + data.message + "</div>");
+            
+            // Send a copy of the message to the seller
+            $.post(Wo_Ajax_Requests_File() + '?f=chat&s=send_message', {
+                recipient_id: '<?php echo $wo['story']['product']['user_id']; */ ?>', // Seller's user ID
+                message: message
+            }, function (response) {
+                if (response.status == 200) {
+                    console.log("Message sent to the seller successfully.");
+                } else {
+                    console.error("Failed to send the message to the seller.");
+                }
+            });
+
+            // Close the modal after 2 seconds
+            setTimeout(function () {
+                $('#refund_order').modal('hide');
+                $('#refund_order').find('.modal_refund_order_modal_alert').html("");
+                $('#load_order').click();
+            }, 2000);
+        } else {
+            // Display error message
+            $('#refund_order').find('.modal_refund_order_modal_alert').html("<div class='alert alert-danger bg-danger'><i class='fa fa-info-circle'></i> " + data.message + "</div>");
+        }
+    });
+}
+*/
+
+
+
+
 function OpenWriteReview(product_id) {
   $('#write_product_review_product_id').val(product_id)
   $('#write_product_review').modal('show');
@@ -1510,60 +1698,318 @@ function Wo_LoadReviews(){
     }
   });
 }
-function Wo_GetPaymentLink(type,price,type2 = 'pro',type3 = 'show') {
+
+
+//****Modified by Blue Crown R&D Team
+
+/*
+function Wo_GetPaymentLink(type, price, type2 = 'pro', type3 = 'show') {
   if (type3 == 'hide') {
     $('.pay_modal_wallet_text').html('');
     $('.pay_modal_wallet_alert').html('');
     if (type2 == 'pro') {
-      $('.pay_modal_wallet_text').html("<?php echo $wo['lang']['pay_to_upgrade']; ?>");
+      $('.pay_modal_wallet_text').html("<?php /* echo $wo['lang']['pay_to_upgrade']; ?>");
     }
-    else if(type2 == 'fund'){
+    else if (type2 == 'fund') {
       price = $('#fund_donate_amount').val();
       type = $('#fund_donate_id').val();
       $('.pay_modal_wallet_text').html("<?php echo $wo['lang']['pay_to_fund']; ?>");
       $('#dont_modal').modal('hide');
     }
-    $('#pay_modal_wallet_btn').attr('onclick', "Wo_GetPaymentLink('"+type+"','"+price+"','"+type2+"')");
+    $('#pay_modal_wallet_btn').attr('onclick', "Wo_GetPaymentLink('" + type + "','" + price + "','" + type2 + "')");
     if (parseInt(<?php echo $wo['user']['wallet'] ?>) < parseInt(price) ) {
       $('.pay_modal_wallet_alert').html("<div class='alert alert-danger'><a href='<?php echo $wo['config']['site_url'];?>/wallet'><?php echo $wo["lang"]["please_top_up_wallet"]?></a></div>");
-      $('#pay_modal_wallet_btn').html("<?php echo $wo['lang']['pay']; ?> <?php echo Wo_GetCurrency($wo['config']['currency']);?>"+price).attr('disabled',true);
+      $('#pay_modal_wallet_btn').html("<?php echo $wo['lang']['pay']; ?> <?php echo Wo_GetCurrency($wo['config']['currency']);?>" + price).attr('disabled',true);
       $('.pay_modal_wallet_text').html("");
       $('#pay-go-pro').modal({
               show: true
           });
-    }
-    else{
+    } else {
       $('#pay_modal_wallet_btn').html("<?php echo $wo['lang']['pay']; ?> <?php echo Wo_GetCurrency($wo['config']['currency']);?>"+price).removeAttr('disabled');
       $('#pay-go-pro').modal({
               show: true
           });
     }
-  }
-  else{
+  } else {
     $('#pay_modal_wallet_btn').html("<?php echo($wo['lang']['please_wait']) ?>");
-    $('#pay_modal_wallet_btn').attr('disabled','true');
+    $('#pay_modal_wallet_btn').attr('disabled', 'true');
     link = '';
     if (type2 == 'pro') {
-      link = '&pro_type=' + type+'&price='+price+'&type='+type2;
+      link = '&pro_type=' + type + '&price=' + price + '&type=' + type2;
+    } elseif (type2 == 'fund') {
+      link = '&fund_id=' + type + '&price=' + price + '&type=' + type2;
     }
-    else if(type2 == 'fund'){
-      link = '&fund_id=' + type+'&price='+price+'&type='+type2;
-    }
-    $.get(Wo_Ajax_Requests_File() + '?f=wallet&s=pay'+link, function (data) {
-      $('#pay_modal_wallet_btn').html("<?php echo $wo['lang']['pay']; ?> <?php echo Wo_GetCurrency($wo['config']['currency']);?>"+price);
+    $.get(Wo_Ajax_Requests_File() + '?f=wallet&s=pay' + link, function (data) {
+      $('#pay_modal_wallet_btn').html("<?php echo $wo['lang']['pay']; ?> <?php echo Wo_GetCurrency($wo['config']['currency']);?>" + price);
           if (data.status == 200) {
-            $('.pay_modal_wallet_alert').html("<div class='alert alert-success bg-success'><i class='fa fa-check'></i> <?php echo $wo['lang']['payment_successfully_done']; ?></div>");
-            setTimeout( function (){
+            $('.pay_modal_wallet_alert').html("<div class='alert alert-success bg-success'><i class='fa fa-check'></i> <?php echo $wo['lang']['payment_successfully_done']; */ ?></div>");
+            setTimeout(function () {
               location.href = data.url;
-            } ,3000);
-          }
-          else{
+            }, 3000);
+          } else {
             $('#pay_modal_wallet_btn').removeAttr('disabled');
-            $('.pay_modal_wallet_alert').html("<div class='alert alert-danger'>"+data.message+"</div>");
+            $('.pay_modal_wallet_alert').html("<div class='alert alert-danger'>" + data.message + "</div>");
           }
       });
   }
 }
+*/
+
+function Wo_GetPaymentLink(type, price, type2 = 'pro', type3 = 'show') {
+
+  // Store the values in hidden input fields
+    $('#hidden_pro_type').val(type);
+    $('#hidden_price').val(price);
+    $('#hidden_type2').val(type2);
+
+    if (type3 == 'hide') {
+        $('.pay_modal_wallet_text').html('');
+        $('.pay_modal_wallet_alert').html('');
+        if (type2 == 'pro') {
+          $('.pay_modal_wallet_text').html("<?php echo $wo['lang']['pay_to_upgrade']; ?>");
+        } 
+        else if (type2 == 'fund') {
+          price = $('#fund_donate_amount').val();
+          type = $('#fund_donate_id').val();
+          $('.pay_modal_wallet_text').html("<?php echo $wo['lang']['pay_to_fund']; ?>");
+          $('#dont_modal').modal('hide');
+        }
+        $('#pay_modal_wallet_btn').attr('onclick', "Wo_GetPaymentLink('" + type + "','" + price + "','" + type2 + "')");
+        $('#pay_modal_wallet_btn').html('<?php echo "<img src=\"" . $wo["config"]["theme_url"] . "/img/wallet.jpg\" alt=\"Wallet Image\" style=\"margin-right: 15px;\">"; ?> <?php echo $wo["lang"]["pay"]; ?> <?php echo Wo_GetCurrency($wo["config"]["currency"]); ?>' + price).removeAttr('disabled');    $('#pay-go-pro_confirm').modal({
+          show: true
+        });
+    } else {
+        $('#pay_modal_wallet_btn').html('<?php echo "<img src=\"" . $wo["config"]["theme_url"] . "/img/wallet.jpg\" alt=\"Wallet Image\" style=\"margin-right: 15px;\">"; ?> <?php echo($wo['lang']['please_wait']) ?>');
+        $('#pay_modal_wallet_btn').attr('disabled', 'true');
+        link = '';
+        if (type2 == 'pro') {
+            link = '&pro_type=' + type + '&price=' + price + '&type=' + type2;
+        } else if (type2 == 'fund') {
+            link = '&fund_id=' + type + '&price=' + price + '&type=' + type2;
+        }
+        $.get(Wo_Ajax_Requests_File() + '?f=wallet&s=pay' + link, function (data) {
+            $('#pay_modal_wallet_btn').html('<?php echo "<img src=\"" . $wo["config"]["theme_url"] . "/img/wallet.jpg\" alt=\"Wallet Image\" style=\"margin-right: 15px;\">"; ?> <?php echo $wo['lang']['pay']; ?> <?php echo Wo_GetCurrency($wo['config']['currency']);?>' + price);
+            if (data.status == 200) {
+                $('.pay_modal_wallet_alert').html('<?php echo "<img src=\"" . $wo["config"]["theme_url"] . "/img/wallet.jpg\" alt=\"Wallet Image\" style=\"margin-right: 15px;\">"; ?> <div class=\'alert alert-success bg-success\'><i class=\'fa fa-check\'></i> <?php echo $wo['lang']['payment_successfully_done']; ?></div>');
+                setTimeout(function () {
+                    location.href = data.url;
+                }, 3000);
+            } else {
+              $('#pay_modal_wallet_btn').removeAttr('disabled');
+              $('.pay_modal_wallet_alert').html("<div class='alert alert-danger'>" + data.message + "</div>");
+            }
+        });
+    }
+}
+
+
+function Wo_PrepareWooCommerceLink(type, price, type2 = 'pro', type3 = 'show') {
+    const button = document.querySelector('.btn-woocommerce'); // Select the button
+
+    if (type3 === 'hide') {
+        $('.pay_modal_wallet_text').html('');
+        $('.pay_modal_wallet_alert').html('');
+        if (type2 === 'pro') {
+            $('.pay_modal_wallet_text').html("<?php echo $wo['lang']['pay_to_upgrade']; ?>");
+        } else if (type2 === 'fund') {
+            price = $('#fund_donate_amount').val();
+            type = $('#fund_donate_id').val();
+            $('.pay_modal_wallet_text').html("<?php echo $wo['lang']['pay_to_fund']; ?>");
+            $('#dont_modal').modal('hide');
+        }
+        $('#pay_modal_wallet_btn').attr('onclick', "Wo_GetPaymentLink('" + type + "','" + price + "','" + type2 + "')");
+        $('#pay_modal_wallet_btn').html("<?php echo $wo['lang']['pay']; ?> <?php echo Wo_GetCurrency($wo['config']['currency']); ?>" + price).removeAttr('disabled');
+        $('#pay-go-pro_confirm').modal({
+            show: true
+        });
+    } else {
+        // Disable the button and update its text
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<span class="woo-payment-please-wait">Processing...</span>';
+        }
+
+        $('#pay_modal_wallet_btn').html("<span class='woo-payment-please-wait'><?php echo($wo['lang']['please_wait']) ?></span>");
+        $('#pay_modal_wallet_btn').attr('disabled', 'true');
+        let link = '';
+        if (type2 === 'pro') {
+            link = '&pro_type=' + type + '&price=' + price + '&type=' + type2;
+        } else if (type2 === 'fund') {
+            link = '&fund_id=' + type + '&price=' + price + '&type=' + type2;
+        }
+
+        // Check if WooCommerce payment is enabled
+        if (<?php echo $wo['config']['wow_payment'] == 'yes' ? 'true' : 'false'; ?>) {
+            Wo_GetWooCommerceLink(type, price, type2);
+        } else {
+            $.get(Wo_Ajax_Requests_File() + '?f=wallet&s=pay' + link, function (data) {
+                $('#pay_modal_wallet_btn').html("<?php echo $wo['lang']['pay']; ?> <?php echo Wo_GetCurrency($wo['config']['currency']); ?>" + price);
+                if (data.status === 200) {
+                    $('.pay_modal_wallet_alert').html("<div class='alert alert-success bg-success'><i class='fa fa-check'></i> <?php echo $wo['lang']['payment_successfully_done']; ?></div>");
+                    setTimeout(function () {
+                        location.href = data.url;
+                    }, 3000);
+                } else {
+                    // Re-enable the button and reset its text if an error occurs
+                    if (button) {
+                        button.disabled = false;
+                        button.innerHTML = '<?php echo 'Debit/Credit Card/ Mobile Money'; ?>';
+                    }
+                    $('#pay_modal_wallet_btn').removeAttr('disabled');
+                    $('.pay_modal_wallet_alert').html("<div class='alert alert-danger'>" + data.message + "</div>");
+                }
+            });
+        }
+    }
+}
+
+// Function to update the WooCommerce link
+// function Wo_GetWooCommerceLink(pro_type) {
+// function Wo_GetWooCommerceLink(type, price, type2) {
+  function Wo_GetWooCommerceLink(pro_type, price, type2) {
+
+    // Retrieve the values from the hidden input fields
+    var type = $('#hidden_pro_type').val();
+    var price = $('#hidden_price').val();
+    var type2 = $('#hidden_type2').val();
+
+    console.log("Preparing WooCommerce Link");
+    console.log("Type:", type);
+    console.log("Price:", price);
+    console.log("Type2:", type2);
+
+    var pro_packages = <?php echo json_encode($wo['pro_packages']); ?>;
+    var pro_package_name = pro_packages[type] ? pro_packages[type]['name'] : '';
+    var product_name = window.location.href.includes('/wallet/') 
+                        ? "Buzzjuice Wallet Topup" 
+                        : window.location.href.includes('/checkout/') 
+                          ? "<?php echo isset($wo['product']) && is_array($wo['product']) && isset($wo['product']['name']) ? addslashes($wo['product']['name']) : ''; ?>" 
+                          : window.location.href.includes('/show_fund/') 
+                            ? "<?php echo isset($wo['fund']['title']) ? addslashes(stripslashes($wo['fund']['title'])) : ''; ?>" 
+                            : window.location.href.includes('/go-pro/') 
+                              ? pro_package_name 
+                              : "<?php 
+                                  if (isset($wo['buy_credit'])) { 
+                                      echo 'Credits'; 
+                                  } elseif (isset($wo['purchase']) || isset($wo['purchase_id'])) { 
+                                      echo 'PURCHASE'; 
+                                  } else { 
+                                      echo ''; 
+                                  } 
+                              ?>";
+    var wow_post_id = $('#product_id').val() || 
+                      $('#fund_donate_id').val() || 
+                        '<?php echo isset($wo['product']) && isset($wo['product']['id']) ? $wo['product']['id'] : ''; ?>';
+                        if (!wow_post_id) {
+                            wow_post_id = pro_packages[type] ? pro_packages[type]['id'] : 0;
+                        }
+    var wow_currency_code = '<?php echo isset($wo['product']['currency']) && isset($wo['currencies'][$wo['product']['currency']]['text']) ? $wo['currencies'][$wo['product']['currency']]['text'] : ''; ?>';
+    var product_price = $('#amount').val() || 
+                          $('#fund_donate_amount').val() || 
+                            '<?php echo isset($wo['product']) && !empty($wo['product']['price']) 
+                              ? $wo['product']['price'] : '';
+                            ?>';  
+                        if (!product_price) {
+                            product_price = pro_packages[type] ? pro_packages[type]['price'] : 0;
+                        }
+
+    var product_units = $('#product_units').val() || '<?php echo isset($wo["item"]->units) ? $wo["item"]->units : 1; ?>';
+    
+    var amount = product_units * product_price;
+    var product_owner_id = $('#product_owner_id').val() || '<?php 
+                                echo isset($wo['product']) 
+                                    ? $wo['product']['user_id'] 
+                                    : (isset($wo['fund']) 
+                                        ? $wo['fund']['user_id'] 
+                                        : ''); 
+                            ?>';
+                            product_owner_id = product_owner_id || '<?php echo "KOWARE"; ?>';
+
+    var kind = window.location.href.includes('wallet') 
+                  ? "WALLET" 
+                  : window.location.href.includes('checkout') 
+                      ? "PRODUCT" 
+                      : window.location.href.includes('fund') 
+                          ? "DONATE" 
+                          : window.location.href.includes('go-pro') 
+                              ? "PRO" 
+                              : "<?php 
+                                  if (isset($wo['buy_credit'])) { 
+                                      echo 'Credits'; 
+                                  } elseif (isset($wo['purchase']) || isset($wo['purchase_id'])) { 
+                                      echo 'PURCHASE'; 
+                                  } else { 
+                                      echo ''; 
+                                  } 
+                  ?>";
+    var transaction_kind = kind;
+
+    // Set default currency code for non-PRODUCT transaction kinds
+    if (transaction_kind !== 'PRODUCT' && !wow_currency_code) {
+        wow_currency_code = '<?php echo $wo["config"]["currency"]; ?>';
+    }
+
+    var username = '<?php echo $wo['user']['username']; ?>';
+    var user_id = '<?php echo $wo['user']['user_id']; ?>';
+    var address_id = $('input[name=choose-address]:checked').val() || 1;
+
+    // Debugging: Log updated parameter values
+    console.log("Product:", product_name);
+    console.log("WoW Post ID:", wow_post_id);
+    console.log("Currency Code:", wow_currency_code);
+    console.log("Price:", product_price);
+    console.log("Units:", product_units);
+    console.log("Amount:", amount);
+    console.log("Owner ID:", product_owner_id);
+    console.log("Transaction:", transaction_kind);
+    console.log("Username:", username);
+    console.log("User ID:", user_id);
+    console.log("Address ID:", address_id);
+
+    // Step 4: Validate parameters
+    if (!amount || !product_name || !product_price || !product_units || !product_owner_id) {
+        alert('Missing required parameters. Please check your input.');
+        return;
+    }
+
+    // Step 5: AJAX request to initialize WooCommerce payment
+    $.ajax({
+        url: Wo_Ajax_Requests_File() + '?f=payment',
+        type: 'POST',
+        data: {
+            product_name: product_name,
+            wow_post_id: wow_post_id,
+            product_price: product_price,
+            product_units: product_units,
+            wow_currency_code: wow_currency_code,
+            amount: amount,
+            product_owner_id: product_owner_id,
+            transaction_kind: transaction_kind,
+            payment_type: 'wow_payment',
+            user_id: user_id,
+            username: username,
+            address_id: address_id,
+            hash_id: '<?php echo Wo_CreateSession();?>'
+        },
+        success: function(data) {
+            console.log("AJAX request successful");
+            console.log("Server Response:", data); // Log the full server response
+
+            // Validate the response structure
+            if (data && data.status === 200 && data.url) {
+                console.log("Redirecting to:", data.url);
+                window.location.href = data.url; // Redirect to the payment URL
+            } else {
+                console.error("Invalid Response:", data);
+                alert(data.message || 'Error initializing WooCommerce payment');
+            }
+        },
+    });
+}
+
+
+
+
 // register comment like
 function Wo_RegisterCommentLike(comment_id) {
   var comment = $('[id=comment_' + comment_id + ']');
@@ -1802,7 +2248,7 @@ function Wo_LoadMoreUserProducts(user_id){
 function Wo_OpenBannedMenu(type = 'notification'){
   if (type == 'notification') {
     $('.turn-off-sound').remove();
-    $('#notification-list').html("<div class='empty_state'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'><path d='M18.586 20H4a.5.5 0 0 1-.4-.8l.4-.533V10c0-1.33.324-2.584.899-3.687L1.393 2.808l1.415-1.415 19.799 19.8-1.415 1.414L18.586 20zM6.408 7.822A5.985 5.985 0 0 0 6 10v8h10.586L6.408 7.822zM20 15.786l-2-2V10a6 6 0 0 0-8.99-5.203L7.56 3.345A8 8 0 0 1 20 10v5.786zM9.5 21h5a2.5 2.5 0 1 1-5 0z' fill='currentColor'/></svg><?php echo($wo['lang']['your_notifications_because_you_were_banned']); ?></div>");
+    $('#notification-list').html("<div class='empty_state'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'><path d='M18.586 20H4a.5.5 0 0 1-.4-.8l.4-.533V10c0-1.33.324-2.584.899-3.687L1.393 2.808l1.415-1.415 19.799 19.8-1.415 1.414L18.586 20zM6.408 7.822A5.985 5.985 0 0 0 6 10v8h10.586L6.408 7.822zM20 15.786l2-2V10a6 6 0 0 0-8.99-5.203L7.56 3.345A8 8 0 0 1 20 10v5.786zM9.5 21h5a2.5 2.5 0 1 1-5 0z' fill='currentColor'/></svg><?php echo($wo['lang']['your_notifications_because_you_were_banned']); ?></div>");
   }
   else if(type == 'message'){
     $('#messages-list').html("<div class='empty_state'><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'><path d='M6.455 19L2 22.5V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.455zM4 18.385L5.763 17H20V5H4v13.385zM13.414 11l2.475 2.475-1.414 1.414L12 12.414 9.525 14.89l-1.414-1.414L10.586 11 8.11 8.525l1.414-1.414L12 9.586l2.475-2.475 1.414 1.414L13.414 11z' fill='currentColor'/></svg><?php echo($wo['lang']['your_messages_because_you_were_banned']); ?></div>");
@@ -1853,5 +2299,11 @@ window.addEventListener('scroll', function() {
       videoElement.pause();
     }
   }
+});
+
+// Listen for the modal close event
+$('#buy_product_modal').on('hidden.bs.modal', function () {
+    // Refresh the page when the modal is closed
+    location.reload();
 });
 </script>

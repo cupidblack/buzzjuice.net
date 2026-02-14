@@ -19,7 +19,7 @@
 				</div>
 				<span class="<?php echo Wo_RightToLeft('pull-right');?> pointer status" onclick="Wo_AddGChatPart(<?php echo $wo['group']['group_id']; ?>,<?php echo $wo['part']['id']; ?>);">
 					<?php if ($wo['group']['owner']): ?>
-						<?php if (Wo_IsGChatMemeberExists($wo['group']['group_id'],$wo['part']['id'])): ?>
+						<?php if (Wo_IsGChatMemberExists($wo['group']['group_id'],$wo['part']['id'])): ?>
 							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="red" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>
 						<?php else: ?>
 							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="green" d="M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" /></svg>

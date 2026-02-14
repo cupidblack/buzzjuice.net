@@ -707,7 +707,7 @@ function getWeekdayForecast(offset) {
         }
       });
     }
-   $(function() {
+    $(function() {
      $('form.invite-user-form').ajaxForm({
        url: Wo_Ajax_Requests_File() + '?f=invite_user',
        beforeSend: function() {
@@ -756,11 +756,13 @@ function scrollContent(direction) {
     });
 }
 
-
+/*BlueCrownR&D
 $(document).ready(function(){
-  $('.wo_pro_users').slick({
-	  slidesToShow: 4,
-	  autoplay: false,
+  $('.wo_pro_users1').slick({
+	  centerMode: true,
+	  centerPadding: '1px',
+	  slidesToShow: 2,
+	  autoplay: true,
 	  autoplaySpeed: 2000,
 	  arrows: false,
 	  speed: 900,
@@ -772,6 +774,8 @@ $(document).ready(function(){
       breakpoint: 992,
       settings: {
         arrows: false,
+        centerMode: true,
+        centerPadding: '40px',
         slidesToShow: 5
       }
     },
@@ -779,6 +783,8 @@ $(document).ready(function(){
       breakpoint: 768,
       settings: {
         arrows: false,
+        centerMode: true,
+        centerPadding: '40px',
         slidesToShow: 4
       }
     },
@@ -786,13 +792,17 @@ $(document).ready(function(){
       breakpoint: 520,
       settings: {
         arrows: false,
-		slidesToShow: 3
+        centerMode: true,
+        centerPadding: '40px',
+        slidesToShow: 3
       }
     },
     {
       breakpoint: 420,
       settings: {
         arrows: false,
+        centerMode: true,
+        centerPadding: '40px',
         slidesToShow: 2
       }
     },
@@ -800,10 +810,13 @@ $(document).ready(function(){
       breakpoint: 340,
       settings: {
         arrows: false,
+        centerMode: true,
+        centerPadding: '40px',
         slidesToShow: 1
       }
     }
   ]
   });
 });
+*/
 </script>

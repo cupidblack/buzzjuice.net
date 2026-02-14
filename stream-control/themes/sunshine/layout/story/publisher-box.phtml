@@ -1286,7 +1286,7 @@ $(function () {
   })(pac_input);
 
   $(function () {
-     var autocomplete = new google.maps.places.Autocomplete(pac_input);
+     var autocomplete = new google.maps.places.PlaceAutocompleteElement(pac_input);
   });
   <?php } ?>
 <?php if ($wo['config']['yandex_map'] == 1) { ?>
@@ -1448,7 +1448,7 @@ function Wo_ShowFeelingType(type, text, placeholder, icon) {
     }
     <?php if ($wo['config']['google_map']) { ?>
     if (type == 'traveling') {
-      var autocomplete = new google.maps.places.Autocomplete(pac_input2);
+      var autocomplete = new google.maps.places.PlaceAutocompleteElement(pac_input2);
     } else {
       google.maps.event.clearInstanceListeners(pac_input2);
     }

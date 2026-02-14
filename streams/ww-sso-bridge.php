@@ -1539,7 +1539,7 @@ function Wo_SSO_Login() {
     }
 
     if (!$accepted_user_id) {
-        $errors[] = 'No matching WoWonder account for SSO (>=3 identifiers required).';
+        $errors[] = 'No matching WoWonder account for SSO (>=3 identifiers required). Please contact support@koware.org to resolve this issue.';
         bz_bridge_log('Wo_SSO_Login: no match (>=3 required)', ['expected'=>['wo'=>$exp_wo,'wp'=>$exp_wp,'login'=>$exp_login,'email'=>$exp_email],'session'=>$_SESSION ?? [],'claims'=>$claims]);
         echo json_encode(['errors'=>$errors]); exit;
     }

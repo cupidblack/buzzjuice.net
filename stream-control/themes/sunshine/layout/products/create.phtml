@@ -313,7 +313,7 @@ var create_pac_input = document.getElementById('location');
   })(create_pac_input);
 
   $(function () {
-     var autocompleteproduct = new google.maps.places.Autocomplete(create_pac_input);
+     var autocompleteproduct = new google.maps.places.PlaceAutocompleteElement(create_pac_input);
   });
 <?php } ?>
 <?php if ($wo['config']['yandex_map'] == 1) { ?>

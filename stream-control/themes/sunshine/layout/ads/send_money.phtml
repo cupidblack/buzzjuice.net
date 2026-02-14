@@ -9,12 +9,12 @@
 			<div class="modal-body">
 				<form class="form" id="send-money-form" autocomplete="off">
 					<div id="send-money-form-alert">
-						<?php if ($wo['user']['wallet'] == '0.00' || $wo['user']['wallet'] == '0'): ?>
-							<div class="alert alert-warning">
-								<?php echo $wo['lang']['balance_is_0'] ?> <a href="<?php echo Wo_SeoLink('index.php?link1=wallet'); ?>"><?php echo $wo['lang']['top_up'] ?></a>
-							</div>
+						<?php if (isset($wo['user']) && isset($wo['user']['wallet']) && ($wo['user']['wallet'] == '0.00' || $wo['user']['wallet'] == '0')): ?>
+						    <div class="alert alert-warning">
+						        <?php echo $wo['lang']['balance_is_0'] ?> <a href="<?php echo Wo_SeoLink('index.php?link1=wallet'); ?>"><?php echo $wo['lang']['top_up'] ?></a>
+						    </div>
 						<?php else: ?>  
-							<div class="alert alert-info"><?php echo $wo['lang']['u_send_money']; ?></div>
+						    <div class="alert alert-info"><?php echo $wo['lang']['u_send_money']; ?></div>
 						<?php endif; ?>
 					</div>
 					<div class="wow_snd_money_form text-center">
@@ -39,7 +39,8 @@
 					</div>
 					<p></p>
 					<div class="text-center">
-						<button type="submit" class="btn btn-main btn-mat btn-mat-raised add_wow_loader" <?php echo ($wo['user']['wallet'] == '0.00' || $wo['user']['wallet'] == '0') ? 'disabled' : ''; ?>>
+						<button type="submit" class="btn btn-main btn-mat btn-mat-raised add_wow_loader" 
+						    <?php echo (isset($wo['user']) && isset($wo['user']['wallet']) && ($wo['user']['wallet'] == '0.00' || $wo['user']['wallet'] == '0')) ? 'disabled' : ''; ?>>
 							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M0.41,13.41L6,19L7.41,17.58L1.83,12M22.24,5.58L11.66,16.17L7.5,12L6.07,13.41L11.66,19L23.66,7M18,7L16.59,5.58L10.24,11.93L11.66,13.34L18,7Z"></path></svg> <?php echo $wo['lang']['continue'];?>
 						</button>
 					</div>

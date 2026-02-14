@@ -1,3 +1,9 @@
+<?php
+// INSERT at top of file (add only once).
+// Require shared subscription helpers (adjust path if your webroot differs).
+require_once $_SERVER['DOCUMENT_ROOT'] . '/shared/subscription-check.php'; //BlueCrownR&D
+?>
+
 <div class="modal fade" id="verify_code" role="dialog">
 	<div class="modal-dialog modal-md wow_mat_mdl">
 		<div class="modal-content">
@@ -83,7 +89,7 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<div class="ball-pulse"><div></div><div></div><div></div></div>
+					<div class="ball-pulse"><div></div><div></div></div>
 					<button id="verify_email_phone_form_btn" type="submit" class="btn btn-main"><?php echo $wo['lang']['send']; ?></button>
 				</div>
 			</form>
@@ -255,13 +261,37 @@ if ($wo['setting_page'] == 'addresses' && $wo['config']['store_system'] == 'on')
     }
 }
 if ($wo['setting_page'] == 'tiers' && $wo['config']['website_mode'] == 'patreon') {
-	$wo['tiers_html'] = '';
-    $wo['tiers'] = $db->where('user_id',$wo['setting']['user_id'])->orderBy('id','DESC')->get(T_USER_TIERS);
-    if (!empty($wo['tiers'])) {
-        foreach ($wo['tiers'] as $key => $wo['tier']) {
-            $wo['tiers_html'] .= Wo_LoadPage("setting/includes/tiers_list");
-        }
-    }
+	//BlueCrownR&D: Restrict tiers UI to owner or admin, and require Pro for owner management
+	$show_tiers = false;
+	// Admins always see tiers management
+	if (!empty($wo['is_admin']) && $wo['is_admin'] === true) {
+		$show_tiers = true;
+	}
+	// If current viewer is the settings owner
+	if ($wo['setting']['user_id'] == $wo['user']['user_id']) {
+		// Owner must be Pro to manage tiers
+		if (bz_is_premium($wo['user'])) {
+			$show_tiers = true;
+		}
+	} else {
+		// Non-owner: allow viewing tiers if target user has tiers (is monetized/pro)
+		if (bz_is_premium($wo['setting']['user_id'])) {
+			$show_tiers = true;
+		}
+	}
+
+	if ($show_tiers) {
+	    $wo['tiers_html'] = '';
+	    $wo['tiers'] = $db->where('user_id',$wo['setting']['user_id'])->orderBy('id','DESC')->get(T_USER_TIERS);
+	    if (!empty($wo['tiers'])) {
+	        foreach ($wo['tiers'] as $key => $wo['tier']) {
+	            $wo['tiers_html'] .= Wo_LoadPage("setting/includes/tiers_list");
+	        }
+	    }
+	} else {
+	    // Show soft-upgrade message (read-only view is blocked)
+	    $wo['tiers_html'] = '<div class="alert alert-info">Creator tiers are available to Pro members. <a href="' . Wo_SeoLink('index.php?link1=go-pro') . '">Upgrade to unlock tiers & patron tools</a></div>'; //BlueCrownR&D
+	}
 }
 if ($wo['setting_page'] == 'experience') {
 	$wo['experience_html'] = '';
@@ -273,14 +303,38 @@ if ($wo['setting_page'] == 'experience') {
     }
 }
 
+//BlueCrownR&D
 if ($wo['setting_page'] == 'monetization' && $wo['config']['monetization'] == 1) {
-    $wo['monetization_html'] = '';
-    $wo['monetization'] = '';
-    $wo['monetizations'] = $db->where('user_id',$wo['setting']['user_id'])->orderBy('id','DESC')->get(T_USER_MONETIZATION);
-    if (!empty($wo['monetizations'])) {
-        foreach ($wo['monetizations'] as $key => $wo['monetization']) {
-            $wo['monetization_html'] .= Wo_LoadPage("setting/includes/monetization_list");
+    //BlueCrownR&D: Restrict monetization dashboard to owner (pro) or admin. Non-owners see soft message.
+    $show_monetization = false;
+
+    if (!empty($wo['is_admin']) && $wo['is_admin'] === true) {
+        $show_monetization = true;
+    }
+
+    if ($wo['setting']['user_id'] == $wo['user']['user_id']) {
+        // If the settings owner is viewing their own monetization, they must be Pro to manage it
+        if (bz_is_premium($wo['user'])) {
+            $show_monetization = true;
         }
+    } else {
+        // If a different user is viewing, allow only if the target user is Pro (readonly or management by admin)
+        if (bz_is_premium($wo['setting']['user_id'])) {
+            $show_monetization = true;
+        }
+    }
+
+    if ($show_monetization) {
+        $wo['monetization_html'] = '';
+        $wo['monetization'] = '';
+        $wo['monetizations'] = $db->where('user_id',$wo['setting']['user_id'])->orderBy('id','DESC')->get(T_USER_MONETIZATION);
+        if (!empty($wo['monetizations'])) {
+            foreach ($wo['monetizations'] as $key => $wo['monetization']) {
+                $wo['monetization_html'] .= Wo_LoadPage("setting/includes/monetization_list");
+            }
+        }
+    } else {
+        $wo['monetization_html'] = '<div class="alert alert-info">Monetization tools are available to Pro members. <a href="' . Wo_SeoLink('index.php?link1=go-pro') . '">Upgrade to enable monetization</a></div>'; //BlueCrownR&D
     }
 }
 if ($wo['setting_page'] == 'certifications') {

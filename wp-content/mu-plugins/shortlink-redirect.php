@@ -1,9 +1,15 @@
 <?php
+// *******************************************************
+// ***** UPDATE PERMALINKS AFTER MODIFYING THIS FILE *****
+// *******************************************************
+
 // 1. Add rewrite rules
 add_action('init', function () {
 
     // Existing shortlink
     add_rewrite_rule('^r/hs1/?$', 'index.php?shortlink=hs1', 'top');
+
+    add_rewrite_rule('^subscribe/?$', 'index.php?shortlink=subscribe', 'top');
 
     // Custom shortlink — escape @ in regex
     add_rewrite_rule('^dry80/?$', 'index.php?shortlink=dry80', 'top');
@@ -31,6 +37,7 @@ add_action('template_redirect', function () {
         'hs1'       => 'https://buzzjuice.net/course/registration-orientation/?utm_source=telegram&utm_medium=pdf&utm_campaign=hs_diploma_launch',
         'dry80'     => 'https://docs.google.com/forms/d/e/1FAIpQLSdIENspBqltfxUq4uawzQS7gm_wWkSTcLimeIhMR7j0qPMKaw/viewform',
         'telegram'  => 'https://t.me/+IuV7FS16Xjw5NDdk', // Telegram invite
+        'subscribe'       => 'https://buzzjuice.net/streams/go-pro/',
     ];
 
     // If matched, redirect

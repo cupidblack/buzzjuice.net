@@ -1,3 +1,79 @@
+<?php
+/**
+ * BlueCrownR&D SSO: Last URL Capture & Redirect
+ * - Captures last_url from GET or REFERER
+ * - Validates it's same-site or /streams/*
+ * - Logs all steps for debugging
+ * - Stores last_url in a cookie
+ * - Redirects to SSO bridge with last_url
+ */
+/*BlueCrownR&D*/
+$debug_log_path = __DIR__ . '/../../../sso_debug.log'; // set to an absolute path you have write access to
+
+function sso_debug_log($msg, $ctx = []) {
+    $log_path = !empty($GLOBALS['debug_log_path']) ? $GLOBALS['debug_log_path'] : __DIR__ . '/../../../sso_debug.log';
+    if (empty($log_path)) return; // do nothing if still empty
+    $line = '[' . gmdate('Y-m-d H:i:s') . '] content.phtml ' . $msg . ' | ' . json_encode($ctx, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) . "\n";
+    @file_put_contents($log_path, $line, FILE_APPEND);
+}
+
+if (!empty($wo['config']['wordpressLogin']) && $wo['config']['wordpressLogin'] != 0) {
+    if (!empty($wo['WordpressLoginUrl'])) {
+
+        // 1. Capture last_url
+        $candidate_last = '';
+        if (!empty($_GET['last_url'])) {
+            $candidate_last = urldecode($_GET['last_url']);
+            sso_debug_log('Got last_url from GET', ['last_url' => $candidate_last]);
+        } elseif (!empty($_SERVER['HTTP_REFERER'])) {
+            $candidate_last = $_SERVER['HTTP_REFERER'];
+            sso_debug_log('Got last_url from REFERER', ['last_url' => $candidate_last]);
+        }
+
+        // 2. Validate & Normalize
+        $site_base = rtrim($wo['config']['site_url'], '/');
+        $final_last = '';
+        if ($candidate_last) {
+            $candidate_last = trim($candidate_last);
+            // If relative path, make absolute
+            if (strpos($candidate_last, 'http://') !== 0 && strpos($candidate_last, 'https://') !== 0 && strpos($candidate_last, '/') === 0) {
+                $candidate_abs = $site_base . $candidate_last;
+            } else {
+                $candidate_abs = $candidate_last;
+            }
+            if ($candidate_abs && strpos($candidate_abs, $site_base) === 0) {
+                $final_last = $candidate_abs;
+                sso_debug_log('Validated last_url as same-site', ['final_last' => $final_last]);
+            } else {
+                $p = parse_url($candidate_last, PHP_URL_PATH) ?: '';
+                if ($p && strpos($p, '/streams') === 0) {
+                    $final_last = (strpos($candidate_last, 'http') === 0) ? $candidate_last : $site_base . $p;
+                    sso_debug_log('Validated last_url as /streams path', ['final_last' => $final_last]);
+                } else {
+                    sso_debug_log('Rejected invalid last_url', ['candidate_last' => $candidate_last]);
+                }
+            }
+        }
+
+        // 3. Store in cookie for redundancy
+        if ($final_last) {
+            setcookie('last_url', $final_last, time() + 600, '/streams', '', false, true);
+        } else {
+            setcookie('last_url', '', time() - 3600, '/streams');
+        }
+
+        // 4. Redirect to SSO bridge
+        $redirectUrl = $wo['WordpressLoginUrl'];
+        if ($final_last) {
+            $redirectUrl .= (strpos($redirectUrl, '?') !== false ? '&' : '?') . 'last_url=' . rawurlencode($final_last);
+        }
+        sso_debug_log('Redirecting user to SSO bridge', ['redirectUrl' => $redirectUrl]);
+        header("Location: " . $redirectUrl);
+        exit();
+    }
+}
+?>
+
 <div class="wrapper">
    <div class="login">
       <div class="login_left_combo_parent">

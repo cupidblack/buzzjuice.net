@@ -38,7 +38,7 @@
 							<p class="show_fnd_stats"><span class="main"><?php echo $wo['fund']['all_donation']; ?></span> <?php echo $wo['lang']['total_donations'];?></p>
 						
 							<div class="fund_raise_btns">
-								<?php if ($wo['user']['id'] != $wo['fund']['user_id'] && $wo['fund']['amount'] > $wo['fund']['raised']) { ?>
+								<?php if (($wo['user']['id'] ?? 0) != ($wo['fund']['user_id'] ?? 0) && ($wo['fund']['amount'] ?? 0) > ($wo['fund']['raised'] ?? 0)) { ?>
 									<button type="button" class="btn btn-main btn-mat" data-toggle="modal" data-target="#dont_modal"><?php echo $wo['lang']['donate']; ?></button>
 								<?php } ?>
 								<div class="dropdown">
@@ -99,15 +99,15 @@
 				<div class="fund">
 					<div class="fluid list">
 						<?php if ($wo['recent']) { foreach ($wo['recent'] as $key => $user) { ?>
-							<div class="item fund_item" data-recent="<?php echo($user['id']) ?>">
+							<div class="item fund_item" data-recent="<?php echo($user['id'] ?? 0) ?>">
 								<div class="wrapper">
-									<img class="img-circle" src="<?php echo($user['user_data']['avatar']) ?>" alt="Picture" />
+									<img class="img-circle" src="<?php echo($user['user_data']['avatar'] ?? 'default-avatar.png') ?>" alt="Picture" />
 								</div>
 								<div class="caption">
-									<a href="<?php echo($user['user_data']['url']) ?>" data-ajax="?link1=timeline&u=<?php echo($user['user_data']['username']) ?>"><?php echo $user['user_data']['name']; ?></a>
+									<a href="<?php echo($user['user_data']['url'] ?? '#') ?>" data-ajax="?link1=timeline&u=<?php echo($user['user_data']['username'] ?? '') ?>"><?php echo $user['user_data']['name'] ?? 'Unknown User'; ?></a>
 									<p>
-										<?php echo $wo['config']['currency_symbol_array'][$wo['config']['currency']].$user['amount']; ?><span class="middot">·</span>
-										<time class="time-ago"><?php echo(Wo_Time_Elapsed_String($user['time'])); ?></time>
+										<?php echo $wo['config']['currency_symbol_array'][$wo['config']['currency']].($user['amount'] ?? 0); ?><span class="middot">·</span>
+										<time class="time-ago"><?php echo(Wo_Time_Elapsed_String($user['time'] ?? time())); ?></time>
 									</p>
 								</div>
 							</div>
@@ -142,3 +142,15 @@
 		</div>
 	</div>
 </div>
+
+<script>
+    // Only execute this script on the checkout page
+    if (window.location.pathname.includes('/show_fund/') && !window.location.href.includes('nocache')) {
+        const siteUrl = '<?php echo $wo["config"]["site_url"]; ?>'; // Get the site URL from the PHP configuration
+        const currentUrl = window.location.href;
+
+        // Append the 'nocache' parameter to force reload
+        const newUrl = currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'nocache=' + new Date().getTime();
+        window.location.href = newUrl;
+    }
+</script>

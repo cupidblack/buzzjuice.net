@@ -1,4 +1,12 @@
 <?php
+/*BlueCrownR&D*/
+if (!empty($wo['config']['wordpressLogin']) && $wo['config']['wordpressLogin'] != 0) {
+    header("Location: " . "https://weblink.local/buzzjuice.net/register/");
+    exit();
+}
+?>
+
+<?php
 $fields = Wo_GetWelcomeFileds();
 ?>
 <div class="wrapper">
@@ -18,7 +26,7 @@ $fields = Wo_GetWelcomeFileds();
 		<div class="col-md-6">
 			<div class="login_innre">
 				<form id="register" method="post">
-					<p class="title"><?php echo $wo['lang']['register']?> 🚀</p>
+					<p class="title"><?php echo $wo['lang']['register']?> ðŸš€</p>
 					
 					<p class="desc"><?php echo $wo['lang']['if_you_have_account']?> <a class="dec main" href="<?php echo $wo['config']['site_url'];?>"><?php echo $wo['lang']['login_here']?></a></p>
 					

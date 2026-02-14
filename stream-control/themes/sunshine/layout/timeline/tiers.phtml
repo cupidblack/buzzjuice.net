@@ -1,4 +1,60 @@
 <?php
+// Add shared subscription helpers so we can check Pro status and use upgrade helpers.
+// Path uses the shared folder you've placed helpers in.
+require_once $_SERVER['DOCUMENT_ROOT'] . '/shared/subscription-check.php';
+
+// Determine viewer and profile/target owner IDs in a robust way.
+// Different templates use slightly different $wo keys; we try common fallbacks.
+$viewer   = $wo['user'] ?? null;
+$viewer_id = intval($viewer['user_id'] ?? $viewer['id'] ?? 0);
+$target_user_id = null;
+if (isset($wo['setting']['user_id'])) {
+    $target_user_id = intval($wo['setting']['user_id']);
+} elseif (isset($wo['page_profile']['page_id']) && isset($wo['page_profile']['user_id'])) {
+    $target_user_id = intval($wo['page_profile']['user_id']);
+} elseif (isset($wo['profile']['user_id'])) {
+    $target_user_id = intval($wo['profile']['user_id']);
+} elseif (isset($wo['user']['id'])) {
+    // fallback: current user context
+    $target_user_id = intval($wo['user']['id']);
+}
+
+$is_owner = ($viewer_id > 0 && $target_user_id > 0 && $viewer_id === $target_user_id);
+
+// Policy applied here:
+// - Admins and root user (id=1) are considered premium by bz_is_premium() helper.
+// - By default we require Pro to access the tiers UI when viewing other users.
+// - Owners may get a different UX: we show a clear upsell if they are not Pro but still allow them to see the UI
+//   (useful for configuring own profile). If you prefer to require Pro even for owners, change the condition below.
+
+$viewer_is_premium = bz_is_premium($viewer);
+
+// If the viewer is not the owner and they are not premium, show an upsell and stop rendering.
+if (! $is_owner && ! $viewer_is_premium) {
+    echo '<div class="premium-upsell alert alert-info" style="margin:12px 0;">';
+    echo '<h4 style="margin:0 0 6px 0;">Profile tiers & verification</h4>';
+    echo '<p style="margin:0 6px 6px 0;">Profile tiers and verification badges are available to Pro members. <a href="' . Wo_SeoLink('index.php?link1=go-pro') . '">Upgrade to Pro</a> to unlock these features.</p>';
+    echo '</div>';
+    return;
+}
+
+// If viewer is the owner and not premium, show a gentle call-to-upgrade but allow viewing/editing.
+// If you want to require Pro for owners too, change this to block the UI similar to the non-owner block above.
+if ($is_owner && ! $viewer_is_premium) {
+    echo '<div class="alert alert-warning small" style="margin:8px 0;">';
+    echo 'Tiers and monetization features require a Pro subscription to fully enable. You can preview your tiers here but to activate paid tiers and withdrawals upgrade to <a href="' . Wo_SeoLink('index.php?link1=go-pro') . '">Pro</a>.';
+    echo '</div>';
+}
+
+// At this point: either the viewer is premium OR the viewer is the owner (possibly not-pro).
+// Render the original tiers UI below (keep the existing markup / logic).
+?>
+
+<?php
+// ----- Original template content continues -----
+// (This portion is the original tiers.phtml content; preserved with only the header/guard added above)
+
+// Ensure we open PHP here for the rest of the original file content.
 $IsOwner       = Wo_IsOnwer($wo['user_profile']['user_id']);
 $IsOwnerUser   = Wo_IsOnwerUser($wo['user_profile']['user_id']);
 
@@ -885,54 +941,5 @@ if ($wo['loggedin'] && $IsOwnerUser) {
 			<?php echo Wo_LoadPage('footer/sidebar-footer')?>
 		</div>
 	</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 </div>

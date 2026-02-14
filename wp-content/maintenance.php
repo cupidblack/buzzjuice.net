@@ -24,10 +24,10 @@ header('Retry-After: 600');
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <link rel="icon" href="https://buzzjuice.net/wp-content/uploads/2025/05/cropped-icons8-bee-windows-metro-72-32x32.png">
-    <link rel="stylesheet" href="https://buzzjuice.net/wp-content/maintenance/assets/styles.css?1759289336">
-    <script src="https://buzzjuice.net/wp-content/maintenance/assets/timer.js?1759289336"></script>
+    <link rel="stylesheet" href="https://buzzjuice.net/wp-content/maintenance/assets/styles.css?1770347233">
+    <script src="https://buzzjuice.net/wp-content/maintenance/assets/timer.js?1770347233"></script>
     <title>Scheduled Maintenance</title>
-    <style>body {background-image: url("https://buzzjuice.net/wp-content/maintenance/assets/images/bg.jpg?1759289336");}</style>
+    <style>body {background-image: url("https://buzzjuice.net/wp-content/maintenance/assets/images/bg.jpg?1770347233");}</style>
 </head>
 
 <body>
@@ -45,13 +45,13 @@ header('Retry-After: 600');
     <!--START_SOCIAL_LINKS_BLOCK-->
     <section class="social-links">
                     <a class="social-links__link" href="https://www.facebook.com/cPanel" target="_blank" title="Facebook">
-                <span class="icon"><img src="https://buzzjuice.net/wp-content/maintenance/assets/images/facebook.svg?1759289336" alt="Facebook"></span>
+                <span class="icon"><img src="https://buzzjuice.net/wp-content/maintenance/assets/images/facebook.svg?1770347233" alt="Facebook"></span>
             </a>
                     <a class="social-links__link" href="https://x.com/cPanel" target="_blank" title="Twitter">
-                <span class="icon"><img src="https://buzzjuice.net/wp-content/maintenance/assets/images/twitter.svg?1759289336" alt="Twitter"></span>
+                <span class="icon"><img src="https://buzzjuice.net/wp-content/maintenance/assets/images/twitter.svg?1770347233" alt="Twitter"></span>
             </a>
                     <a class="social-links__link" href="https://instagram.com/cPanel" target="_blank" title="Instagram">
-                <span class="icon"><img src="https://buzzjuice.net/wp-content/maintenance/assets/images/instagram.svg?1759289336" alt="Instagram"></span>
+                <span class="icon"><img src="https://buzzjuice.net/wp-content/maintenance/assets/images/instagram.svg?1770347233" alt="Instagram"></span>
             </a>
             </section>
     <!--END_SOCIAL_LINKS_BLOCK-->

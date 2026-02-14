@@ -1,4 +1,5 @@
 <div class="page-margin" itemscope itemtype="http://schema.org/BlogPosting">
+																	 
 	<div class="wow_read_blog_hdr_img">
 		<img src="<?php echo($wo['article']['thumbnail']); ?>" class="wow_main_float_head_img">
 		<div class="wow_read_blog_hdr_img_share">
@@ -42,20 +43,33 @@
 		</div>
 		<div class="wow_read_blog_hdr_img_innr">
 			<div class="container">
-				<a class="btn btn-mat postCategory" href="<?php echo $wo['article']['category_link']; ?>" data-ajax="?link1=blog-category&id=<?php echo $wo['article']['category']; ?>"><?php echo $wo['blog_categories'][$wo['article']['category']]; ?></a>
+				<a class="btn btn-mat postCategory" href="<?php echo $wo['article']['category_link']; ?>" data-ajax="?link1=blog-category&id=<?php echo $wo['article']['category']; ?>">
+					<?php echo $wo['blog_categories'][$wo['article']['category']]; ?>
+				</a>
 				<h2 itemprop="headline"><?php echo $wo['article']['title']?></h2>
+				
 				<div class="read-blog-info-user">
+												
 					<div class="user-name <?php echo Wo_RightToLeft('pull-right'); ?>">
+														 																													
 						<a href="<?php echo $wo['article']['url']; ?>#respond" class="metaLink"><?php echo Wo_GetBlogCommentsCount($wo['article']['id']); ?> <?php echo $wo['lang']['comments'];?></a>
+					
 						<span class="middot">·</span>
+													
+													
 						<span class="views"><?php echo $wo['article']['view']?> <?php echo $wo['lang']['views']?></span>
+						 
 					</div>
+												 
 					<div class="postMeta--author-avatar">
 						<a href="<?php echo $wo['article']['author']['url']?>"><img src="<?php echo $wo['article']['author']['avatar']?>" alt="User Image"></a>
 					</div>
 					<div class="postMeta--author-text">
-						<a rel="author" href="<?php echo $wo['article']['author']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['article']['author']['username']; ?>"><?php echo $wo['article']['author']['name']; ?></a>
+						<a rel="author" href="<?php echo $wo['article']['author']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['article']['author']['username']; ?>">
+							<?php echo $wo['article']['author']['name']; ?>
+						</a>		
 						<time itemprop="datePublished" content="<?php echo date("d M Y",$wo['article']['posted']); ?>"><?php echo date("d M Y",$wo['article']['posted']); ?></time>
+																														
 					</div>
 				</div>
 			</div>
@@ -68,9 +82,25 @@
 				<div class="read-blog-head">
 					<div class="read-blog-desc">
 						<p itemprop="description"><?php echo $wo['article']['description']; ?></p>
+					
+						<!-- Audio Player -->
+                        <?php if (!empty($wo['article']['audio'])): ?>
+                            <div class="blog-audio-player" style="margin-top:20px;">
+                                <audio controls>
+                                    <source src="<?php echo $wo['config']['site_url'] . '/' . $wo['article']['audio']; ?>" type="audio/mpeg">
+                                    <?php echo 'Audio not supported'; ?>
+                                </audio>
+                            </div>
+                        <?php endif; ?>	
+                        
+                        <style> 
+                            .blog-audio-player audio {
+                                width: -webkit-fill-available;
+                            }
+                        </style>
+					
 					</div>
 				</div>
-				
 				<!-- Additional schema meta -->
 				<div itemscope="" itemprop="publisher" itemtype="http://schema.org/Organization" class="hidden">
 					<meta itemprop="name" content="<?php echo $wo['config']['siteName'];?>">
@@ -78,6 +108,25 @@
 						<meta itemprop="url" content="<?php echo $wo['config']['theme_url'];?>/img/<?php echo getSunshineLogo() ?>logo.<?php echo $wo['config']['logo_extension'];?>">
 						<meta itemprop="width" content="470">
 						<meta itemprop="height" content="75">
+																																
+							
+						
+
+															
+																																																																														
+													 
+																																		
+							
+																									
+						
+
+														
+																																																																												
+												 
+																							 
+							
+																							 
+						
 					</div>
 				</div>
 				
@@ -94,7 +143,7 @@
 					<?php echo nofollow(htmlspecialchars_decode($wo['article']['content'])); ?>
 					<div class="clear"></div>
 				</div>
-              
+
 				<div class="read-tags">
 					<?php if (is_array($wo['article']['tags_array'])) {
 						foreach ($wo['article']['tags_array'] as $key => $tag) {
@@ -114,7 +163,8 @@
 			<div class="page-margin wow_content blog-com-wrapper" id="respond">
 				<div class="wo_page_hdng">
 					<div class="wo_page_hdng_innr">
-						<span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9,22A1,1 0 0,1 8,21V18H4A2,2 0 0,1 2,16V4C2,2.89 2.9,2 4,2H20A2,2 0 0,1 22,4V16A2,2 0 0,1 20,18H13.9L10.2,21.71C10,21.9 9.75,22 9.5,22V22H9Z"></path></svg></span> <?php echo Wo_GetBlogCommentsCount($wo['article']['id']); ?>  <?php echo $wo['lang']['comments'];?>
+						<span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9,22A1,1 0 0,1 8,21V18H4A2,2 0 0,1 2,16V4C2,2.89 2.9,2 4,2H20A2,2 0 0,1 22,4V16A2,2 0 0,1 20,18H13.9L10.2,21.71C10,21.9 9.75,22 9.5,22V22H9Z"></path></svg></span> 
+						<?php echo Wo_GetBlogCommentsCount($wo['article']['id']); ?>  <?php echo $wo['lang']['comments'];?>																																									 
 					</div>
 				</div>
                 <div class="blog-com-box">

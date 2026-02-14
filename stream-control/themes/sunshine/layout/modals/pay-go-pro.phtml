@@ -25,12 +25,57 @@
 <div class="modal fade wow_mat_pops" id="pay-go-pro" role="dialog" data-keyboard="false">
 	<div class="modal-dialog payment_box">
 		<div class="modal-content">
-			<div class="wow_pops_head">
-				<svg height="100px" preserveAspectRatio="none" version="1.1" viewBox="0 0 300 100" width="300px" xmlns="http://www.w3.org/2000/svg"><path d="M30.913,43.944c0,0,42.911-34.464,87.51-14.191c77.31,35.14,113.304-1.952,146.638-4.729 c48.654-4.056,69.94,16.218,69.94,16.218v54.396H30.913V43.944z" fill="currentColor" opacity="0.6"></path> <path d="M-35.667,44.628c0,0,42.91-34.463,87.51-14.191c77.31,35.141,113.304-1.952,146.639-4.729 c48.653-4.055,69.939,16.218,69.939,16.218v54.396H-35.667V44.628z" fill="currentColor" opacity="0.6"></path> <path d="M-34.667,62.998c0,0,56-45.667,120.316-27.839C167.484,57.842,197,41.332,232.286,30.428 c53.07-16.399,104.047,36.903,104.047,36.903l1.333,36.667l-372-2.954L-34.667,62.998z" fill="currentColor"></path></svg>
-				<h4><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"></path></svg> <?php echo $wo['lang']['choose_a_payment_method'] ?></h4>
+
+			<div class="popup-modal-header">
+				<div class="ch_payment_head">
+						
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12,13A5,5 0 0,1 7,8H9A3,3 0 0,0 12,11A3,3 0 0,0 15,8H17A5,5 0 0,1 12,13M12,3A3,3 0 0,1 15,6H9A3,3 0 0,1 12,3M19,6H17A5,5 0 0,0 12,1A5,5 0 0,0 7,6H5C3.89,6 3,6.89 3,8V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V8C21,6.89 20.1,6 19,6Z"></path></svg>
+						
+					<h4>
+						<?php /*
+							// Ensure the variables are defined before use
+							$currency_symbol = isset($wo['config']['currency_symbol_array']) && isset($wo['config']['currency']) 
+								? $wo['config']['currency_symbol_array'][$wo['config']['currency']] 
+								: ''; 
+
+							// Convert $wo['total'] to a numeric value if it is a string
+							$total_amount = isset($wo['total']) 
+								? number_format((float)str_replace(',', '', $wo['total']), 2) 
+								: '0.00';
+
+							echo $currency_symbol . $total_amount;
+							*/
+						?>
+
+					</h4>
+
+				</div>
+
+				<div class="modal-payment-header">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+						<path fill="currentColor" d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"></path>
+					</svg>
+					<?php echo 'Choose a Payment Method' /*$wo['lang']['pay_from_wallet']*/ ?>
+				</div>
 			</div>
 			<div class="modal-body">
 				<div class="pay-go-pro-alert"></div>
+
+
+				<!--BlueCrown R&D: WoWonder WooCommerce Payment Gateway Bridge Payment Button -->
+				<?php if ($wo['config']['wow_payment'] == 'yes') { ?>
+					<button class="btn btn-woocommerce" onclick="Wo_PrepareWooCommerceLink('{pro_type}');">
+						<img src="<?php echo $wo['config']['theme_url'];?>/img/e-payment-modes.png">						
+						<?php echo 'Debit/Credit Card/ Mobile Money' /*$wo['lang']['woocommerce'] */ ?>
+					</button>
+				<?php } ?>
+
+				<?php if ($wo['config']['paystack_payment'] == 'yes') { ?>
+				<!-- Card -->
+					<button class="btn-paystack btn" onclick="pay_using_paystack('{pro_type}');">
+						<img src="<?php echo $wo['config']['theme_url'];?>/img/paystack.png"> <?php echo $wo['lang']['paystack'] ?>
+					</button>
+				<?php } ?>
 				<!-- PayPal -->
 				<?php if ($wo['config']['paypal'] == 'yes') { ?>
 				<button class="btn btn-paypal" onclick="Wo_GetPayPalLink('{pro_type}');">
@@ -77,10 +122,9 @@
 				<!-- Alipay -->
 					<button class="bank_payment btn" onclick="Wo_CheckOutCard({pro_type_id}, '{pro_type_description}', {pro_type_price}, 'bank_payment');">
 						<svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="47.001px" height="47.001px" viewBox="0 0 47.001 47.001" xml:space="preserve"><path fill="currentColor"  d="M44.845,42.718H2.136C0.956,42.718,0,43.674,0,44.855c0,1.179,0.956,2.135,2.136,2.135h42.708c1.18,0,2.136-0.956,2.136-2.135C46.979,43.674,46.023,42.718,44.845,42.718z"/><path fill="currentColor"  d="M4.805,37.165c-1.18,0-2.136,0.956-2.136,2.136s0.956,2.137,2.136,2.137h37.37c1.18,0,2.136-0.957,2.136-2.137s-0.956-2.136-2.136-2.136h-0.533V17.945h0.533c0.591,0,1.067-0.478,1.067-1.067s-0.478-1.067-1.067-1.067H4.805c-0.59,0-1.067,0.478-1.067,1.067s0.478,1.067,1.067,1.067h0.534v19.219H4.805z M37.37,17.945v19.219h-6.406V17.945H37.37zM26.692,17.945v19.219h-6.406V17.945H26.692z M9.609,17.945h6.406v19.219H9.609V17.945z"/><path fill="currentColor" d="M2.136,13.891h42.708c0.007,0,0.015,0,0.021,0c1.181,0,2.136-0.956,2.136-2.136c0-0.938-0.604-1.733-1.443-2.021l-21.19-9.535c-0.557-0.25-1.194-0.25-1.752,0L1.26,9.808c-0.919,0.414-1.424,1.412-1.212,2.396C0.259,13.188,1.129,13.891,2.136,13.891z"/></svg>
-						<?php echo $wo['lang']['bank_transfer'] ?>
+						<?php echo 'Bank Transfer or Cash Payment' /*$wo['lang']['bank_transfer']*/ ?>
 					</button>
 				<?php } ?>
-				
 				<?php if ($can_buy == true && $wo['hide'] == false) { ?>
 				<!-- Wallet -->
 					<button class="btn-walletpay btn" onclick="pay_using_wallet({pro_type_id}, '{pro_type_description}');">
@@ -95,12 +139,7 @@
 						<?php echo $wo['lang']['2checkout'] ?>
 					</button>
 				<?php } ?>
-				<?php if ($wo['config']['paystack_payment'] == 'yes') { ?>
-				<!-- Card -->
-					<button class="btn-paystack btn" onclick="pay_using_paystack('{pro_type}');">
-						<img src="<?php echo $wo['config']['theme_url'];?>/img/paystack.png"> <?php echo $wo['lang']['paystack'] ?>
-					</button>
-				<?php } ?>
+
 				<?php if ($wo['config']['cashfree_payment'] == 'yes') { ?>
 				<!-- Card -->
 					<button class="btn-cashfree btn" onclick="pay_using_cashfree('{pro_type}');">

@@ -245,7 +245,7 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
         </li>
 
         <li><a href="/courses" aria-label="Courses"><i class="fa fa-leanpub" aria-hidden="true"></i><span>Courses</span></a></li>
-        <li><a href="/streams/funding" aria-label="Collabos"><i class="fa fa-handshake-o" aria-hidden="true"></i><span>Collabos</span></a></li>
+        <li><a href="/streams/pages" aria-label="Collabos"><i class="fa fa-handshake-o" aria-hidden="true"></i><span>Collabos</span></a></li>
         <li><a href="/social" aria-label="Social"><i class="fa fa-users" aria-hidden="true"></i><span>Social</span></a></li>
     </ul>
 </div>
@@ -278,7 +278,7 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
         <a href="https://buzzjuice.net/streams/ads/create/" class="buzz-create-link"><i class="fa fa-bullhorn"></i><span>Create Ad</span></a>
         <a href="https://buzzjuice.net/streams/create-group" class="buzz-create-link"><i class="fa fa-users"></i><span>Create Group</span></a>
         <a href="https://buzzjuice.net/streams/events/create-event/" class="buzz-create-link"><i class="fa fa-calendar"></i><span>Create Event</span></a>
-        <a href="https://buzzjuice.net/streams/create-page" class="buzz-create-link"><i class="fa fa-building"></i><span>Create Business</span></a>
+        <a href="https://buzzjuice.net/streams/create-page" class="buzz-create-link"><i class="fa fa-handshake-o"></i><span>Start a Collabo</span></a>
     </div>
 
     <div class="buzz-popup-arrow" aria-hidden="true"></div>

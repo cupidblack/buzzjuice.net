@@ -2,6 +2,9 @@
 <?php if ($wo['config']['credit_card'] == 'yes') { ?>
 <script src="https://js.stripe.com/v3/"></script>
 <?php } ?>
+
+
+
 <?php if ($wo['config']['securionpay_payment'] == '1') { ?>
     <script src="https://securionpay.com/checkout.js"></script>
 <?php } ?>
@@ -25,8 +28,11 @@
 
 			<div class="my_wallet wow_mini_wallets">
 				<div>
-					<p><?php echo $wo['lang']['my_balance'];?></p>
-					<h5><?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?><?php echo number_format($wo['user']['wallet'],2);?></h5>
+					<p><?php echo $wo['lang']['my_balance']; ?></p>
+					<h5>
+						<?php echo Wo_GetCurrency($wo['config']['ads_currency']); ?>
+						<?php echo number_format((float)($wo['user']['wallet'] ?? 0), 2); ?>
+					</h5>
 				</div>
 				<div class="wow_mini_wallets_btns">
 					<button data-toggle="modal" data-target="#send_money_modal" class="btn btn-main btn-mat">
@@ -93,7 +99,7 @@
 					<div class="clear"></div>
 					<div class="wow_form_fields">
 						<label for="paystack_wallet_email"><?php echo $wo['lang']['email']; ?></label>
-						<input id="paystack_wallet_email" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['email']; ?>" value="<?php echo($wo['user']['email']) ?>">
+						<input id="paystack_wallet_email" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['email']; ?>" value="<?php echo isset($wo['user']['email']) ? $wo['user']['email'] : ''; ?>">
 					</div>
 					<div class="clear"></div>
 				</div>
@@ -120,17 +126,17 @@
 					<div class="clear"></div>
 					<div class="wow_form_fields">
 						<label for="cashfree_name"><?php echo $wo['lang']['name']; ?></label>
-						<input id="cashfree_name" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['name']; ?>" value="<?php echo($wo['user']['name']) ?>">
+						<input id="cashfree_name" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['name']; ?>" value="<?php echo isset($wo['user']['name']) ? $wo['user']['name'] : ''; ?>">
 
 					</div>
 					<div class="wow_form_fields">
 						<label for="cashfree_email"><?php echo $wo['lang']['email']; ?></label>
-						<input id="cashfree_email" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['email']; ?>" value="<?php echo($wo['user']['email']) ?>">
+						<input id="cashfree_email" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['email']; ?>" value="<?php echo isset($wo['user']['email']) ? $wo['user']['email'] : ''; ?>">
 
 					</div>
 					<div class="wow_form_fields">
 						<label for="cashfree_phone"><?php echo $wo['lang']['phone_number']; ?></label>
-						<input id="cashfree_phone" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['phone_number']; ?>" value="<?php echo($wo['user']['phone_number']) ?>">
+						<input id="cashfree_phone" type="text" autocomplete="off" placeholder="<?php echo $wo['lang']['phone_number']; ?>" value="<?php echo isset($wo['user']['phone_number']) ? $wo['user']['phone_number'] : ''; ?>">
 
 					</div>
 					<input type="hidden" name="cashfree_type" id="cashfree_type">
@@ -268,7 +274,9 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {-webkit-appe
     </div>
 </div>
 <?php } ?>
+
 <script>
+
 	<?php if ($wo['config']['payfast_payment'] == 1) { ?>
 		function pay_using_payfast() {
 			$('#pay-go-pro').modal('hide');
@@ -287,7 +295,6 @@ input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {-webkit-appe
 		        }
 		        $('.btn-payfast').removeAttr('disabled');
 			});
-
 		}
 	<?php } ?>
 	<?php if ($wo['config']['braintree_payment'] == 1) { ?>
@@ -565,8 +572,6 @@ function SignatureRazorpay() {
 	}
 	<?php } ?>
 
-
-
 	function pay_using_paystack(type) {
 		$("#paystack_wallet_alert").html('');
 		$('#pay-go-pro').modal('hide');
@@ -682,6 +687,7 @@ function SignatureRazorpay() {
 	    	$(".prv-img").html('<div class="thumbnail-rendderer"><div><h4 class="bold"><?php echo $wo['lang']['drop_img_here']; ?></h4><div class="error-text-renderer"></div><div><span><?php echo $wo['lang']['or']; ?></span><p><?php echo $wo['lang']['browse_to_upload']; ?></p></div></div> </div>');
 			$("#blog-alert").html('');
 	    	$('#bank_transfer_des').val('Add to balance');
+			$('#payment_type').val('wallet');
 	    	$('#bank_transfer_price').val($('#amount').val());
 	    	$('#pay-go-pro').modal('hide');
 	    	$('#bank_transfer_modal').modal({
@@ -701,58 +707,10 @@ function SignatureRazorpay() {
 		});
 	}
 
-	jQuery(document).ready(function($) {
 
-		$("#replenish-user-account").submit(function(e) {
-			e.preventDefault();
-			var string = $('#amount').val();
-			if (string.indexOf(',') > -1 || string < 0 || string == 0) {
-				$('.please-check').removeClass("hidden");
-				return false;
-			}
-			$('.please-check').addClass("hidden");
-			var type = 1;
-			$.get(Wo_Ajax_Requests_File() + '?f=get_payment_method&type=' + type, function (data) {
-				if (data.status == 200) {
-					$('#pay-modal').html(data.html);
-					$('#pay-go-pro').modal({
-						show: true
-					});
-				}
-			});
-		});
-		$('#bank_transfer_form_wallet').ajaxForm({
-		  url: Wo_Ajax_Requests_File() + '?f=bank_transfer_wallet',
-		  beforeSend: function() {
-	    $('#bank_transfer_form_wallet').find('.ball-pulse').fadeIn(100);
-	  },
-	  success: function(data) {
-	    if (data['status'] == 200) {
-	    	$("#blog-alert").html('<div class="alert alert-success">'+ data['message'] +'</div>');
-	    	setTimeout(function () {
-	    		window.location = "<?php echo $wo['config']['site_url'];?>";
-	    		$(".prv-img").html('<div class="thumbnail-rendderer"><div><h4 class="bold"><?php echo $wo['lang']['drop_img_here']; ?></h4><div class="error-text-renderer"></div><div><span><?php echo $wo['lang']['or']; ?></span><p><?php echo $wo['lang']['browse_to_upload']; ?></p></div></div> </div>');
-	    		$("#blog-alert").html('');
-	    		$('#configreset').click();
 
-	    	},3000)
-	    } else if (data['message']) {
-	      $("#blog-alert").html('<div class="alert alert-danger">' + data['message'] + '</div>');
-	    }
-	    $('#bank_transfer_form_wallet').find('.ball-pulse').fadeOut(100);
-		}});
-	});
-	$(document).on('change', '#upload', function(event) {
-	let imgPath = $(this)[0].files[0].name;
-    if (typeof(FileReader) != "undefined") {
-        let reader = new FileReader();
-        reader.onload = function(e) {
-			$('#receipt_img_preview').attr('src', e.target.result);
-        }
-        reader.readAsDataURL(this.files[0]);
-    }
-	$('#bank_transfer_modal').addClass('up_rec_img_ready');
-});
+
+
 
 
 
@@ -972,7 +930,7 @@ function securionpay_pay(){
     <div class="modal-dialog mat_box">
         <div class="modal-content">
 		    <div class="modal-header">
-		    	<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></button>
+		    	<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"></path></svg></span></button>
 				<h4 class="modal-title"><?php echo $wo['lang']['authorize'] ?></h4>
 		    </div>
             <form class="form form-horizontal" method="post" id="authorize_form" action="#">
@@ -1026,10 +984,19 @@ function securionpay_pay(){
 <div class="modal fade" id="payu_modal" role="dialog" data-keyboard="false" >
     <div class="modal-dialog mat_box">
         <div class="modal-content">
-		    <div class="modal-header">
-		    	<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span></button>
-				<h4 class="modal-title"><?php echo $wo['lang']['payu'] ?></h4>
-		    </div>
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x">
+							<line x1="18" y1="6" x2="6" y2="18"></line>
+							<line x1="6" y1="6" x2="18" y2="18"></line>
+						</svg>
+					</span>
+				</button>
+				<!-- Commented out the language section and replaced with a hardcoded string -->
+				<!-- <h4 class="modal-title"><?php // echo $wo['lang']['payu'] ?></h4> -->
+				<h4 class="modal-title">PayU</h4>
+			</div>
             <form class="form form-horizontal" method="post" id="payu_form" action="#">
             	<div id="payu_alert"></div>
                 <div class="modal-body payu_modal">
@@ -1093,25 +1060,25 @@ function securionpay_pay(){
 					<div id="2checkout_alert_wallet"></div>
 					<div class="clear"></div>
 					<div class="sun_input col-md-6">
-						<input id="card_name" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['name']; ?>" value="<?php echo($wo['user']['name']) ?>">
+					<input id="card_name" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['name']; ?>" value="<?php echo isset($wo['user']['name']) ? $wo['user']['name'] : ''; ?>">
 					</div>
 					<div class="sun_input col-md-6">
-						<input id="card_address" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['address']; ?>" value="<?php echo($wo['user']['address']) ?>">
+						<input id="card_address" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['address']; ?>" value="<?php echo isset($wo['user']['address']) ? $wo['user']['address'] : ''; ?>">
 					</div>
 					<div class="sun_input col-md-6">
-						<input id="card_city" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['city']; ?>" value="<?php echo($wo['user']['city']) ?>">
+					<input id="card_city" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['city']; ?>" value="<?php echo isset($wo['user']['city']) ? $wo['user']['city'] : ''; ?>">
 					</div>
 					<div class="sun_input col-md-6">
-						<input id="card_state" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['state']; ?>" value="<?php echo($wo['user']['state']) ?>">
+						<input id="card_state" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['state']; ?>" value="<?php echo isset($wo['user']['state']) ? $wo['user']['state'] : ''; ?>">
 					</div>
 					<div class="sun_input col-md-6">
-						<input id="card_zip" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['zip']; ?>" value="<?php echo($wo['user']['zip']) ?>">
+						<input id="card_zip" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['zip']; ?>" value="<?php echo isset($wo['user']['zip']) ? $wo['user']['zip'] : ''; ?>">
 					</div>
 					<div class="sun_input col-md-6">
 						<select id="card_country" name="card_country" class="form-control">
 							<?php
 								foreach ($wo['countries_name'] as $country_ids => $country) {
-									$country_id = $wo['user']['country_id'];
+									$country_id = isset($wo['user']['country_id']) ? $wo['user']['country_id'] : null;
 									$selected_contry = ($country_ids == $country_id) ? ' selected' : '' ;
 							?>
 								<option value="<?php echo $country_ids;?>" <?php echo $selected_contry;?> ><?php echo $country;?></option>
@@ -1119,10 +1086,10 @@ function securionpay_pay(){
 						</select>
 					</div>
 					<div class="sun_input col-md-6">
-						<input id="card_email" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['email']; ?>" value="<?php echo($wo['user']['email']) ?>">
+						<input id="card_email" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['email']; ?>" value="<?php echo isset($wo['user']['email']) ? $wo['user']['email'] : ''; ?>">
 					</div>
 					<div class="sun_input col-md-6">
-						<input id="card_phone" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['phone_number']; ?>" value="<?php echo($wo['user']['phone_number']) ?>">
+					<input id="card_phone" type="text" class="form-control input-md" autocomplete="off" placeholder="<?php echo $wo['lang']['phone_number']; ?>" value="<?php echo isset($wo['user']['phone_number']) ? $wo['user']['phone_number'] : ''; ?>">
 					</div>
 					<div class="clear"></div>
 					<hr>
@@ -1214,11 +1181,15 @@ function securionpay_pay(){
 							<img id="receipt_img_preview" src="">
 						</div>
 					</div>
+					<input type="hidden" name="user_id" id="user_id" value="">
+					<input type="hidden" name="fund_id" id="fund_id" value="">
 					<input name="price" type="hidden" id="bank_transfer_price" class="hidden">
-					<input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
-					<input name="thumbnail" type="file" id="upload" class="hidden" accept="image/*">
 					<input name="type" type="hidden" id="bank_transfer_type" class="hidden">
+					<input name="payment_type" type="hidden" id="payment_type" class="hidden">
 					<input name="description" type="hidden" id="bank_transfer_des" class="hidden">
+					<input name="thumbnail" type="file" id="upload" class="hidden" accept="image/*">
+					<img id="thumbnail_preview" src="" alt="Thumbnail Preview" style="display: none;">
+					<input type="hidden" name="hash_id" id="bank_transfer_hash_id" value="<?php echo Wo_CreateSession();?>">
 					<input type="reset" id="configreset" value="Reset" class="hidden">
 			</div>
 			<div class="modal-footer">
@@ -1229,3 +1200,137 @@ function securionpay_pay(){
 		</div>
 	</div>
 </div>
+
+<script>
+jQuery(document).ready(function($) {
+    // Log the initialization of the modal
+    console.log("Bank Transfer Modal initialized.");
+
+    // Handle form submission for replenishing user account
+    $("#replenish-user-account").submit(function(e) {
+        e.preventDefault();
+        console.log("Replenish user account form submitted.");
+
+        var amount = $('#amount').val();
+        console.log("Entered amount:", amount);
+
+        if (amount.indexOf(',') > -1 || amount < 10 || amount == 0) {
+            console.error("Invalid amount entered:", amount);
+            $('.please-check').removeClass("hidden");
+            return false;
+        }
+
+        $('.please-check').addClass("hidden");
+        var type = 1;
+
+        console.log("Fetching payment method with type:", type);
+        $.get(Wo_Ajax_Requests_File() + '?f=get_payment_method&type=' + type, function(data) {
+            console.log("Payment method response:", data);
+
+            if (data.status == 200) {
+                $('#pay-modal').html(data.html);
+                $('#pay-go-pro').modal({
+                    show: true
+                });
+                console.log("Payment modal displayed.");
+            } else {
+                console.error("Failed to fetch payment method:", data.message);
+                alert("Error fetching payment method. Please try again.");
+            }
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("AJAX error fetching payment method:", textStatus, errorThrown);
+            alert("An unexpected error occurred. Please try again.");
+        });
+    });
+
+    // Handle form submission for bank transfer
+    $('#bank_transfer_form_wallet').ajaxForm({
+        url: Wo_Ajax_Requests_File() + '?f=bank_transfer',
+        beforeSend: function() {
+            console.log("Submitting bank transfer form...");
+            $('#bank_transfer_form_wallet').find('.ball-pulse').fadeIn(100);
+        },
+        success: function(data) {
+            console.log("Bank transfer response:", data);
+
+            if (data['status'] == 200) {
+                $("#blog-alert").html('<div class="alert alert-success">' + data['message'] + '</div>');
+                console.log("Bank transfer successful:", data['message']);
+
+                setTimeout(function() {
+                    window.location = "<?php echo $wo['config']['site_url'];?>";
+                    $(".prv-img").html('<div class="thumbnail-rendderer"><div><h4 class="bold"><?php echo $wo['lang']['drop_img_here']; ?></h4><div class="error-text-renderer"></div><div><span><?php echo $wo['lang']['or']; ?></span><p><?php echo $wo['lang']['browse_to_upload']; ?></p></div></div> </div>');
+                    $("#blog-alert").html('');
+                    $('#configreset').click();
+                }, 3000);
+            } else if (data['message']) {
+                console.error("Bank transfer failed:", data['message']);
+                $("#blog-alert").html('<div class="alert alert-danger">' + data['message'] + '</div>');
+            }
+            $('#bank_transfer_form_wallet').find('.ball-pulse').fadeOut(100);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error("AJAX error during bank transfer:", textStatus, errorThrown);
+            $("#blog-alert").html('<div class="alert alert-danger">An unexpected error occurred. Please try again.</div>');
+            $('#bank_transfer_form_wallet').find('.ball-pulse').fadeOut(100);
+        }
+    });
+
+    // Handle file upload and preview
+    $(document).on('change', '#upload', function(event) {
+        console.log("File selected for upload.");
+
+        let file = $(this)[0].files[0];
+        if (!file) {
+            console.error("No file selected.");
+            return;
+        }
+
+        console.log("Selected file:", file.name, file.type, file.size);
+
+        if (typeof(FileReader) != "undefined") {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                $('#receipt_img_preview').attr('src', e.target.result);
+                console.log("File preview updated.");
+            };
+            reader.onerror = function(e) {
+                console.error("Error reading file:", e);
+                alert("Error reading file. Please try again.");
+            };
+            reader.readAsDataURL(file);
+        } else {
+            console.error("FileReader API not supported in this browser.");
+            alert("Your browser does not support file uploads. Please update your browser.");
+        }
+
+        $('#bank_transfer_modal').addClass('up_rec_img_ready');
+        console.log("Modal updated with uploaded file.");
+    });
+
+    // Log modal visibility changes
+    $('#bank_transfer_modal').on('show.bs.modal', function() {
+        console.log("Bank Transfer Modal is being displayed.");
+    }).on('hide.bs.modal', function() {
+        console.log("Bank Transfer Modal is being hidden.");
+    });
+
+    // Log unexpected errors
+    window.onerror = function(message, source, lineno, colno, error) {
+        console.error("Global error caught:", message, "at", source, "line", lineno, "column", colno, "Error object:", error);
+        alert("An unexpected error occurred. Please check the console for details.");
+    };
+});
+</script>
+
+<script>
+    // Only execute this script on the wallet page
+    if (window.location.pathname.includes('/wallet/') && !window.location.href.includes('nocache')) {
+        const siteUrl = '<?php echo $wo["config"]["site_url"]; ?>'; // Get the site URL from the PHP configuration
+        const currentUrl = window.location.href;
+
+        // Append the 'nocache' parameter to force reload
+        const newUrl = currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'nocache=' + new Date().getTime();
+        window.location.href = newUrl;
+    }
+</script>

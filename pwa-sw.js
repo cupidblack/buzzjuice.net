@@ -34,8 +34,8 @@ const BASE_CACHE_FILES = [
 'https://buzzjuice.net/wp-content/uploads/2025/08/buzzjuice-white-background-512.png',
 'https://buzzjuice.net/wp-content/uploads/2025/08/buzzjuice-white-background-512.png',
 'https://buzzjuice.net/wp-content/uploads/2025/08/buzzjuice-white-background-512.png',
+'https://buzzjuice.net/2026/02/06/classies-chronicles-before-the-groundwork/',
 'https://buzzjuice.net/2025/11/15/patient-infatuation/',
-'https://buzzjuice.net/2025/09/13/passionfruit/',
 'https://buzzjuice.net/about-us/',
 'https://buzzjuice.net/activate/',
 

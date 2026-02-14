@@ -1,3 +1,21 @@
+<script>
+    // Force the page to reload with a unique query parameter and ensure the URL starts with the site URL and '/go-pro/'
+    if (!window.location.href.includes('nocache')) {
+        const siteUrl = '<?php echo $wo["config"]["site_url"]; ?>'; // Get the site URL from the PHP configuration
+        const baseUrl = siteUrl + '/go-pro/'; // Ensure the URL includes the leading '/'
+        const currentUrl = window.location.href;
+
+        // Ensure the URL starts with the site URL and '/go-pro/'
+        const newUrl = currentUrl.includes('/go-pro/') 
+            ? currentUrl 
+            : baseUrl + (currentUrl.includes('?') ? currentUrl.split('?')[1] : '');
+
+        // Append the 'nocache' parameter to force reload
+        window.location.href = newUrl + (newUrl.includes('?') ? '&' : '?') + 'nocache=' + new Date().getTime();
+    }
+</script>
+<!-- rest of the template follows unchanged -->
+
 <div class="page-margin">
 	<div class="wow_content popular_posts_hdr movie">
 		<img src="<?php echo $wo['config']['theme_url'];?>/img/rocket.png" class="bg_trail">
@@ -136,22 +154,29 @@
 							<?php } ?>
 						<?php } ?>
 					</div>
+
 					<div class="plan_foot">
 						<?php if ($value['status'] == 1) { ?>
 							<div>
-								<?php if (!empty($value['price']) && is_numeric($value['price']) && $value['price'] > 0) { ?>
-									<button class="btn btn-mat btn-main btn-block btn_week" onclick="Wo_GetPaymentLink('<?php echo $value['id']; ?>','<?php echo $value['price']; ?>','pro','hide');" <?php echo($wo['user']['pro_type'] == $value['id'] ? 'disabled' : ''); ?>>
-										<?php echo ($wo['user']['pro_type'] == $value['id'] ? $wo['lang']['current'] : $wo['lang']['upgrade_now']);?>
-									</button>
-								<?php } ?>
+							<?php if (!empty($value['price']) && is_numeric($value['price']) && $value['price'] > 0) { ?>
+								<button
+									class="btn btn-mat btn-main btn-block btn_week"
+									onclick="Wo_GetPaymentLink('<?php echo $value['id']; ?>', '<?php echo $value['price']; ?>', 'pro', 'hide');"
+									<?php echo($wo['user']['pro_type'] == $value['id'] ? 'disabled' : ''); ?>>
+									<?php echo ($wo['user']['pro_type'] == $value['id'] ? $wo['lang']['current'] : $wo['lang']['upgrade_now']); ?>
+								</button>
+							<?php } ?>
 							</div>
 						<?php } ?>
 					</div>
+
 				</div>
 			</div>
 		<?php } ?>
 	</div>
 </div>
+
+
 
 <h3 class="pick_plan_main"><?php echo $wo['lang']['why_choose_pro'];?></h3>
 <p class="pick_plan_main_text"><?php echo $wo['lang']['go_pro_more_features'];?></p>
@@ -283,3 +308,6 @@
 		<?php } ?>
 	</div>
 </div>
+
+
+

@@ -40,7 +40,7 @@ elseif (!empty($_COOKIE['user_id']) || !empty($_COOKIE['wo_user_id']) || !empty(
         </li>
 
         <li><a href="/courses" aria-label="Courses"><i class="fa fa-leanpub" aria-hidden="true"></i><span>Courses</span></a></li>
-        <li><a href="/streams/funding" aria-label="Collabos"><i class="fa fa-handshake-o" aria-hidden="true"></i><span>Collabos</span></a></li>
+        <li><a href="/streams/pages" aria-label="Collabos"><i class="fa fa-handshake-o" aria-hidden="true"></i><span>Collabos</span></a></li>
         <li><a href="/social" aria-label="Social"><i class="fa fa-users" aria-hidden="true"></i><span>Social</span></a></li>
     </ul>
 </div>
@@ -68,7 +68,7 @@ elseif (!empty($_COOKIE['user_id']) || !empty($_COOKIE['wo_user_id']) || !empty(
         <a href="/streams/ads/create/" class="buzz-create-link"><i class="fa fa-bullhorn"></i><span>Create Ad</span></a>
         <a href="/streams/create-group" class="buzz-create-link"><i class="fa fa-users"></i><span>Create Group</span></a>
         <a href="/streams/events/create-event/" class="buzz-create-link"><i class="fa fa-calendar"></i><span>Create Event</span></a>
-        <a href="/streams/create-page" class="buzz-create-link"><i class="fa fa-building"></i><span>Create Business</span></a>
+        <a href="/streams/create-page" class="buzz-create-link"><i class="fa fa-handshake-o"></i><span>Start a Collabo</span></a>
     </div>
 
     <div class="buzz-popup-arrow" aria-hidden="true"></div>
@@ -97,7 +97,7 @@ elseif (!empty($_COOKIE['user_id']) || !empty($_COOKIE['wo_user_id']) || !empty(
           <a href="/streams/ads/create/" class="buzz-create-link"><i class="fa fa-bullhorn"></i><span>Create Ad</span></a>
           <a href="/streams/create-group" class="buzz-create-link"><i class="fa fa-users"></i><span>Create Group</span></a>
           <a href="/streams/events/create-event/" class="buzz-create-link"><i class="fa fa-calendar"></i><span>Create Event</span></a>
-          <a href="/streams/create-page" class="buzz-create-link"><i class="fa fa-building"></i><span>Create Business</span></a>
+          <a href="/streams/create-page" class="buzz-create-link"><i class="fa fa-handshake-o"></i><span>Start a Collabo</span></a>
         </div>
       </div>
     </div>

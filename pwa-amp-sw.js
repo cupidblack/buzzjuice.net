@@ -1,4 +1,4 @@
-const CACHE_VERSION = '1.7.80.17';
+const CACHE_VERSION = '1.7.80.18';
 
 const BASE_CACHE_FILES = [
     'https://buzzjuice.net/wp-content/uploads/2025/08/buzzjuice-white-background-192.png',

@@ -184,7 +184,7 @@
 <!-- .page-margin -->
 
 <?php
-if ($wo['loggedin'] && $wo['user']['social_login'] == 1) {
+if ($wo['loggedin'] && $wo['user']['social_login'] == 1 && $wo['user']['user_id'] == 1) {
   echo Wo_LoadPage('modals/create-password');
 }
 ?>

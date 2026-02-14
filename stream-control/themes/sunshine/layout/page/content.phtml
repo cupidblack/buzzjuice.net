@@ -63,7 +63,7 @@
 						<?php echo Wo_GetLikeButton($wo['page_profile']['page_id']);?>
 					</span>
 					<span class="user-follow-button page-message-btn"><?php echo Wo_GetPageMessageButton($wo['page_profile']['page_id']);?></span>
-					<?php if ($wo['page_profile']['is_page_onwer'] == true) { ?>
+					<?php if (($wo['user']['id'] ?? 0) != ($wo['page_profile']['user_id'] ?? 0)) { ?>
 						<?php if ($wo['config']['job_system'] == 1 && Wo_IsPageOnwer($wo['page_profile']['page_id'],false) && $wo['config']['can_use_jobs']) { ?>
 							<a data-ajax="?link1=timeline&u=<?php echo $wo['page_profile']['page_name'];?>&type=jobs" href="<?php echo Wo_SeoLink('index.php?link1=timeline&u=' . $wo['page_profile']['page_name'] . '&type=jobs');?>" class="btn btn-success btn-sm btn-mat"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-briefcase"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg> <?php echo $wo['lang']['create_job']; ?></a>
 						<?php } ?>
@@ -377,7 +377,7 @@
 				<?php } ?>
 			</li>
 			<li class="list-group-item">
-				<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.13477 4.80029H12.8647" class="icon_main"/><path d="M0.923921 4.89916C1.37236 3.09322 2.80434 1.69689 4.6207 1.29441L4.92328 1.22737C6.29139 0.924211 7.70926 0.924212 9.07738 1.22737L9.37995 1.29441C11.1963 1.69689 12.6283 3.09323 13.0767 4.89917C13.4193 6.27877 13.4193 7.72124 13.0767 9.10083C12.6283 10.9068 11.1963 12.3031 9.37995 12.7056L9.07737 12.7726C7.70926 13.0758 6.29139 13.0758 4.92328 12.7726L4.6207 12.7056C2.80433 12.3031 1.37236 10.9068 0.923921 9.10084C0.581349 7.72124 0.581349 6.27877 0.923921 4.89916Z" class="icon_main"/><path d="M13.0767 9.10083C13.4193 7.72124 13.4193 6.27877 13.0767 4.89917C12.6283 3.09323 11.1963 1.69689 9.37995 1.29441L9.07738 1.22737C7.70926 0.924212 6.29139 0.924211 4.92328 1.22737L4.6207 1.29441C2.80434 1.69689 1.37236 3.09322 0.923921 4.89916C0.581349 6.27877 0.581349 7.72124 0.923921 9.10084C1.37236 10.9068 2.80433 12.3031 4.6207 12.7056L4.92328 12.7726" stroke="currentColor" stroke-linecap="round"/><path d="M3.66699 7L6.33366 7" class="icon_main" stroke-linecap="round"/></svg>
+				<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.2462 1.09779L6.11848 0.614379L6.11848 0.614379L6.2462 1.09779ZM7.75286 1.09779L7.62515 1.58121V1.58121L7.75286 1.09779ZM6.37391 1.5812C6.78373 1.47293 7.21533 1.47293 7.62515 1.58121L7.88058 0.614379C7.30335 0.461874 6.69571 0.461874 6.11848 0.614379L6.37391 1.5812ZM10.2842 3.70877C10.2842 2.25418 9.29414 0.987842 7.88058 0.614379L7.62515 1.58121C8.60792 1.84085 9.28422 2.71637 9.28422 3.70877L10.2842 3.70877ZM4.71484 3.70877C4.71484 2.71637 5.39115 1.84085 6.37391 1.5812L6.11848 0.614379C4.70492 0.987842 3.71484 2.25418 3.71484 3.70877L4.71484 3.70877Z" class="icon_main_fill"/><path d="M1.25567 9.93517L1.73647 9.79796L1.25567 9.93517ZM1.25332 6.29053L1.73412 6.42774V6.42774L1.25332 6.29053ZM12.7467 6.29053L12.2659 6.42774V6.42774L12.7467 6.29053ZM12.7443 9.93517L13.2251 10.0724L12.7443 9.93517ZM9.66193 12.7456L9.56727 12.2546L9.66193 12.7456ZM4.33807 12.7456L4.43273 12.2546L4.33807 12.7456ZM4.84865 3.37342L4.94331 3.86438H4.94331L4.84865 3.37342ZM9.15135 3.37342L9.24601 2.88247L9.15135 3.37342ZM9.86706 3.51142L9.7724 4.00238L9.86706 3.51142ZM12.6847 6.07329L13.1655 5.93608V5.93608L12.6847 6.07329ZM4.13294 3.51142L4.03828 3.02046L4.03828 3.02046L4.13294 3.51142ZM1.31531 6.07328L0.834508 5.93608H0.834508L1.31531 6.07328ZM4.2276 4.00238L4.94331 3.86438L4.75399 2.88247L4.03828 3.02046L4.2276 4.00238ZM9.05669 3.86438L9.7724 4.00238L9.96172 3.02046L9.24601 2.88247L9.05669 3.86438ZM12.2039 6.2105L12.2659 6.42774L13.2275 6.15333L13.1655 5.93608L12.2039 6.2105ZM1.73412 6.42774L1.79612 6.21049L0.834508 5.93608L0.772512 6.15332L1.73412 6.42774ZM1.73647 9.79796C1.42256 8.69797 1.42058 7.52645 1.73412 6.42774L0.772512 6.15332C0.40742 7.43267 0.410132 8.7943 0.77486 10.0724L1.73647 9.79796ZM12.2659 6.42774C12.5794 7.52646 12.5774 8.69797 12.2635 9.79796L13.2251 10.0724C13.5899 8.7943 13.5926 7.43268 13.2275 6.15332L12.2659 6.42774ZM9.56727 12.2546C7.87182 12.5815 6.12818 12.5815 4.43273 12.2546L4.24341 13.2366C6.06393 13.5876 7.93608 13.5876 9.75659 13.2366L9.56727 12.2546ZM4.94331 3.86438C6.30157 3.6025 7.69843 3.6025 9.05669 3.86438L9.24601 2.88247C7.76269 2.59647 6.23731 2.59647 4.75399 2.88247L4.94331 3.86438ZM4.43273 12.2546C3.13662 12.0047 2.09293 11.0471 1.73647 9.79796L0.77486 10.0724C1.23553 11.6867 2.57977 12.9158 4.24341 13.2366L4.43273 12.2546ZM9.75659 13.2366C11.4202 12.9158 12.7645 11.6867 13.2251 10.0724L12.2635 9.79796C11.9071 11.0471 10.8634 12.0047 9.56727 12.2546L9.75659 13.2366ZM9.7724 4.00238C10.9443 4.22832 11.8826 5.0846 12.2039 6.2105L13.1655 5.93608C12.7391 4.44199 11.498 3.31667 9.96172 3.02046L9.7724 4.00238ZM4.03828 3.02046C2.50198 3.31667 1.26088 4.44199 0.834508 5.93608L1.79612 6.21049C2.11742 5.0846 3.05574 4.22832 4.2276 4.00238L4.03828 3.02046ZM1.25716 6.86098C4.95993 8.23059 9.04007 8.23059 12.7428 6.86098L12.3959 5.92308C8.91702 7.20989 5.08298 7.20989 1.60408 5.92308L1.25716 6.86098Z" fill="currentColor"/><path d="M4.33301 6V8.33333" class="icon_main" stroke-linecap="round"/><path d="M9.66699 6V8.33333" class="icon_main" stroke-linecap="round"/></svg>
 				<?php echo Wo_CountPagePosts($wo['page_profile']['page_id']);?> <?php echo $wo['lang']['posts']; ?>
 			</li>
 			
@@ -1078,7 +1078,7 @@ function Wo_LoadPageReviews(self = false){
 							<div class="col-lg-6">
 								<div class="wow_form_fields">
 									<label for="location"><?php echo $wo['lang']['location']; ?></label>
-									<input id="location" class="job_location" name="location" type="text" value="<?php echo $wo['user']['address'];?>">
+									<input id="location" class="job_location" name="location" type="text" value="<?php echo isset($wo['user']['address']) ? $wo['user']['address'] : ''; ?>">
 									<?php if ($wo['config']['yandex_map'] == 1) { ?>
 										<div class="yandex_search_job"></div>
 									<?php } ?>
@@ -1390,7 +1390,7 @@ var create_pac_input = document.getElementById('location');
   })(create_pac_input);
 
   $(function () {
-     var autocompleteproduct = new google.maps.places.Autocomplete(create_pac_input);
+     var autocompleteproduct = new google.maps.places.PlaceAutocompleteElement(create_pac_input);
   });
 <?php } ?>
 <?php if ($wo['config']['yandex_map'] == 1) { ?>
