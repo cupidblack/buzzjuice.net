@@ -890,6 +890,10 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
         }
 
         public function disable_new_thread_with_bad_word( &$args, &$errors ){
+            if( Better_Messages()->settings['badWordsSkipAdmins'] === '1' && current_user_can('manage_options') ){
+                return;
+            }
+
             $words_list = array_map('trim', explode("\n", Better_Messages()->settings['badWordsList']));
 
             $contains_word = false;
@@ -911,6 +915,10 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
         }
 
         public function disable_reply_with_bad_word( &$args, &$errors ){
+            if( Better_Messages()->settings['badWordsSkipAdmins'] === '1' && current_user_can('manage_options') ){
+                return;
+            }
+
             $words_list = array_map('trim', explode("\n", Better_Messages()->settings['badWordsList']));
 
             $contains_word = false;
@@ -1246,8 +1254,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                     }
                 </style>
                 <script type="text/javascript">
-                    jQuery(document).on('bp-better-messages-update-unread', function( event ) {
-                        var unread = parseInt(event.detail.unread);
+                    wp.hooks.addAction('better_messages_update_unread', 'better_messages', function( unread ) {
                         var private_messages = jQuery('#nav_private_messages');
 
                         if( unread > 0 ){
@@ -1358,8 +1365,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
             ob_start();
 
             if(class_exists('WooCommerce')){ ?>
-                jQuery(document).on('bp-better-messages-update-unread', function( event ) {
-                    var unread = parseInt(event.detail.unread);
+                wp.hooks.addAction('better_messages_update_unread', 'better_messages', function( unread ) {
                     var element = document.querySelector('.woocommerce-MyAccount-navigation-link--bp-messages a .bp-better-messages-unread');
 
                     if ( ! element ) {
@@ -1379,8 +1385,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
             }
 
             if( class_exists('BuddyBoss_Theme') ){ ?>
-                    jQuery(document).on('bp-better-messages-update-unread', function( event ) {
-                        var unread = parseInt(event.detail.unread);
+                    wp.hooks.addAction('better_messages_update_unread', 'better_messages', function( unread ) {
                         var messages_count = jQuery('.header-notifications.user-messages span');
                         if( unread > 0 ){
                             messages_count.text(unread).attr('class', 'count');
@@ -1389,9 +1394,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                         }
                     });
             <?php } else if( function_exists( 'buddyboss_theme_register_required_plugins' ) ){  ?>
-                    jQuery(document).on('bp-better-messages-update-unread', function( event ) {
-                        var unread = parseInt(event.detail.unread);
-
+                    wp.hooks.addAction('better_messages_update_unread', 'better_messages', function( unread ) {
                         var iconSelector = '.bb-icon-inbox-small';
 
                         if( jQuery('body').hasClass('bb-template-v2') || jQuery('body').hasClass('bb-template-v1') ){
@@ -1424,8 +1427,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                         }
                     });
             <?php } else if( defined('BUDDYX_MINIMUM_WP_VERSION') || defined('BUDDYXPRO_MINIMUM_WP_VERSION') ){ ?>
-                    jQuery(document).on('bp-better-messages-update-unread', function( event ) {
-                        var unread = parseInt(event.detail.unread);
+                    wp.hooks.addAction('better_messages_update_unread', 'better_messages', function( unread ) {
                         var messages_count = jQuery('.buddypress-icons-wrapper .bp-msg .bp-icon-wrap sup');
 
                         if( unread === 0 ){
@@ -1440,8 +1442,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                     });
                 <?php
             } else if( defined('GRIMLOCK_BUDDYPRESS_VERSION') ){ ?>
-                    jQuery(document).on('bp-better-messages-update-unread', function( event ) {
-                        var unread = parseInt(event.detail.unread);
+                    wp.hooks.addAction('better_messages_update_unread', 'better_messages', function( unread ) {
                         var container = jQuery('.menu-item--messages');
 
                         var bubbleSpan = container.find('.bubble-count');
@@ -1451,7 +1452,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                                 bubbleSpan.text(unread);
                             } else {
                                 var bubble = '<span class="bubble-count messages-count">' + unread + '</span>';
-                                $(bubble).prependTo( container );
+                                jQuery(bubble).prependTo( container );
                             }
                         } else {
                             bubbleSpan.remove();

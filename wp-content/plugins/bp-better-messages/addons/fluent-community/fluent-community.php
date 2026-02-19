@@ -134,6 +134,10 @@ if ( ! class_exists( 'Better_Messages_Fluent_Community' ) ) {
                     min-height: auto;
                 }
 
+                body[data-route="better_messages"] .feed_layout{
+                    max-height: calc( 100vh - var(--fcom-header-height, 0px) );
+                }
+
                 .fcom_mobile_menu .focm_menu_item span.bm-unread-badge{
                     background: var(--el-color-danger, rgb(245, 108, 108));
                     width: 15px;
@@ -163,13 +167,23 @@ if ( ! class_exists( 'Better_Messages_Fluent_Community' ) ) {
                     display: none;
                 }
 
+                .fcom_full_size_container .bp-messages-wrap{
+                    border-radius: 0 !important;
+                    box-shadow: none;
+                    border: none;
+                }
+
                 .bp-messages-wrap-main .bp-messages-wrap:not(.bp-messages-full-screen, .bp-messages-mobile), .bp-messages-wrap-main .bp-messages-threads-wrapper{
-                    height: calc( var(--bm-fcom-window-height) - var(--bm-fcom-menu-height, 55px) - 60px ) !important;
+                    height: calc( var(--bm-fcom-window-height) - var(--bm-fcom-menu-height, 55px) - var(--bm-fcom-title-height, 0px) - 40px ) !important;
+                }
+
+                .fcom_full_size_container .bp-messages-wrap-main .bp-messages-wrap:not(.bp-messages-full-screen, .bp-messages-mobile), .fcom_full_size_container .bp-messages-wrap-main .bp-messages-threads-wrapper{
+                    height: calc( var(--bm-fcom-window-height) - var(--bm-fcom-menu-height, 55px) - var(--bm-fcom-title-height, 0px) ) !important;
                 }
 
                 .bp-messages-wrap-main.bp-messages-mobile, .bp-messages-wrap-group.bp-messages-mobile, .bp-messages-chat-wrap.bp-messages-mobile, .bp-messages-single-thread-wrap.bp-messages-mobile{
                     top: var(--fcom-header-height);
-                    height: calc(100% - var(--bm-fcom-footer-height, 41px) - var(--fcom-header-height));
+                    height: calc( 100% - var(--bm-fcom-footer-height, 41px) - var(--fcom-header-height) );
                     z-index: 10;
                 }
 
@@ -260,7 +274,14 @@ if ( ! class_exists( 'Better_Messages_Fluent_Community' ) ) {
             }
 
             $src = Better_Messages()->url . 'addons/fluent-community/scripts.js?=' . $version;
-            echo '<script src="' . $src . '"></script>';
+
+            $vars = [
+                'title' => Better_Messages()->settings['FcPageTitle'] === '1' ? _x('Messages', 'FluentCommunity Integration (Page Header)', 'bp-better-messages') : '',
+                'fullScreen' => Better_Messages()->settings['FcFullScreen'] === '1',
+            ];
+
+            echo '<script type="text/javascript">var BM_Fluent_Community=' . wp_json_encode( $vars ) . ';</script>';
+            echo '<script type="text/javascript" src="' . $src . '"></script>';
         }
 
         public function message_page_url( $url, $user_id ){

@@ -5,7 +5,7 @@
     Plugin Name: Better Messages
     Plugin URI: https://www.wordplus.org
     Description: Realtime private messaging system for WordPress
-    Version: 2.10.2
+    Version: 2.12.0
     Author: WordPlus
     Author URI: https://www.wordplus.org
     Requires PHP: 7.4
@@ -16,7 +16,7 @@
 defined( 'ABSPATH' ) || exit;
 if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
     class Better_Messages {
-        public $version = '2.10.2';
+        public $version = '2.12.0';
 
         public $db_version = '1.0.4';
 
@@ -307,6 +307,8 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
                 case 'edit-bpbm-chat':
                 case 'bm-ai-chat-bot':
                 case 'bpbm-chat':
+                case 'user-edit':
+                case 'profile':
                     $include_css = true;
                     break;
                 default:
@@ -340,6 +342,8 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
                 case 'edit-bpbm-chat':
                 case 'bm-ai-chat-bot':
                 case 'bpbm-chat':
+                case 'user-edit':
+                case 'profile':
                     $include_js = true;
                     break;
                 default:
@@ -373,8 +377,11 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
                 $version
             );
             $script_variables = [
-                'restUrl' => $this->functions->get_rest_api_url(),
-                'nonce'   => wp_create_nonce( 'wp_rest' ),
+                'restUrl'              => $this->functions->get_rest_api_url(),
+                'nonce'                => wp_create_nonce( 'wp_rest' ),
+                'adminUrl'             => admin_url(),
+                'canEditUsers'         => current_user_can( 'edit_users' ),
+                'premoderationEnabled' => $this->settings['messagesPremoderation'] === '1',
             ];
             wp_set_script_translations( 'better-messages-admin', 'bp-better-messages', plugin_dir_path( __FILE__ ) . 'languages/' );
             wp_localize_script( 'better-messages-admin', 'Better_Messages_Admin', $script_variables );
@@ -542,6 +549,7 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
                 'miniClose'          => ( $this->settings['enableMiniCloseButton'] ? '1' : '0' ),
                 'miniChats'          => ( $this->realtime && $this->settings['miniChatsEnable'] ? '1' : '0' ),
                 'miniMessages'       => ( $this->realtime && $this->settings['miniThreadsEnable'] ? '1' : '0' ),
+                'combinedChats'      => ( $this->realtime && $this->settings['combinedChatsEnable'] == '1' ? '1' : '0' ),
                 'miniAudio'          => ( $this->realtime && $this->settings['miniChatAudioCall'] ? '1' : '0' ),
                 'miniVideo'          => ( $this->realtime && $this->settings['miniChatVideoCall'] ? '1' : '0' ),
                 'messagesStatus'     => ( $this->realtime && $this->settings['messagesStatus'] ? '1' : '0' ),

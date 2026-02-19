@@ -77,6 +77,37 @@ if ( ! class_exists( 'Better_Messages_OpenAI_API' ) ) {
             }
         }
 
+        public function moderate()
+        {
+            $client = $this->get_client();
+
+            try {
+                $input = [];
+
+                $input[] = [
+                    'type' => 'text',
+                    'text' => 'love you'
+                ];
+
+                $args = [
+                    'model' => 'omni-moderation-latest',
+                    'input' => $input
+                ];
+
+                $response = $client->post( 'moderations', [
+                    'json' => $args
+                ] );
+
+                $body = $response->getBody()->getContents();
+
+                $data = json_decode($body, true);
+
+                print_r( $data );
+            } catch ( GuzzleException $e ) {
+                print_r( $e->getMessage() );
+            }
+        }
+
         public function get_models()
         {
             $client = $this->get_client();
@@ -85,6 +116,7 @@ if ( ! class_exists( 'Better_Messages_OpenAI_API' ) ) {
                 $response = $client->request('GET', 'models');
 
                 $body = $response->getBody();
+
                 $data = json_decode($body, true);
 
                 $models = [];
@@ -193,6 +225,10 @@ if ( ! class_exists( 'Better_Messages_OpenAI_API' ) ) {
 
                     if( str_replace('<!-- BM-AI -->', '', $_message->message ) === '<!-- BPBM-VOICE-MESSAGE -->' && $attachment_id = Better_Messages()->functions->get_message_meta( $_message->id, 'bpbm_voice_messages', true ) ){
                         $file_path = get_attached_file( $attachment_id );
+
+                        if( ! $file_path || ! file_exists($file_path) || filesize($file_path) > 20 * 1024 * 1024 ){
+                            continue;
+                        }
 
                         $file_content = file_get_contents( $file_path );
 
@@ -534,7 +570,7 @@ if ( ! class_exists( 'Better_Messages_OpenAI_API' ) ) {
                    foreach ($attachments as $id => $url) {
                        $file = get_attached_file( $id );
 
-                       if( $file ){
+                       if( $file && file_exists($file) && filesize($file) <= 20 * 1024 * 1024 ){
                            $file_extension = strtolower( pathinfo( $file, PATHINFO_EXTENSION ) );
                            $file_name = pathinfo( $file, PATHINFO_BASENAME );
 
@@ -662,6 +698,10 @@ if ( ! class_exists( 'Better_Messages_OpenAI_API' ) ) {
 
                            $data = json_decode( $json, true );
 
+                           if( ! is_array($data) || ! isset($data['type']) ){
+                               continue;
+                           }
+
                            if( defined('BM_DEBUG') ) {
                                file_put_contents( ABSPATH . 'open-ai.log', time() . ' - ' . print_r( $data, true ) . "\n", FILE_APPEND | LOCK_EX );
                            }
@@ -762,6 +802,7 @@ if ( ! class_exists( 'Better_Messages_OpenAI_API' ) ) {
 
                                                        Better_Messages()->functions->update_message_meta( $ai_message_id, 'attachments', $attachment_meta );
                                                    } finally {
+                                                       @unlink($temp_path);
                                                        $images_generated[] = $generated_image;
                                                    }
 
@@ -1411,17 +1452,7 @@ if ( ! class_exists( 'Better_Messages_OpenAI_API' ) ) {
 
         public function reply_to_message( WP_REST_Request $request )
         {
-            ignore_user_abort(true);
-            set_time_limit(0);
-
-            if ( function_exists('fastcgi_finish_request') ) {
-                fastcgi_finish_request();
-            }  else if ( function_exists( 'litespeed_finish_request' ) ) {
-                litespeed_finish_request();
-            } else {
-                ob_end_flush();
-                flush();
-            }
+            Better_Messages()->functions->end_browser_output();
 
             $bot_id     = (int) $request->get_param( 'bot_id' );
             $message_id = (int) $request->get_param( 'message_id' );
@@ -1452,7 +1483,7 @@ if ( ! class_exists( 'Better_Messages_OpenAI_API' ) ) {
 
                 $message = $wpdb->get_row( $query, ARRAY_A );
 
-                if( str_starts_with($message['message'], '<!-- BM-AI -->') ){
+                if( $message && str_starts_with($message['message'], '<!-- BM-AI -->') ){
                     // this is AI message
                     $message_id = $message['id'];
 

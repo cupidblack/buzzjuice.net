@@ -71,7 +71,7 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-size: 12px;
+    font-size: 10px;
     color: #333;
     text-decoration: none;
     padding: 6px 4px;
@@ -171,6 +171,10 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
     color: #666;
 }
 
+#buzz-create-user > hr {
+    margin-bottom: 0px;
+}
+
 /* auth (guest) buttons */
 #buzz-create-popup .buzz-auth {
     display: flex;
@@ -245,7 +249,7 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
         </li>
 
         <li><a href="/courses" aria-label="Courses"><i class="fa fa-leanpub" aria-hidden="true"></i><span>Courses</span></a></li>
-        <li><a href="/streams/pages" aria-label="Collabos"><i class="fa fa-handshake-o" aria-hidden="true"></i><span>Collabos</span></a></li>
+        <li><a href="/streams/directory/pages" aria-label="Collabos"><i class="fa fa-handshake-o" aria-hidden="true"></i><span>Collabos</span></a></li>
         <li><a href="/social" aria-label="Social"><i class="fa fa-users" aria-hidden="true"></i><span>Social</span></a></li>
     </ul>
 </div>
@@ -261,7 +265,7 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
 
     <!-- Guest actions (hidden by default) -->
     <div data-auth="guest" hidden id="buzz-create-guest">
-        <div style="padding:10px;text-align:center;color:#444;">Please Log in or Sign up to create content</div>
+        <div style="padding:10px;text-align:center;color:#444;">Please Log in or Sign up</div>
         <div class="buzz-auth">
             <a href="/login" class="login">Log in</a>
             <a href="/signup" class="signup">Sign up</a>

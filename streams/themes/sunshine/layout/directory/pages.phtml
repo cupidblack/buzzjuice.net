@@ -15,7 +15,16 @@ $pages    = $db->objectbuilder()->orderBy('page_id', 'DESC')->paginate(T_PAGES, 
 		<div class="wow_content popular_posts_hdr">
 			<h2 class="flex">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" class="icon_main" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 14h14l-4.5 -4.5l4.5 -4.5h-14v16"></path></svg>&nbsp;
-				<p><?php echo $wo['lang']['welcome_discover'] ?> <?php echo $wo['lang']['pages'] ?><b><?php echo $wo['lang']['explore_a_world_of'] ?></b></p>
+				<p>
+				    <?php /* echo $wo['lang']['welcome_discover'] */ ?> 
+				    <?php echo (!empty($wo['lang']['pages']) ? 'Collaborations' : 'Collaborations'); ?>
+				    <b>
+				        <?php echo !empty($wo['lang']['explore_a_world_of']) 
+                            ? 'Explore ideas and insights—where knowledge meets curiosity!' 
+                            : $wo['lang']['explore_a_world_of']; 
+                        ?>
+				    </b>
+				</p>
 			</h2>
 		</div>
 	</div>

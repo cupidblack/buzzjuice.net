@@ -577,32 +577,39 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
         public function get_messages( $thread_id, $message = false, $action = 'last_messages', $count = 50 ){
             global $wpdb;
 
+            $current_user_id = Better_Messages()->functions->get_current_user_id();
+
+            $pending_sql = user_can( $current_user_id, 'bm_can_administrate' ) ? "" : $wpdb->prepare(" AND ( `messages`.`is_pending` = 0 OR `messages`.`sender_id` = %d ) ", $current_user_id );
+
             switch ($action){
                 case 'last_messages':
                     $query = $wpdb->prepare( "
-                    SELECT id, thread_id, sender_id, message, created_at, updated_at, temp_id
-                    FROM  " . bm_get_table('messages') . "
+                    SELECT id, thread_id, sender_id, message, created_at, updated_at, temp_id, is_pending
+                    FROM  " . bm_get_table('messages') . " messages
                     WHERE `thread_id` = %d
+                    $pending_sql
                     ORDER BY `created_at` DESC
                     LIMIT 0, %d
                     ", $thread_id, $count );
                     break;
                 case 'from_message':
                     $query = $wpdb->prepare( "
-                    SELECT id, thread_id, sender_id, message, created_at, updated_at, temp_id
-                    FROM  " . bm_get_table('messages') . "
+                    SELECT id, thread_id, sender_id, message, created_at, updated_at, temp_id, is_pending
+                    FROM  " . bm_get_table('messages') . " messages
                     WHERE `thread_id` = %d
                     AND   `id` <= %d
+                    $pending_sql
                     ORDER BY `created_at` DESC
                     LIMIT 0, %d
                     ", $thread_id, $message, $count );
                     break;
                 case 'to_message':
                     $query = $wpdb->prepare( "
-                    SELECT id, thread_id, sender_id, message, created_at, updated_at, temp_id
-                    FROM  " . bm_get_table('messages') . "
+                    SELECT id, thread_id, sender_id, message, created_at, updated_at, temp_id, is_pending
+                    FROM  " . bm_get_table('messages') . " messages
                     WHERE `thread_id` = %d
                     AND   `id` >= %d
+                    $pending_sql
                     ORDER BY `created_at` DESC
                     ", $thread_id, $message );
                     break;
@@ -2448,6 +2455,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 'notification'     => false,
                 'send_global'      => true,
                 'bulk_hide'        => false,
+                'is_pending'       => 0,
                 'date_sent'        => bp_core_current_time(),
                 'created_at'       => $microtime,
                 'updated_at'       => $microtime,
@@ -2486,18 +2494,19 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             $message->date_sent     = $r['date_sent'];
             $message->created_at    = $r['created_at'];
             $message->updated_at    = $r['updated_at'];
-            $message->temp_id      = $r['temp_id'];
+            $message->temp_id       = $r['temp_id'];
+            $message->is_pending    = $r['is_pending'];
             $message->bulk_hide     = $r['bulk_hide'];
             $message->send_global   = $r['send_global'];
-            $message->count_unread = (bool) $r['count_unread'];
-            $message->show_on_site = (bool) $r['show_on_site'];
-            $message->send_push    = $r['send_push'];
-            $message->mobile_push  = $r['mobile_push'];
-            $message->meta         = $r['meta'];
-            $message->notification = $r['notification'];
-            $message->is_update    = $r['is_update'];
+            $message->count_unread  = (bool) $r['count_unread'];
+            $message->show_on_site  = (bool) $r['show_on_site'];
+            $message->send_push     = $r['send_push'];
+            $message->mobile_push   = $r['mobile_push'];
+            $message->meta          = $r['meta'];
+            $message->notification  = $r['notification'];
+            $message->is_update     = $r['is_update'];
 
-
+            $is_pending = $message->is_pending;
             $new_thread = false;
 
             // If we have a thread ID...
@@ -2548,7 +2557,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 if( $type === 'chat-room' ) {
                     $chat_id = Better_Messages()->functions->get_thread_meta($message->thread_id, 'chat_id');
 
-                    if (!empty($chat_id)) {
+                    if ( ! empty($chat_id) ) {
                         $excluded_from_thread_list = Better_Messages()->functions->get_thread_meta($message->thread_id, 'exclude_from_threads_list');
                         if (!empty($excluded_from_thread_list)) {
                             $message->count_unread = false;
@@ -2567,7 +2576,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                    if ( Better_Messages()->settings['enableGroupsPushs'] !== '1' ) {
                        $group_id = Better_Messages()->functions->get_thread_meta($message->thread_id, 'group_id');
 
-                       if ( ! empty($group_id) ) {
+                       if ( ! empty( $group_id ) ) {
                            $message->send_push = false;
                            $message->mobile_push = false;
                        }
@@ -2576,7 +2585,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                    if ( Better_Messages()->settings['PSenableGroupsPushs'] !== '1' ) {
                        $group_id = Better_Messages()->functions->get_thread_meta($message->thread_id, 'peepso_group_id');
 
-                       if (!empty($group_id)) {
+                       if ( ! empty( $group_id ) ) {
                            $message->send_push = false;
                            $message->mobile_push = false;
                        }
@@ -2585,7 +2594,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                    if ( Better_Messages()->settings['UMenableGroupsPushs'] !== '1' ) {
                        $group_id = Better_Messages()->functions->get_thread_meta($message->thread_id, 'um_group_id');
 
-                       if (!empty($group_id)) {
+                       if ( ! empty( $group_id ) ) {
                            $message->send_push = false;
                            $message->mobile_push = false;
                        }
@@ -2594,7 +2603,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                    if( Better_Messages()->settings['FCenableGroupsPushs'] !== '1' ){
                        $group_id = Better_Messages()->functions->get_thread_meta($message->thread_id, 'fluentcommunity_group_id');
 
-                       if ( ! empty( $group_id) ) {
+                       if ( ! empty( $group_id ) ) {
                            $message->send_push = false;
                            $message->mobile_push = false;
                        }
@@ -2602,10 +2611,18 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                }
             }
 
+            /*if( $is_pending !== 0 ){
+                $message->count_unread = false;
+                $message->send_global = false;
+                $message->send_push = false;
+                $message->mobile_push = false;
+            }*/
+
             $message->new_thread = (bool) $new_thread;
 
             // Bail if message failed to send.
             $send = $message->send();
+
             if ( false === is_int( $send ) ) {
                 if ( 'wp_error' === $r['error_type'] ) {
                     if ( is_wp_error( $send ) ) {
@@ -2636,13 +2653,14 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 $attachment_meta = [];
 
                 $enable_double_check = apply_filters('better_messages_ensure_file_is_not_from_other_gallery', true );
+
                 foreach( $args['attachments'] as $attachment_id ){
                     if( $enable_double_check ) {
-                        if (empty(get_post_meta($attachment_id, 'bp-better-messages-attachment', true))) continue;
-                        $attachment_thread_id = (int)get_post_meta($attachment_id, 'bp-better-messages-thread-id', true);
-                        if ($attachment_thread_id !== ($new_thread ? 0 : (int)$message->thread_id)) continue;
-                        $attachment_uploader_id = (int)get_post_meta($attachment_id, 'bp-better-messages-uploader-user-id', true);
-                        if ($attachment_uploader_id !== (int)$message->sender_id) continue;
+                        if ( empty( get_post_meta($attachment_id, 'bp-better-messages-attachment', true) ) ) continue;
+                        $attachment_thread_id = (int) get_post_meta( $attachment_id, 'bp-better-messages-thread-id', true );
+                        if ($attachment_thread_id !== ( $new_thread ? 0 : (int) $message->thread_id ) ) continue;
+                        $attachment_uploader_id = (int) get_post_meta($attachment_id, 'bp-better-messages-uploader-user-id', true);
+                        if ( $attachment_uploader_id !== (int) $message->sender_id ) continue;
                     }
 
                     $attachment_meta[ $attachment_id ] = wp_get_attachment_url( $attachment_id );
@@ -2670,8 +2688,12 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
              * @param BP_Messages_Message $message Message object. Passed by reference.
              */
 
-            //do_action_ref_array( 'messages_message_sent', array( &$message ) );
-            do_action_ref_array( 'better_messages_message_sent', array( &$message ) );
+            if( $is_pending === 0 ){
+                do_action_ref_array( 'better_messages_message_sent', array( &$message ) );
+            } else {
+                Better_Messages()->functions->update_message_meta( $message->id, 'pending_args', $message );
+                do_action_ref_array( 'better_messages_message_pending', array( &$message ) );
+            }
 
             if( $r['return'] === 'message_id' ){
                 return (int) $message->id;
@@ -3286,13 +3308,13 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             $forced_user_id = apply_filters( 'better_messages_forced_current_user_id', null );
 
             if( $forced_user_id !== null ){
-                return $forced_user_id;
+                return (int) $forced_user_id;
             }
 
             if( is_user_logged_in() ){
-                return apply_filters('better_messages_logged_in_user_id', get_current_user_id() );
+                return (int) apply_filters('better_messages_logged_in_user_id', get_current_user_id() );
             } else {
-                return apply_filters('better_messages_guest_user_id', 0);
+                return (int) apply_filters('better_messages_guest_user_id', 0);
             }
         }
 
@@ -3370,6 +3392,12 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             } else {
                 return apply_filters( 'better_messages_get_user_roles', ['bm-guest'], $user_id );
             }
+        }
+
+        public function get_pending_messages_count(): int
+        {
+            global $wpdb;
+            return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `" . bm_get_table('messages') . "` WHERE `is_pending` != 0" );
         }
 
         public function get_user_secret_key( $user_id ){
@@ -3484,6 +3512,21 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
 
         function current_time( $gmt = true, $type = 'mysql' ) {
             return current_time( $type, $gmt );
+        }
+
+        function end_browser_output()
+        {
+            ignore_user_abort(true);
+            set_time_limit(0);
+
+            if ( function_exists('fastcgi_finish_request') ) {
+                fastcgi_finish_request();
+            }  else if ( function_exists( 'litespeed_finish_request' ) ) {
+                litespeed_finish_request();
+            } else {
+                ob_end_flush();
+                flush();
+            }
         }
     }
 

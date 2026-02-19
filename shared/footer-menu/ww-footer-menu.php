@@ -40,7 +40,7 @@ elseif (!empty($_COOKIE['user_id']) || !empty($_COOKIE['wo_user_id']) || !empty(
         </li>
 
         <li><a href="/courses" aria-label="Courses"><i class="fa fa-leanpub" aria-hidden="true"></i><span>Courses</span></a></li>
-        <li><a href="/streams/pages" aria-label="Collabos"><i class="fa fa-handshake-o" aria-hidden="true"></i><span>Collabos</span></a></li>
+        <li><a href="/streams/directory/pages" aria-label="Collabos"><i class="fa fa-handshake-o" aria-hidden="true"></i><span>Collabos</span></a></li>
         <li><a href="/social" aria-label="Social"><i class="fa fa-users" aria-hidden="true"></i><span>Social</span></a></li>
     </ul>
 </div>
@@ -61,7 +61,6 @@ elseif (!empty($_COOKIE['user_id']) || !empty($_COOKIE['wo_user_id']) || !empty(
 
     <div class="buzz-popup-list" data-auth="user" id="buzz-create-user" <?php if (!$buzz_user_logged_in) echo 'hidden'; ?>>
         <a href="/" class="buzz-create-link"><i class="fa fa-home"></i><span><strong>Home</strong></span></a>
-        <hr />
         <a href="/streams/create-blog/" class="buzz-create-link"><i class="fa fa-pencil"></i><span>Create Blog</span></a>
         <a href="/streams/create-album" class="buzz-create-link"><i class="fa fa-image"></i><span>Create Album</span></a>
         <a href="/streams/my-products" class="buzz-create-link"><i class="fa fa-shopping-bag"></i><span>Create Product</span></a>
@@ -81,7 +80,7 @@ elseif (!empty($_COOKIE['user_id']) || !empty($_COOKIE['wo_user_id']) || !empty(
       <button type="button" class="buzz-create-close" aria-label="Close" onclick="jQuery('#buzz-create-modal').modal('hide')">&times;</button>
       <div class="modal-body">
         <div data-auth="guest" id="buzz-create-guest-modal" <?php if ($buzz_user_logged_in) echo 'hidden'; ?>>
-          <div style="padding:10px;text-align:center;color:#444;">Please Log in or Sign up to create content</div>
+          <div style="padding:10px;text-align:center;color:#444;">Please Log in or Sign up</div>
           <div class="buzz-auth" style="padding:6px;">
             <a href="/login" class="login">Log in</a>
             <a href="/signup" class="signup">Sign up</a>

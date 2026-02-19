@@ -248,6 +248,7 @@ if ( !class_exists( 'Better_Messages_Guests' ) ):
                 return $item;
             }
 
+            $item['url']      = false;
             $item['canBlock'] = 0;
             $item['canVideo'] = 0;
             $item['canAudio'] = 0;
@@ -258,7 +259,7 @@ if ( !class_exists( 'Better_Messages_Guests' ) ):
             $guest_user = $this->get_guest_user( $user_id );
 
             if( $guest_user ){
-                $item['name'] = $guest_user->name;
+                $item['name'] = sanitize_user( $guest_user->name );
 
                 if( ! empty( $guest_user->ip ) && str_starts_with($guest_user->ip, 'ai-chat-bot-') ){
                     $item['is_bot'] = 1;

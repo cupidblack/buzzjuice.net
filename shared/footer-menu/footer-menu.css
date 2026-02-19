@@ -63,7 +63,7 @@ body.bm-mobile-device #bp-better-messages-mini-mobile-open.bm-initialized {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 12px;
+  font-size: 10px;
   color: #333;
   text-decoration: none;
   padding: 6px 4px;
@@ -138,6 +138,23 @@ body.bm-mobile-device #bp-better-messages-mini-mobile-open.bm-initialized {
 /* =========================
    WoWonder-style modal (bootstrap) adapted as bottom popover
    ========================= */
+   
+#buzz-create-user > hr {
+  margin-bottom: 0px;
+}
+
+.buzz-auth {
+    display: flex;
+    justify-content: space-around;
+}
+
+#buzz-create-guest-modal > div.buzz-auth > a.login, #buzz-create-guest-modal > div.buzz-auth > a.signup {
+    background: #385dff;
+    padding: 10px;
+    border-radius: 10px;
+    color: white;
+}
+
 .modal.buzz-create-modal .modal-dialog {
   position: fixed;
   bottom: calc(55px + env(safe-area-inset-bottom));

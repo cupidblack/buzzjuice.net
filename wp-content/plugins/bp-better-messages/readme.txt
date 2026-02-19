@@ -4,17 +4,17 @@ Tags: BuddyPress, Ultimate Member, private message, chat, messaging
 Requires at least: 5.9.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.10.2
+Stable tag: 2.12.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
 == Description ==
 
-**Better Messages** – is **realtime private messaging system for WordPress, BuddyPress, BuddyBoss Platform, Ultimate Member, PeepSo** and any other WordPress powered websites.
+**Better Messages** – is the most feature-rich **realtime private messaging system for WordPress**, with native integrations for **BuddyPress, BuddyBoss Platform, Ultimate Member, PeepSo, FluentCommunity** and any other WordPress powered websites.
 
-This private messages plugin packed with tons of features and settings to take engagement of your website users to the next level with **realtime chat features**, private **video and audio call**, **group video calls** and many other features.
+Transform your WordPress site into a powerful communication platform with **private messaging**, **chat rooms**, **video and audio calls**, **group video chats**, **AI chat bots**, and **native mobile apps**.
 
-Live chat functionality allow creating chat rooms or just private conversations between website users.
+Whether you're building a social network, online community, marketplace, or membership site – Better Messages provides enterprise-level messaging features with an easy-to-use interface.
 
 "**Better Messages**" plugin is formerly called "**BP Better Messages**".
 
@@ -24,37 +24,76 @@ Live chat functionality allow creating chat rooms or just private conversations 
 
 https://www.youtube.com/watch?v=jMHx97QsXj8
 
-**Better Messages providing following features out of the box:**
+**Core Messaging Features:**
 
 * AJAX or WebSocket powered realtime conversations
-* Private Conversations
-* Multiple Users Conversations
-* Subjects
-* Searching
-* Mark messages as favorite
-* Email notifications
-* Fully new concept and design
-* Files Uploading
-* Embedded links with thumbnail, title, etc...
-* Emoji selector (using jsDelivr CDN to serve Emojis)
-* Pinned messages
-* Messages deleting
-* Messages editing
-* oEmbed YouTube, Vimeo, VideoPress, Flickr, DailyMotion, Kickstarter, Meetup.com, Mixcloud, SoundCloud and more
-* Message sound notification
-* Whole site messages notifications (User will be notified anywhere with small notification window)
-* Mass messaging feature
-* Mentions feature
-* Bad words filter
-* Block user feature
-* Reactions to messages
+* Private one-to-one conversations
+* Group conversations with unlimited participants
+* Chat Rooms with guest access support
 * Messages for BuddyPress Groups, PeepSo Groups, Ultimate Member Groups, FluentCommunity Groups
-* Chat Rooms
-* Voice Messages (available as addon)
-* Pinned conversations feature
-* AI Chat Bots powered by Open AI ChatGPT API
+* Subjects for conversations
+* Search across all messages
+* Mark messages as favorite
+* Pin important messages to conversation top
+* Pin favorite conversations to list top
+* Reply to specific messages
+* Edit sent messages (with edit indicator)
+* Delete messages
+* Mute conversation notifications
 
-**And many more features not listed here and constantly expanding**
+**AI & Automation:**
+
+* AI Chat Bots powered by OpenAI ChatGPT API
+* Web Search capability for AI bots
+* File Search tool for AI bots
+* Image generation with AI
+* PDF file support for AI conversations
+
+**Media & Content:**
+
+* File sharing (images, videos, documents)
+* Voice Messages (available as addon)
+* Embedded links with thumbnails and descriptions
+* oEmbed support for YouTube, Vimeo, Spotify, SoundCloud, Flickr and 20+ services
+* Emoji selector
+* Stickers
+* GIPHY integration
+* Markdown text formatting support
+
+**Notifications:**
+
+* Email notifications for unread messages (customizable templates)
+* Unsubscribe link support in emails
+* Sound notifications for new messages
+* On-site toast notifications anywhere on your website
+
+**Moderation & Security:**
+
+* Pre-Moderated Messages - review messages before delivery
+* Report messages feature
+* Bad words filter with customizable blacklist
+* Block user feature
+* Role-based access control
+* User whitelist/blacklist for moderation
+
+**Engagement Features:**
+
+* Reactions to messages
+* Mentions (@username)
+* Mass messaging to all users
+* Suggested conversations for new users
+
+**Customization:**
+
+* Modern, fully customizable design
+* Easy color customization via WP Customizer
+* Custom notification sounds
+* RTL layout support
+* White label solution
+* Fully translatable
+* Auto-delete old messages option
+
+**This is not a complete list of features** - Better Messages has many more small features and options that are not listed here. We are constantly adding new features and improvements based on user feedback.
 
 **Compatible plugins:**
 
@@ -107,24 +146,51 @@ https://www.youtube.com/watch?v=jMHx97QsXj8
 
 WebSocket version is a paid option, you can get license key on our website.
 
-We are using our server to implement WebSockets communications between your site and users.
+We use our dedicated servers to implement WebSocket communications between your site and users. Our servers are completely private and do not store or track any private data - all messages remain in your database.
 
-Our WebSockets servers are completely private and do not store or track any private data.
+**Performance & Reliability:**
 
-* **Significantly** reduces the load on your server
-* **Instant** conversations and notifications
-* **NEW** Video calls feature
-* **NEW** Audio calls feature
-* **NEW** Group Video Chats
-* **NEW** Group Audio Chats
-* **NEW** Screen Share feature
-* **NEW** Web Push feature
-* **NEW** iOS and Android Mobile Apps
+* **Significantly** reduces the load on your server (up to 200x less requests)
+* **Instant** message delivery in realtime
+* Works with any hosting including shared hosting
+* No limits on concurrent connections or monthly active users
+
+**Video & Audio Calls:**
+
+* HD Video Calls (1-to-1)
+* HD Audio Calls (1-to-1)
+* Group Video Chats (up to 32 participants)
+* Group Audio Chats (up to 50 participants)
+* Screen Sharing in calls and group chats
+
+**Mobile Apps (Alpha):**
+
+* iOS Mobile App (build your own branded app) - Alpha
+* Android Mobile App (build your own branded app) - Alpha
+* Push notifications for calls and messages
+* VoIP notifications for incoming calls
+
+Note: Mobile apps are currently in alpha stage. Core functionality works, but some features may be limited or under development.
+
+**Realtime Features:**
+
 * Messages Delivery Status (sent, delivered, seen)
-* Typing indicator (indicates if another participant writing message at the moment)
-* Online indicator
-* Works with shared hosting
-* More features coming!
+* Typing indicator
+* Online/Offline presence indicator
+* User statuses (Online, Away, Do Not Disturb)
+* Mini Chats - chat windows anywhere on your site
+* Mini Conversations widget
+
+**Security:**
+
+* Web Push Notifications (works even when the browser is closed)
+* Local browser encryption (AES256)
+* All data encrypted in transit, so we can't read it on our servers
+
+**Support:**
+
+* Priority email support
+* Regular updates and new features
 
 [Why WebSockets are a game-changer?](https://medium.com/@monica.lucarini28/is-websocket-a-game-changer-aeaef68d1fba)
 
@@ -170,7 +236,51 @@ You can translate plugin to your language with LocoTranslate or [participate in 
 
 == Changelog ==
 
-= 2.10.0 - 2.10.2 =
+= 2.12.0 =
+* Replaced browser database engine with new lightweight custom solution for better performance and stability
+* Browser database and WebSocket connection is now shared across browser tabs via SharedWorker, improving performance and real-time sync
+* Group Video & Audio Calls improvements:
+    * Added moderator controls: lock room, mute all participants, broadcast mode
+    * Added Promote to Speaker / Demote to Viewer controls in broadcast mode
+    * Added Raise Hand / Lower Hand feature for viewers in broadcast mode
+    * Added Lower All Hands button for moderators
+    * Added option to restrict who can start group calls (anyone or moderators only)
+    * Added default call mode setting (Participatory or Broadcast) in conversation settings
+    * Added group call settings section in conversation information panel
+    * Added visual speaker highlighting during group calls
+    * Improved microphone and camera device switching reliability
+* Improved rendering performance of the messages list, reducing unnecessary updates when receiving new messages
+* Improved auto-recovery when browser database is unexpectedly deleted
+* Fixed calls not starting in some cases
+* Fixed group video call crash when container has zero dimensions during initialization
+* Fixed AI Chat Bot error "You cannot send messages to this user"
+* Fixed scrollbar thumb direction in some browsers
+* Compatibility update for WordPress 6.2+ by replacing deprecated `get_page_by_title()` usage during activation
+* Other minor bugfixes and improvements
+
+= 2.11.0 - 2.11.1 =
+* Added ability to customize the email template for unread messages notifications in WP Admin
+* Added ability to add unsubscribe link to email notifications
+* Added ability to send test email notifications message from plugin settings page
+* Added Pre-Moderated Messages feature, which allows moderating messages before they are delivered to recipients
+    * Added ability to pre-moderate messages when the user did not have messages at website yet
+    * Added ability to enable moderation of new conversation by user role in plugin settings
+    * Added ability to enable moderation of new replies by user role in plugin settings
+    * Added ability to whitelist users from moderation in the administration screen
+    * Added ability to blacklist users, which enables force moderation of messages from them
+    * Added ability to set email list which will receive notifications about new messages for moderated or new message reports
+* Added options for admins to bypass words blacklist
+* Added initial support for new Dokan Vendor Dashboard UI
+* Removed Customizations tab from settings page, settings from that page moved to Messaging tab
+* Other minor bugfixes and improvements
+
+= 2.10.0 - 2.10.4 =
+* Performance optimizations for some database queries
+* Added option to Use Full Space in FluentCommunity Messages Page, which allows to use all available space for messages area
+* Added option to show page title in FluentCommunity Messages Page, like in other pages
+* Added option to combine Mini Conversations & Mini Chats widgets
+* Added missing translation strings for Image Lightbox
+* Avoided FluentCommunity page reload when pressing private message button from user profile
 * Added User Inbox Block for WordPress Block editor
 * Added ability to upload custom notification sounds for incoming and outgoing messages, and for incoming and outgoing calls, in the plugin settings under the Notifications tab.
 * Added subfolders for file uploads to prevent too many files in single folder (this will only affect new uploaded files)

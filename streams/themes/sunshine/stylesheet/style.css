@@ -2506,7 +2506,7 @@ span.product-list:hover {
 }
 .cool-style-album .album-name h4{
     font-weight: bold;
-    font-size: 15px;
+    font-size: 12px;
     overflow: hidden;
     display: block;
     letter-spacing: 0.04em;
@@ -2945,7 +2945,7 @@ border-radius: 12px;
 .products .product .product-image img{width:100%}
 .products .product .product-title{color:#333;font-size:18px;margin-bottom:5px}
 .products .product .product-title a {color: #222;}
-.products .product .product-by{font-size: 14.5px;color:#888;margin-bottom:4px}
+.products .product .product-by{font-size: 14.5px;color:#888;margin-bottom:4px;margin-right:4px}
 .products .product .product-price{font-size: 14.5px;color:#4CAF50;font-weight:700;letter-spacing:.3px;margin:7px 0 0}
 .products .product .product-desc{color:#999;margin-top:8px;font-size: 14.5px}
 .posts-count{z-index:99;padding:10px 15px;text-align:center;position:fixed;transition:all .2s ease;top:100px;left:50%;transform:translate(-50%,-50%);border-radius:20px;box-shadow:0 2px 2px rgba(0,0,0,.2)!important}
@@ -3461,7 +3461,7 @@ hr.style-two{border:0;height:1px;background-image:linear-gradient(to right,rgba(
 .wow_main_float_head.markets {background: linear-gradient(-45deg, #0fbb8b 0%, #6ba85b 100%);}
 .wow_main_float_head.searchs {background: #ffd0d1;}
 .wow_main_float_head.show-fnds {/*background: rgb(255, 235, 235);*/background: #fff8f8;}
-.wow_main_float_head > .container {padding: 40px 15px;color: #fff;font-family: Segoe UI Historic, Segoe UI, Helvetica, Arial, sans-serif;}
+.wow_main_float_head > .container {padding: 40px 10px;color: #fff;font-family: Segoe UI Historic, Segoe UI, Helvetica, Arial, sans-serif;}
 .wow_main_float_head.show-fnds > .container {color: #000;z-index: 1;position: relative;}
 .wow_main_float_head h1 {margin: 0;font-family: "Lato",sans-serif;text-align: center;}
 .wow_main_float_head h1 svg {width: 32px;height: 32px;margin: -6px 0 0;}
@@ -4129,6 +4129,11 @@ svg.feather{vertical-align:middle;margin-top:-4px;width: 19px;height:19px;}
     object-fit: cover;
     border-radius: 50%;
 }
+
+.produc_info {
+    padding: 0px 5px;
+}
+
 .wow_side_prods .produc_info {padding: 8px 2px;}
 .wow_side_prods .produc_info span {
     color: #252525;
@@ -5129,7 +5134,7 @@ table.wow_pymnt_table .label-danger {color: #F44336;background-color: rgba(244, 
 .wo_market #cusrange-reader {width: 43px;background: transparent !important;}
 .wo_market .market_bottom #products.row {margin-right: -10px;margin-left: -10px;display: flex;
     flex-wrap: wrap;}
-.wo_market .market_bottom .product{padding-right:10px;padding-left:10px;}
+.wo_market .market_bottom .product{padding-right:3px;padding-left:3px;padding-top:5px;padding-bottom:5px;}
 .wo_market .market_bottom .product .product_info{background-color:#fff;padding:0 3px 5px;border:1px solid #ddd;border-radius: max(0px, min(8px, calc((100vw - 4px - 100%) * 9999))) / 8px;transition:all .2s linear}
 .wo_market .market_bottom .product .product_info:hover{box-shadow:0 1px 4px rgba(0,0,0,.18)}
 .wo_my_products a{-webkit-box-shadow:0 1px 2px rgba(0,0,0,0.2);background:#fff}
@@ -5137,26 +5142,27 @@ table.wow_pymnt_table .label-danger {color: #F44336;background-color: rgba(244, 
 .wo_market .market_bottom .product .product_info:hover .product-links {opacity:1}
 .wo_market .market_bottom .product .product-links .more-info{background-color: rgba(255, 255, 255, 0.3);color: #fff;}
 .wo_market .market_bottom .product .product-links .more-info:hover{background-color:#fff;color:#000 !important;}
-.wo_market .market_bottom .product .product_info.wow_main_mkt_prod {border: 0;transition: all 0.2s;padding: 15px;height: 100%;}
+.wo_market .market_bottom .product .product_info.wow_main_mkt_prod {border: 0;transition: all 0.2s;padding: 0px;height: 100%;}
 .wo_market .market_bottom .product .product_info.wow_main_mkt_prod:hover {box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);}
 .wo_market .market_bottom .product .product_info.wow_main_mkt_prod .product-image {margin: 0;width: 100%;}
 .wo_market .market_bottom .product .product_info.wow_main_mkt_prod .product-image img {
     object-fit: cover;
-    aspect-ratio: 1.5;
+    aspect-ratio: auto;
     border-radius: 9px;
 }
-.wo_market .market_bottom .product .product_info.wow_main_mkt_prod .product-by {position: absolute;z-index: 9;top: 8px;left: 8px;}
+.wo_market .market_bottom .product .product_info.wow_main_mkt_prod .product-by {position: absolute;z-index: 9;top: auto;left: auto;bottom: 0px;right: 0px;max-width: min-content;}
 .wo_market .market_bottom .product .product_info.wow_main_mkt_prod .product-by a {
     color: black;
     text-decoration: none;
     display: block;
-    padding: 4px 13px;
+    padding: 2px 5px;
     background: rgba(242, 242, 242, 0.83);
     border-radius: 8px;
     font-family: 'Poppins';
     font-style: normal;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 10px;
+    text-align: right;
 }
 .wo_market .market_bottom .product .product_info.wow_main_mkt_prod .product-by a.product-list {
     padding: 4px 6px;
@@ -5192,7 +5198,7 @@ table.wow_pymnt_table .label-danger {color: #F44336;background-color: rgba(244, 
     font-family: 'Poppins';
     font-style: normal;
     font-weight: 600;
-    font-size: 20px;
+    font-size: 12px;
     margin: 12px 0 0;
     text-transform: uppercase;
 }
@@ -5203,7 +5209,7 @@ table.wow_pymnt_table .label-danger {color: #F44336;background-color: rgba(244, 
     font-family: 'Poppins';
     font-style: normal;
     font-weight: 500;
-    font-size: 21px;
+    font-size: 14px;
     color: #262D34;
 }
 .btn_create_big.myproduct {
@@ -9246,7 +9252,7 @@ height: 100%;
 /*Market*/
 .new_market.wow_main_float_head:not(.searchs):not(.blogs) {background-image: url(../img/market.png);background-repeat: no-repeat;background-position: center;background-size: cover;}
 .new_market.wow_main_float_head:after {content: '';background: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 60"><path fill="%23f0f2f5" d="M1920,60H0V0S387,59,960,59,1920,0,1920,0Z"/></svg>') no-repeat center/100% 100%;position: absolute;bottom: 0;left: 0;right: 0;padding-top: 3.125%;}
-.new_market.wow_main_float_head .container {padding: 50px 15px 75px;}
+.new_market.wow_main_float_head .container {padding: 50px 10px 75px;}
 .wo_market_head_filter, .wo_job_head_filter {display: flex;align-items: center;flex-wrap: wrap;margin: -85px 0 30px;padding: 0 7px;border-radius: 8px;font-family: Segoe UI Historic, Segoe UI, Helvetica, Arial, sans-serif;}
 .wo_market_head_filter > .market_widget, .wo_job_head_filter > .wo_job_main_widget {margin: 14px 7px;flex: 1 1 auto;}
 .wo_market_head_filter > .market_widget .m_widget_head, .wo_job_head_filter > .wo_job_main_widget .m_widget_head {margin: 0;font-weight: bold;border: 1px solid #ddd;border-radius: 8px;padding: 0 16px;line-height: 38px;display: flex;align-items: center;justify-content: space-between;}
@@ -9489,7 +9495,7 @@ height: 100%;
 /*Jobs*/
 .new_jobs.wow_main_float_head {background-image: url(../img/job.png);background-repeat: no-repeat;background-position: center;background-size: cover;}
 .new_jobs.wow_main_float_head:after {content: '';display: block;position: absolute;left: -40px;right: -40px;height: 190px;background-color: #f0f2f5;transform: rotate(-1.2deg);bottom: -160px;}
-.new_jobs.wow_main_float_head .container, .new_market.wow_main_float_head .container {padding: 50px 15px 105px;}
+.new_jobs.wow_main_float_head .container, .new_market.wow_main_float_head .container {padding: 50px 10px 105px;}
 .new_jobs.wow_main_float_head svg, .new_market.wow_main_float_head svg {display: none;margin: 0 0 5px;background-color: #fff;border-radius: 50%;color: #4fb1ea;padding: 10px;height: auto;width: 50px;box-shadow: 0 3px 10px rgb(0 0 0 / 10%);}
 .new_jobs.wow_main_float_head h1, .new_market.wow_main_float_head h1 {text-align: inherit;font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";font-size: 40px;}
 .new_jobs.wow_main_float_head p, .new_market.wow_main_float_head p {font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";font-size: 21px;}
@@ -10223,7 +10229,7 @@ body .green-audio-player .holder .play-pause-btn svg path {
     font-family: 'Poppins';
     font-style: normal;
     font-weight: 400;
-    font-size: 14px;
+    font-size: 12px;
     margin: 2px 0 0;
     display: block;
 }
@@ -12189,7 +12195,7 @@ footer .footer-wrapper{display:block}
 }
 
 @media (max-width:840px) {
-.container,.header-fixed1000,.header-fixed1200{width:97%}
+.container,.header-fixed1000,.header-fixed1200{width:calc(100% - 20px)}
 .messages-container .message-media video{width:100%!important}
 .wo_market .market_categories .product-navigate{opacity:1;position:relative;top:5px;right:0;transform:none;margin-left:auto;left:0}
 .wo_market .market_categories .product-navigate a{padding:1px 6px;margin-right:7px}
@@ -12488,7 +12494,7 @@ to{opacity:1;margin-top:0}
     margin-left: -10px;
 }
 .wo_market .market_bottom .product {
-    width: 100%;
+    width: 50%;
 }
 .wo_monetize_row {
 	margin-right: -10px;
@@ -12628,7 +12634,7 @@ to{opacity:1;margin-top:0}
 .wo_send_gift .gift-data {width: calc(100% / 2 - 8px);}
 #wo_nw_msg_page .messages-container .message-media img {max-height: 140px;}
 .popular_posts_hdr {
-    padding: 25px 15px;
+    padding: 10px 10px;
 }
 }
 
@@ -13191,7 +13197,7 @@ div#modal_light_box {
 
 
 /*Cookie*/
-.cc-window {position: fixed;overflow: hidden;font-size: 14px;display: -ms-flexbox;display: flex;-ms-flex-wrap: wrap;flex-wrap: wrap;align-items: center;z-index: 9999;box-shadow: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px 0 rgba(0,0,0,.06);border-radius: max(0px, min(8px, calc((100vw - 4px - 100%) * 9999))) / 8px;padding: 12px;left: 50%;transform: translateX(-50%);bottom: 15px;width: 100%;max-width: 900px;justify-content: space-between;background-color: white;}
+.cc-window {position: fixed;overflow: hidden;font-size: 14px;display: -ms-flexbox;display: flex;-ms-flex-wrap: wrap;flex-wrap: wrap;align-items: center;z-index: 99999;box-shadow: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px 0 rgba(0,0,0,.06);border-radius: max(0px, min(8px, calc((100vw - 4px - 100%) * 9999))) / 8px;padding: 12px;left: 50%;transform: translateX(-50%);bottom: 15px;width: 100%;max-width: 900px;justify-content: space-between;background-color: white;}
 .cc-window.cc-invisible {display: none !important;}
 .cc-btn.cc-dismiss {cursor: pointer;transition: all 0.15s;padding: 0 15px;line-height: 34px;display: block;border-radius: max(0px, min(8px, calc((100vw - 4px - 100%) * 9999))) / 8px;background: #04abf2;color: #fff;}
 
