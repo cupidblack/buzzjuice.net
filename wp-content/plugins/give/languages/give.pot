@@ -1,15 +1,15 @@
-# Copyright (C) 2025 GiveWP
+# Copyright (C) 2026 GiveWP
 # This file is distributed under the same license as the Give - Donation Plugin plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Give - Donation Plugin 4.13.1\n"
+"Project-Id-Version: Give - Donation Plugin 4.14.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/givewp\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-11-18T14:30:58+00:00\n"
+"POT-Creation-Date: 2026-02-11T19:06:38+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: give\n"
@@ -31,7 +31,7 @@ msgstr ""
 
 #. Author of the plugin
 #: give.php
-#: includes/admin/upgrades/class-give-updates.php:227
+#: includes/admin/upgrades/class-give-updates.php:229
 #: src/ThirdPartySupport/Elementor/ServiceProvider.php:63
 #: build/assets/dist/js/admin-onboarding-wizard.js:1
 #: build/assets/dist/js/admin-upsell-addons-page.js:1
@@ -81,7 +81,7 @@ msgstr ""
 
 #: blocks/donor-wall/class-give-donor-wall.php:164
 #: includes/admin/shortcodes/shortcode-give-donor-wall.php:99
-#: includes/donors/class-give-donor-wall.php:217
+#: includes/donors/class-give-donor-wall.php:221
 #: build/adminBlocks.js:1
 #: build/formBuilderRegistrars.js:1
 msgid "Read more"
@@ -89,7 +89,7 @@ msgstr ""
 
 #: blocks/donor-wall/class-give-donor-wall.php:168
 #: includes/admin/shortcodes/shortcode-give-donor-wall.php:106
-#: includes/donors/class-give-donor-wall.php:218
+#: includes/donors/class-give-donor-wall.php:222
 #: src/Campaigns/Shortcodes/CampaignDonationsShortcode.php:72
 #: src/Campaigns/Shortcodes/CampaignDonorsShortcode.php:74
 #: src/ThirdPartySupport/Elementor/Widgets/V2/ElementorCampaignDonationsWidget/ElementorCampaignDonationsWidget.php:203
@@ -454,15 +454,15 @@ msgid "Import Donations"
 msgstr ""
 
 #: includes/admin/admin-actions.php:663
-#: src/DonationForms/V2/DonationFormsAdminPage.php:285
-#: src/Donors/DonorsAdminPage.php:77
+#: src/DonationForms/V2/DonationFormsAdminPage.php:287
+#: src/Donors/DonorsAdminPage.php:79
 #: src/Subscriptions/SubscriptionsAdminPage.php:65
 msgid "Switch to New View"
 msgstr ""
 
 #: includes/admin/admin-actions.php:774
 #: includes/admin/admin-actions.php:902
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1155
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1169
 #, php-format
 msgid "Row %1$d: %2$s"
 msgstr ""
@@ -512,62 +512,62 @@ msgstr ""
 msgid "View Donor Information"
 msgstr ""
 
-#: includes/admin/admin-actions.php:1199
+#: includes/admin/admin-actions.php:1255
 msgid "Error: Security issue."
 msgstr ""
 
-#: includes/admin/admin-actions.php:1233
+#: includes/admin/admin-actions.php:1289
 msgid "Error: Unable to save the address. Please check if address already exist."
 msgstr ""
 
-#: includes/admin/admin-actions.php:1262
+#: includes/admin/admin-actions.php:1318
 msgid "Successfully added a new address to the donor."
 msgstr ""
 
-#: includes/admin/admin-actions.php:1278
+#: includes/admin/admin-actions.php:1334
 msgid "Error: Unable to delete address."
 msgstr ""
 
-#: includes/admin/admin-actions.php:1286
+#: includes/admin/admin-actions.php:1342
 msgid "Successfully removed a address of donor."
 msgstr ""
 
-#: includes/admin/admin-actions.php:1298
+#: includes/admin/admin-actions.php:1354
 msgid "Error: Unable to update address. Please check if address already exist."
 msgstr ""
 
-#: includes/admin/admin-actions.php:1316
+#: includes/admin/admin-actions.php:1372
 msgid "Successfully updated a address of donor"
 msgstr ""
 
-#: includes/admin/admin-actions.php:1338
+#: includes/admin/admin-actions.php:1394
 #: includes/admin/payments/view-payment-details.php:776
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:196
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:200
 #: src/Receipt/DonationReceipt.php:86
 #: build/formBuilderRegistrars.js:1
 msgid "Billing Address"
 msgstr ""
 
-#: includes/admin/admin-actions.php:1356
+#: includes/admin/admin-actions.php:1412
 msgid "Personal Address"
 msgstr ""
 
-#: includes/admin/admin-actions.php:1489
+#: includes/admin/admin-actions.php:1545
 msgid "Cache flushed successfully."
 msgstr ""
 
-#: includes/admin/admin-actions.php:1495
+#: includes/admin/admin-actions.php:1551
 msgid "An error occurred while flushing the cache."
 msgstr ""
 
-#: includes/admin/admin-actions.php:1593
+#: includes/admin/admin-actions.php:1649
 #, php-format
 msgid "Your GiveWP add-on is not receiving critical updates and new features because you have %1$s license key. Please <a href=\"%2$s\" title=\"%3$s\">activate your license</a> to receive updates and <a href=\"%4$s\" target=\"_blank\" title=\"%5$s\">priority support</a>"
 msgid_plural "Your GiveWP add-ons are not receiving critical updates and new features because you have %1$s license keys. Please <a href=\"%2$s\" title=\"%3$s\">activate your license</a> to receive updates and <a href=\"%4$s\" target=\"_blank\" title=\"%5$s\">priority support</a>"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/admin/admin-actions.php:1601
+#: includes/admin/admin-actions.php:1657
 #: includes/admin/settings/class-settings-license.php:114
 #: includes/admin/settings/class-settings-license.php:125
 #: includes/admin/settings/class-settings-license.php:127
@@ -576,7 +576,7 @@ msgstr[1] ""
 msgid "Activate License"
 msgstr ""
 
-#: includes/admin/admin-actions.php:1603
+#: includes/admin/admin-actions.php:1659
 msgid "Priority Support"
 msgstr ""
 
@@ -603,25 +603,25 @@ msgstr ""
 msgid "Thanks :)"
 msgstr ""
 
-#: includes/admin/admin-pages.php:55
-#: includes/admin/admin-pages.php:56
+#: includes/admin/admin-pages.php:57
+#: includes/admin/admin-pages.php:58
 #: includes/admin/donors/class-donor-table.php:66
 #: includes/admin/reports/class-donor-reports-table.php:68
 #: includes/admin/tools/import/class-give-import-donations.php:604
 #: src/API/Endpoints/Reports/Income.php:98
 #: src/API/Endpoints/Reports/IncomeBreakdown.php:83
 #: src/DonationForms/ViewModels/DonationFormViewModel.php:188
-#: src/Donors/DonorsAdminPage.php:23
-#: src/Donors/DonorsAdminPage.php:24
+#: src/Donors/DonorsAdminPage.php:25
+#: src/Donors/DonorsAdminPage.php:26
 #: build/assets/dist/js/give-admin-donors.js:4
 msgid "Donors"
 msgstr ""
 
-#: includes/admin/admin-pages.php:72
+#: includes/admin/admin-pages.php:74
 msgid "GiveWP Settings"
 msgstr ""
 
-#: includes/admin/admin-pages.php:73
+#: includes/admin/admin-pages.php:75
 #: includes/admin/plugins.php:31
 #: build/campaignBlocksLandingPage.js:1
 #: build/campaignDetails.js:10
@@ -630,30 +630,30 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: includes/admin/admin-pages.php:91
+#: includes/admin/admin-pages.php:93
 msgid "GiveWP Tools"
 msgstr ""
 
-#: includes/admin/admin-pages.php:92
+#: includes/admin/admin-pages.php:94
 #: includes/admin/tools/class-settings-data.php:96
 msgid "Tools"
 msgstr ""
 
-#: includes/admin/admin-pages.php:389
+#: includes/admin/admin-pages.php:391
 msgid "Donation Success Page"
 msgstr ""
 
-#: includes/admin/admin-pages.php:393
+#: includes/admin/admin-pages.php:395
 msgid "Donation Failed Page"
 msgstr ""
 
-#: includes/admin/admin-pages.php:397
+#: includes/admin/admin-pages.php:399
 #: includes/admin/settings/class-settings-general.php:375
 #: includes/admin/tools/views/html-admin-page-system-info.php:653
 msgid "Donation History Page"
 msgstr ""
 
-#: includes/admin/admin-pages.php:400
+#: includes/admin/admin-pages.php:402
 msgid "GiveWP Campaign Page"
 msgstr ""
 
@@ -815,7 +815,7 @@ msgstr ""
 #: includes/admin/shortcodes/shortcode-give-donor-wall.php:48
 #: includes/admin/tools/export/class-give-export-donations.php:222
 #: includes/post-types.php:64
-#: src/DonationForms/V2/DonationFormsAdminPage.php:70
+#: src/DonationForms/V2/DonationFormsAdminPage.php:72
 #: src/ThirdPartySupport/Elementor/Widgets/V2/ElementorDonationFormGridWidget/ElementorDonationFormGridWidget.php:221
 msgid "All Forms"
 msgstr ""
@@ -883,6 +883,7 @@ msgstr ""
 #: includes/admin/payments/view-payment-details.php:486
 #: includes/forms/widget.php:262
 #: build/donorDetails.js:10
+#: build/formBuilderRegistrars.js:1
 msgid "None"
 msgstr ""
 
@@ -953,7 +954,7 @@ msgstr ""
 #: includes/admin/payments/class-payments-table.php:170
 #: includes/admin/payments/class-payments-table.php:178
 #: includes/admin/tools/export/class-give-export-donations.php:243
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1271
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1285
 #: src/Campaigns/ListTable/Columns/StartDateColumn.php:28
 #: src/EventTickets/ListTable/Columns/DateColumn.php:37
 #: src/Exports/resources/views/export-donors-table-row.php:23
@@ -1053,7 +1054,7 @@ msgstr ""
 #: includes/admin/import-functions.php:476
 #: includes/admin/reports/class-donor-reports-table.php:219
 #: includes/admin/tools/export/export-functions.php:154
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1260
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1274
 #: src/Exports/DonorsExport.php:182
 #: templates/shortcode-register.php:39
 #: build/assets/dist/js/give-admin-event-tickets-details.js:4
@@ -1081,8 +1082,8 @@ msgstr ""
 #: src/Campaigns/ListTable/Columns/DonationsCountColumn.php:29
 #: src/DonationForms/V2/ListTable/Columns/DonationCountColumn.php:38
 #: src/DonationForms/ViewModels/DonationFormViewModel.php:192
-#: src/Donations/DonationsAdminPage.php:29
-#: src/Donations/DonationsAdminPage.php:30
+#: src/Donations/DonationsAdminPage.php:31
+#: src/Donations/DonationsAdminPage.php:32
 #: src/Donors/ListTable/Columns/DonationCountColumn.php:37
 #: build/assets/dist/js/donor-dashboards-app.js:1
 #: build/assets/dist/js/give-admin-donations.js:4
@@ -1212,6 +1213,7 @@ msgstr ""
 #: includes/admin/emails/class-donor-note-email.php:79
 #: includes/admin/emails/class-donor-register-email.php:114
 #: includes/admin/emails/class-email-access-email.php:271
+#: includes/admin/emails/class-failed-donation-email.php:253
 #: includes/admin/emails/class-new-donation-email.php:248
 #: includes/admin/emails/class-new-donor-register-email.php:110
 #: includes/admin/emails/class-new-offline-donation-email.php:260
@@ -1271,6 +1273,7 @@ msgstr ""
 #: includes/admin/emails/class-donor-note-email.php:78
 #: includes/admin/emails/class-donor-register-email.php:113
 #: includes/admin/emails/class-email-access-email.php:270
+#: includes/admin/emails/class-failed-donation-email.php:252
 #: includes/admin/emails/class-new-donation-email.php:247
 #: includes/admin/emails/class-new-donor-register-email.php:109
 #: includes/admin/emails/class-new-offline-donation-email.php:259
@@ -1437,7 +1440,7 @@ msgstr ""
 #: includes/admin/import-functions.php:439
 #: includes/admin/tools/export/give-export-donations-exporter.php:184
 #: includes/admin/tools/import/class-give-import-donations.php:501
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1258
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1272
 #: includes/forms/template.php:821
 #: includes/forms/template.php:837
 #: templates/shortcode-profile-editor.php:52
@@ -1449,7 +1452,7 @@ msgstr ""
 #: includes/admin/donors/donors.php:401
 #: includes/admin/import-functions.php:445
 #: includes/admin/tools/export/give-export-donations-exporter.php:187
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1259
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1273
 #: includes/forms/template.php:849
 #: includes/forms/template.php:868
 #: templates/shortcode-profile-editor.php:60
@@ -1628,7 +1631,7 @@ msgstr ""
 #: includes/forms/template.php:966
 #: includes/forms/template.php:981
 #: src/FormBuilder/Actions/GenerateDefaultDonationFormBlockCollection.php:127
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:182
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:186
 #: src/Receipt/DonationReceipt.php:78
 #: templates/email-login-form.php:108
 #: templates/shortcode-profile-editor.php:118
@@ -1638,7 +1641,7 @@ msgstr ""
 
 #: includes/admin/donors/donors.php:881
 #: includes/admin/emails/class-email-setting-field.php:335
-#: includes/admin/settings/class-settings-advanced.php:306
+#: includes/admin/settings/class-settings-advanced.php:307
 #: build/assets/dist/js/donor-dashboards-app.js:1
 msgid "Add Email"
 msgstr ""
@@ -1675,7 +1678,7 @@ msgstr ""
 #: includes/admin/forms/dashboard-columns.php:38
 #: includes/admin/import-functions.php:414
 #: includes/admin/payments/class-payments-table.php:419
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1264
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1278
 #: src/Donations/ListTable/Columns/AmountColumn.php:37
 #: src/Subscriptions/ListTable/Columns/AmountColumn.php:37
 #: src/ThirdPartySupport/Elementor/Widgets/V1/DonationHistoryWidget.php:147
@@ -1710,8 +1713,8 @@ msgstr ""
 #: includes/admin/donors/donors.php:913
 #: includes/admin/import-functions.php:481
 #: includes/admin/payments/class-payments-table.php:417
-#: includes/admin/tools/import/class-give-import-subscriptions.php:440
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1266
+#: includes/admin/tools/import/class-give-import-subscriptions.php:454
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1280
 #: src/Campaigns/ListTable/Columns/StatusColumn.php:26
 #: src/DonationForms/V2/ListTable/Columns/StatusColumn.php:36
 #: src/Donations/ListTable/Columns/StatusColumn.php:37
@@ -2059,14 +2062,14 @@ msgstr ""
 #: includes/admin/forms/class-metabox-form-data.php:412
 #: includes/admin/forms/class-metabox-form-data.php:461
 #: includes/admin/forms/class-metabox-form-data.php:529
-#: includes/admin/settings/class-settings-advanced.php:87
-#: includes/admin/settings/class-settings-advanced.php:103
-#: includes/admin/settings/class-settings-advanced.php:139
-#: includes/admin/settings/class-settings-advanced.php:182
-#: includes/admin/settings/class-settings-advanced.php:207
-#: includes/admin/settings/class-settings-advanced.php:218
-#: includes/admin/settings/class-settings-advanced.php:284
-#: includes/admin/settings/class-settings-advanced.php:335
+#: includes/admin/settings/class-settings-advanced.php:88
+#: includes/admin/settings/class-settings-advanced.php:104
+#: includes/admin/settings/class-settings-advanced.php:140
+#: includes/admin/settings/class-settings-advanced.php:183
+#: includes/admin/settings/class-settings-advanced.php:208
+#: includes/admin/settings/class-settings-advanced.php:219
+#: includes/admin/settings/class-settings-advanced.php:285
+#: includes/admin/settings/class-settings-advanced.php:336
 #: includes/admin/settings/class-settings-display.php:108
 #: includes/admin/settings/class-settings-display.php:119
 #: includes/admin/settings/class-settings-display.php:150
@@ -2086,9 +2089,9 @@ msgstr ""
 #: includes/admin/tools/import/class-give-import-donations.php:967
 #: includes/admin/tools/import/class-give-import-donations.php:978
 #: includes/admin/tools/import/class-give-import-donations.php:989
-#: includes/admin/tools/import/class-give-import-subscriptions.php:802
-#: includes/admin/tools/import/class-give-import-subscriptions.php:813
-#: includes/admin/tools/import/class-give-import-subscriptions.php:824
+#: includes/admin/tools/import/class-give-import-subscriptions.php:816
+#: includes/admin/tools/import/class-give-import-subscriptions.php:827
+#: includes/admin/tools/import/class-give-import-subscriptions.php:838
 #: includes/admin/tools/views/html-admin-page-system-info.php:479
 #: includes/admin/tools/views/html-admin-page-system-info.php:583
 #: includes/admin/tools/views/html-admin-page-system-info.php:620
@@ -2131,14 +2134,14 @@ msgstr ""
 #: includes/admin/forms/class-metabox-form-data.php:413
 #: includes/admin/forms/class-metabox-form-data.php:462
 #: includes/admin/forms/class-metabox-form-data.php:530
-#: includes/admin/settings/class-settings-advanced.php:88
-#: includes/admin/settings/class-settings-advanced.php:104
-#: includes/admin/settings/class-settings-advanced.php:140
-#: includes/admin/settings/class-settings-advanced.php:183
-#: includes/admin/settings/class-settings-advanced.php:208
-#: includes/admin/settings/class-settings-advanced.php:219
-#: includes/admin/settings/class-settings-advanced.php:285
-#: includes/admin/settings/class-settings-advanced.php:336
+#: includes/admin/settings/class-settings-advanced.php:89
+#: includes/admin/settings/class-settings-advanced.php:105
+#: includes/admin/settings/class-settings-advanced.php:141
+#: includes/admin/settings/class-settings-advanced.php:184
+#: includes/admin/settings/class-settings-advanced.php:209
+#: includes/admin/settings/class-settings-advanced.php:220
+#: includes/admin/settings/class-settings-advanced.php:286
+#: includes/admin/settings/class-settings-advanced.php:337
 #: includes/admin/settings/class-settings-display.php:62
 #: includes/admin/settings/class-settings-display.php:85
 #: includes/admin/settings/class-settings-display.php:109
@@ -2159,9 +2162,9 @@ msgstr ""
 #: includes/admin/tools/import/class-give-import-donations.php:968
 #: includes/admin/tools/import/class-give-import-donations.php:979
 #: includes/admin/tools/import/class-give-import-donations.php:990
-#: includes/admin/tools/import/class-give-import-subscriptions.php:803
-#: includes/admin/tools/import/class-give-import-subscriptions.php:814
-#: includes/admin/tools/import/class-give-import-subscriptions.php:825
+#: includes/admin/tools/import/class-give-import-subscriptions.php:817
+#: includes/admin/tools/import/class-give-import-subscriptions.php:828
+#: includes/admin/tools/import/class-give-import-subscriptions.php:839
 #: includes/admin/tools/views/html-admin-page-system-info.php:479
 #: includes/admin/tools/views/html-admin-page-system-info.php:583
 #: includes/admin/tools/views/html-admin-page-system-info.php:620
@@ -2290,6 +2293,72 @@ msgstr ""
 msgid "Click the \"Send Test Email\" button to send a test email to yourself at"
 msgstr ""
 
+#: includes/admin/emails/class-failed-donation-email.php:39
+msgid "Failed Donation"
+msgstr ""
+
+#: includes/admin/emails/class-failed-donation-email.php:40
+msgid "Sent to designated recipient(s) when a donation status is changed to failed."
+msgstr ""
+
+#: includes/admin/emails/class-failed-donation-email.php:44
+msgid "Failed Donation - #{payment_id}"
+msgstr ""
+
+#: includes/admin/emails/class-failed-donation-email.php:46
+msgid "Failed Donation!"
+msgstr ""
+
+#: includes/admin/emails/class-failed-donation-email.php:60
+#: includes/emails/functions.php:85
+msgid "Hi there,"
+msgstr ""
+
+#: includes/admin/emails/class-failed-donation-email.php:61
+msgid "This email is to inform you that a donation has failed on your website:"
+msgstr ""
+
+#: includes/admin/emails/class-failed-donation-email.php:62
+#: includes/admin/emails/class-new-offline-donation-email.php:115
+#: includes/emails/functions.php:87
+#: includes/emails/functions.php:110
+#: src/Email/Notifications/DonationProcessingReceipt.php:49
+msgid "Donor:"
+msgstr ""
+
+#: includes/admin/emails/class-failed-donation-email.php:63
+#: includes/emails/functions.php:88
+#: includes/emails/functions.php:111
+#: src/Email/Notifications/DonationProcessingReceipt.php:50
+msgid "Donation:"
+msgstr ""
+
+#: includes/admin/emails/class-failed-donation-email.php:64
+#: includes/admin/emails/class-new-offline-donation-email.php:116
+#: includes/emails/functions.php:89
+#: includes/emails/functions.php:113
+#: src/Email/Notifications/DonationProcessingReceipt.php:52
+msgid "Amount:"
+msgstr ""
+
+#: includes/admin/emails/class-failed-donation-email.php:65
+#: includes/emails/functions.php:90
+#: includes/emails/functions.php:114
+#: src/Email/Notifications/DonationProcessingReceipt.php:53
+msgid "Payment Method:"
+msgstr ""
+
+#: includes/admin/emails/class-failed-donation-email.php:66
+#: includes/emails/functions.php:115
+#: src/Email/Notifications/DonationProcessingReceipt.php:54
+msgid "Payment ID:"
+msgstr ""
+
+#: includes/admin/emails/class-failed-donation-email.php:67
+#: includes/emails/functions.php:91
+msgid "Thank you,"
+msgstr ""
+
 #: includes/admin/emails/class-new-donation-email.php:44
 #: includes/post-types.php:119
 #: src/Onboarding/DefaultFormFactory.php:82
@@ -2367,20 +2436,6 @@ msgstr ""
 
 #: includes/admin/emails/class-new-offline-donation-email.php:113
 msgid "Hooray! The donation is in a pending status and is awaiting payment. Donation instructions have been emailed to the donor. Once you receive payment, be sure to mark the donation as complete using the link below."
-msgstr ""
-
-#: includes/admin/emails/class-new-offline-donation-email.php:115
-#: includes/emails/functions.php:87
-#: includes/emails/functions.php:110
-#: src/Email/Notifications/DonationProcessingReceipt.php:49
-msgid "Donor:"
-msgstr ""
-
-#: includes/admin/emails/class-new-offline-donation-email.php:116
-#: includes/emails/functions.php:89
-#: includes/emails/functions.php:113
-#: src/Email/Notifications/DonationProcessingReceipt.php:52
-msgid "Amount:"
 msgstr ""
 
 #: includes/admin/emails/class-new-offline-donation-email.php:121
@@ -2683,7 +2738,7 @@ msgid "Do you want to display the total amount raised based on your monetary goa
 msgstr ""
 
 #: includes/admin/forms/class-metabox-form-data.php:473
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:166
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:168
 msgid "Amount Raised"
 msgstr ""
 
@@ -2694,7 +2749,7 @@ msgstr ""
 #: includes/admin/forms/class-metabox-form-data.php:475
 #: includes/admin/shortcodes/shortcode-give-donation-grid.php:66
 #: includes/admin/tools/export/pdf-reports.php:113
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:172
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:174
 #: src/ThirdPartySupport/Elementor/Widgets/V1/GiveFormGridWidget.php:238
 #: src/ThirdPartySupport/Elementor/Widgets/V2/ElementorDonationFormGridWidget/ElementorDonationFormGridWidget.php:167
 #: build/adminBlocks.js:1
@@ -2704,7 +2759,7 @@ msgid "Number of Donations"
 msgstr ""
 
 #: includes/admin/forms/class-metabox-form-data.php:476
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:177
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:179
 #: build/assets/dist/js/give-admin-donors.js:4
 #: build/campaignBlocks.js:4
 msgid "Number of Donors"
@@ -3015,8 +3070,8 @@ msgstr ""
 #: includes/admin/import-functions.php:411
 #: includes/admin/tools/export/give-export-donations-exporter.php:175
 #: includes/admin/tools/export/give-export-donations-functions.php:257
-#: src/API/REST/V3/Routes/Donations/DonationController.php:876
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1083
+#: src/API/REST/V3/Routes/Donations/DonationController.php:895
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1102
 #: src/ThirdPartySupport/Elementor/Widgets/V1/DonationReceiptWidget.php:359
 #: templates/shortcode-receipt.php:100
 msgid "Donation ID"
@@ -3026,7 +3081,7 @@ msgstr ""
 #: includes/admin/shortcodes/shortcode-give-donor-wall.php:56
 #: includes/admin/tools/import/class-give-import-donations.php:511
 #: src/FormBuilder/Actions/GenerateDefaultDonationFormBlockCollection.php:68
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:143
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:147
 #: src/Receipt/DonationReceipt.php:131
 #: src/ThirdPartySupport/Elementor/Widgets/V1/GiveDonorWallWidget.php:162
 #: src/ThirdPartySupport/Elementor/Widgets/V2/ElementorDonorWallWidget/ElementorDonorWallWidget.php:166
@@ -3040,7 +3095,7 @@ msgstr ""
 #: includes/admin/tools/export/give-export-donations-exporter.php:210
 #: includes/admin/tools/export/give-export-donations-functions.php:279
 #: src/DonationSummary/resources/views/summary.php:109
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:162
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:166
 #: src/Receipt/DonationReceipt.php:144
 #: src/ThirdPartySupport/Elementor/Widgets/V1/DonationReceiptWidget.php:133
 #: build/donationFormRegistrars.js:1
@@ -3107,7 +3162,7 @@ msgid "Prefix"
 msgstr ""
 
 #: includes/admin/import-functions.php:438
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1258
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1272
 msgid "Donor First Name"
 msgstr ""
 
@@ -3116,7 +3171,7 @@ msgid "First"
 msgstr ""
 
 #: includes/admin/import-functions.php:444
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1259
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1273
 msgid "Donor Last Name"
 msgstr ""
 
@@ -3130,7 +3185,7 @@ msgstr ""
 #: includes/forms/template.php:929
 #: includes/forms/template.php:944
 #: src/FormMigration/Concerns/Blocks/BlockFactory.php:39
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:216
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:220
 #: src/Onboarding/BlockFactory.php:25
 #: src/ThirdPartySupport/Elementor/Widgets/V1/DonationReceiptWidget.php:205
 #: src/ThirdPartySupport/Elementor/Widgets/V1/DonationReceiptWidget.php:330
@@ -3286,7 +3341,7 @@ msgid "Postal"
 msgstr ""
 
 #: includes/admin/import-functions.php:475
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1260
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1274
 msgid "Donor Email"
 msgstr ""
 
@@ -3299,7 +3354,7 @@ msgid "Donation Status"
 msgstr ""
 
 #: includes/admin/import-functions.php:484
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:139
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:143
 #: src/Receipt/DonationReceipt.php:125
 #: src/ThirdPartySupport/Elementor/Widgets/V1/DonationHistoryWidget.php:171
 #: src/ThirdPartySupport/Elementor/Widgets/V1/DonationReceiptWidget.php:169
@@ -3323,7 +3378,7 @@ msgstr ""
 #: includes/admin/import-functions.php:487
 #: includes/admin/reports/class-gateways-reports-table.php:143
 #: includes/admin/settings/class-settings-gateways.php:489
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1269
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1283
 #: src/Donations/ListTable/Columns/GatewayColumn.php:37
 #: build/donationDetails.js:10
 #: build/subscriptionDetails.js:10
@@ -3331,7 +3386,7 @@ msgid "Gateway"
 msgstr ""
 
 #: includes/admin/import-functions.php:490
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1268
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1282
 #: build/subscriptionDetails.js:10
 msgid "Transaction ID"
 msgstr ""
@@ -3347,12 +3402,12 @@ msgstr ""
 #: includes/admin/import-functions.php:496
 #: includes/admin/tools/export/give-export-donations-exporter.php:225
 #: includes/admin/tools/export/give-export-donations-functions.php:335
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1267
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1281
 msgid "Payment Mode"
 msgstr ""
 
 #: includes/admin/import-functions.php:497
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1267
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1281
 msgid "Mode"
 msgstr ""
 
@@ -3376,9 +3431,9 @@ msgstr ""
 #: includes/admin/import-functions.php:522
 #: includes/admin/tools/export/give-export-donations-exporter.php:249
 #: includes/admin/tools/export/give-export-donations-functions.php:504
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1257
-#: src/API/REST/V3/Routes/Donations/DonationController.php:881
-#: src/API/REST/V3/Routes/Donors/DonorController.php:358
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1271
+#: src/API/REST/V3/Routes/Donations/DonationController.php:900
+#: src/API/REST/V3/Routes/Donors/DonorController.php:373
 #: build/adminBlocks.js:1
 msgid "Donor ID"
 msgstr ""
@@ -3432,15 +3487,15 @@ msgstr ""
 
 #: includes/admin/import-functions.php:556
 #: includes/admin/tools/export/give-export-donations-functions.php:380
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1256
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1270
 msgid "Donation Form ID"
 msgstr ""
 
 #: includes/admin/import-functions.php:557
 #: includes/admin/tools/export/give-export-donations-exporter.php:228
-#: includes/admin/tools/import/class-give-import-subscriptions.php:425
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1256
-#: src/API/REST/V3/Routes/Donations/DonationController.php:950
+#: includes/admin/tools/import/class-give-import-subscriptions.php:439
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1270
+#: src/API/REST/V3/Routes/Donations/DonationController.php:969
 #: src/ThirdPartySupport/Elementor/Widgets/V1/GiveDonorWallWidget.php:144
 #: src/ThirdPartySupport/Elementor/Widgets/V1/GiveFormGridWidget.php:240
 #: src/ThirdPartySupport/Elementor/Widgets/V1/GiveFormWidget.php:119
@@ -3614,7 +3669,7 @@ msgstr[1] ""
 #: includes/admin/payments/class-payments-table.php:416
 #: src/Campaigns/Actions/ReplaceGiveFormsCptLabels.php:17
 #: src/Donations/ListTable/Columns/CampaignColumn.php:34
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:214
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:216
 #: src/Subscriptions/ListTable/Columns/CampaignColumn.php:36
 #: src/ThirdPartySupport/Elementor/Widgets/V2/ElementorCampaignCommentsWidget/ElementorCampaignCommentsWidget.php:120
 #: src/ThirdPartySupport/Elementor/Widgets/V2/ElementorCampaignDonationsWidget/ElementorCampaignDonationsWidget.php:119
@@ -3707,7 +3762,7 @@ msgstr ""
 #: includes/admin/tools/class-settings-import.php:98
 #: includes/admin/tools/import/class-give-import-core-settings.php:297
 #: includes/admin/tools/import/class-give-import-donations.php:789
-#: includes/admin/tools/import/class-give-import-subscriptions.php:653
+#: includes/admin/tools/import/class-give-import-subscriptions.php:667
 msgid "Import"
 msgstr ""
 
@@ -4019,7 +4074,7 @@ msgstr ""
 #: includes/admin/plugins.php:83
 #: includes/admin/settings/class-settings-addon.php:29
 #: src/Onboarding/Setup/templates/index.html.php:378
-#: src/Promotions/InPluginUpsells/AddonsAdminPage.php:22
+#: src/Promotions/InPluginUpsells/AddonsAdminPage.php:26
 #: build/assets/dist/js/admin-onboarding-wizard.js:1
 #: build/formBuilderApp.js:13
 msgid "Add-ons"
@@ -4240,8 +4295,8 @@ msgid "Last Year"
 msgstr ""
 
 #: includes/admin/reports/graphing.php:516
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:219
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:238
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:221
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:240
 #: build/adminBlocks.js:1
 msgid "Custom"
 msgstr ""
@@ -4387,189 +4442,189 @@ msgstr ""
 msgid "Advanced"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:80
+#: includes/admin/settings/class-settings-advanced.php:81
 #: includes/admin/settings/class-settings-gateways.php:399
 msgid "Option-Based Form Editor"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:81
+#: includes/admin/settings/class-settings-advanced.php:82
 msgid "If enabled, you'll gain access to the legacy settings and can create forms using the Option-Based Editor. Disabling this option will not affect existing forms created with the Option-Based Editor."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:96
+#: includes/admin/settings/class-settings-advanced.php:97
 msgid "Default GiveWP Styles"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:97
+#: includes/admin/settings/class-settings-advanced.php:98
 msgid "This controls GiveWP's default styles for legacy donation forms and other front end elements. Disabling this option means that you'll need to supply your own styles."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:108
+#: includes/admin/settings/class-settings-advanced.php:109
 msgid "Remove Data on Uninstall"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:109
+#: includes/admin/settings/class-settings-advanced.php:110
 msgid "When the plugin is deleted, completely remove all GiveWP data. This includes all GiveWP settings, forms, form meta, donor, donor data, donations. Everything."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:115
+#: includes/admin/settings/class-settings-advanced.php:116
 msgid "Yes, Remove all data"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:116
+#: includes/admin/settings/class-settings-advanced.php:117
 msgid "No, keep my GiveWP settings and donation data"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:120
+#: includes/admin/settings/class-settings-advanced.php:121
 msgid "Default User Role"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:121
+#: includes/admin/settings/class-settings-advanced.php:122
 msgid "Users are given this user role when they opt into creating a WordPress/site account along with their donation."
 msgstr ""
 
 #. translators: %s: the_content
-#: includes/admin/settings/class-settings-advanced.php:130
+#: includes/admin/settings/class-settings-advanced.php:131
 #, php-format
 msgid "%s filter"
 msgstr ""
 
 #. translators: 1: https://codex.wordpress.org/Plugin_API/Filter_Reference/the_content 2: the_content
-#: includes/admin/settings/class-settings-advanced.php:132
+#: includes/admin/settings/class-settings-advanced.php:133
 #, php-format
 msgid "This controls whether or not GiveWP legacy form content is treated like WordPress content. Disabling this option means that things like social sharing and other theme- or plugin-added functionality to enhance or append things to content will not be applied to GiveWP legacy form content. <a href=\"%1$s\" target=\"_blank\">Learn more</a> about %2$s filter."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:144
+#: includes/admin/settings/class-settings-advanced.php:145
 msgid "Script Loading Location"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:145
+#: includes/admin/settings/class-settings-advanced.php:146
 msgid "This allows you to load your GiveWP scripts either in the <code>&lt;head&gt;</code> or footer of your website."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:151
+#: includes/admin/settings/class-settings-advanced.php:152
 msgid "Head"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:152
+#: includes/admin/settings/class-settings-advanced.php:153
 msgid "Footer"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:156
+#: includes/admin/settings/class-settings-advanced.php:157
 msgid "Setup Page"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:160
+#: includes/admin/settings/class-settings-advanced.php:161
 #, php-format
 msgid "This option controls the display of the %s when GiveWP is first installed."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:189
+#: includes/admin/settings/class-settings-advanced.php:190
 msgid "Form Page URL Prefix"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:191
+#: includes/admin/settings/class-settings-advanced.php:192
 #, php-format
 msgid "This slug is used as a base for the (invisible to users/site visitors) iframe URL that contains all form templates besides the legacy form template. The URL currently looks like this: %1$s. This option allows you to modify that URL to avoid conflicts that might exist with other pages and URLs on the site."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:200
+#: includes/admin/settings/class-settings-advanced.php:201
 msgid "Advanced Database Updates"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:201
+#: includes/admin/settings/class-settings-advanced.php:202
 msgid "This option is only for advanced users and/or those directed by GiveWP support. Once you enable this, you'll have the ability to override the run order and to force re-running for database updates at Donations > Tools > Data. If you don't know what you are doing, you can easily break things with this option enabled. Do not leave this option enabled after you're done troubleshooting."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:212
+#: includes/admin/settings/class-settings-advanced.php:213
 msgid "Orphaned Donation Forms"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:213
+#: includes/admin/settings/class-settings-advanced.php:214
 msgid "Show orphaned donation forms list-table. Tools > Data > Orphaned forms"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:223
+#: includes/admin/settings/class-settings-advanced.php:224
 #: includes/admin/tools/views/html-admin-page-system-info.php:477
 #: includes/admin/tools/views/html-admin-page-system-info.php:581
 msgid "GiveWP Cache"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:225
+#: includes/admin/settings/class-settings-advanced.php:226
 msgid "Clear Cache"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:226
+#: includes/admin/settings/class-settings-advanced.php:227
 msgid "Click this button if you want to clear GiveWP's cache. The plugin stores common settings and queries in cache to optimize performance. Clearing cache will remove and begin rebuilding these saved queries."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:231
+#: includes/admin/settings/class-settings-advanced.php:232
 msgid "Advanced Settings Docs Link"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:234
+#: includes/admin/settings/class-settings-advanced.php:235
 msgid "Advanced Settings"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:251
+#: includes/admin/settings/class-settings-advanced.php:252
 #: build/formBuilderApp.js:13
 msgid "Custom Styles"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:252
+#: includes/admin/settings/class-settings-advanced.php:253
 msgid "Add your own custom CSS styles here to customize the appearance of all donation forms across your site. These styles will be applied globally, allowing you to maintain consistent design without editing each form individually."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:277
-#: includes/admin/settings/class-settings-advanced.php:374
+#: includes/admin/settings/class-settings-advanced.php:278
+#: includes/admin/settings/class-settings-advanced.php:375
 msgid "Akismet SPAM Protection"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:278
+#: includes/admin/settings/class-settings-advanced.php:279
 msgid "Add a layer of SPAM protection to your donation submissions with Akismet. When enabled, donation submissions will be first sent through Akismet's SPAM check API if you have the plugin activated and configured."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:289
+#: includes/admin/settings/class-settings-advanced.php:290
 msgid "Whitelist by Email"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:292
+#: includes/admin/settings/class-settings-advanced.php:293
 msgid "Add emails one at a time to ensure that donations using that email bypass GiveWP's Akismet SPAM filtering. Emails added to the list here are always allowed to donate, even if they've been flagged by Akismet."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:295
+#: includes/admin/settings/class-settings-advanced.php:296
 #, php-format
 msgid "To permanently prevent emails from being flagged as SPAM by Akismet <a href=\"%1$s\" target=\"_blank\">contact their team here</a>."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:328
+#: includes/admin/settings/class-settings-advanced.php:329
 msgid "Cache"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:329
+#: includes/admin/settings/class-settings-advanced.php:330
 msgid "If caching is enabled the plugin will start caching custom post type related queries and reduce the overall load time."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:372
+#: includes/admin/settings/class-settings-advanced.php:373
 msgid "Advanced Options"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:373
+#: includes/admin/settings/class-settings-advanced.php:374
 #: includes/misc-functions.php:538
 #: includes/post-types.php:58
-#: src/DonationForms/V2/DonationFormsAdminPage.php:69
+#: src/DonationForms/V2/DonationFormsAdminPage.php:71
 #: build/assets/dist/js/give-admin-donation-forms.js:4
 #: build/assets/dist/js/give-admin-event-tickets-details.js:4
 #: build/campaignDetails.js:10
 msgid "Donation Forms"
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:439
+#: includes/admin/settings/class-settings-advanced.php:440
 msgid "Please properly configure Akismet to enable SPAM protection."
 msgstr ""
 
-#: includes/admin/settings/class-settings-advanced.php:481
+#: includes/admin/settings/class-settings-advanced.php:482
 msgid "We recommend moving away from Legacy settings and the Option-Based Editor as they are not compatible with newer features and will eventually be removed."
 msgstr ""
 
@@ -5017,7 +5072,7 @@ msgstr ""
 
 #: includes/admin/settings/class-settings-general.php:196
 #: includes/admin/settings/class-settings-general.php:569
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1273
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1287
 #: build/assets/dist/js/admin-onboarding-wizard.js:1
 msgid "Currency"
 msgstr ""
@@ -6131,8 +6186,8 @@ msgid "System Info"
 msgstr ""
 
 #: includes/admin/tools/data/class-give-tools-delete-donations.php:156
-#: src/API/REST/V3/Routes/Donations/DonationController.php:780
-#: src/API/REST/V3/Routes/Donations/DonationController.php:796
+#: src/API/REST/V3/Routes/Donations/DonationController.php:800
+#: src/API/REST/V3/Routes/Donations/DonationController.php:816
 msgid "You do not have permission to delete donations."
 msgstr ""
 
@@ -6327,7 +6382,7 @@ msgid "Currency Symbol"
 msgstr ""
 
 #: includes/admin/tools/export/give-export-donations-exporter.php:234
-#: src/API/REST/V3/Routes/Donations/DonationController.php:963
+#: src/API/REST/V3/Routes/Donations/DonationController.php:982
 msgid "Level ID"
 msgstr ""
 
@@ -6547,7 +6602,7 @@ msgstr ""
 
 #: includes/admin/tools/import/class-give-import-core-settings.php:300
 #: includes/admin/tools/import/class-give-import-donations.php:792
-#: includes/admin/tools/import/class-give-import-subscriptions.php:656
+#: includes/admin/tools/import/class-give-import-subscriptions.php:670
 msgid "Done!"
 msgstr ""
 
@@ -6729,7 +6784,7 @@ msgid "In order to import donations, a column must be mapped to either the \"Don
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:459
-#: includes/admin/tools/import/class-give-import-subscriptions.php:398
+#: includes/admin/tools/import/class-give-import-subscriptions.php:412
 msgid "Something went wrong."
 msgstr ""
 
@@ -6738,7 +6793,7 @@ msgid "Map CSV fields to donations"
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:481
-#: includes/admin/tools/import/class-give-import-subscriptions.php:419
+#: includes/admin/tools/import/class-give-import-subscriptions.php:433
 msgid "Required Fields"
 msgstr ""
 
@@ -6755,27 +6810,27 @@ msgid "Select fields from your CSV file to map against donations fields or to ig
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:532
-#: includes/admin/tools/import/class-give-import-subscriptions.php:449
+#: includes/admin/tools/import/class-give-import-subscriptions.php:463
 msgid "Column name"
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:533
-#: includes/admin/tools/import/class-give-import-subscriptions.php:450
+#: includes/admin/tools/import/class-give-import-subscriptions.php:464
 msgid "Map to field"
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:783
-#: includes/admin/tools/import/class-give-import-subscriptions.php:647
+#: includes/admin/tools/import/class-give-import-subscriptions.php:661
 msgid "Upload CSV file"
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:786
-#: includes/admin/tools/import/class-give-import-subscriptions.php:650
+#: includes/admin/tools/import/class-give-import-subscriptions.php:664
 msgid "Column mapping"
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:844
-#: includes/admin/tools/import/class-give-import-subscriptions.php:703
+#: includes/admin/tools/import/class-give-import-subscriptions.php:717
 msgid "Dry Run"
 msgstr ""
 
@@ -6784,7 +6839,7 @@ msgid "Preview what the import would look like without making any default change
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:865
-#: includes/admin/tools/import/class-give-import-subscriptions.php:717
+#: includes/admin/tools/import/class-give-import-subscriptions.php:731
 msgid "Begin Import"
 msgstr ""
 
@@ -6797,12 +6852,12 @@ msgid "This tool allows you to import or add donation data to your give form(s) 
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:920
-#: includes/admin/tools/import/class-give-import-subscriptions.php:755
+#: includes/admin/tools/import/class-give-import-subscriptions.php:769
 msgid "Download the sample file"
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:922
-#: includes/admin/tools/import/class-give-import-subscriptions.php:757
+#: includes/admin/tools/import/class-give-import-subscriptions.php:771
 msgid "here"
 msgstr ""
 
@@ -6811,12 +6866,12 @@ msgid "The file must be a Comma Seperated Version (CSV) file type only."
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:934
-#: includes/admin/tools/import/class-give-import-subscriptions.php:769
+#: includes/admin/tools/import/class-give-import-subscriptions.php:783
 msgid "Choose a CSV file:"
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:951
-#: includes/admin/tools/import/class-give-import-subscriptions.php:786
+#: includes/admin/tools/import/class-give-import-subscriptions.php:800
 msgid "CSV Delimiter:"
 msgstr ""
 
@@ -6825,17 +6880,17 @@ msgid "In case your CSV file supports a different type of separator (or delimite
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:956
-#: includes/admin/tools/import/class-give-import-subscriptions.php:791
+#: includes/admin/tools/import/class-give-import-subscriptions.php:805
 msgid "Comma"
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:957
-#: includes/admin/tools/import/class-give-import-subscriptions.php:792
+#: includes/admin/tools/import/class-give-import-subscriptions.php:806
 msgid "Tab"
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:962
-#: includes/admin/tools/import/class-give-import-subscriptions.php:797
+#: includes/admin/tools/import/class-give-import-subscriptions.php:811
 msgid "Test Mode:"
 msgstr ""
 
@@ -6844,7 +6899,7 @@ msgid "Select whether you would like these donations to be marked as \"test\" do
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:973
-#: includes/admin/tools/import/class-give-import-subscriptions.php:808
+#: includes/admin/tools/import/class-give-import-subscriptions.php:822
 msgid "Create WP users for new donors:"
 msgstr ""
 
@@ -6853,7 +6908,7 @@ msgid "The importer can create WordPress user accounts based on the names and em
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:984
-#: includes/admin/tools/import/class-give-import-subscriptions.php:819
+#: includes/admin/tools/import/class-give-import-subscriptions.php:833
 msgid "Delete CSV after import:"
 msgstr ""
 
@@ -6862,19 +6917,19 @@ msgid "Your CSV file will be uploaded via the WordPress Media Library. It's a go
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:995
-#: includes/admin/tools/import/class-give-import-subscriptions.php:830
+#: includes/admin/tools/import/class-give-import-subscriptions.php:844
 msgid "Process Rows Per Batch:"
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:997
-#: includes/admin/tools/import/class-give-import-subscriptions.php:832
+#: includes/admin/tools/import/class-give-import-subscriptions.php:846
 msgid "Determine how many rows you would like to import per cycle."
 msgstr ""
 
 #: includes/admin/tools/import/class-give-import-donations.php:1086
 #: includes/admin/tools/import/class-give-import-donations.php:1090
-#: includes/admin/tools/import/class-give-import-subscriptions.php:902
-#: includes/admin/tools/import/class-give-import-subscriptions.php:906
+#: includes/admin/tools/import/class-give-import-subscriptions.php:916
+#: includes/admin/tools/import/class-give-import-subscriptions.php:920
 msgid "Please upload or provide a valid CSV file."
 msgstr ""
 
@@ -6939,139 +6994,143 @@ msgstr ""
 msgid "Your subscriptions are now being imported..."
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:380
+#: includes/admin/tools/import/class-give-import-subscriptions.php:388
+msgid "A column must be mapped to \"donor_id\" or \"email\"."
+msgstr ""
+
+#: includes/admin/tools/import/class-give-import-subscriptions.php:394
 #, php-format
 msgid "A column must be mapped to \"%s\"."
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:417
+#: includes/admin/tools/import/class-give-import-subscriptions.php:431
 msgid "Map CSV fields to subscriptions"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:421
+#: includes/admin/tools/import/class-give-import-subscriptions.php:435
 msgid "These fields are required for the import to be submitted"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:428
+#: includes/admin/tools/import/class-give-import-subscriptions.php:442
 msgid "Donor ID or Donor Email"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:431
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1261
+#: includes/admin/tools/import/class-give-import-subscriptions.php:445
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1275
 #: build/assets/dist/js/give-admin-donations.js:4
 #: build/assets/dist/js/give-admin-donors.js:4
 #: build/assets/dist/js/give-admin-subscriptions.js:4
 msgid "Period"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:434
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1262
+#: includes/admin/tools/import/class-give-import-subscriptions.php:448
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1276
 #: build/formBuilderRegistrars.js:1
 msgid "Frequency"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:437
+#: includes/admin/tools/import/class-give-import-subscriptions.php:451
 msgid "Amount (donor facing amount)"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:444
+#: includes/admin/tools/import/class-give-import-subscriptions.php:458
 msgid "Select fields from your CSV file to map against subscription fields or to ignore during import."
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:498
+#: includes/admin/tools/import/class-give-import-subscriptions.php:512
 #: build/assets/dist/js/donor-dashboards-app.js:1
 #: build/assets/dist/js/give-admin-subscriptions.js:4
 msgid "Subscriptions"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:706
+#: includes/admin/tools/import/class-give-import-subscriptions.php:720
 msgid "Preview what the import would look like without making any changes."
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:736
+#: includes/admin/tools/import/class-give-import-subscriptions.php:750
 msgid "Import subscriptions from a CSV file"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:737
+#: includes/admin/tools/import/class-give-import-subscriptions.php:751
 msgid "This tool allows you to import subscription data via a CSV file."
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:762
+#: includes/admin/tools/import/class-give-import-subscriptions.php:776
 msgid "The file must be a Comma Separated Values (CSV) file type only."
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:787
+#: includes/admin/tools/import/class-give-import-subscriptions.php:801
 msgid "If your CSV uses a different delimiter (like a tab), set that here."
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:798
+#: includes/admin/tools/import/class-give-import-subscriptions.php:812
 msgid "Select whether these subscriptions should be marked as \"test\"."
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:809
+#: includes/admin/tools/import/class-give-import-subscriptions.php:823
 msgid "Automatically create a WordPress user account for newly created donors.  This is required for donors to access their Donor Dashboard and manage their subscriptions."
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:820
+#: includes/admin/tools/import/class-give-import-subscriptions.php:834
 msgid "Delete the uploaded CSV from the Media Library after import."
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:964
+#: includes/admin/tools/import/class-give-import-subscriptions.php:978
 #, php-format
 msgid "Row %1$d: Missing required field \"%2$s\""
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:971
+#: includes/admin/tools/import/class-give-import-subscriptions.php:985
 #, php-format
 msgid "Row %d: Either donor_id or email is required to resolve the donor"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1033
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1047
 #, php-format
 msgid "Invalid subscription period \"%1$s\". Valid options: %2$s. You can also use: daily, weekly, monthly, quarterly, yearly."
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1143
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1157
 #, php-format
 msgid "Row %1$d: Initial donation creation failed (%2$s)"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1261
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1275
 msgid "Subscription Period"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1263
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1277
 msgid "Installments"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1264
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1278
 msgid "Recurring Amount"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1265
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1279
 msgid "Recovered Fee Amount"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1269
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1045
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1283
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1064
 #: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:142
 msgid "Gateway ID"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1270
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1284
 #: build/subscriptionDetails.js:10
 msgid "Gateway Subscription ID"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1271
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1285
 msgid "Created At"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1272
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1286
 msgid "Renews At"
 msgstr ""
 
-#: includes/admin/tools/import/class-give-import-subscriptions.php:1272
+#: includes/admin/tools/import/class-give-import-subscriptions.php:1286
 msgid "Next Renewal Date"
 msgstr ""
 
@@ -7988,39 +8047,39 @@ msgstr ""
 msgid "The parent theme developers URL."
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:256
+#: includes/admin/upgrades/class-give-updates.php:259
 msgid "GiveWP Updates Complete"
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:257
-#: includes/admin/upgrades/class-give-updates.php:275
+#: includes/admin/upgrades/class-give-updates.php:260
+#: includes/admin/upgrades/class-give-updates.php:278
 msgid "Updates"
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:272
+#: includes/admin/upgrades/class-give-updates.php:275
 msgid "GiveWP Updates"
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:621
-#: includes/admin/upgrades/class-give-updates.php:629
-#: includes/admin/upgrades/class-give-updates.php:671
+#: includes/admin/upgrades/class-give-updates.php:624
+#: includes/admin/upgrades/class-give-updates.php:632
+#: includes/admin/upgrades/class-give-updates.php:674
 msgid "Database Update"
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:622
+#: includes/admin/upgrades/class-give-updates.php:625
 msgid "GiveWP needs to update your database to the latest version. The following process will make updates to your site's database. Please create a backup before proceeding."
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:626
+#: includes/admin/upgrades/class-give-updates.php:629
 msgid "Restart the updater"
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:630
-#: includes/admin/upgrades/class-give-updates.php:826
+#: includes/admin/upgrades/class-give-updates.php:633
+#: includes/admin/upgrades/class-give-updates.php:829
 msgid "An unexpected issue occurred during the database update which caused it to stop automatically. Please contact support for assistance."
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:631
+#: includes/admin/upgrades/class-give-updates.php:634
 #: includes/admin/upgrades/views/upgrades.php:92
 #: src/ThirdPartySupport/Elementor/Widgets/V2/ElementorDonorWallWidget/ElementorDonorWallWidget.php:357
 #: build/campaignBlocksLandingPage.js:1
@@ -8029,26 +8088,26 @@ msgstr ""
 msgid "Read More"
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:657
-#: includes/admin/upgrades/class-give-updates.php:833
+#: includes/admin/upgrades/class-give-updates.php:660
+#: includes/admin/upgrades/class-give-updates.php:836
 #: includes/admin/upgrades/views/db-upgrades-complete-metabox.php:11
 msgid "GiveWP database updates completed successfully. Thank you for updating to the latest version!"
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:672
+#: includes/admin/upgrades/class-give-updates.php:675
 msgid "GiveWP needs to update your database to the latest version. The following process will make updates to your site's database. Please create a complete backup before proceeding."
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:676
+#: includes/admin/upgrades/class-give-updates.php:679
 msgid "Run the updater"
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:820
+#: includes/admin/upgrades/class-give-updates.php:823
 #: includes/admin/upgrades/views/upgrades.php:96
 msgid "The updates have been paused."
 msgstr ""
 
-#: includes/admin/upgrades/class-give-updates.php:834
+#: includes/admin/upgrades/class-give-updates.php:837
 #: includes/admin/upgrades/views/db-upgrades-complete-metabox.php:7
 msgid "Updates Completed."
 msgstr ""
@@ -8624,22 +8683,22 @@ msgid "GiveWP Donor"
 msgstr ""
 
 #: includes/class-give-scripts.php:229
-#: src/Onboarding/Setup/Page.php:107
+#: src/Onboarding/Setup/Page.php:109
 msgid "Sorry, you entered an invalid key."
 msgstr ""
 
 #: includes/class-give-scripts.php:230
-#: src/Onboarding/Setup/Page.php:108
+#: src/Onboarding/Setup/Page.php:110
 msgid "Success! You have activated your license key and are receiving updates and priority support. <a href=\"{link}\">Click here</a> to download your add-on."
 msgstr ""
 
 #: includes/class-give-scripts.php:231
-#: src/Onboarding/Setup/Page.php:109
+#: src/Onboarding/Setup/Page.php:111
 msgid "{pluginName} add-on activated successfully."
 msgstr ""
 
 #: includes/class-give-scripts.php:232
-#: src/Onboarding/Setup/Page.php:110
+#: src/Onboarding/Setup/Page.php:112
 msgid "The add-on did not activate successfully."
 msgstr ""
 
@@ -14149,28 +14208,8 @@ msgstr ""
 msgid "You cannot send email with Give_Emails until init/admin_init has been reached."
 msgstr ""
 
-#: includes/emails/functions.php:85
-msgid "Hi there,"
-msgstr ""
-
 #: includes/emails/functions.php:86
 msgid "This email is to inform you that a new donation has been made on your website:"
-msgstr ""
-
-#: includes/emails/functions.php:88
-#: includes/emails/functions.php:111
-#: src/Email/Notifications/DonationProcessingReceipt.php:50
-msgid "Donation:"
-msgstr ""
-
-#: includes/emails/functions.php:90
-#: includes/emails/functions.php:114
-#: src/Email/Notifications/DonationProcessingReceipt.php:53
-msgid "Payment Method:"
-msgstr ""
-
-#: includes/emails/functions.php:91
-msgid "Thank you,"
 msgstr ""
 
 #: includes/emails/functions.php:108
@@ -14179,11 +14218,6 @@ msgstr ""
 
 #: includes/emails/functions.php:109
 msgid "Thank you for your donation. Your generosity is appreciated! Here are the details of your donation:"
-msgstr ""
-
-#: includes/emails/functions.php:115
-#: src/Email/Notifications/DonationProcessingReceipt.php:54
-msgid "Payment ID:"
 msgstr ""
 
 #: includes/emails/template.php:187
@@ -14345,7 +14379,7 @@ msgstr ""
 #: includes/forms/template.php:1038
 #: src/FormBuilder/Actions/ConvertGlobalDefaultOptionsToDefaultBlocks.php:34
 #: src/FormMigration/Concerns/Blocks/BlockFactory.php:109
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:225
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:229
 #: src/Onboarding/BlockFactory.php:72
 #: build/formBuilderRegistrars.js:1
 msgid "Comment"
@@ -16207,8 +16241,8 @@ msgstr ""
 msgid "Passwords you entered do not match. Please try again."
 msgstr ""
 
-#: src/API/Endpoints/Logs/Endpoint.php:31
-msgid "You dont have the right permissions to view Logs"
+#: src/API/Endpoints/Logs/Endpoint.php:33
+msgid "You don't have the right permissions to view Logs"
 msgstr ""
 
 #: src/API/Endpoints/Logs/GetLogs.php:118
@@ -16238,8 +16272,8 @@ msgstr ""
 msgid "Sort by column"
 msgstr ""
 
-#: src/API/Endpoints/Migrations/Endpoint.php:31
-msgid "You dont have the right permissions to view Migrations"
+#: src/API/Endpoints/Migrations/Endpoint.php:33
+msgid "You don't have the right permissions to view Migrations"
 msgstr ""
 
 #: src/API/Endpoints/Migrations/RunMigration.php:150
@@ -16283,11 +16317,11 @@ msgstr ""
 msgid "VS previous day"
 msgstr ""
 
-#: src/API/Endpoints/Reports/Endpoint.php:234
-msgid "You cannot view the reports resource."
+#: src/API/Endpoints/Reports/Endpoint.php:236
+msgid "You do not have permission to view the reports resource."
 msgstr ""
 
-#: src/API/Endpoints/Reports/Endpoint.php:278
+#: src/API/Endpoints/Reports/Endpoint.php:280
 msgid "The data for the report."
 msgstr ""
 
@@ -16336,14 +16370,14 @@ msgid "Total Refunds"
 msgstr ""
 
 #: src/API/REST/V3/Routes/Campaigns/CampaignCommentsController.php:79
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:297
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:409
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:482
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:512
-#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:67
-#: src/API/REST/V3/Routes/Campaigns/CampaignRevenueController.php:73
-#: src/API/REST/V3/Routes/Campaigns/CampaignStatisticsController.php:82
-#: src/Campaigns/CampaignsAdminPage.php:39
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:299
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:411
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:484
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:514
+#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:69
+#: src/API/REST/V3/Routes/Campaigns/CampaignRevenueController.php:75
+#: src/API/REST/V3/Routes/Campaigns/CampaignStatisticsController.php:84
+#: src/Campaigns/CampaignsAdminPage.php:41
 msgid "Campaign not found"
 msgstr ""
 
@@ -16363,221 +16397,221 @@ msgstr ""
 msgid "Include anonymous comments"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:305
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:307
 msgid "You do not have permission to view this campaign."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:352
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:354
 #, php-format
 msgid "Error while preparing campaign for response: %s"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:397
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:399
 msgid "Error while creating campaign"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:498
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:500
 msgid "Error while merging campaigns"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:588
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:590
 msgid "Campaign routes for CRUD operations"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:593
-#: src/API/REST/V3/Routes/Donations/DonationController.php:946
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:595
+#: src/API/REST/V3/Routes/Donations/DonationController.php:965
 #: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:37
 msgid "Campaign ID"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:598
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:600
 msgid "Campaign page permalink"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:603
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:605
 msgid "Campaign title"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:611
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:613
 msgid "Campaign status"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:616
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:618
 #: src/Campaigns/Factories/CampaignFactory.php:30
 msgid "Campaign short description"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:621
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:623
 #: src/Campaigns/Factories/CampaignFactory.php:31
 msgid "Campaign long description"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:626
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:628
 msgid "Campaign logo URL"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:631
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:633
 msgid "Campaign featured image URL"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:635
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:637
 msgid "Primary color for the campaign"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:639
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:641
 msgid "Secondary color for the campaign"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:643
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:645
 msgid "Campaign goal"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:644
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:646
 msgid "Must be a number"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:650
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:652
 msgid "Campaign goal type"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:655
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:657
 msgid "Campaign goal statistics"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:660
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:662
 msgid "Actual progress value"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:664
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:666
 msgid "Formatted actual progress"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:668
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:670
 msgid "Progress percentage"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:672
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:674
 msgid "Goal value"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:676
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:678
 msgid "Formatted goal value"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:683
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:685
 msgid "Campaign type"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:688
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:690
 msgid "Default campaign form ID"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:693
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:695
 msgid "Default campaign form title"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:698
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:700
 msgid "Campaign page ID"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:702
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:704
 msgid "Campaign start date"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:707
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:709
 msgid "Campaign end date"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:712
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:714
 msgid "Campaign creation date (Y-m-d H:i:s)"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:733
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:735
 msgid "Goal amount must be greater than 0"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:755
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:757
 msgid "Number of donations must be greater than 0"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:777
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:779
 msgid "Number of donors must be greater than 0"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:799
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:801
 msgid "Goal recurring amount must be greater than 0"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:821
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:823
 msgid "Number of recurring donations must be greater than 0"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:843
+#: src/API/REST/V3/Routes/Campaigns/CampaignController.php:845
 msgid "Number of recurring donors must be greater than 0"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:84
+#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:86
 msgid "Error while creating campaign page"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:121
+#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:123
 #, php-format
 msgid "Error while preparing campaign page for response: %s"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:137
+#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:139
 msgid "Represents a Campaign Page resource."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:142
+#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:144
 msgid "The Campaign Page ID."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:147
+#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:149
 msgid "The associated Campaign ID."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:152
+#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:154
 msgid "Creation date-time (Y-m-d H:i:s)."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:157
+#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:159
 msgid "Last updated date-time (Y-m-d H:i:s)."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:161
+#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:163
 msgid "WordPress post status for the page."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:165
+#: src/API/REST/V3/Routes/Campaigns/CampaignPageController.php:167
 msgid "Page content."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignRevenueController.php:235
+#: src/API/REST/V3/Routes/Campaigns/CampaignRevenueController.php:237
 msgid "Provides daily revenue data for a specific campaign."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignRevenueController.php:244
+#: src/API/REST/V3/Routes/Campaigns/CampaignRevenueController.php:246
 msgid "The date for the revenue entry (YYYY-MM-DD)."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignRevenueController.php:248
+#: src/API/REST/V3/Routes/Campaigns/CampaignRevenueController.php:250
 msgid "The amount of revenue received on the given date."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignStatisticsController.php:131
+#: src/API/REST/V3/Routes/Campaigns/CampaignStatisticsController.php:133
 msgid "Provides statistics for a specific campaign."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignStatisticsController.php:139
+#: src/API/REST/V3/Routes/Campaigns/CampaignStatisticsController.php:141
 msgid "The amount raised for the campaign."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignStatisticsController.php:143
+#: src/API/REST/V3/Routes/Campaigns/CampaignStatisticsController.php:145
 msgid "The number of donations for the campaign."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Campaigns/CampaignStatisticsController.php:147
+#: src/API/REST/V3/Routes/Campaigns/CampaignStatisticsController.php:149
 msgid "The number of donors for the campaign."
 msgstr ""
 
@@ -16606,11 +16640,11 @@ msgstr ""
 #: src/API/REST/V3/Routes/Subscriptions/SubscriptionController.php:388
 #: src/API/REST/V3/Routes/Subscriptions/SubscriptionController.php:432
 #: src/API/REST/V3/Routes/Subscriptions/SubscriptionController.php:475
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:98
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:160
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:194
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:222
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:268
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:100
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:162
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:196
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:224
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:270
 #: src/Subscriptions/SubscriptionsAdminPage.php:32
 msgid "Subscription not found"
 msgstr ""
@@ -16635,521 +16669,622 @@ msgstr ""
 msgid "When subscriptionId is zero, type can only be \"single\""
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:65
+#: src/API/REST/V3/Routes/Donations/DonationController.php:68
 #: src/API/REST/V3/Routes/Subscriptions/SubscriptionController.php:109
 msgid "Whether to embed related resources in the response. It can be true when we want to embed all available resources, or a string like \"givewp:donor\" when we wish to embed only a specific one."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:138
+#: src/API/REST/V3/Routes/Donations/DonationController.php:141
 msgid "Array of donation IDs to delete"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:276
-#: src/API/REST/V3/Routes/Donations/DonationController.php:335
-#: src/API/REST/V3/Routes/Donations/DonationController.php:392
-#: src/API/REST/V3/Routes/Donations/DonationController.php:429
-#: src/API/REST/V3/Routes/Donations/DonationController.php:472
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:94
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:155
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:188
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:216
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:260
-#: src/Donations/DonationsAdminPage.php:64
+#: src/API/REST/V3/Routes/Donations/DonationController.php:279
+#: src/API/REST/V3/Routes/Donations/DonationController.php:338
+#: src/API/REST/V3/Routes/Donations/DonationController.php:395
+#: src/API/REST/V3/Routes/Donations/DonationController.php:432
+#: src/API/REST/V3/Routes/Donations/DonationController.php:475
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:96
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:157
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:190
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:218
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:262
+#: src/Donations/DonationsAdminPage.php:66
 msgid "Donation not found"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:316
+#: src/API/REST/V3/Routes/Donations/DonationController.php:319
 msgid "Failed to create donation"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:398
+#: src/API/REST/V3/Routes/Donations/DonationController.php:401
 msgid "Refunds are not supported for this gateway"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:414
+#: src/API/REST/V3/Routes/Donations/DonationController.php:417
 #: build/donationDetails.js:10
 msgid "Failed to refund donation"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:442
-#: src/API/REST/V3/Routes/Donations/DonationController.php:485
+#: src/API/REST/V3/Routes/Donations/DonationController.php:445
+#: src/API/REST/V3/Routes/Donations/DonationController.php:488
 msgid "Failed to delete donation"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:449
-#: src/API/REST/V3/Routes/Donations/DonationController.php:493
+#: src/API/REST/V3/Routes/Donations/DonationController.php:452
+#: src/API/REST/V3/Routes/Donations/DonationController.php:496
 msgid "Failed to trash donation"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:717
-#: src/API/REST/V3/Routes/Donors/DonorController.php:583
-#: src/API/REST/V3/Routes/Subscriptions/Permissions/SubscriptionPermissions.php:61
+#: src/API/REST/V3/Routes/Donations/DonationController.php:737
+#: src/API/REST/V3/Routes/Donors/Permissions/DonorPermissions.php:83
+#: src/API/REST/V3/Routes/Subscriptions/Permissions/SubscriptionPermissions.php:71
 msgid "You do not have permission to include sensitive data."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:728
+#: src/API/REST/V3/Routes/Donations/DonationController.php:748
 msgid "You do not have permission to include anonymous donations."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:748
+#: src/API/REST/V3/Routes/Donations/DonationController.php:768
 msgid "You do not have permission to update donations."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:764
+#: src/API/REST/V3/Routes/Donations/DonationController.php:784
 msgid "You do not have permission to create donations."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:812
+#: src/API/REST/V3/Routes/Donations/DonationController.php:832
 msgid "You do not have permission to refund donations."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:871
+#: src/API/REST/V3/Routes/Donations/DonationController.php:890
 msgid "Donation routes for CRUD operations"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:885
-#: src/API/REST/V3/Routes/Donors/DonorController.php:368
+#: src/API/REST/V3/Routes/Donations/DonationController.php:904
+#: src/API/REST/V3/Routes/Donors/DonorController.php:383
 msgid "Donor first name"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:890
-#: src/API/REST/V3/Routes/Donors/DonorController.php:377
+#: src/API/REST/V3/Routes/Donations/DonationController.php:909
+#: src/API/REST/V3/Routes/Donors/DonorController.php:392
 msgid "Donor last name"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:895
+#: src/API/REST/V3/Routes/Donations/DonationController.php:914
 msgid "Donor honorific/prefix"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:900
-#: src/API/REST/V3/Routes/Donors/DonorController.php:386
+#: src/API/REST/V3/Routes/Donations/DonationController.php:919
+#: src/API/REST/V3/Routes/Donors/DonorController.php:401
 msgid "Donor email"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:905
-#: src/API/REST/V3/Routes/Donors/DonorController.php:400
+#: src/API/REST/V3/Routes/Donations/DonationController.php:924
+#: src/API/REST/V3/Routes/Donors/DonorController.php:415
 msgid "Donor phone"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:910
-#: src/API/REST/V3/Routes/Donors/DonorController.php:405
+#: src/API/REST/V3/Routes/Donations/DonationController.php:929
+#: src/API/REST/V3/Routes/Donors/DonorController.php:420
 msgid "Donor company"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:913
+#: src/API/REST/V3/Routes/Donations/DonationController.php:932
 #: build/donationDetails.js:10
 msgid "Donation amount"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:914
+#: src/API/REST/V3/Routes/Donations/DonationController.php:933
 #: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:97
 msgid "Fee amount recovered"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:915
+#: src/API/REST/V3/Routes/Donations/DonationController.php:934
 msgid "Event tickets amount"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:918
+#: src/API/REST/V3/Routes/Donations/DonationController.php:937
 msgid "Donation status"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:924
+#: src/API/REST/V3/Routes/Donations/DonationController.php:943
 msgid "Donation type"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:931
+#: src/API/REST/V3/Routes/Donations/DonationController.php:950
 #: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:133
 msgid "Payment gateway ID"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:936
+#: src/API/REST/V3/Routes/Donations/DonationController.php:955
 msgid "Donation mode (live or test)"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:941
+#: src/API/REST/V3/Routes/Donations/DonationController.php:960
 msgid "Whether the donation is anonymous"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:954
+#: src/API/REST/V3/Routes/Donations/DonationController.php:973
 msgid "Form title"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:959
+#: src/API/REST/V3/Routes/Donations/DonationController.php:978
 #: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:27
 msgid "Subscription ID"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:968
+#: src/API/REST/V3/Routes/Donations/DonationController.php:987
 msgid "Gateway transaction ID"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:973
+#: src/API/REST/V3/Routes/Donations/DonationController.php:992
 msgid "Exchange rate"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:979
+#: src/API/REST/V3/Routes/Donations/DonationController.php:998
 msgid "Donation comment"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:984
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1003
 msgid "Billing address"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:996
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1015
 msgid "Donor IP address (sensitive data)"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1001
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1020
 msgid "Purchase key (sensitive data)"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1006
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1011
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1088
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1025
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1030
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1107
 msgid "Created at Date and Time string"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1016
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1035
 msgid "Whether to update the subscription renewal date with the createdAt date when creating subscription or renewal donations"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1022
-#: src/API/REST/V3/Routes/Donors/DonorController.php:457
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1041
+#: src/API/REST/V3/Routes/Donors/DonorController.php:472
 msgid "Custom fields (sensitive data)"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1028
-#: src/API/REST/V3/Routes/Donors/DonorController.php:463
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1047
+#: src/API/REST/V3/Routes/Donors/DonorController.php:478
 msgid "Field label"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1033
-#: src/API/REST/V3/Routes/Donors/DonorController.php:468
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1052
+#: src/API/REST/V3/Routes/Donors/DonorController.php:483
 msgid "Field value"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1049
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1068
 #: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:146
 msgid "Gateway name"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1053
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1072
 #: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:150
 msgid "Payment method label"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1057
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1076
 msgid "Gateway transaction URL"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1065
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1084
 #: build/assets/dist/js/welcome-banner.js:1
 msgid "Event tickets"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1071
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1090
 msgid "Event ticket ID"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1075
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1101
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1147
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1094
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1120
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1166
 msgid "Event ID"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1079
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1143
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1098
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1162
 msgid "Ticket type ID"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1085
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1104
 msgid "Event ticket amount"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1093
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1112
 msgid "Updated at Date and Time string"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1105
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1124
 msgid "Event title"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1109
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1128
 msgid "Event description"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1113
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1132
 msgid "Event start date and time"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1118
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1137
 msgid "Event end date and time"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1123
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1142
 msgid "Event ticket close date and time"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1128
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1147
 msgid "Event creation date and time"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1133
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1152
 msgid "Event last update date and time"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1151
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1170
 msgid "Ticket type title"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1155
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1174
 msgid "Ticket type description"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1157
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1176
 msgid "Ticket type price"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1160
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1179
 msgid "Ticket type capacity"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1164
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1183
 msgid "Ticket type creation date and time"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationController.php:1169
+#: src/API/REST/V3/Routes/Donations/DonationController.php:1188
 msgid "Ticket type last update date and time"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:43
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:385
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:45
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:395
 msgid "The ID of the donation this note belongs to."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:193
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:221
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:265
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:189
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:217
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:261
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:199
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:227
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:273
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:195
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:223
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:267
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:174
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:202
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:246
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:201
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:229
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:275
 msgid "Note not found"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:376
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:386
 msgid "Donation Note routes for CRUD operations"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:380
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:376
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:387
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:390
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:368
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:397
 msgid "Unique identifier for the note."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:390
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:448
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:386
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:465
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:392
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:469
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:400
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:468
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:378
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:467
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:402
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:484
 msgid "The content of the note."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:397
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:456
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:392
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:473
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:403
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:476
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:407
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:476
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:384
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:475
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:413
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:491
 msgid "The type of the note."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:403
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:398
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:409
-msgid "The date the note was created."
+#. translators: %s: WordPress documentation URL
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:415
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:392
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:421
+#, php-format
+msgid "The date the note was created in ISO 8601 format. Follows WordPress REST API date format standards. See %s for more information."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:409
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:404
-msgid "The date the note was last updated."
+#. translators: %s: WordPress documentation URL
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:426
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:403
+#, php-format
+msgid "The date the note was last updated in ISO 8601 format. Follows WordPress REST API date format standards. See %s for more information."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:435
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:452
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:456
+#: src/API/REST/V3/Routes/Donations/DonationNotesController.php:455
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:454
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:471
 msgid "The note ID."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donations/ViewModels/DonationViewModel.php:110
-#: src/Donors/ViewModels/DonorViewModel.php:124
-#: src/Subscriptions/ViewModels/SubscriptionViewModel.php:96
+#: src/API/REST/V3/Routes/Donations/ViewModels/DonationViewModel.php:117
+#: src/API/REST/V3/Routes/Donors/ViewModels/DonorViewModel.php:131
+#: src/Subscriptions/ViewModels/SubscriptionViewModel.php:102
 msgid "anonymous"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:59
-#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:43
+#: src/API/REST/V3/Routes/Donors/DonorController.php:65
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:45
 msgid "The donor ID."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:67
-msgid "Whether to embed related resources in the response. It can be true when we want to embed all available resources, or a string like \"givewp:statistics\" when we wish to embed only a specific one."
+#: src/API/REST/V3/Routes/Donors/DonorController.php:73
+msgid "Whether to embed related resources in the response. It can be true when we want to embed all available resources, or a string like \"givewp:statistics\" when we wish to embed only a specific one. Available embeddable resources: givewp:statistics | givewp:donations | givewp:subscriptions. IMPORTANT: Use with caution when setting to true, as donations and subscriptions return 30 items by default, which can result in a large payload."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:75
+#: src/API/REST/V3/Routes/Donors/DonorController.php:81
 msgid "The mode of donations to filter by \"live\" or \"test\" (it only gets applied when \"_embed\" is set)."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:84
+#: src/API/REST/V3/Routes/Donors/DonorController.php:90
 msgid "The ID of the campaign to filter donors by - zero or empty mean \"all campaigns\" (it only gets applied when \"_embed\" is set)."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:201
-#: src/API/REST/V3/Routes/Donors/DonorController.php:224
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:94
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:156
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:184
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:212
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:256
-#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:82
-#: src/Donors/DonorsAdminPage.php:43
+#: src/API/REST/V3/Routes/Donors/DonorController.php:180
+#: src/API/REST/V3/Routes/Donors/DonorController.php:203
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:98
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:141
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:169
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:197
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:241
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:81
+#: src/Donors/DonorsAdminPage.php:45
 msgid "Donor not found"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:308
-msgid "You do not have permission to update donors."
-msgstr ""
-
-#: src/API/REST/V3/Routes/Donors/DonorController.php:353
+#: src/API/REST/V3/Routes/Donors/DonorController.php:368
 msgid "Donor routes for CRUD operations"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:363
+#: src/API/REST/V3/Routes/Donors/DonorController.php:378
 msgid "Donor prefix"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:371
+#: src/API/REST/V3/Routes/Donors/DonorController.php:386
 msgid "First name is required"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:380
+#: src/API/REST/V3/Routes/Donors/DonorController.php:395
 msgid "Last name is required"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:392
+#: src/API/REST/V3/Routes/Donors/DonorController.php:407
 msgid "Donor additional emails"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:410
+#: src/API/REST/V3/Routes/Donors/DonorController.php:425
 msgid "Donor avatar ID"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:412
+#: src/API/REST/V3/Routes/Donors/DonorController.php:427
 msgid "Invalid avatar ID"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:416
+#: src/API/REST/V3/Routes/Donors/DonorController.php:431
 #: build/donorDetails.js:10
 msgid "Donor addresses"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:419
+#: src/API/REST/V3/Routes/Donors/DonorController.php:434
 #: build/donorDetails.js:10
 msgid "Donor address"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:423
+#: src/API/REST/V3/Routes/Donors/DonorController.php:438
 msgid "Donor address line 1"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:428
+#: src/API/REST/V3/Routes/Donors/DonorController.php:443
 msgid "Donor address line 2"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:433
+#: src/API/REST/V3/Routes/Donors/DonorController.php:448
 msgid "Donor address city"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:438
+#: src/API/REST/V3/Routes/Donors/DonorController.php:453
 msgid "Donor address state"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:443
+#: src/API/REST/V3/Routes/Donors/DonorController.php:458
 msgid "Donor address country"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:448
+#: src/API/REST/V3/Routes/Donors/DonorController.php:463
 msgid "Donor address zip"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:496
+#. translators: %s: WordPress documentation URL
+#: src/API/REST/V3/Routes/Donors/DonorController.php:493
+#, php-format
+msgid "Donor creation date in ISO 8601 format. Follows WordPress REST API date format standards. See %s for more information."
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorController.php:502
+msgid "WordPress user ID associated with the donor"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorController.php:507
+msgid "Donor full name (calculated from firstName and lastName)"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorController.php:512
+msgid "URL of the donor avatar image"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorController.php:518
+msgid "Link to edit the WordPress user associated with the donor"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorController.php:527
+msgid "Total amount donated in decimal format"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorController.php:531
+msgid "Total amount donated in minor units (cents)"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorController.php:536
+#: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:74
+#: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:94
+#: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:199
+msgid "Currency code (e.g., USD, EUR)"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorController.php:539
+msgid "Total amount donated by the donor"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorController.php:544
+msgid "Total number of donations made by the donor"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorController.php:569
 msgid "The field by which to sort the donors."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:510
+#: src/API/REST/V3/Routes/Donors/DonorController.php:583
 msgid "The direction of sorting: ascending (ASC) or descending (DESC)."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:516
+#: src/API/REST/V3/Routes/Donors/DonorController.php:589
 msgid "Whether to include only donors who have made donations."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:521
+#: src/API/REST/V3/Routes/Donors/DonorController.php:594
 msgid "The mode of donations to filter by \"live\" or \"test\" (it only gets applied when \"onlyWithDonations\" is set to true)."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:530
+#: src/API/REST/V3/Routes/Donors/DonorController.php:603
 msgid "The ID of the campaign to filter donors by - zero or empty mean \"all campaigns\" (it only gets applied when \"onlyWithDonations\" is set to true)."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:549
+#: src/API/REST/V3/Routes/Donors/DonorController.php:611
+msgid "Search donors by name or email."
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorController.php:649
 #: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionSharedParamsForGetMethods.php:17
 msgid "Include or not include data that can be used to contact or locate the donors, such as phone number, email, billing address, etc. (require proper permissions)"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:557
+#: src/API/REST/V3/Routes/Donors/DonorController.php:657
 #: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionSharedParamsForGetMethods.php:23
 msgid "Exclude, include, or redact data that can be used to identify the donors, such as ID, first name, last name, etc (require proper permissions)."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorController.php:593
-#: src/API/REST/V3/Routes/Subscriptions/Permissions/SubscriptionPermissions.php:71
-msgid "You do not have permission to include anonymous donors."
-msgstr ""
-
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:43
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:381
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:46
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:373
 msgid "The ID of the donor this note belongs to."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:372
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:364
 msgid "Donor Note routes for CRUD operations"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:428
+#: src/API/REST/V3/Routes/Donors/DonorNotesController.php:430
 msgid "HATEOAS links for the note."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:49
-#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:162
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:50
 msgid "The mode of donations to filter by \"live\" or \"test\"."
 msgstr ""
 
 #: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:56
-#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:168
 msgid "The ID of the campaign to filter donors by - zero or empty mean \"all campaigns\"."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:152
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:175
 msgid "Provides statistics for a specific donor."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:157
-msgid "The Donor ID."
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:180
+#: build/assets/dist/js/give-admin-donation-forms.js:4
+#: build/assets/dist/js/give-admin-donations.js:4
+#: build/assets/dist/js/give-admin-donors.js:4
+#: build/assets/dist/js/give-admin-event-tickets-details.js:4
+#: build/assets/dist/js/give-admin-event-tickets.js:4
+#: build/assets/dist/js/give-admin-subscriptions.js:4
+#: build/assets/dist/js/give-log-list-table-app.js:4
+#: build/assets/dist/js/give-migrations-list-table-app.js:4
+#: build/assets/dist/js/orphaned-forms-list-table.js:4
+#: build/campaignBlocks.js:4
+#: build/campaignDetails.js:10
+#: build/campaignGridApp.js:4
+#: build/campaignGridBlock.js:4
+#: build/campaignListTable.js:4
+#: build/donationDetails.js:10
+#: build/donorDetails.js:10
+#: build/elementorCampaignGridWidget.js:4
+#: build/subscriptionDetails.js:10
+msgid "Donation statistics"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:184
+msgid "Total lifetime donation amount"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:188
+msgid "Highest single donation amount"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:192
+msgid "Average donation amount"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:196
+msgid "Total number of donations"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:200
+msgid "First donation details"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:204
+msgid "Last donation details"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:210
+msgid "Type of donor"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/DonorStatisticsController.php:214
+msgid "Preferred payment method"
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/Permissions/DonorPermissions.php:93
+#: src/API/REST/V3/Routes/Subscriptions/Permissions/SubscriptionPermissions.php:81
+msgid "You do not have permission to include anonymous donors."
+msgstr ""
+
+#: src/API/REST/V3/Routes/Donors/Permissions/DonorPermissions.php:119
+msgid "You do not have permission to update this donor."
 msgstr ""
 
 #: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionCollectionParams.php:19
@@ -17203,12 +17338,6 @@ msgstr ""
 
 #: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:69
 msgid "Amount in minor units (cents)"
-msgstr ""
-
-#: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:74
-#: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:94
-#: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:199
-msgid "Currency code (e.g., USD, EUR)"
 msgstr ""
 
 #: src/API/REST/V3/Routes/Subscriptions/Actions/GetSubscriptionItemSchema.php:77
@@ -17283,11 +17412,11 @@ msgstr ""
 msgid "Projected annual revenue for this subscription"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Subscriptions/Permissions/SubscriptionPermissions.php:92
+#: src/API/REST/V3/Routes/Subscriptions/Permissions/SubscriptionPermissions.php:102
 msgid "You do not have permission to update subscriptions."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Subscriptions/Permissions/SubscriptionPermissions.php:112
+#: src/API/REST/V3/Routes/Subscriptions/Permissions/SubscriptionPermissions.php:122
 msgid "You do not have permission to delete subscriptions."
 msgstr ""
 
@@ -17334,16 +17463,16 @@ msgstr ""
 msgid "Error while preparing subscription for response: %s"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:43
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:398
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:45
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:408
 msgid "The ID of the subscription this note belongs to."
 msgstr ""
 
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:384
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:394
 msgid "Subscription Note routes for CRUD operations"
 msgstr ""
 
-#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:433
+#: src/API/REST/V3/Routes/Subscriptions/SubscriptionNotesController.php:448
 msgid "HATEOAS links for the subscription note."
 msgstr ""
 
@@ -17431,32 +17560,45 @@ msgstr ""
 msgid "Be the one to make it happen!"
 msgstr ""
 
-#: src/Campaigns/Blocks/CampaignDonations/resources/views/render.php:61
+#: src/Campaigns/Blocks/CampaignDonations/resources/views/render.php:57
+#: src/Campaigns/Blocks/CampaignDonors/resources/views/render.php:63
+msgid "Empty state icon"
+msgstr ""
+
+#: src/Campaigns/Blocks/CampaignDonations/resources/views/render.php:65
 msgid "Be the first"
 msgstr ""
 
-#: src/Campaigns/Blocks/CampaignDonations/resources/views/render.php:82
+#: src/Campaigns/Blocks/CampaignDonations/resources/views/render.php:86
 #: build/subscriptionDetails.js:10
 msgid "Donation icon"
 msgstr ""
 
-#: src/Campaigns/Blocks/CampaignDonations/resources/views/render.php:92
+#. translators: %1$s: donor name, %2$s: donation amount
+#: src/Campaigns/Blocks/CampaignDonations/resources/views/render.php:97
 #, php-format
-msgid "%s donated %s"
+msgctxt "donor name and donation amount"
+msgid "%1$s donated %2$s"
 msgstr ""
 
-#: src/Campaigns/Blocks/CampaignDonations/resources/views/render.php:93
-#: src/Campaigns/Blocks/CampaignDonors/resources/views/render.php:96
+#: src/Campaigns/Blocks/CampaignDonations/resources/views/render.php:98
+#: src/Campaigns/Blocks/CampaignDonors/resources/views/render.php:100
 #: templates/shortcode-donor-wall.php:87
 #: build/assets/dist/js/admin-reports.js:1
 msgid "Anonymous"
 msgstr ""
 
-#: src/Campaigns/Blocks/CampaignDonations/resources/views/render.php:102
-#: src/Campaigns/Blocks/CampaignDonors/resources/views/render.php:113
+#. translators: %s: human-readable time difference
+#: src/Campaigns/Blocks/CampaignDonations/resources/views/render.php:108
+#: src/Campaigns/Blocks/CampaignDonors/resources/views/render.php:122
 #, php-format
 msgctxt "human-readable time difference"
 msgid "%s ago"
+msgstr ""
+
+#: src/Campaigns/Blocks/CampaignDonations/resources/views/render.php:122
+#: src/Campaigns/Blocks/CampaignDonors/resources/views/render.php:110
+msgid "Ribbon"
 msgstr ""
 
 #: src/Campaigns/Blocks/CampaignDonors/resources/views/render.php:13
@@ -17490,16 +17632,16 @@ msgstr ""
 msgid "Be one of the first to make an impact!"
 msgstr ""
 
-#: src/Campaigns/Blocks/CampaignDonors/resources/views/render.php:67
+#: src/Campaigns/Blocks/CampaignDonors/resources/views/render.php:71
 msgid "Be the first donor"
 msgstr ""
 
-#: src/Campaigns/Blocks/CampaignDonors/resources/views/render.php:88
+#: src/Campaigns/Blocks/CampaignDonors/resources/views/render.php:92
 msgid "Donor avatar"
 msgstr ""
 
-#: src/Campaigns/CampaignsAdminPage.php:21
-#: src/Campaigns/CampaignsAdminPage.php:22
+#: src/Campaigns/CampaignsAdminPage.php:23
+#: src/Campaigns/CampaignsAdminPage.php:24
 #: build/campaignDetails.js:10
 #: build/campaignListTable.js:4
 msgid "Campaigns"
@@ -17575,11 +17717,11 @@ msgstr ""
 msgid "Visit campaign page"
 msgstr ""
 
-#: src/Campaigns/ListTable/Routes/DeleteCampaignListTable.php:114
+#: src/Campaigns/ListTable/Routes/DeleteCampaignListTable.php:116
 msgid "You don't have permission to delete Campaigns"
 msgstr ""
 
-#: src/Campaigns/ListTable/Routes/GetCampaignsListTable.php:240
+#: src/Campaigns/ListTable/Routes/GetCampaignsListTable.php:242
 msgid "You don't have permission to view Campaigns"
 msgstr ""
 
@@ -17665,12 +17807,12 @@ msgid "Help our organization by donating today! Donations go to making a differe
 msgstr ""
 
 #: src/DonationForms/Properties/FormSettings.php:333
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:338
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:342
 msgid "Hey {first_name}, thanks for your donation!"
 msgstr ""
 
 #: src/DonationForms/Properties/FormSettings.php:337
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:355
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:359
 msgid "{first_name}, your contribution means a lot and will be put to good use in making a difference. We’ve sent your donation receipt to {email}."
 msgstr ""
 
@@ -17678,11 +17820,11 @@ msgstr ""
 msgid "The login/password does not match or is incorrect."
 msgstr ""
 
-#: src/DonationForms/Routes/Permissions/DonationFormPermissions.php:75
+#: src/DonationForms/Routes/Permissions/DonationFormPermissions.php:76
 msgid "You do not have permission to view private, draft, or trashed donation forms."
 msgstr ""
 
-#: src/DonationForms/Routes/Permissions/DonationFormPermissions.php:113
+#: src/DonationForms/Routes/Permissions/DonationFormPermissions.php:114
 msgid "You do not have permission to associate forms with campaigns."
 msgstr ""
 
@@ -17758,11 +17900,11 @@ msgstr ""
 msgid "%s must be a valid subscription period.  Valid periods are: %s"
 msgstr ""
 
-#: src/DonationForms/V2/Endpoints/Endpoint.php:51
+#: src/DonationForms/V2/Endpoints/Endpoint.php:53
 msgid "You don't have permission to view forms"
 msgstr ""
 
-#: src/DonationForms/V2/Endpoints/FormActions.php:82
+#: src/DonationForms/V2/Endpoints/FormActions.php:84
 msgid "You don't have permission to edit Donation Forms"
 msgstr ""
 
@@ -17837,19 +17979,19 @@ msgstr ""
 msgid "Custom Fields"
 msgstr ""
 
-#: src/Donations/Endpoints/DonationActions.php:90
+#: src/Donations/Endpoints/DonationActions.php:92
 msgid "You don't have permission to edit Donations"
 msgstr ""
 
-#: src/Donations/Endpoints/DonationActions.php:117
+#: src/Donations/Endpoints/DonationActions.php:120
 msgid "You don't have permission to delete Donation"
 msgstr ""
 
-#: src/Donations/Endpoints/DonationActions.php:182
+#: src/Donations/Endpoints/DonationActions.php:185
 msgid "You don't have permission to change donation statuses"
 msgstr ""
 
-#: src/Donations/Endpoints/Endpoint.php:41
+#: src/Donations/Endpoints/Endpoint.php:43
 msgid "You don't have permission to view Donations"
 msgstr ""
 
@@ -17970,7 +18112,7 @@ msgstr ""
 msgid "No tab exists with the ID: "
 msgstr ""
 
-#: src/DonorDashboards/Helpers/LocationList.php:26
+#: src/DonorDashboards/Helpers/LocationList.php:23
 #: src/Onboarding/Helpers/LocationList.php:23
 #: build/adminBlocks.js:1
 #: build/stripePaymentElementFormBuilder.js:1
@@ -18069,11 +18211,11 @@ msgstr ""
 msgid "No file with an upload URL was found"
 msgstr ""
 
-#: src/Donors/Endpoints/DeleteDonor.php:71
+#: src/Donors/Endpoints/DeleteDonor.php:73
 msgid "You don't have permission to delete Donors"
 msgstr ""
 
-#: src/Donors/Endpoints/Endpoint.php:41
+#: src/Donors/Endpoints/Endpoint.php:43
 msgid "You don't have permission to view Donors"
 msgstr ""
 
@@ -18134,8 +18276,8 @@ msgstr ""
 msgid "%s - %s"
 msgstr ""
 
-#: src/EventTickets/Actions/RegisterEventsMenuItem.php:16
-#: src/EventTickets/Actions/RegisterEventsMenuItem.php:17
+#: src/EventTickets/Actions/RegisterEventsMenuItem.php:18
+#: src/EventTickets/Actions/RegisterEventsMenuItem.php:19
 #: build/assets/dist/js/give-admin-event-tickets.js:4
 msgid "Events"
 msgstr ""
@@ -18181,7 +18323,7 @@ msgstr ""
 msgid "Visit event page"
 msgstr ""
 
-#: src/EventTickets/Routes/DeleteEventTicketType.php:58
+#: src/EventTickets/Routes/DeleteEventTicketType.php:60
 msgid "This ticket type has been sold and cannot be deleted."
 msgstr ""
 
@@ -18418,78 +18560,78 @@ msgid_plural "<p>The following blocks were not found and are required for the fo
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/FormBuilder/Routes/RegisterFormBuilderPageRoute.php:79
+#: src/FormBuilder/Routes/RegisterFormBuilderPageRoute.php:81
 msgid "Donation form does not exist."
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:167
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:169
 msgid "The total amount raised for the form"
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:173
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:175
 msgid "The total number of donations made for the form"
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:178
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:180
 msgid "The total number of unique donors who have donated to the form"
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:186
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:188
 msgid "Subscription Amount Raised"
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:187
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:189
 msgid "The total amount raised for the form through subscriptions"
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:192
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:194
 msgid "Number of Subscriptions"
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:193
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:195
 msgid "The total number of subscriptions made for the form"
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:197
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:199
 msgid "Number of Subscribers"
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:198
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:200
 msgid "The total number of unique donors who have donated to the form through subscriptions"
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:215
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:217
 msgid "The goal for this form will automatically adjust according to the campaign goal. Change campaign goal."
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:220
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:222
 msgid "Set the custom goal for this form"
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:233
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:235
 msgid "All time"
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:234
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:236
 msgid "Displays the goal progress for a lifetime, starting from when this form was published."
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:239
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:241
 msgid "Displays the goal progress from the start date to the end date."
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:266
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:267
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:268
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:269
 msgid "The first name supplied by the donor during their donation."
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:273
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:274
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:275
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:276
 msgid "The last name supplied by the donor during their donation."
 msgstr ""
 
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:280
-#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:281
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:282
+#: src/FormBuilder/ViewModels/FormBuilderViewModel.php:283
 msgid "The email supplied by the donor during their donation."
 msgstr ""
 
@@ -18571,11 +18713,11 @@ msgstr ""
 msgid "Subscribe to newsletter?"
 msgstr ""
 
-#: src/FormMigration/ServiceProvider.php:92
+#: src/FormMigration/ServiceProvider.php:93
 msgid "The ID of the form (v2) to migrate to v3."
 msgstr ""
 
-#: src/FormMigration/ServiceProvider.php:116
+#: src/FormMigration/ServiceProvider.php:117
 msgid "The ID of the form (v3) to transfer donations (from v2)."
 msgstr ""
 
@@ -18741,32 +18883,32 @@ msgstr ""
 msgid "Subscription Renewal Donation Created."
 msgstr ""
 
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:135
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:139
 #: src/Receipt/DonationReceipt.php:108
 msgid "Payment Status"
 msgstr ""
 
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:152
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:156
 msgid "Processing Fee"
 msgstr ""
 
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:178
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:182
 #: src/Receipt/DonationReceipt.php:71
 #: build/formBuilderRegistrars.js:1
 msgid "Donor Name"
 msgstr ""
 
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:189
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:193
 #: build/formBuilderRegistrars.js:1
 msgid "Phone Number"
 msgstr ""
 
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:234
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:238
 #: build/formBuilderRegistrars.js:1
 msgid "Anonymous Donation"
 msgstr ""
 
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:261
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:265
 #: src/ThirdPartySupport/Elementor/Widgets/V1/GiveSubscriptionsWidget.php:236
 #: build/assets/dist/js/donor-dashboards-app.js:1
 #: build/entitiesAdmin.js:1
@@ -18774,24 +18916,24 @@ msgstr ""
 msgid "Subscription"
 msgstr ""
 
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:272
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:276
 msgid "Subscription Status"
 msgstr ""
 
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:276
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:280
 #: src/ThirdPartySupport/Elementor/Widgets/V1/GiveSubscriptionsWidget.php:123
 #: src/ThirdPartySupport/Elementor/Widgets/V1/GiveSubscriptionsWidget.php:241
 msgid "Renewal Date"
 msgstr ""
 
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:280
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:284
 #: src/ThirdPartySupport/Elementor/Widgets/V1/GiveSubscriptionsWidget.php:135
 #: src/ThirdPartySupport/Elementor/Widgets/V1/GiveSubscriptionsWidget.php:244
 #: build/assets/dist/js/donor-dashboards-app.js:1
 msgid "Progress"
 msgstr ""
 
-#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:284
+#: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:288
 #: src/LegacySubscriptions/includes/give-subscription.php:1053
 #: src/ThirdPartySupport/Elementor/Widgets/V1/DonationReceiptWidget.php:409
 #: src/ThirdPartySupport/Elementor/Widgets/V1/GiveSubscriptionsWidget.php:275
@@ -19183,11 +19325,11 @@ msgstr ""
 msgid "A short alphabetic geographical code representing a country."
 msgstr ""
 
-#: src/Onboarding/Setup/Page.php:63
+#: src/Onboarding/Setup/Page.php:65
 msgid "Set up GiveWP"
 msgstr ""
 
-#: src/Onboarding/Setup/Page.php:64
+#: src/Onboarding/Setup/Page.php:66
 msgid "Setup"
 msgstr ""
 
@@ -19355,7 +19497,7 @@ msgid "Get Tributes"
 msgstr ""
 
 #: src/Onboarding/Setup/templates/index.html.php:379
-#: src/Promotions/InPluginUpsells/AddonsAdminPage.php:21
+#: src/Promotions/InPluginUpsells/AddonsAdminPage.php:25
 msgid "GiveWP Add-ons"
 msgstr ""
 
@@ -19588,7 +19730,7 @@ msgstr ""
 msgid "Subscription - Renewal Payment Failed"
 msgstr ""
 
-#: src/PaymentGateways/Gateways/Stripe/StripePaymentElementGateway/Webhooks/Listeners/InvoicePaymentSucceeded.php:123
+#: src/PaymentGateways/Gateways/Stripe/StripePaymentElementGateway/Webhooks/Listeners/InvoicePaymentSucceeded.php:124
 #: src/PaymentGateways/Gateways/Stripe/StripePaymentElementGateway/Webhooks/Listeners/PaymentIntentSucceeded.php:63
 msgid "Payment succeeded in Stripe."
 msgstr ""
@@ -19787,57 +19929,57 @@ msgstr ""
 msgid "Please help me resolve these account errors so I can begin accepting payments via PayPal on GiveWP."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:331
+#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:334
 msgid "Re-Check Account Status"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:432
+#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:435
 msgid "Click to get started!"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:436
+#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:439
 msgid "Sign up for PayPal"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:449
+#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:452
 #: src/PaymentGateways/Stripe/Admin/AccountManagerSettingField.php:415
 msgid "Connected"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:458
+#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:461
 msgid "Connected as Advanced for payments as"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:459
+#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:462
 msgid "Connected as Standard for payments as"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:461
+#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:464
 msgid "Connected for payments as"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:477
+#: src/PaymentGateways/PayPalCommerce/AdminSettingFields.php:480
 #: src/PaymentGateways/Stripe/Admin/AccountManagerSettingField.php:427
 msgid "Disconnect"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:199
+#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:204
 msgid "You are not allowed to perform this action."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:363
+#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:368
 msgid "Make sure to complete the entire PayPal process. Do not close the window until you have finished the process."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:367
+#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:372
 msgid "The last screen of the PayPal connect process includes a button to be sent back to your site. It is important you click this and do not close the window yourself."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:371
+#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:376
 msgid "If you’re still having problems connecting: "
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:379
+#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:384
 msgid "Having trouble connecting to PayPal?"
 msgstr ""
 
@@ -19906,57 +20048,57 @@ msgstr ""
 msgid "There was a problem with retrieving PayPal access token. Please try again or contact support."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:259
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:263
 msgid "There was a problem with creating webhook on PayPal. A gateway error log also added to get details information about PayPal response."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:290
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:294
 msgid "PayPal account connected successfully."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:349
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:384
 msgid "PayPal client access token API request response is:"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:355
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:390
 msgid "PayPal client rest api credentials API request response is:"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:359
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:394
 msgid "There was a problem with PayPal client rest API request and we could not find valid client id and secret."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:413
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:448
 msgid "PayPal merchant status check API request response is:"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:418
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:453
 msgid ""
 "A valid SSL certificate is required to accept donations and set up your PayPal account. Once a\n"
 "                certificate is installed and the site is using https, please disconnect and reconnect your account."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:426
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:461
 msgid "Your account is not fully set up and ready to receive payments. Please log into your PayPal account at <a href=\"https://paypal.com\">paypal.com</a> and address the following issues. Reach out to PayPal support if you need help setting up your account."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:436
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:471
 msgid "An banking account needs to be connected to your PayPal account and verified"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:440
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:475
 msgid "Your primary email address needs to be confirmed"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:460
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:495
 msgid "Advance card processing is not active on your PayPal account. That capability is required in order to display card fields directly on your website. To accept donations with card fields directly on your site, called <a href=\"https://developer.paypal.com/docs/checkout/advanced/#enable-your-account\" title=\"Link to PayPal Docs\">hosted fields</a>, you'll need to enable custom card processing. This is something PayPal support can help with, and depends on factors outside of GiveWP's control. You can still accept donations with <a href=\"https://developer.paypal.com/docs/checkout/\" title=\"Link to PayPal Docs\">PayPal smart buttons</a>, which allow donors to log into PayPal and complete the donation in a modal window, in the meantime."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:506
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:541
 msgid "logs data"
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:512
+#: src/PaymentGateways/PayPalCommerce/onBoardingRedirectHandler.php:547
 #, php-format
 msgid "There was a problem setting up the webhooks for your PayPal account. Please try disconnecting and reconnecting your PayPal account. If the problem persists, please contact support and provide them with the latest %1$s"
 msgstr ""
@@ -22904,11 +23046,11 @@ msgstr ""
 msgid "Customize the form template using the options below. See those customizations at any time using the \"Preview\" button."
 msgstr ""
 
-#: src/Views/Admin/Pages/Reports.php:85
+#: src/Views/Admin/Pages/Reports.php:88
 msgid "Donation Reports"
 msgstr ""
 
-#: src/Views/Admin/Pages/Reports.php:86
+#: src/Views/Admin/Pages/Reports.php:89
 #: build/assets/dist/js/admin-reports.js:1
 msgid "Reports"
 msgstr ""
@@ -25244,27 +25386,6 @@ msgstr ""
 #: build/elementorCampaignGridWidget.js:4
 #: build/subscriptionDetails.js:10
 msgid "Upgrade"
-msgstr ""
-
-#: build/assets/dist/js/give-admin-donation-forms.js:4
-#: build/assets/dist/js/give-admin-donations.js:4
-#: build/assets/dist/js/give-admin-donors.js:4
-#: build/assets/dist/js/give-admin-event-tickets-details.js:4
-#: build/assets/dist/js/give-admin-event-tickets.js:4
-#: build/assets/dist/js/give-admin-subscriptions.js:4
-#: build/assets/dist/js/give-log-list-table-app.js:4
-#: build/assets/dist/js/give-migrations-list-table-app.js:4
-#: build/assets/dist/js/orphaned-forms-list-table.js:4
-#: build/campaignBlocks.js:4
-#: build/campaignDetails.js:10
-#: build/campaignGridApp.js:4
-#: build/campaignGridBlock.js:4
-#: build/campaignListTable.js:4
-#: build/donationDetails.js:10
-#: build/donorDetails.js:10
-#: build/elementorCampaignGridWidget.js:4
-#: build/subscriptionDetails.js:10
-msgid "Donation statistics"
 msgstr ""
 
 #: build/assets/dist/js/give-admin-donation-forms.js:4
@@ -29606,6 +29727,10 @@ msgstr ""
 
 #: build/formBuilderRegistrars.js:1
 msgid "Collects the donor billing address with display options."
+msgstr ""
+
+#: build/formBuilderRegistrars.js:1
+msgid "Default Country"
 msgstr ""
 
 #: build/formBuilderRegistrars.js:1

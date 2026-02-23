@@ -2,8 +2,8 @@
 Author: Content Views
 Website: http://www.contentviewspro.com/
 Requires at least: 3.3
-Tested up to: 6.8.1
-Stable tag: 7.2.2
+Tested up to: 6.9
+Stable tag: 7.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -46,6 +46,13 @@ Please check here http://www.contentviewspro.com/faq/
 
 
 == Changelog ==
+
+= 7.3 =
+* Fix: [Block] fix the output of "Top Meta >> Taxonomy" feature
+* Fix: warning in PHP version 8.4
+* Compatible: make the "Replace Layout" feature work with "Divi" theme version 5.0
+* Compatible: fix grid's width issue in "Kadence" theme when using the "Replace Layout" feature
+* Other small fixes and improvements
 
 = 7.2.2 =
 * Fix: [ElementorWidget] issue when showing image custom field as Feature image in Elementor widgets

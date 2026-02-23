@@ -3,6 +3,9 @@
 namespace Elementor\Modules\AtomicWidgets\Styles;
 
 use Elementor\Core\Utils\Collection;
+use Elementor\Modules\AtomicWidgets\Module;
+use Elementor\Plugin;
+use Elementor\Utils;
 use Elementor\Modules\AtomicWidgets\PropsResolver\Render_Props_Resolver;
 
 class Styles_Renderer {
@@ -19,7 +22,7 @@ class Styles_Renderer {
 
 	/**
 	 * @param array<string, array{direction: 'min' | 'max', value: int, is_enabled: boolean}> $breakpoints
-	 * @param string $selector_prefix
+	 * @param string                                                                          $selector_prefix
 	 */
 	private function __construct( array $breakpoints, string $selector_prefix = self::DEFAULT_SELECTOR_PREFIX ) {
 		$this->breakpoints = $breakpoints;
@@ -111,16 +114,20 @@ class Styles_Renderer {
 	}
 
 	private function variant_to_css_string( string $base_selector, array $variant ): string {
-		$css = $this->props_to_css_string( $variant['props'] );
+		$css = $this->props_to_css_string( $variant['props'] ) ?? '';
+		$custom_css = $this->custom_css_to_css_string( $variant['custom_css'] ?? null );
 
-		if ( ! $css ) {
+		if ( ! $css && ! $custom_css ) {
 			return '';
 		}
 
-		$state = isset( $variant['meta']['state'] ) ? ':' . $variant['meta']['state'] : '';
-		$selector = $base_selector . $state;
+		if ( isset( $variant['meta']['state'] ) ) {
+			$selector = Style_States::get_selector_with_state( $base_selector, $variant['meta']['state'] );
+		} else {
+			$selector = $base_selector;
+		}
 
-		$style_declaration = $selector . '{' . $css . '}';
+		$style_declaration = $selector . '{' . $css . $custom_css . '}';
 
 		if ( isset( $variant['meta']['breakpoint'] ) ) {
 			$style_declaration = $this->wrap_with_media_query( $variant['meta']['breakpoint'], $style_declaration );
@@ -128,6 +135,7 @@ class Styles_Renderer {
 
 		return $style_declaration;
 	}
+
 
 	private function props_to_css_string( array $props ): string {
 		$schema = Style_Schema::get();
@@ -142,6 +150,12 @@ class Styles_Renderer {
 				return $prop . ':' . $value . ';';
 			} )
 			->implode( '' );
+	}
+
+	private function custom_css_to_css_string( ?array $custom_css ): string {
+		return ! empty( $custom_css['raw'] )
+			? Utils::decode_string( $custom_css['raw'], '' ) . '\n'
+			: '';
 	}
 
 	private function wrap_with_media_query( string $breakpoint_id, string $css ): string {

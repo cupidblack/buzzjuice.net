@@ -28,7 +28,7 @@ class Provider extends ServiceProvider {
 	 * @return void
 	 */
 	public function register() {
-		$this->container->register( V1\Provider::class );
 		$this->container->register( Documentation_Migration\Provider::class );
+		$this->container->register( V1\Provider::class );
 	}
 }

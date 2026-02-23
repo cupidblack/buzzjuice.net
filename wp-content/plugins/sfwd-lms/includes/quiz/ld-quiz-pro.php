@@ -84,6 +84,15 @@ class LD_QuizPro {
 			$_POST['data']['responses'] = json_decode( stripslashes( $_POST['data']['responses'] ), true );
 		}
 
+		// Decode the quiz_resume_data string.
+
+		if (
+			isset( $_POST['data']['quiz_resume_data'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce is checked later.
+			&& ! empty( $_POST['data']['quiz_resume_data'] ) // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce is checked later.
+		) {
+			$_POST['data']['quiz_resume_data'] = json_decode( sanitize_text_field( wp_unslash( $_POST['data']['quiz_resume_data'] ) ), true ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce is checked later.
+		}
+
 		$func = isset( $_POST['func'] ) ? $_POST['func'] : '';
 		$data = isset( $_POST['data'] ) ? (array) $_POST['data'] : null;
 
@@ -128,15 +137,22 @@ class LD_QuizPro {
 			die();
 		}
 
+		$course_id        = absint( $data['course_id'] ?? 0 );
+		$quiz_started     = isset( $data['quiz_started'] ) ? absint( $data['quiz_started'] / 1000 ) : 0; // convert milliseconds to seconds.
+		$quiz_resume_data = $data['quiz_resume_data'] ?? null;
+
 		learndash_quiz_debug_log_init( $quiz_post_id );
 		learndash_quiz_debug_log_message( 'Browser version: ' . $_SERVER['HTTP_USER_AGENT'] );
 		learndash_quiz_debug_log_message( '---------------------------------' );
 		learndash_quiz_debug_log_message( 'in ' . __FUNCTION__ );
-		learndash_quiz_debug_log_message( '_POST<pre>' . print_r( $_POST, true ) . '</pre>' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- It's okay, the second argument is true.
+		learndash_quiz_debug_log_message( '_POST<pre>' . print_r( $_POST, true ) . '</pre>' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- Intended for debugging.
 
 		learndash_quiz_debug_log_message( 'user_id ' . $user_id );
 		learndash_quiz_debug_log_message( 'quiz id ' . $id );
 		learndash_quiz_debug_log_message( 'quiz_post_id ' . $quiz_post_id );
+		learndash_quiz_debug_log_message( 'course_id ' . $course_id );
+		learndash_quiz_debug_log_message( 'quiz_started ' . $quiz_started );
+		learndash_quiz_debug_log_message( 'quiz_resume_data ' . print_r( $quiz_resume_data, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- Intended for debugging.
 
 		if ( defined( 'LEARNDASH_QUIZ_DEBUG' ) && LEARNDASH_QUIZ_DEBUG ) {
 			/**
@@ -834,9 +850,42 @@ class LD_QuizPro {
 						$question_id
 					);
 
+					// Update the question status in the review box.
+
+					if (
+						isset( $quiz_resume_data[ $question_id ] )
+						&& isset( $quiz_resume_data[ $question_id ]['index'] )
+						&& isset( $quiz_resume_data['reviewBox'] )
+					) {
+						$question_index = $quiz_resume_data[ $question_id ]['index'];
+
+						if ( isset( $quiz_resume_data['reviewBox'][ $question_index ] ) ) {
+							if ( $correct ) {
+								$quiz_resume_data['reviewBox'][ $question_index ]['correct'] = 1;
+							} else {
+								$quiz_resume_data['reviewBox'][ $question_index ]['incorrect'] = 1;
+							}
+						}
+					}
+
 					break;
 				}
 			}
+		}
+
+		// Save the quiz resume data to the quiz resume metadata.
+
+		if (
+			! empty( $quiz_resume_data )
+			&& ! empty( $quiz_started )
+		) {
+			LDLMS_User_Quiz_Resume::update_user_quiz_resume_metadata(
+				$user_id,
+				$quiz_post_id,
+				$course_id,
+				$quiz_started,
+				$quiz_resume_data
+			);
 		}
 
 		/**
@@ -1337,13 +1386,53 @@ class LD_QuizPro {
 			$quizdata['completed'] = intval( $_POST['results']['comp']['quizEndTimestamp'] / 1000 );
 		}
 
-		if ( ( isset( $quizdata['started'] ) ) && ( ! empty( $quizdata['started'] ) ) && ( isset( $quizdata['completed'] ) ) && ( ! empty( $quizdata['completed'] ) ) ) {
-			$quiz_time_diff  = absint( $quizdata['completed'] ) - absint( $quizdata['started'] );
-			$quiz_time_end   = time();
-			$quiz_time_start = $quiz_time_end - $quiz_time_diff;
+		if (
+			isset( $quizdata['started'] )
+			&& ! empty( $quizdata['started'] )
+			&& isset( $quizdata['completed'] )
+			&& ! empty( $quizdata['completed'] )
+		) {
+			/**
+			 * Preserve the original start timestamp for existing quiz activities to prevent drift.
+			 *
+			 * Drift occurs when timestamps are recalculated using server time: any delay between
+			 * JavaScript sending completion and PHP processing causes the start time to shift forward,
+			 * corrupting the original quiz start time. By preserving the existing activity_started
+			 * timestamp, we maintain accuracy for resumed quizzes while still normalizing new quizzes
+			 * to server time to handle client clock differences.
+			*/
+			$quiz_args = [
+				'course_id'          => $course_id,
+				'user_id'            => $user_id,
+				'post_id'            => $quiz_post_id,
+				'activity_type'      => LDLMS_Post_Types::QUIZ,
+				'activity_completed' => 0,
+			];
 
-			$quizdata['started']   = $quiz_time_start;
-			$quizdata['completed'] = $quiz_time_end;
+			$quiz_activity    = learndash_get_user_activity( $quiz_args );
+			$existing_started = 0;
+
+			if (
+				is_object( $quiz_activity )
+				&& property_exists( $quiz_activity, 'activity_started' )
+				&& ! empty( $quiz_activity->activity_started )
+			) {
+				$existing_started = absint( $quiz_activity->activity_started );
+			}
+
+			if ( ! empty( $existing_started ) ) {
+				// Preserve the original start timestamp from existing activity.
+				$quizdata['started']   = $existing_started;
+				$quizdata['completed'] = time();
+			} else {
+				// No existing activity or invalid timestamp, normalize to server time.
+				$quiz_time_diff  = absint( $quizdata['completed'] ) - absint( $quizdata['started'] );
+				$quiz_time_end   = time();
+				$quiz_time_start = $quiz_time_end - $quiz_time_diff;
+
+				$quizdata['started']   = $quiz_time_start;
+				$quizdata['completed'] = $quiz_time_end;
+			}
 		} else {
 			$quizdata['started']   = 0;
 			$quizdata['completed'] = 0;

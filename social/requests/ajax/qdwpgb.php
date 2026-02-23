@@ -18,11 +18,11 @@ class QDWPGB extends Aj {
             $product_name = '';
             $amount = 0;
 
-            // Fetch 'wow_user_id' from the users table
-            $wow_user_id = $db->where('id', $userid)->getValue('users', 'wow_user_id');
+            // Fetch 'wo_user_id' from the users table
+            $wo_user_id = $db->where('id', $userid)->getValue('users', 'wo_user_id');
 
-            if (empty($wow_user_id)) {
-                error_log("❌ Failed to retrieve 'wow_user_id' for user ID: $userid");
+            if (empty($wo_user_id)) {
+                error_log("❌ Failed to retrieve 'wo_user_id' for user ID: $userid");
                 $response['message'] = __('Failed to retrieve user information.');
                 return $response;
             }
@@ -139,7 +139,7 @@ class QDWPGB extends Aj {
                     array('key' => 'qdw_order_id', 'value' => $qdw_order_id),
                     array('key' => 'qdw_transaction_kind', 'value' => $transaction_kind),
                     //array('key' => 'userid', 'value' => $userid),
-                    array('key' => 'wow_user_id', 'value' => $wow_user_id),
+                    array('key' => 'wo_user_id', 'value' => $wo_user_id),
                 ),
             );
 

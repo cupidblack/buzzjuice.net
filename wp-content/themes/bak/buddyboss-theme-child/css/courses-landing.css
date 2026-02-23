@@ -1,0 +1,98 @@
+/* Courses Landing hero styles (full-width, no padding/margins)
+   Place at: wp-content/themes/buddyboss-theme-child/css/courses-landing.css
+   Enqueued for page-courses-landing.php by inc/courses-landing.php
+*/
+
+/* Wrapper: ensures hero sits edge-to-edge */
+.bz-landing-hero-wrap {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    z-index: 0;
+}
+
+/* Use a figure with an <img> for semantics and accessibility */
+.bz-landing-hero {
+    width: 100vw;
+    margin-left: calc(50% - 50vw); /* full-bleed correction to ignore content container */
+    margin-right: calc(50% - 50vw);
+    max-width: 100%;
+    height: 70vh;
+    display: block;
+    padding: 0;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+}
+
+/* The image itself scales & covers the box */
+.bz-landing-hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+    border: 0;
+}
+
+/* Ensure the theme container that follows does not add a visual gap */
+.page-template-page-courses-landing #primary,
+.page-template-page-courses-landing .content-area,
+.page-template-page-courses-landing main.site-main {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Remove BuddyBoss container gutters that could otherwise create side spacing */
+.page-template-page-courses-landing .bb-grid,
+.page-template-page-courses-landing .bb-grid-cell,
+.page-template-page-courses-landing .site-content {
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .bz-landing-hero {
+        height: 45vh;
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+/* Smaller devices */
+@media (max-width: 480px) {
+    .bz-landing-hero {
+        height: 35vh;
+    }
+}
+
+/* Optional overlay content helpers (uncomment markup and these rules if you add overlay content) */
+.bz-landing-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.35) 100%);
+    z-index: 1;
+}
+.bz-landing-hero-inner {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-align: center;
+    padding: 2rem;
+}
+
+/* Small accessibility focus style */
+.bz-landing-hero:focus {
+    outline: 2px solid #0073aa;
+    outline-offset: -2px;
+}

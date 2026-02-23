@@ -48,7 +48,7 @@ class WPCode_Importer_Header_Footer_Code_Manager extends WPCode_Importer_Type {
 
 		if ( $results ) {
 			foreach ( $results as $snippet ) {
-				$label                             = ! empty( $snippet['name'] ) ? $snippet['name'] : __( '(no title)', 'header-footer-code-manager' );
+				$label                             = ! empty( $snippet['name'] ) ? $snippet['name'] : __( '(no title)', 'insert-headers-and-footers' );
 				$snippets[ $snippet['script_id'] ] = $label;
 			}
 		}
@@ -76,7 +76,7 @@ class WPCode_Importer_Header_Footer_Code_Manager extends WPCode_Importer_Type {
 			wp_send_json_error(
 				array(
 					'error' => true,
-					'msg'   => __( 'Invalid snippet ID.', 'header-footer-code-manager' ),
+					'msg'   => __( 'Invalid snippet ID.', 'insert-headers-and-footers' ),
 				)
 			);
 		}
@@ -89,7 +89,7 @@ class WPCode_Importer_Header_Footer_Code_Manager extends WPCode_Importer_Type {
 			wp_send_json_error(
 				array(
 					'error' => true,
-					'msg'   => __( 'Snippet not found.', 'header-footer-code-manager' ),
+					'msg'   => __( 'Snippet not found.', 'insert-headers-and-footers' ),
 				)
 			);
 		}
@@ -121,7 +121,7 @@ class WPCode_Importer_Header_Footer_Code_Manager extends WPCode_Importer_Type {
 			wp_send_json_error(
 				array(
 					'error' => true,
-					'msg'   => __( 'Failed to import snippet.', 'header-footer-code-manager' ),
+					'msg'   => __( 'Failed to import snippet.', 'insert-headers-and-footers' ),
 				)
 			);
 		}

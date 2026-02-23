@@ -95,6 +95,8 @@ class WPCode_Admin_Page_Tools extends WPCode_Admin_Page {
 				'<a href="' . esc_url( admin_url( 'admin.php?page=wpcode' ) ) . '">',
 				'</a>'
 			),
+			// 2 shows a fail message due to the file not being in the right format.
+			2 => __( 'Import failed. Please make sure you are uploading a valid WPCode export file.', 'insert-headers-and-footers' ),
 		);
 		$message  = absint( $_GET['message'] );
 		// phpcs:enable WordPress.Security.NonceVerification
@@ -103,8 +105,11 @@ class WPCode_Admin_Page_Tools extends WPCode_Admin_Page {
 			return;
 		}
 
-		$this->set_success_message( $messages[ $message ] );
-
+		if ( 1 === $message ) {
+			$this->set_success_message( $messages[ $message ] );
+		} else {
+			$this->set_error_message( $messages[ $message ] );
+		}
 	}
 
 	/**
@@ -624,11 +629,15 @@ class WPCode_Admin_Page_Tools extends WPCode_Admin_Page {
 			);
 		}
 
+		$message = 1; // Default message for successful import.
+
+		$valid_snippets_count = 0;
 		foreach ( $snippets as $snippet ) {
 			if ( empty( $snippet['code_type'] ) ) {
 				// Just a minimal check that we have some required fields.
 				continue;
 			}
+			++ $valid_snippets_count;
 			if ( isset( $snippet['id'] ) ) {
 				// We don't want to update existing snippets/posts.
 				unset( $snippet['id'] );
@@ -641,8 +650,12 @@ class WPCode_Admin_Page_Tools extends WPCode_Admin_Page {
 
 		}
 
+		if ( 0 === $valid_snippets_count ) {
+			$message = 2;
+		}
+
 		wp_safe_redirect(
-			add_query_arg( 'message', 1, $this->get_page_action_url() )
+			add_query_arg( 'message', $message, $this->get_page_action_url() )
 		);
 		exit;
 	}

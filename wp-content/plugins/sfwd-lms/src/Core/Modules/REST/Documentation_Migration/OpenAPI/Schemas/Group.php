@@ -9,6 +9,8 @@
 
 namespace LearnDash\Core\Modules\REST\Documentation_Migration\OpenAPI\Schemas;
 
+use LDLMS_Post_Types;
+
 /**
  * Trait that provides LearnDash Group OpenAPI schema.
  *
@@ -30,11 +32,32 @@ class Group extends WP_Post {
 		// Get the base WP_Post schema.
 		$base_schema = parent::get_schema();
 
-		$group_singular_lowercase  = learndash_get_custom_label_lower( 'group' );
-		$group_plural_lowercase    = learndash_get_custom_label_lower( 'groups' );
-		$group_singular            = learndash_get_custom_label( 'group' );
-		$course_singular_lowercase = learndash_get_custom_label_lower( 'course' );
-		$course_plural_lowercase   = learndash_get_custom_label_lower( 'courses' );
+		// Remove some properties that are not relevant to the Group schema.
+
+		foreach ( [ 'comment_status', 'excerpt', 'format', 'meta', 'ping_status', 'sticky' ] as $property ) {
+			$feature_map = [
+				'comment_status' => 'comments',
+				'excerpt'        => 'excerpt',
+				'format'         => 'post-formats',
+				'meta'           => 'custom-fields',
+				'ping_status'    => 'trackbacks',
+			];
+
+			if (
+				in_array( $property, $feature_map, true ) &&
+				post_type_supports( LDLMS_Post_Types::get_post_type_slug( LDLMS_Post_Types::GROUP ), $feature_map[ $property ] )
+			) {
+				continue;
+			}
+
+			unset( $base_schema['properties'][ $property ] );
+			unset( $base_schema['required'][ $property ] );
+			unset( $base_schema['properties'][ $property ]['example'] );
+		}
+
+		$group_singular_lowercase = learndash_get_custom_label_lower( 'group' );
+		$group_singular           = learndash_get_custom_label( 'group' );
+		$course_plural_lowercase  = learndash_get_custom_label_lower( 'courses' );
 
 		// Add LearnDash Group specific properties based on actual API response.
 		$group_properties = [
@@ -60,6 +83,7 @@ class Group extends WP_Post {
 						'type'        => 'string',
 						'description' => __( 'The rendered materials content.', 'learndash' ),
 						'example'     => '',
+						'readOnly'    => true,
 					],
 				],
 			],
@@ -82,6 +106,17 @@ class Group extends WP_Post {
 					/* translators: %s: Group label (lowercase) */
 					__( 'Whether the %s content is always visible or only visible to members. False if only visible to members.', 'learndash' ),
 					$group_singular_lowercase
+				),
+				'example'     => false,
+			],
+
+			'group_courses_order_enabled'               => [
+				'type'        => 'boolean',
+				'description' => sprintf(
+					/* translators: %1$s: Group label (lowercase), %2$s: Course label (lowercase, plural) */
+					__( 'Whether a custom %1$s %2$s order is enabled.', 'learndash' ),
+					$group_singular_lowercase,
+					$course_plural_lowercase
 				),
 				'example'     => false,
 			],
@@ -148,13 +183,13 @@ class Group extends WP_Post {
 				'example'     => '',
 			],
 			'trial_price'                               => [
-				'type'        => 'integer',
+				'type'        => 'string',
 				'description' => sprintf(
 					/* translators: %s: Group label (lowercase) */
 					__( 'The trial price for the %s.', 'learndash' ),
 					$group_singular_lowercase
 				),
-				'example'     => 0,
+				'example'     => '',
 			],
 			'group_price_type_subscribe_enrollment_url' => [
 				'type'        => 'string',
@@ -184,81 +219,8 @@ class Group extends WP_Post {
 				'example'     => '',
 			],
 
-			// Group auto-enrollment.
-			'auto_enroll'                               => [
-				'type'        => 'string',
-				'description' => sprintf(
-					/* translators: %1$s: Group label (lowercase), %2$s: Course label (lowercase) */
-					__( 'Whether to auto-enroll users in the %1$s when they join an included %2$s.', 'learndash' ),
-					$group_singular_lowercase,
-					$course_singular_lowercase
-				),
-				'example'     => '',
-				'enum'        => [ '', 'yes' ],
-			],
-			'auto_enroll_courses'                       => [
-				'type'        => 'string',
-				'description' => sprintf(
-					/* translators: %1$s: Group label (lowercase), %2$s: Course label (lowercase) */
-					__( 'Whether to auto-enroll users in the %1$s when they join an included %2$s. This is not used. Use the auto_enroll field instead.', 'learndash' ),
-					$group_singular_lowercase,
-					$course_singular_lowercase
-				),
-				'example'     => '',
-				'enum'        => [ '', 'yes' ],
-			],
-
-			// Group subscription settings.
-			'interval'                                  => [
-				'type'        => 'integer',
-				'description' => sprintf(
-					/* translators: %s: Group label (lowercase) */
-					__( 'The subscription interval for the %s.', 'learndash' ),
-					$group_singular_lowercase
-				),
-				'example'     => 0,
-			],
-			'frequency'                                 => [
-				'type'        => 'string',
-				'description' => sprintf(
-					/* translators: %s: Group label (lowercase) */
-					__( 'The subscription frequency for the %s.', 'learndash' ),
-					$group_singular_lowercase
-				),
-				'example'     => '',
-				'enum'        => [ '', 'D', 'W', 'M', 'Y' ],
-			],
-			'repeats'                                   => [
-				'type'        => 'integer',
-				'description' => sprintf(
-					/* translators: %s: Group label (lowercase) */
-					__( 'The number of times the %s subscription repeats.', 'learndash' ),
-					$group_singular_lowercase
-				),
-				'example'     => 0,
-			],
-			'trial_interval'                            => [
-				'type'        => 'integer',
-				'description' => sprintf(
-					/* translators: %s: Group label (lowercase) */
-					__( 'The trial interval for the %s.', 'learndash' ),
-					$group_singular_lowercase
-				),
-				'example'     => 0,
-			],
-			'trial_frequency'                           => [
-				'type'        => 'string',
-				'description' => sprintf(
-					/* translators: %s: Group label (lowercase) */
-					__( 'The trial frequency for the %s.', 'learndash' ),
-					$group_singular_lowercase
-				),
-				'example'     => '',
-				'enum'        => [ '', 'D', 'W', 'M', 'Y' ],
-			],
-
 			// Group dates and limits.
-			'start_date'                                => [
+			'group_start_date'                          => [
 				'type'        => 'string',
 				'description' => sprintf(
 					/* translators: %s: Group label (lowercase) */
@@ -267,7 +229,7 @@ class Group extends WP_Post {
 				),
 				'example'     => '0',
 			],
-			'end_date'                                  => [
+			'group_end_date'                            => [
 				'type'        => 'string',
 				'description' => sprintf(
 					/* translators: %s: Group label (lowercase) */
@@ -276,37 +238,33 @@ class Group extends WP_Post {
 				),
 				'example'     => '0',
 			],
-			'student_limit'                             => [
+			'group_seats_limit'                         => [
 				'type'        => 'integer',
 				'description' => sprintf(
 					/* translators: %s: Group label (lowercase) */
-					__( 'The maximum number of students allowed in the %s. 0 means no limit.', 'learndash' ),
+					__( 'The maximum number of students allowed in the %s. 0 means no limit. Admins can enroll students even if the limit is reached.', 'learndash' ),
 					$group_singular_lowercase
 				),
 				'example'     => 0,
 			],
 
-			// Group course pagination.
-			'courses_per_page_enabled'                  => [
-				'type'        => 'string',
-				'description' => sprintf(
-					/* translators: %1$s: Course label (lowercase), %2$s: Group label (lowercase, plural) */
-					__( 'Whether %1$s per page setting for %2$s is enabled.', 'learndash' ),
-					$course_singular_lowercase,
-					$group_plural_lowercase
-				),
-				'example'     => '',
-				'enum'        => [ '', 'yes' ],
-			],
-
-			// Group password.
-			'password'                                  => [
-				'type'        => 'string',
-				'description' => __( 'Password if password protected.', 'learndash' ),
-				'example'     => '',
-			],
-
 			// Group taxonomies.
+			'categories'                                => [
+				'type'        => 'array',
+				'description' => __( 'The terms assigned to the post in the category taxonomy.', 'learndash' ),
+				'items'       => [
+					'type' => 'integer',
+				],
+				'example'     => [],
+			],
+			'tags'                                      => [
+				'type'        => 'array',
+				'description' => __( 'The terms assigned to the post in the post_tag taxonomy.', 'learndash' ),
+				'items'       => [
+					'type' => 'integer',
+				],
+				'example'     => [],
+			],
 			'ld_group_category'                         => [
 				'type'        => 'array',
 				'description' => sprintf(
@@ -515,6 +473,7 @@ class Group extends WP_Post {
 					'materials',
 					'certificate',
 					'disable_content_table',
+					'group_courses_order_enabled',
 					'courses_orderby',
 					'courses_order',
 					'price_type',
@@ -525,18 +484,12 @@ class Group extends WP_Post {
 					'group_price_type_subscribe_enrollment_url',
 					'price_type_closed_price',
 					'price_type_closed_custom_button_url',
-					'auto_enroll',
-					'auto_enroll_courses',
-					'interval',
-					'frequency',
-					'repeats',
-					'trial_interval',
-					'trial_frequency',
-					'start_date',
-					'end_date',
-					'student_limit',
+					'group_start_date',
+					'group_end_date',
+					'group_seats_limit',
 					'courses_per_page_enabled',
-					'password',
+					'categories',
+					'tags',
 					'ld_group_category',
 					'ld_group_tag',
 				]

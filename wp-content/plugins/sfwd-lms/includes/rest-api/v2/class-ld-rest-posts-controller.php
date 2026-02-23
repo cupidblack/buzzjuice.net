@@ -215,7 +215,6 @@ if ( ( ! class_exists( 'LD_REST_Posts_Controller_V2' ) ) && ( class_exists( 'WP_
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_item' ),
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
-					'args'                => $this->get_collection_params(),
 				);
 			}
 

@@ -256,6 +256,11 @@ if ( ! class_exists( '\BuddyBossTheme\BaseTheme' ) ) {
 			$this->_setup_globals();
 
 			/**
+			 * Load mothership before other admin files to ensure classes are available
+			 */
+			require_once $this->_inc_dir . '/admin/mothership/mothership-init.php';
+
+			/**
 			 * Load required theme files
 			 */
 			$this->_do_includes();
@@ -264,8 +269,6 @@ if ( ! class_exists( '\BuddyBossTheme\BaseTheme' ) ) {
 			 * Actions/filters
 			 */
 			$this->_setup_actions_filters();
-
-			require_once $this->_inc_dir . '/admin/mothership/mothership-init.php';
 		}
 
 		// ---------- Setup --------------------

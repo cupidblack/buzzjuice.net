@@ -30,6 +30,20 @@ class WPCode_Conditional_Location_Pro extends WPCode_Conditional_Type {
 	public $category = 'who';
 
 	/**
+	 * Load evaluation-only options (without translations) for frontend use.
+	 * This method is called when translations are not yet loaded to avoid WP 6.7 notices.
+	 *
+	 * @return void
+	 */
+	public function load_evaluation_options() {
+		// Location addon defines its own callbacks when loaded.
+		$this->options = array(
+			'country'   => array(),
+			'continent' => array(),
+		);
+	}
+
+	/**
 	 * Set the type options for the admin mainly.
 	 *
 	 * @return void

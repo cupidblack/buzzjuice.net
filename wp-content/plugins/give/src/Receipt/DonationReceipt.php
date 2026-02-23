@@ -63,12 +63,12 @@ class DonationReceipt extends Receipt
     {
         $donorSection = $this->addSection([
             'id'    => self::DONORSECTIONID,
-            'label' => esc_html__('Contributor Details', 'give'),
+            'label' => esc_html__('Donor Details', 'give'),
         ]);
 
         $donorSection->addLineItem([
             'id'    => 'fullName',
-            'label' => esc_html__('Contributor Name', 'give'),
+            'label' => esc_html__('Donor Name', 'give'),
             'value' => trim("{$this->donation->first_name} {$this->donation->last_name}"),
             'icon'  => '<i class="fas fa-user"></i>',
         ]);
@@ -100,7 +100,7 @@ class DonationReceipt extends Receipt
     {
         $donationSection = $this->addSection([
             'id' => self::DONATIONSECTIONID,
-            'label' => esc_html__('Contribution Details', 'give'),
+            'label' => esc_html__('Donation Details', 'give'),
         ]);
 
         $donationSection->addLineItem([
@@ -128,7 +128,7 @@ class DonationReceipt extends Receipt
 
         $donationSection->addLineItem([
             'id' => 'amount',
-            'label' => esc_html__('Contribution Amount', 'give'),
+            'label' => esc_html__('Donation Amount', 'give'),
             'value' => give_currency_filter(
                 give_format_amount($this->donation->total, ['donation_id' => $this->donation->ID]),
                 [
@@ -141,7 +141,7 @@ class DonationReceipt extends Receipt
 
         $donationSection->addLineItem([
             'id'    => 'totalAmount',
-            'label' => esc_html__('Contribution Total', 'give'),
+            'label' => esc_html__('Donation Total', 'give'),
             'value' => give_currency_filter(
                 give_format_amount($this->donation->total, ['donation_id' => $this->donation->ID]),
                 [

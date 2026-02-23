@@ -163,7 +163,7 @@ class WPCode_Importer_Post_Snippets extends WPCode_Importer_Type {
 				$group_table = $wpdb->prefix . 'pspro_groups';
 				foreach ( $group_ids as $group_id ) {
 					$group_name = $wpdb->get_var( $wpdb->prepare( "SELECT group_name FROM {$group_table} WHERE ID = %d", $group_id ) ); // phpcs:ignore
-					if ( $group_name && __( 'ungrouped', 'post-snippets' ) !== $group_name ) {
+					if ( $group_name && __( 'ungrouped', 'insert-headers-and-footers' ) !== $group_name ) {
 						$tags[] = sanitize_title( $group_name );
 					}
 				}

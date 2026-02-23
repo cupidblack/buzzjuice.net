@@ -1,15 +1,15 @@
-# Copyright (C) 2025 WPCode
+# Copyright (C) 2026 WPCode
 # This file is distributed under the GPLv2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: WPCode Pro 2.2.9\n"
+"Project-Id-Version: WPCode Pro 2.3.4\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wpcode-premium\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-07-01T12:18:33+00:00\n"
+"POT-Creation-Date: 2026-02-12T14:45:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.5.0\n"
 "X-Domain: wpcode-premium\n"
@@ -31,54 +31,83 @@ msgstr ""
 msgid "WPCode"
 msgstr ""
 
-#: includes/pro/admin/admin-ajax-handlers.php:155
+#: includes/pro/admin/admin-ajax-handlers.php:213
 #: includes/pro/class-wpcode-snippet-block.php:189
 msgid "Inactive"
 msgstr ""
 
 #. Translators: The name of the global auto-insert location for a snippet loaded in the edit-post metabox.
-#: includes/pro/admin/admin-ajax-handlers.php:169
+#: includes/pro/admin/admin-ajax-handlers.php:227
 msgid "Global location: %s"
 msgstr ""
 
-#: includes/pro/admin/admin-ajax-handlers.php:175
+#: includes/pro/admin/admin-ajax-handlers.php:233
 msgid "Auto-insert disabled"
 msgstr ""
 
-#: includes/pro/admin/admin-ajax-handlers.php:182
+#: includes/pro/admin/admin-ajax-handlers.php:240
 msgid "Page location:"
 msgstr ""
 
-#: includes/pro/admin/admin-ajax-handlers.php:197
+#: includes/pro/admin/admin-ajax-handlers.php:255
 msgid "Insert number:"
 msgstr ""
 
-#: includes/pro/admin/admin-ajax-handlers.php:263
+#: includes/pro/admin/admin-ajax-handlers.php:321
 msgid "From:"
 msgstr ""
 
-#: includes/pro/admin/admin-ajax-handlers.php:264
+#: includes/pro/admin/admin-ajax-handlers.php:322
 msgid "To:"
 msgstr ""
 
-#: includes/pro/admin/admin-ajax-handlers.php:294
+#: includes/pro/admin/admin-ajax-handlers.php:352
+#: includes/pro/admin/admin-ajax-handlers.php:615
 msgid "Please enter a license key."
 msgstr ""
 
-#: includes/pro/admin/admin-ajax-handlers.php:331
+#: includes/pro/admin/admin-ajax-handlers.php:394
 msgid "You do not have permission to install addons."
 msgstr ""
 
-#: includes/pro/admin/admin-ajax-handlers.php:341
+#: includes/pro/admin/admin-ajax-handlers.php:404
 msgid "No addon slug provided."
 msgstr ""
 
-#: includes/pro/admin/admin-ajax-handlers.php:353
+#: includes/pro/admin/admin-ajax-handlers.php:416
 msgid "Could not install addon."
 msgstr ""
 
-#: includes/pro/admin/admin-ajax-handlers.php:360
+#: includes/pro/admin/admin-ajax-handlers.php:423
 msgid "Addon installed successfully."
+msgstr ""
+
+#: includes/pro/admin/admin-ajax-handlers.php:627
+msgid "License key refreshed successfully!"
+msgstr ""
+
+#: includes/pro/admin/admin-ajax-handlers.php:632
+msgid "Your license key has expired. Please renew your license."
+msgstr ""
+
+#: includes/pro/admin/admin-ajax-handlers.php:634
+msgid "Your license key has been disabled."
+msgstr ""
+
+#: includes/pro/admin/admin-ajax-handlers.php:636
+msgid "Your license key is invalid."
+msgstr ""
+
+#: includes/pro/admin/admin-ajax-handlers.php:638
+msgid "There was an error refreshing your license. Please try again later."
+msgstr ""
+
+#: includes/pro/admin/admin-scripts.php:91
+msgid "Library Refreshed"
+msgstr ""
+
+#: includes/pro/admin/admin-scripts.php:92
+msgid "The library has been successfully refreshed."
 msgstr ""
 
 #. Translators: 1 - Opening HTML strong tag, 2 - The short plugin name ("WPCode"), 3 - "Pro", 4 - Closing HTML strong tag.
@@ -86,17 +115,17 @@ msgstr ""
 msgid "The following addons cannot be used, because they require %1$s%2$s %3$s%4$s to work:"
 msgstr ""
 
-#: includes/pro/admin/class-wpcode-admin-page-loader-pro.php:93
-#: includes/pro/admin/class-wpcode-admin-page-loader-pro.php:124
+#: includes/pro/admin/class-wpcode-admin-page-loader-pro.php:94
+#: includes/pro/admin/class-wpcode-admin-page-loader-pro.php:125
 msgid "Go to WPCode.com Support page"
 msgstr ""
 
-#: includes/pro/admin/class-wpcode-admin-page-loader-pro.php:94
-#: includes/pro/admin/class-wpcode-admin-page-loader-pro.php:125
+#: includes/pro/admin/class-wpcode-admin-page-loader-pro.php:95
+#: includes/pro/admin/class-wpcode-admin-page-loader-pro.php:126
 msgid "Support"
 msgstr ""
 
-#: includes/pro/admin/class-wpcode-admin-page-loader-pro.php:113
+#: includes/pro/admin/class-wpcode-admin-page-loader-pro.php:114
 msgid "Settings"
 msgstr ""
 
@@ -168,24 +197,24 @@ msgstr ""
 #: includes/pro/admin/class-wpcode-metabox-snippets-pro.php:56
 #: includes/pro/admin/pages/class-wpcode-admin-page-revisions.php:1128
 #: includes/pro/class-wpcode-admin-bar-info-pro.php:226
-#: includes/pro/class-wpcode-testing-mode.php:753
-#: includes/pro/class-wpcode-testing-mode.php:775
+#: includes/pro/class-wpcode-testing-mode.php:763
+#: includes/pro/class-wpcode-testing-mode.php:785
 msgid "Header"
 msgstr ""
 
 #: includes/pro/admin/class-wpcode-metabox-snippets-pro.php:70
 #: includes/pro/admin/pages/class-wpcode-admin-page-revisions.php:1129
 #: includes/pro/class-wpcode-admin-bar-info-pro.php:228
-#: includes/pro/class-wpcode-testing-mode.php:754
-#: includes/pro/class-wpcode-testing-mode.php:776
+#: includes/pro/class-wpcode-testing-mode.php:764
+#: includes/pro/class-wpcode-testing-mode.php:786
 msgid "Footer"
 msgstr ""
 
 #: includes/pro/admin/class-wpcode-metabox-snippets-pro.php:85
 #: includes/pro/admin/pages/class-wpcode-admin-page-revisions.php:1130
 #: includes/pro/class-wpcode-admin-bar-info-pro.php:227
-#: includes/pro/class-wpcode-testing-mode.php:755
-#: includes/pro/class-wpcode-testing-mode.php:777
+#: includes/pro/class-wpcode-testing-mode.php:765
+#: includes/pro/class-wpcode-testing-mode.php:787
 msgid "Body"
 msgstr ""
 
@@ -339,7 +368,7 @@ msgid "Connect to the WPCode Library"
 msgstr ""
 
 #: includes/pro/admin/pages/class-wpcode-admin-page-pixel-pro.php:16
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:145
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:147
 msgid "Install Addon Now"
 msgstr ""
 
@@ -348,8 +377,8 @@ msgid "The Conversion Pixels Addon is not installed"
 msgstr ""
 
 #: includes/pro/admin/pages/class-wpcode-admin-page-pixel-pro.php:19
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:147
-#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:66
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:149
+#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:80
 msgid "Activate Addon"
 msgstr ""
 
@@ -366,9 +395,9 @@ msgid "Conversion Pixels Addon is not available on your plan"
 msgstr ""
 
 #: includes/pro/admin/pages/class-wpcode-admin-page-pixel-pro.php:47
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:329
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:147
-#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:59
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:343
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:148
+#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:73
 msgid "Upgrade Now"
 msgstr ""
 
@@ -449,6 +478,11 @@ msgstr ""
 msgid "OR"
 msgstr ""
 
+#: includes/pro/admin/pages/class-wpcode-admin-page-revisions.php:876
+msgctxt "revision date format"
+msgid "F j, Y @ H:i:s"
+msgstr ""
+
 #. Translators: time since the revision has been updated.
 #: includes/pro/admin/pages/class-wpcode-admin-page-revisions.php:880
 #: includes/pro/admin/pages/trait-wpcode-revisions-display.php:60
@@ -495,7 +529,7 @@ msgid "Shortcode Attributes"
 msgstr ""
 
 #: includes/pro/admin/pages/class-wpcode-admin-page-revisions.php:1016
-#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:86
+#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:100
 msgid "Location"
 msgstr ""
 
@@ -504,12 +538,12 @@ msgid "Insert Number"
 msgstr ""
 
 #: includes/pro/admin/pages/class-wpcode-admin-page-revisions.php:1036
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:170
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:171
 msgid "Custom Shortcode"
 msgstr ""
 
 #: includes/pro/admin/pages/class-wpcode-admin-page-revisions.php:1046
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:48
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:74
 msgid "Device Type"
 msgstr ""
 
@@ -611,288 +645,357 @@ msgstr ""
 msgid "License Key"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:128
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:130
 msgid "Save Changes"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:153
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:155
 msgid "Install the WPCode Multisite Addon to manage snippets across the whole network."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:158
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:160
 msgid "The WPCode Multisite addon is available on the Elite plan."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:160
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:162
 msgid "Please activate your license key below to get started."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:167
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:169
 msgid "Multisite Addon"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:200
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:202
 msgid "Verify Key"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:201
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:203
 msgid "Deactivate Key"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:202
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:204
 msgid "Force Deactivate Key"
 msgstr ""
 
 #. translators: %s: the license type
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:207
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:209
 msgid "Your license key level is %s."
 msgstr ""
 
 #. translators: %1$s: opening link tag, %2$s: closing link tag
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:216
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:218
 msgid "You can find your license key in your %1$sWPCode account%2$s."
 msgstr ""
 
+#. translators: %1$s: opening link tag, %2$s: closing link tag
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:229
+msgid "If your license has been upgraded or is incorrect, then please %1$sforce a refresh%2$s."
+msgstr ""
+
 #. translators: %1$s and %2$s are <u> tags.
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:320
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:334
 msgid "Improve the way you and your team manage your snippets with the WPCode Access Control settings. Enable other users on your site to manage different types of snippets or configure Conversion Pixels settings and update configuration files. This feature is available on the %1$sWPCode Pro%2$s plan or higher."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:326
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:340
 msgid "Access Control is not available on your plan"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:334
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:348
 msgid "Save time and improve website management with your team"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:335
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:349
 msgid "Delegate snippet management to other users with full control"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:336
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:350
 msgid "Enable other users to set up ads & 3rd party services"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:337
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:351
 msgid "Choose if PHP snippets should be enabled on the site"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:350
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:364
 msgid "We encountered an error activating your license key"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:364
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:378
 msgid "Email Notifications"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:366
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:380
 msgid "Receive email notifications when snippets throw errors or are automatically deactivated."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:46
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:105
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:447
+msgid "When enabled, all active PHP, HTML, and Universal snippets will be loaded from files instead of the database. Files are stored in "
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:464
+msgid "Note: In multisite networks, each site has its own file directory to prevent cross-site conflicts."
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-settings-pro.php:468
+msgid "Load PHP Snippets as Files"
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:47
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:106
 msgid "Save to Library"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:68
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:69
 msgid "Publish Changes"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:103
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:104
 msgid "Are you sure you want to save the snippet?"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:104
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:105
 msgid "Any changes you made to the snippet in another site or on the cloud will be overwritten."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:106
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:107
 msgid "Connect with WPCode Cloud Library to Save Snippets"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:107
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:108
 msgid "Before we can save your snippets, you must connect with WPCode Library, so we can securely save snippets in your account."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:108
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:109
 msgid "Connect with WPCode Library"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:109
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:110
 msgid "You have unsaved changes"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:110
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:111
 msgid "Please make sure all your changes are saved before saving the snippet in the library."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:111
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:112
 msgid "Save Changes Now"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:112
-#: includes/pro/class-wpcode-testing-mode.php:514
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:113
+#: includes/pro/class-wpcode-testing-mode.php:524
 msgid "OK"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:113
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:114
 msgid "Edit in Library"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:116
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:117
 msgid "Save snippet?"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:117
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:118
 msgid "In order to load the block editor we need to first save your snippet, do you want to save your snippet now?"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:118
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:119
 msgid "Yes"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:119
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:120
 msgid "No"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:120
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:121
 msgid "Blocks content will be deleted"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:121
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:122
 msgid "Please note that changing the code type will erase your blocks content when you save the snippet with the new code type. Switch back to Blocks Snippet if you want to keep the blocks content."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:122
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:123
 msgid "Please add your license key in the WPCode settings panel to unlock all Pro features"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:124
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:125
 msgid "Add license key"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:126
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:127
 msgid "Writing code..."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:127
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:128
 msgid "Setting auto-insert location to"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:128
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:129
 msgid "Configuring conditional logic for"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:129
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:130
 msgid "Done!"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:130
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:131
 msgid "Describe the changes that you want to make to your snippet..."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:133
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:134
 msgid "Please add your license key in order to use the AI integration for WPCode. Please note that the AI generation is only available on Pro and higher plans."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:141
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:142
 #: includes/pro/admin/pages/trait-wpcode-revisions-display.php:28
 msgid "Add License Key"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:143
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:144
 msgid "AI Snippet Generation is a Pro Feature"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:144
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:145
 msgid "AI Snippet Generation is not available on your plan, please upgrade to Pro or higher in order to get access to the WPCode AI Generation integration."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:164
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:165
 msgid "Shortcode name"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:175
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:176
 msgid "Use this field to define a custom shortcode name instead of the id-based one."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:293
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:294
 msgid "Any device type"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:294
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:295
 msgid "Desktop only"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:295
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:296
 msgid "Mobile only"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:314
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:315
 msgid "Schedule snippet"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:341
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:343
-msgid "View file"
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:346
+msgid "PHP snippets are loaded from files via the global setting. "
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:345
-msgid "The physical file for the snippet is only generated when the snippet is active."
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:353
+msgid "File path (server-side files cannot be viewed directly)"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:352
+#. translators: %s: Link to settings page
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:367
+msgid "To load PHP snippets from files, enable the global setting in %s."
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:368
+msgid "WPCode Settings"
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:374
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:408
 msgid "Load as file"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:376
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:397
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:399
+msgid "View file"
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:401
+msgid "The physical file for the snippet is only generated when the snippet is active."
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:432
 msgid "Compress Output"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:405
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:461
 msgid "Edit with Block Editor"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:406
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:462
 msgid "Click the button above to load the block editor in which you can create and edit blocks for your snippet."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:408
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:464
 msgid "The block editor is not supported on your site. Please upgrade to WordPress 5.0 or higher to use this feature."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:416
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:472
 msgid "Please wait..."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:454
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:510
 msgid "Describe what your snippet should do here..."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:458
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:514
 msgid "Generate"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:459
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:515
 msgid "Generating..."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:460
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:516
 msgid "Generated"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:467
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:523
 msgid "The WPCode AI snippet generator can make mistakes, please always check the generated code and the configuration before activating a generated snippet."
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:520
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:576
 msgctxt "Used to highlight a new feature"
 msgid "New"
 msgstr ""
 
-#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:531
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:587
 msgid "Connect to Library"
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:651
+#: includes/pro/admin/snippets-table.php:65
+msgid "Update Available"
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:707
+msgid "Snippet successfully updated from library."
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:711
+msgid "Snippet successfully updated from cloud library."
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:718
+msgid "Failed to update snippet from cloud library."
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:719
+msgid "Failed to update snippet from library."
+msgstr ""
+
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:761
+msgid "File Modified Warning"
+msgstr ""
+
+#. Translators: %1$s is the file path.
+#: includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php:767
+msgid "The snippet file has been modified or deleted. Saving this snippet will overwrite the file changes or recreate it at %1$s."
+msgstr ""
+
+#: includes/pro/admin/pages/trait-wpcode-library-refresh-button.php:22
+msgid "Check for updates to your private library snippets."
 msgstr ""
 
 #: includes/pro/admin/pages/trait-wpcode-my-library-markup.php:20
@@ -969,7 +1072,7 @@ msgid_plural "%d Other Revisions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/pro/admin/snippets-table.php:29
+#: includes/pro/admin/snippets-table.php:32
 msgid "Scheduled"
 msgstr ""
 
@@ -1183,7 +1286,7 @@ msgid "Insert snippet after the EDD checkout form on the checkout page"
 msgstr ""
 
 #: includes/pro/auto-insert/class-wpcode-auto-insert-edd.php:114
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:79
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:93
 msgid "Easy Digital Downloads Page Rules is a Pro Feature"
 msgstr ""
 
@@ -1191,15 +1294,15 @@ msgstr ""
 #: includes/pro/auto-insert/class-wpcode-auto-insert-memberpress.php:59
 #: includes/pro/auto-insert/class-wpcode-auto-insert-woocommerce.php:135
 #: includes/pro/class-wpcode-smart-tags-pro.php:614
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:150
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:80
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:99
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:102
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:113
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:124
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:108
-#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:64
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:115
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:176
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:94
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:116
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:118
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:129
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:140
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:131
+#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:78
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:132
 msgid "Please add your license key in the Settings Panel to unlock all pro features."
 msgstr ""
 
@@ -1207,50 +1310,50 @@ msgstr ""
 #: includes/pro/auto-insert/class-wpcode-auto-insert-memberpress.php:66
 #: includes/pro/auto-insert/class-wpcode-auto-insert-woocommerce.php:142
 #: includes/pro/class-wpcode-smart-tags-pro.php:615
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:157
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:87
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:106
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:109
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:120
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:131
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:115
-#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:71
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:122
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:183
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:101
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:123
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:125
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:136
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:147
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:138
+#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:85
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:139
 msgid "Add License Key Now"
 msgstr ""
 
 #: includes/pro/auto-insert/class-wpcode-auto-insert-edd.php:126
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:91
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:105
 msgid "Easy Digital Downloads is Not Installed"
 msgstr ""
 
 #: includes/pro/auto-insert/class-wpcode-auto-insert-edd.php:127
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:92
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:106
 msgid "Please install and activate Easy Digital Downloads to use this feature."
 msgstr ""
 
 #: includes/pro/auto-insert/class-wpcode-auto-insert-edd.php:129
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:94
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:108
 msgid "Install Easy Digital Downloads Now"
 msgstr ""
 
 #: includes/pro/auto-insert/class-wpcode-auto-insert-memberpress.php:58
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:98
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:115
 msgid "MemberPress Page Rules is a Pro Feature"
 msgstr ""
 
 #: includes/pro/auto-insert/class-wpcode-auto-insert-memberpress.php:70
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:112
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:129
 msgid "MemberPress is Not Installed"
 msgstr ""
 
 #: includes/pro/auto-insert/class-wpcode-auto-insert-memberpress.php:71
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:113
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:130
 msgid "Please install and activate MemberPress to use this feature."
 msgstr ""
 
 #: includes/pro/auto-insert/class-wpcode-auto-insert-memberpress.php:73
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:115
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:132
 msgid "Install MemberPress Now"
 msgstr ""
 
@@ -1323,17 +1426,17 @@ msgid "WooCommerce Locations are a PRO feature"
 msgstr ""
 
 #: includes/pro/auto-insert/class-wpcode-auto-insert-woocommerce.php:146
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:128
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:145
 msgid "WooCommerce Is Not Installed"
 msgstr ""
 
 #: includes/pro/auto-insert/class-wpcode-auto-insert-woocommerce.php:147
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:129
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:146
 msgid "Please install and activate WooCommerce to use this feature."
 msgstr ""
 
 #: includes/pro/auto-insert/class-wpcode-auto-insert-woocommerce.php:149
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:131
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:148
 msgid "Install WooCommerce Now"
 msgstr ""
 
@@ -1382,72 +1485,72 @@ msgstr ""
 msgid "Your snippet has been automatically deactivated"
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:96
+#: includes/pro/class-wpcode-my-library.php:104
 msgid "Invalid request"
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:107
+#: includes/pro/class-wpcode-my-library.php:115
 msgid "Missing authorization data"
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:117
+#: includes/pro/class-wpcode-my-library.php:125
 msgid "Invalid authorization data"
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:131
+#: includes/pro/class-wpcode-my-library.php:139
 msgid "Loading new snippets timed out, please try again."
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:146
+#: includes/pro/class-wpcode-my-library.php:154
 msgid "Snippet already updated."
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:162
+#: includes/pro/class-wpcode-my-library.php:170
 msgid "Snippet updated."
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:295
-#: includes/pro/class-wpcode-my-library.php:350
+#: includes/pro/class-wpcode-my-library.php:320
+#: includes/pro/class-wpcode-my-library.php:375
 msgid "Not allowed"
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:296
+#: includes/pro/class-wpcode-my-library.php:321
 msgid "You do not have permission to save snippets to the library."
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:304
+#: includes/pro/class-wpcode-my-library.php:329
 msgid "You need to be authenticated to save snippets to the library."
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:314
+#: includes/pro/class-wpcode-my-library.php:339
 msgid "Snippet not found."
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:323
+#: includes/pro/class-wpcode-my-library.php:348
 msgid "Snippet saved to the library."
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:333
+#: includes/pro/class-wpcode-my-library.php:358
 msgid "Something went wrong. Please try again."
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:351
+#: includes/pro/class-wpcode-my-library.php:376
 msgid "You do not have permission to delete snippets from the library."
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:362
+#: includes/pro/class-wpcode-my-library.php:387
 msgid "Invalid snippet ID"
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:363
+#: includes/pro/class-wpcode-my-library.php:388
 msgid "Missing parameter in the request, please reload the page and try again."
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:380
+#: includes/pro/class-wpcode-my-library.php:405
 msgid "We encountered an error deleting the snippet"
 msgstr ""
 
-#: includes/pro/class-wpcode-my-library.php:381
+#: includes/pro/class-wpcode-my-library.php:406
 msgid "The request to the Library site to delete the snippet has not been sucessful, please try again in a few minutes as this might be a temporary error."
 msgstr ""
 
@@ -1511,96 +1614,96 @@ msgstr ""
 msgid "template"
 msgstr ""
 
-#: includes/pro/class-wpcode-snippet-execute-pro.php:49
+#: includes/pro/class-wpcode-snippet-execute-pro.php:117
 msgid "Blocks Snippet"
 msgstr ""
 
-#: includes/pro/class-wpcode-snippet-execute-pro.php:50
+#: includes/pro/class-wpcode-snippet-execute-pro.php:118
 msgid "Use the Block Editor to create components that you can insert anywhere in your site."
 msgstr ""
 
-#: includes/pro/class-wpcode-snippet-execute-pro.php:56
+#: includes/pro/class-wpcode-snippet-execute-pro.php:124
 msgid "SCSS Snippet"
 msgstr ""
 
-#: includes/pro/class-wpcode-snippet-execute-pro.php:57
+#: includes/pro/class-wpcode-snippet-execute-pro.php:125
 msgid "Write SCSS styles directly in WPCode and easily customize how your website looks."
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:503
+#: includes/pro/class-wpcode-testing-mode.php:513
 msgid "Disable testing mode?"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:504
+#: includes/pro/class-wpcode-testing-mode.php:514
 msgid "Are you sure you want to disable testing mode? You can either publish the changes you made in testing mode to all site visitors or discard all changes."
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:505
+#: includes/pro/class-wpcode-testing-mode.php:515
 msgid "Updated Snippets:"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:506
+#: includes/pro/class-wpcode-testing-mode.php:516
 msgid "No unsaved changes currently in testing mode."
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:507
+#: includes/pro/class-wpcode-testing-mode.php:517
 msgid "Save & Publish Changes"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:508
+#: includes/pro/class-wpcode-testing-mode.php:518
 msgid "Cancel"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:509
+#: includes/pro/class-wpcode-testing-mode.php:519
 msgid "Discard all changes"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:510
+#: includes/pro/class-wpcode-testing-mode.php:520
 msgid "Enabling Testing Mode"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:511
+#: includes/pro/class-wpcode-testing-mode.php:521
 msgid "Disabling Testing Mode"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:512
-#: includes/pro/class-wpcode-testing-mode.php:1034
+#: includes/pro/class-wpcode-testing-mode.php:522
+#: includes/pro/class-wpcode-testing-mode.php:1044
 msgid "Testing Mode Enabled"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:513
+#: includes/pro/class-wpcode-testing-mode.php:523
 msgid "Testing Mode is activated. Changes to WPCode Snippets, Header & Footer or Page Scripts are only visible to users with the capability to manage WPCode Snippets. To exit Testing Mode, use the toggle located at the top right. Before deactivation, you will have the option to publish or discard the changes."
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:516
+#: includes/pro/class-wpcode-testing-mode.php:526
 msgid "Loading testing mode changes..."
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:517
+#: includes/pro/class-wpcode-testing-mode.php:527
 msgid "Disable Testing Mode"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:518
+#: includes/pro/class-wpcode-testing-mode.php:528
 msgid "Global Header & Footer changes:"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:519
+#: includes/pro/class-wpcode-testing-mode.php:529
 msgid "Page Scripts changes:"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:520
+#: includes/pro/class-wpcode-testing-mode.php:530
 msgid "Are you sure?"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:521
+#: includes/pro/class-wpcode-testing-mode.php:531
 msgid "By clicking \"Confirm\" all the changes made in testing mode to this snippet will be published for all users. Other changes made in testing mode will not be affected."
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:778
+#: includes/pro/class-wpcode-testing-mode.php:788
 msgid "Page Snippets"
 msgstr ""
 
-#: includes/pro/class-wpcode-testing-mode.php:1060
+#: includes/pro/class-wpcode-testing-mode.php:1070
 msgid "Please note that even though Testing Mode is enabled, changes made to conversion pixels will be published immediately."
 msgstr ""
 
@@ -1608,332 +1711,332 @@ msgstr ""
 msgid "Device"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:49
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:75
 msgid "Target either desktop or mobile devices."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:53
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:79
 msgid "Desktop"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:57
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:83
 msgid "Mobile"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:64
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:90
 msgid "Browser Type"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:65
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:91
 msgid "Target specific visitor web browsers."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:69
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:95
 msgid "Chrome"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:73
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:99
 msgid "Firefox"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:77
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:103
 msgid "Safari"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:81
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:107
 msgid "Opera"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:85
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:111
 msgid "IE"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:89
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:115
 msgid "Edge"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:96
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:128
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:51
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:73
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:87
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:122
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:154
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:67
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:89
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:103
 msgid "Is one of"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:97
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:129
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:52
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:74
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:88
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:123
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:155
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:68
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:90
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:104
 msgid "Is not one of"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:101
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:127
 msgid "Operating System"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:102
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:128
 msgid "Target operating systems like Windows, Mac OS or Linux."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:106
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:132
 msgid "Windows"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:110
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:136
 msgid "Mac"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:114
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:140
 msgid "Linux"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:118
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:144
 msgid "Android"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:122
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:148
 msgid "iOS"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:134
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:160
 msgid "Cookie Name"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:135
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:161
 msgid "Load or hide a snippet by cookie name."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:140
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:166
 msgid "Cookie Value"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:141
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:167
 msgid "Load or hide a snippet by cookie value."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:149
+#: includes/pro/conditional-logic/class-wpcode-conditional-device.php:175
 msgid "Device Rules are a Pro Feature"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:48
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:62
 msgid "EDD Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:49
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:63
 msgid "Load the snippet on specific Easy Digital Downloads pages."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:53
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:62
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:67
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:79
 msgid "Checkout Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:57
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:71
 msgid "Confirmation Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:61
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:75
 msgid "Single Download Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:65
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:79
 msgid "Download Category Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:69
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:83
 msgid "Download Tag Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:97
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:119
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:135
+#: includes/pro/conditional-logic/class-wpcode-conditional-edd.php:111
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:136
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:152
 msgid " (Not Installed)"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:41
+#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:55
 msgid "Limit loading the snippet based on the visitor's country."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:47
+#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:61
 msgid "Continent"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:48
+#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:62
 msgid "Target entire continents with ease."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:56
+#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:70
 msgid "Location Rules are a Pro Feature"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:57
+#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:71
 msgid "The WPCode Location addon is not available on your current plan. Upgrade to Pro or higher level today and get access to the WPCode Location addon."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:63
+#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:77
 msgid "The WPCode Location Addon is not Active"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:64
+#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:78
 msgid "The WPCode Location addon that is included in your plan is required in order to use this feature."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:86
+#: includes/pro/conditional-logic/class-wpcode-conditional-location.php:100
 msgctxt "The addon is not active."
 msgid "(Addon)"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:57
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:74
 msgid "MemberPress Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:58
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:75
 msgid "Load the snippet on specific MemberPress pages."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:62
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:79
 msgid "Registration Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:66
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:66
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:83
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:83
 msgid "Thank You Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:70
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:87
 msgid "Account Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:74
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:91
 msgid "Login Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:81
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:98
 msgid "MemberPress User"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:82
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:99
 msgid "Check if the current user has a specific MemberPress subscription active."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:88
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:105
 msgid "Is active on"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:89
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:106
 msgid "Is not active on"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:91
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:108
 msgid "Choose membership"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:109
+#: includes/pro/conditional-logic/class-wpcode-conditional-memberpress.php:126
 msgid "MemberPress Active Membership Rules is a Pro Feature"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:43
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:59
 msgid "Post/Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:44
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:60
 msgid "Pick specific posts or pages to load the snippet on."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:66
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:82
 msgid "Page Template"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:79
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:95
 msgid "Author"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:80
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:96
 msgid "Load the snippet only on pages with a specific author."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:93
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:109
 msgid "Post Meta"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:94
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:110
 msgid "Load the snippet only on pages with a specific post meta value."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:101
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:117
 msgid "Post specific rules are a Pro Feature"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:112
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:128
 msgid "Page Template rules are a Pro Feature"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:123
+#: includes/pro/conditional-logic/class-wpcode-conditional-page.php:139
 msgid "Post Author rules are a Pro Feature"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:48
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:71
 msgid "Date"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:49
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:72
 msgid "Check whether today is before or after a date."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:54
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:77
 msgid "Date & Time"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:55
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:78
 msgid "Get more specific by also including a specific time."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:60
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:83
 msgid "Day of the Week"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:61
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:84
 msgid "Load the snippet on specific days of the week."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:65
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:88
 msgid "Monday"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:69
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:92
 msgid "Tuesday"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:73
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:96
 msgid "Wednesday"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:77
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:100
 msgid "Thursday"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:81
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:104
 msgid "Friday"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:85
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:108
 msgid "Saturday"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:89
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:112
 msgid "Sunday"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:97
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:120
 msgid "Current time"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:98
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:121
 msgid "Check whether it's before or after a specific time"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:107
+#: includes/pro/conditional-logic/class-wpcode-conditional-schedule.php:130
 msgid "Scheduling rules are a Pro Feature"
 msgstr ""
 
@@ -1941,98 +2044,103 @@ msgstr ""
 msgid "Snippet"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:48
+#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:62
 #: includes/pro/integrations/class-wpcode-elementor-widget-snippet.php:82
 msgid "WPCode Snippet"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:49
+#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:63
 msgid "Load this snippet based on another snippet being loaded."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:55
+#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:69
 msgid "Is loaded"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:56
+#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:70
 msgid "Is not loaded"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:63
+#: includes/pro/conditional-logic/class-wpcode-conditional-snippet.php:77
 msgid "Snippet Loaded Rules are a Pro Feature"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-user.php:67
+#: includes/pro/conditional-logic/class-wpcode-conditional-user.php:80
 msgid "User Meta"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-user.php:68
+#: includes/pro/conditional-logic/class-wpcode-conditional-user.php:81
 msgid "Target users based on user meta values."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:57
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:74
 msgid "WooCommerce Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:58
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:75
 msgid "Load the snippet on specific WooCommerce pages."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:70
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:87
 msgid "Cart Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:74
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:91
 msgid "Single Product Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:78
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:95
 msgid "Shop Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:82
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:99
 msgid "Product Category Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:86
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:103
 msgid "Product Tag Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:90
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:107
 msgid "My Account Page"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:97
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:114
 msgid "WooCommerce Cart"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:98
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:115
 msgid "Load the snippet based on the WooCommerce Cart Contents."
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:104
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:121
 msgid "Contains"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:105
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:122
 msgid "Does Not Contain"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:107
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:124
 msgid "Select a product"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:114
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:131
 msgid "WooCommerce Page Rules is a Pro Feature"
 msgstr ""
 
-#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:125
+#: includes/pro/conditional-logic/class-wpcode-conditional-woocommerce.php:142
 msgid "WooCommerce Cart Rules is a Pro Feature"
 msgstr ""
 
 #. translators: %s - link to the site.
 #: includes/pro/emails/templates/footer-default.php:39
 msgid "Sent from %s"
+msgstr ""
+
+#. Translators: %s is the error message.
+#: includes/pro/execute/trait-wpcode-snippet-execute-file-loader.php:96
+msgid "Error loading snippet file: %s"
 msgstr ""
 
 #. translators: %s: WPCode.

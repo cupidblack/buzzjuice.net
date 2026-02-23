@@ -64,7 +64,7 @@ class Users extends LDLMS_V2_Endpoint {
 
 		return $this->discover_routes(
 			trailingslashit( $courses_endpoint ) . '(?P<id>[\d]+)/' . $users_endpoint,
-			[ 'nested' ]
+			[ 'collection' ]
 		);
 	}
 
@@ -80,30 +80,30 @@ class Users extends LDLMS_V2_Endpoint {
 	 */
 	protected function get_method_summary( string $method, string $route_type = 'collection' ): string {
 		$summaries = [
-			'nested' => [
+			'collection' => [
 				'GET'    => sprintf(
 					// translators: %s: singular course label.
-					__( 'Get associated users for a %s.', 'learndash' ),
+					__( 'Get associated users for a %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 				'POST'   => sprintf(
 					// translators: %s: singular course label.
-					__( 'Update associated users for a %s.', 'learndash' ),
+					__( 'Update associated users for a %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 				'PUT'    => sprintf(
 					// translators: %s: singular course label.
-					__( 'Update associated users for a %s.', 'learndash' ),
+					__( 'Update associated users for a %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 				'PATCH'  => sprintf(
 					// translators: %s: singular course label.
-					__( 'Update associated users for a %s.', 'learndash' ),
+					__( 'Update associated users for a %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 				'DELETE' => sprintf(
 					// translators: %s: singular course label.
-					__( 'Delete associated users for a %s.', 'learndash' ),
+					__( 'Delete associated users for a %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 			],
@@ -111,9 +111,9 @@ class Users extends LDLMS_V2_Endpoint {
 
 		return $summaries[ $route_type ][ $method ]
 			?? sprintf(
-				// translators: %s: singular user label.
+				// translators: %s: singular course label.
 				__( '%s user operation', 'learndash' ),
-				learndash_get_custom_label( 'user' )
+				learndash_get_custom_label( 'course' )
 			);
 	}
 
@@ -129,7 +129,7 @@ class Users extends LDLMS_V2_Endpoint {
 	 */
 	protected function get_method_description( string $method, string $route_type = 'collection' ): string {
 		$descriptions = [
-			'nested' => [
+			'collection' => [
 				'GET'    => sprintf(
 					// translators: %s: singular course label.
 					__( 'Retrieves the users for a specific %s.', 'learndash' ),
@@ -163,5 +163,16 @@ class Users extends LDLMS_V2_Endpoint {
 			__( 'Performs user operations on %s.', 'learndash' ),
 			learndash_get_custom_label_lower( 'course' )
 		);
+	}
+
+	/**
+	 * Returns the tags for this endpoint.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return string[]
+	 */
+	protected function get_tags(): array {
+		return [ sprintf( '%s-users', learndash_get_custom_label_lower( 'course' ) ) ];
 	}
 }

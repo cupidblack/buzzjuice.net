@@ -1,19 +1,19 @@
 .af_arc_meta_div{
-	width: 100%; 
-	display: flex; 
+	/* width: 100%;  */
+	display: flex;
 	margin-bottom: 25px;
 }
 
 .af_arc_meta_heading_div{
 	width:30%; 
-	float: left;
+	/* float: right; */
 	font-weight: bold;
-	text-align: center;
+	/* text-align: center; */
 }
 
 .af_arc_meta_desc_div{
 	width:70%; 
-	float: right;
+	/* float: right; */
 }
 
 .af_arc_meta_heading_div h3{
@@ -30,3 +30,25 @@
 	width: 60%; 
 	padding: 10px;
 }*/
+
+
+.enable_specific_product_cl{
+	    background-color: rgb(230, 230, 230);
+    padding: 10px;
+    border-radius: 8px;
+}
+.select2-container {
+	width: 50% !important;
+}
+.af_rs_product_counter{
+	padding: 5px !important;
+}
+.af_rs_product_cat_tag_style{
+	padding-top: 10px;
+}
+.af_arc_domain_url{
+	margin-top: 10px
+}
+#sub_specific_products-id,#af_arc_specific_membership-id{
+	margin-top: 10px;
+}

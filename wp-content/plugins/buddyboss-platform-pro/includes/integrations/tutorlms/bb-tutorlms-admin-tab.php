@@ -49,7 +49,7 @@ class BB_TutorLMS_Admin_Integration_Tab extends BP_Admin_Integration_tab {
 	public function is_active() {
 		$active = false;
 		if (
-			bbp_pro_is_license_valid() &&
+			! bb_pro_should_lock_features() &&
 			function_exists( 'tutor' ) &&
 			(
 				defined( 'BP_PLATFORM_VERSION' ) &&

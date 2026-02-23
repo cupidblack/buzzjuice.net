@@ -588,6 +588,27 @@ if ( !class_exists( 'PT_CV_Block_Pro' ) ) {
 				$settings[ PT_CV_PREFIX . 'field-thumbnail-size' ] = 'full';
 			}
 
+			// @since 7.3
+			if ( !empty( $settings[ PT_CV_PREFIX . 'show-field-taxoterm' ] ) ) {
+				if ( $settings[ PT_CV_PREFIX . 'topmeta-which' ] === 'mtt_taxonomy' ) {
+					$all_taxo		 = PT_CV_Values::post_types_vs_taxonomies( true );
+					$content_type	 = $settings[ PT_CV_PREFIX . 'content-type' ];
+					$this_taxo		 = isset( $all_taxo[ $content_type ] ) ? $all_taxo[ $content_type ] : [];
+
+					// get current/default option
+					$value = $settings[ PT_CV_PREFIX . 'taxo-which' ];
+
+					if ( empty( $this_taxo ) ) {
+						$value = '';
+					} elseif ( is_array( $this_taxo ) && !in_array( $value, $this_taxo ) ) {
+						$value = reset( $this_taxo ); // get first option
+					}
+
+					// correct the value
+					$settings[ PT_CV_PREFIX . 'taxo-which' ] = $value;
+				}
+			}
+
 
 			return $settings;
 		}

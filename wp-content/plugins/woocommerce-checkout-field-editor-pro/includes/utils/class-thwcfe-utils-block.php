@@ -472,6 +472,26 @@ class THWCFE_Utils_Block {
 		}
 	}
 
+	/**
+	 * Get address block field meta from order.
+	 *
+	 * @param WC_Order $order Order object.
+	 * @param string   $key   Meta key.
+	 * @return string
+	 */
+	public static function get_address_block_field_meta( $order, $key ) {
+		$prefixes = [ '_wc_billing/thwcfe-block/', '_wc_shipping/thwcfe-block/' ]; // Billing and shipping prefixes for address fields.
+
+		foreach ( $prefixes as $prefix ) {
+			$value = $order->get_meta( $prefix . $key, true );
+			if ( ! empty( $value ) ) {
+				return $value;
+			}
+		}
+
+		return '';
+	}
+
 	
 }
 

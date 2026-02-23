@@ -50,7 +50,7 @@ class BB_MeprLMS_Admin_Integration_Tab extends BP_Admin_Integration_tab {
 
 		$active = false;
 		if (
-			bbp_pro_is_license_valid() &&
+            ! bb_pro_should_lock_features() &&
 			class_exists( 'memberpress\courses\helpers\Courses' ) &&
 			(
 				defined( 'BP_PLATFORM_VERSION' ) &&

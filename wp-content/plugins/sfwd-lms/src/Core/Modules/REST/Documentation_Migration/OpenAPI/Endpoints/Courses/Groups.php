@@ -117,7 +117,7 @@ class Groups extends LDLMS_V2_Endpoint {
 
 		return $this->discover_routes(
 			trailingslashit( $courses_endpoint ) . '(?P<id>[\d]+)/' . $groups_endpoint,
-			[ 'nested' ]
+			[ 'collection' ]
 		);
 	}
 
@@ -133,34 +133,34 @@ class Groups extends LDLMS_V2_Endpoint {
 	 */
 	protected function get_method_summary( string $method, string $route_type = 'collection' ): string {
 		$summaries = [
-			'nested' => [
+			'collection' => [
 				'GET'    => sprintf(
 					// translators: %1$s: plural groups label, %2$s: singular course label.
-					__( 'Get associated %1$s for a %2$s.', 'learndash' ),
+					__( 'Get associated %1$s for a %2$s', 'learndash' ),
 					learndash_get_custom_label_lower( 'groups' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 				'POST'   => sprintf(
 					// translators: %1$s: plural groups label, %2$s: singular course label.
-					__( 'Update associated %1$s for a %2$s.', 'learndash' ),
+					__( 'Update associated %1$s for a %2$s', 'learndash' ),
 					learndash_get_custom_label_lower( 'groups' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 				'PUT'    => sprintf(
 					// translators: %1$s: plural groups label, %2$s: singular course label.
-					__( 'Update associated %1$s for a %2$s.', 'learndash' ),
+					__( 'Update associated %1$s for a %2$s', 'learndash' ),
 					learndash_get_custom_label_lower( 'groups' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 				'PATCH'  => sprintf(
 					// translators: %1$s: plural groups label, %2$s: singular course label.
-					__( 'Update associated %1$s for a %2$s.', 'learndash' ),
+					__( 'Update associated %1$s for a %2$s', 'learndash' ),
 					learndash_get_custom_label_lower( 'groups' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 				'DELETE' => sprintf(
 					// translators: %1$s: plural groups label, %2$s: singular course label.
-					__( 'Delete associated %1$s for a %2$s.', 'learndash' ),
+					__( 'Delete associated %1$s for a %2$s', 'learndash' ),
 					learndash_get_custom_label_lower( 'groups' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
@@ -169,9 +169,10 @@ class Groups extends LDLMS_V2_Endpoint {
 
 		return $summaries[ $route_type ][ $method ]
 			?? sprintf(
-				// translators: %s: singular user label.
-				__( '%s user operation', 'learndash' ),
-				learndash_get_custom_label( 'user' )
+				// translators: %1$s: singular course label, %2$s: singular group label.
+				__( '%1$s %2$s operation', 'learndash' ),
+				learndash_get_custom_label( 'course' ),
+				learndash_get_custom_label_lower( 'group' )
 			);
 	}
 
@@ -187,7 +188,7 @@ class Groups extends LDLMS_V2_Endpoint {
 	 */
 	protected function get_method_description( string $method, string $route_type = 'collection' ): string {
 		$descriptions = [
-			'nested' => [
+			'collection' => [
 				'GET'    => sprintf(
 					// translators: %1$s: plural groups label, %2$s: singular course label.
 					__( 'Retrieves the %1$s for a specific %2$s.', 'learndash' ),
@@ -227,5 +228,22 @@ class Groups extends LDLMS_V2_Endpoint {
 			learndash_get_custom_label_lower( 'group' ),
 			learndash_get_custom_label_lower( 'course' )
 		);
+	}
+
+	/**
+	 * Returns the tags for this endpoint.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return string[]
+	 */
+	protected function get_tags(): array {
+		return [
+			sprintf(
+				'%s-%s',
+				learndash_get_custom_label_lower( 'course' ),
+				learndash_get_custom_label_lower( 'groups' )
+			),
+		];
 	}
 }

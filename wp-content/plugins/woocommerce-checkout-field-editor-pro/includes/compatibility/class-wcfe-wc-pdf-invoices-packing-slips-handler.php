@@ -166,6 +166,10 @@ class WCFE_WC_PDF_Invoices_Packing_Slips_Handler extends WCFE_Checkout_Fields_Ut
 				} else if(isset($field['order_meta']) && $field['order_meta']){
 					// $value = get_post_meta( $order_id, $key, true );
 					$value = $order->get_meta( $key, true );
+					if ( empty( $value ) ) {
+						// Check is it an block address field.
+						$value =  THWCFE_Utils_Block::get_address_block_field_meta( $order, $key );
+					}
 				}
 
 				if($type === 'file'){
@@ -223,12 +227,14 @@ class WCFE_WC_PDF_Invoices_Packing_Slips_Handler extends WCFE_Checkout_Fields_Ut
 	public function get_fields($settings_name){
 		$fields = array();
 		$fields_str = $this->get_settings($settings_name);
+		$exclude_disabled = apply_filters('thwcfe_exclude_disabled_fields', false);
 		
 		if(!empty($fields_str)){
 			$fields_arr = explode(",", $fields_str);
 			
 			if(is_array($fields_arr) && !empty($fields_arr)){
 				$sections = $this->get_checkout_sections();	
+				$classic_custom_fields = array();
 				
 				if($sections){
 					foreach($sections as $sname => $section){	
@@ -236,20 +242,46 @@ class WCFE_WC_PDF_Invoices_Packing_Slips_Handler extends WCFE_Checkout_Fields_Ut
 						
 						if($fieldset && is_array($fieldset)){
 							foreach($fieldset as $key => $field){
-								if(THWCFE_Utils_Field::is_custom_field($field) && THWCFE_Utils_Field::is_enabled($field) && in_array($key, $fields_arr)){
+								$is_valid_field = $exclude_disabled
+									? THWCFE_Utils_Field::is_custom_enabled($field)
+									: THWCFE_Utils_Field::is_valid_custom($field);
+
+								if ( $is_valid_field && in_array($key, $fields_arr) ) {
 									$nfield = array();
 									$nfield['name'] = $field->get_property('name');
 									$nfield['type'] = $field->get_property('type');
 									$nfield['title'] = $field->get_property('title');
 									$nfield['order_meta'] = $field->get_property('order_meta');
-									$nfield['user_meta'] = $field->get_property('user_meta');
-									
-									$fields[$key] = $nfield;
+										
+									$classic_custom_fields[$key] = $nfield;
 								}
 							}
 						}
 					}
 				}
+				$block_custom_fields = array();
+            	$block_sections = THWCFE_Utils_Block::get_block_checkout_sections();
+            	if (is_array($block_sections)) {
+            	    foreach ($block_sections as $block_section) {
+						$block_fieldset = THWCFE_Utils_Section::get_fieldset($block_section, false, $exclude_disabled);
+
+            	        if ($block_fieldset && is_array($block_fieldset)) {
+            	            foreach ($block_fieldset as $key => $field) {
+            	                if (!empty($field['custom']) && $field['custom'] == 1 && in_array($key, $fields_arr)) {
+
+            	                    $block_custom_fields[$key] = array(
+            	                        'name'       => $field['name'] ?? '',
+            	                        'type'       => $field['type'] ?? '',
+            	                        'title'      => $field['title'] ?? '',
+            	                        'order_meta' => $field['order_meta'] ?? '',
+            	                        
+            	                    );
+            	                }
+            	            }
+            	        }
+            	    }
+            	}
+				$fields = array_merge($classic_custom_fields, $block_custom_fields);
 			}
 		}
 		return $fields;

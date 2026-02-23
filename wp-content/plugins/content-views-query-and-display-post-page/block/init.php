@@ -704,6 +704,9 @@ if ( !class_exists( 'ContentViews_Block' ) ) {
 			$atts[ "customCss" ]		 = [ 'type' => 'string', ];
 			$atts[ "blockClientId" ]	 = [ 'type' => 'string', ];
 			$atts[ "gutenifyStyles" ]	 = [ 'type' => 'string', ];
+			// compatible: /generateblocks-pro
+			$atts[ "gbBlockCondition" ]			 = [ 'type' => 'string', ];
+			$atts[ "gbBlockConditionInvert" ]	 = [ 'type' => 'boolean', ];
 
 			return apply_filters( PT_CV_PREFIX_ . 'block_attributes', $atts );
 		}

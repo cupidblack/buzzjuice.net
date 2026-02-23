@@ -55,7 +55,7 @@ class PT_Content_Views_Pro {
 		add_action( 'wp_head', array( __CLASS__, 'print_custom_css' ), 100 );
 		add_action( 'wp_footer', array( __CLASS__, 'print_custom_js' ), 100 );
 
-		add_action( 'admin_init', array( __CLASS__, 'action_ck_lcs' ) );
+		add_action( 'current_screen', array( __CLASS__, 'action_ck_lcs' ) );
 
 		// Ajax action
 		$action = 'share_count';
@@ -185,9 +185,11 @@ class PT_Content_Views_Pro {
 		}
 	}
 
-	public static function action_ck_lcs() {
-		if ( !get_option( 'pt_cv_pro_activate' ) && get_option( 'pt_cv_action_fail', 0 ) < 30 && !get_transient( 'pt_cv_active_fail' ) ) {
-			PT_CV_Plugin_Pro_Actions::request_cvpsys( 'activate' );
+	public static function action_ck_lcs( $screen ) {
+		if ( isset( $screen->id ) && strpos( $screen->id, 'content-views-setting' ) !== false ) {
+			if ( !get_option( 'pt_cv_pro_activate' ) && get_option( 'pt_cv_action_fail', 0 ) < 30 && !get_transient( 'pt_cv_active_fail' ) ) {
+				PT_CV_Plugin_Pro_Actions::request_cvpsys( 'activate' );
+			}
 		}
 	}
 

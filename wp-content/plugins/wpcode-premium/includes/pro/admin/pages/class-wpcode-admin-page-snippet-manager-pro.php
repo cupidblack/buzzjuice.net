@@ -25,6 +25,7 @@ class WPCode_Admin_Page_Snippet_Manager_Pro extends WPCode_Admin_Page_Snippet_Ma
 		add_filter( 'wpcode_admin_js_data', array( $this, 'add_strings' ) );
 		add_filter( 'admin_body_class', array( $this, 'body_class_ai_generate' ) );
 		add_filter( 'wpcode_admin_js_data', array( $this, 'maybe_add_my_cloud_data' ) );
+		add_action( 'wpcode_header_buttons', array( $this, 'maybe_add_cloud_sync_button' ) );
 	}
 
 	/**
@@ -323,12 +324,67 @@ class WPCode_Admin_Page_Snippet_Manager_Pro extends WPCode_Admin_Page_Snippet_Ma
 	}
 
 	/**
-	 * Get the markup for displaying an option to load the snippet as a file if the code type is CSS or JS.
+	 * Get the markup for displaying an option to load the snippet as a file if the code type is CSS, JS, or SCSS.
+	 * Note: PHP types (PHP, HTML, Universal) use a global setting instead of per-snippet option.
 	 *
 	 * @return void
 	 */
 	public function get_input_row_as_file() {
-		$checked = isset( $this->snippet ) ? $this->snippet->get_load_as_file() : false;
+		if ( ! isset( $this->snippet ) ) {
+			return;
+		}
+
+		$code_type   = $this->snippet->get_code_type();
+		$php_types   = array( 'php', 'html', 'universal' );
+		$asset_types = array( 'js', 'css', 'scss' );
+
+		// For PHP types, show info about global setting instead of per-snippet option.
+		if ( in_array( $code_type, $php_types, true ) ) {
+			$global_setting_enabled = boolval( wpcode()->settings->get_option( 'php_load_as_file', false ) );
+			$info_markup            = '<p class="wpcode-info-text">';
+			if ( $global_setting_enabled ) {
+				$info_markup .= esc_html__( 'PHP snippets are loaded from files via the global setting. ', 'wpcode-premium' );
+				if ( $this->snippet->is_active() ) {
+					$filename = WPCode_Snippets_File_Handler::get_snippet_file_name( $this->snippet );
+					if ( file_exists( $filename ) ) {
+						$relative_path = str_replace( ABSPATH, '', $filename );
+						$info_markup  .= '<br><span class="wpcode-help-tooltip wpcode-file-path-display" style="margin-left: 0;">';
+						$info_markup  .= '<code class="wpcode-file-path-code">' . esc_html( $relative_path ) . '</code>';
+						$info_markup  .= '<span class="wpcode-help-tooltip-text">' . esc_html__( 'File path (server-side files cannot be viewed directly)', 'wpcode-premium' ) . '</span>';
+						$info_markup  .= '</span>';
+					}
+				}
+			} else {
+				$settings_url = add_query_arg(
+					array(
+						'page' => 'wpcode-settings',
+						'view' => 'general',
+					),
+					admin_url( 'admin.php' )
+				);
+				$info_markup .= sprintf(
+					/* translators: %s: Link to settings page */
+					esc_html__( 'To load PHP snippets from files, enable the global setting in %s.', 'wpcode-premium' ),
+					'<a href="' . esc_url( $settings_url ) . '">' . esc_html__( 'WPCode Settings', 'wpcode-premium' ) . '</a>'
+				);
+			}
+			$info_markup .= '</p>';
+
+			$this->metabox_row(
+				esc_html__( 'Load as file', 'wpcode-premium' ),
+				$info_markup,
+				'wpcode_snippet_as_file',
+				'#wpcode_snippet_type',
+				'php,html,universal',
+				'',
+				false,
+				'wpcode_snippet_as_file_option_pro'
+			);
+			return;
+		}
+
+		// For asset types, show the per-snippet checkbox.
+		$checked = $this->snippet->get_load_as_file();
 
 		$button_markup = '</p><p>';
 		if ( $checked ) {
@@ -555,5 +611,167 @@ class WPCode_Admin_Page_Snippet_Manager_Pro extends WPCode_Admin_Page_Snippet_Ma
 			$class = 'wpcode-button-ai-not-available';
 		}
 		parent::ai_generate_button( $class );
+	}
+
+	/**
+	 * Maybe add a sync button for cloud snippets.
+	 *
+	 * @param WPCode_Snippet $snippet The snippet object.
+	 *
+	 * @return void
+	 */
+	public function maybe_add_cloud_sync_button( $snippet ) {
+		if ( ! isset( $snippet ) ) {
+			return;
+		}
+
+		$cloud_id = $snippet->get_cloud_id();
+
+		if ( empty( $cloud_id ) ) {
+			return;
+		}
+
+		// Check if the cloud snippet has an update.
+		$update_info = wpcode()->my_library->check_snippet_update( $snippet->get_id(), $cloud_id );
+
+		if ( $update_info ) {
+			$current_url     = add_query_arg(
+				array(
+					'page'       => 'wpcode-snippet-manager',
+					'snippet_id' => $snippet->get_id(),
+					'sync'       => 'true',
+				),
+				admin_url( 'admin.php' )
+			);
+			$current_version = isset( $update_info['current_version'] ) ? $update_info['current_version'] : '';
+			$latest_version  = isset( $update_info['latest_version'] ) ? $update_info['latest_version'] : '';
+			$has_auth        = 1; // Cloud snippets are always authenticated
+			?>
+			<a href="<?php echo esc_url( $current_url ); ?>" data-has-auth="<?php echo $has_auth; ?>" data-current-version="<?php echo esc_attr( $current_version ); ?>" data-latest-version="<?php echo esc_attr( $latest_version ); ?>" class="wpcode-sync-button sync-snippet">
+				<?php esc_html_e( 'Update Available', 'wpcode-premium' ); ?>
+			</a>
+			<?php
+		}
+	}
+
+	/**
+	 * Check if the current snippet has an update available.
+	 * Overrides the parent method to also check for cloud snippet updates.
+	 *
+	 * @return bool|array False if no update, array with version info if update available.
+	 */
+	private function snippet_has_update() {
+		if ( ! isset( $this->snippet ) ) {
+			return false;
+		}
+
+		$snippet_id = $this->snippet->get_id();
+		$library_id = wpcode()->library->get_snippet_library_id( $snippet_id );
+		$cloud_id   = $this->snippet->get_cloud_id();
+
+		if ( ! empty( $library_id ) ) {
+			return wpcode()->library->check_snippet_update( $snippet_id, $library_id );
+		} elseif ( ! empty( $cloud_id ) ) {
+			return wpcode()->my_library->check_snippet_update( $snippet_id, $cloud_id );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Sync the snippet with the library or cloud version.
+	 * Overrides the parent method to also handle cloud snippets.
+	 *
+	 * @return void
+	 */
+	protected function sync_snippet() {
+		if ( ! isset( $this->snippet ) || ! current_user_can( 'wpcode_edit_snippets' ) ) { //phpcs:ignore
+			return;
+		}
+
+		$snippet_id = $this->snippet->get_id();
+		$library_id = wpcode()->library->get_snippet_library_id( $snippet_id );
+		$cloud_id   = $this->snippet->get_cloud_id();
+
+		// Allow other systems to handle sync first.
+		$handled = apply_filters( 'wpcode_snippet_sync_handled', false, $this->snippet );
+		if ( $handled ) {
+			return;
+		}
+
+		// Get snippet data from library - handle both library and cloud snippets.
+		$is_cloud = false;
+
+		if ( ! empty( $library_id ) ) {
+			$result          = wpcode()->library->update_snippet_from_library( $snippet_id, $library_id );
+			$message_success = __( 'Snippet successfully updated from library.', 'wpcode-premium' );
+		} elseif ( ! empty( $cloud_id ) ) {
+			$result          = wpcode()->my_library->update_snippet_from_library( $snippet_id, $cloud_id );
+			$is_cloud        = true;
+			$message_success = __( 'Snippet successfully updated from cloud library.', 'wpcode-premium' );
+		} else {
+			return;
+		}
+
+		if ( ! $result ) {
+			$error_message = $is_cloud
+				? __( 'Failed to update snippet from cloud library.', 'wpcode-premium' )
+				: __( 'Failed to update snippet from library.', 'wpcode-premium' );
+			$this->set_error_message( $error_message );
+			return;
+		}
+
+		// Reload the snippet to get the updated version.
+		$this->snippet = wpcode_get_snippet( $snippet_id );
+
+		$this->set_success_message( $message_success );
+	}
+
+	/**
+	 * Show error notice if snippet has errors.
+	 * Override parent to add file alteration warning for Pro.
+	 *
+	 * @return void
+	 */
+	public function maybe_show_error_notice() {
+		parent::maybe_show_error_notice();
+
+		if ( ! isset( $this->snippet ) ) {
+			return;
+		}
+
+		// Check if file has been altered (for file-based PHP snippets).
+		// PHP types use global setting, asset types use per-snippet meta.
+		$code_type    = $this->snippet->get_code_type();
+		$php_types    = array( 'php', 'html', 'universal' );
+		$should_check = false;
+		if ( in_array( $code_type, $php_types, true ) ) {
+			$should_check = wpcode()->settings->get_option( 'php_load_as_file', false );
+		} else {
+			$should_check = $this->snippet->get_load_as_file();
+		}
+
+		if ( class_exists( 'WPCode_Snippets_File_Handler' ) && $should_check ) {
+			$is_altered = WPCode_Snippets_File_Handler::is_file_altered( $this->snippet );
+			if ( $is_altered ) {
+				$file_path = WPCode_Snippets_File_Handler::get_snippet_file_name( $this->snippet );
+				?>
+				<div class="notice-warning fade notice is-dismissible">
+					<p>
+						<strong><?php esc_html_e( 'File Modified Warning', 'wpcode-premium' ); ?></strong>
+					</p>
+					<p>
+						<?php
+						printf(
+							// Translators: %1$s is the file path.
+							esc_html__( 'The snippet file has been modified or deleted. Saving this snippet will overwrite the file changes or recreate it at %1$s.', 'wpcode-premium' ),
+							'<code>' . esc_html( $file_path ) . '</code>'
+						);
+						?>
+					</p>
+				</div>
+				<?php
+			}
+		}
 	}
 }

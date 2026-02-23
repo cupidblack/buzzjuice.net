@@ -1,4 +1,4 @@
-		    var config=;                     
+		    var config={ apiKey: 'sddgdfgdgd', authDomain: 'tttrytrytry', databaseURL: 'ytutrtrur', projectId: 'rutrutrurturtutyu', storageBucket: 'dtyuytutru', messagingSenderId: 'rutrueru' };                     
                      if (!firebase.apps.length) {
 		                      firebase.initializeApp(config);	
 		                    }                    		  		  		  

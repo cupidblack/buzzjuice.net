@@ -7,13 +7,18 @@ use Elementor\Core\Admin\Menu\Admin_Menu_Manager;
 use Elementor\Core\Admin\Menu\Main as MainMenu;
 use Elementor\Core\App\App;
 use Elementor\Core\Base\Document;
+use Elementor\Modules\EditorOne\Classes\Menu_Config;
+use Elementor\Modules\EditorOne\Classes\Menu_Data_Provider;
 use Elementor\TemplateLibrary\Source_Local;
+use ElementorPro\Base\Editor_One_Trait;
 use ElementorPro\Base\Module_Base;
 use ElementorPro\Core\Utils;
 use ElementorPro\Modules\ThemeBuilder\AdminMenuItems\Theme_Builder_Menu_Item;
 use ElementorPro\Modules\ThemeBuilder\Classes;
 use ElementorPro\Modules\ThemeBuilder\Documents\Single;
 use ElementorPro\Modules\ThemeBuilder\Documents\Theme_Document;
+use ElementorPro\Modules\ThemeBuilder\EditorOneMenuItems\Editor_One_Theme_Builder_Menu_Item;
+use ElementorPro\Modules\ThemeBuilder\ImportExportCustomization;
 use ElementorPro\Plugin;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,10 +26,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class Module extends Module_Base {
+	use Editor_One_Trait;
 
 	const ADMIN_LIBRARY_TAB_GROUP = 'theme';
 
 	const ADMIN_MENU_PRIORITY = 15;
+	const THEME_BUILDER_MENU_PRIORITY_BEFORE_SUBMISSIONS = 5;
 
 	public static function is_preview() {
 		return Plugin::elementor()->preview->is_preview_mode() || is_preview();
@@ -435,6 +442,10 @@ class Module extends Module_Base {
 
 		require __DIR__ . '/api.php';
 
+		$this->add_component( 'import_export_import', new ImportExportCustomization\Import() );
+		$this->add_component( 'import_export_export', new ImportExportCustomization\Export() );
+		$this->add_component( 'import_export_revert', new ImportExportCustomization\Revert() );
+
 		$this->add_component( 'theme_support', new Classes\Theme_Support() );
 		$this->add_component( 'conditions', new Classes\Conditions_Manager() );
 		$this->add_component( 'templates_types', new Classes\Templates_Types_Manager() );
@@ -461,6 +472,10 @@ class Module extends Module_Base {
 			} );
 		} else {
 			add_action( 'elementor/admin/menu/register', function ( Admin_Menu_Manager $admin_menu ) {
+				if ( $this->is_editor_one_active() ) {
+					return;
+				}
+
 				$this->register_admin_menu_legacy( $admin_menu );
 			}, static::ADMIN_MENU_PRIORITY /* After "Popups" */ );
 
@@ -478,6 +493,10 @@ class Module extends Module_Base {
 					$this->get_admin_templates_url( true )
 				);
 			}, 22 /* After core promotion menu */ );
+
+			add_action( 'elementor/editor-one/menu/register', function ( Menu_Data_Provider $menu_data_provider ) {
+				$menu_data_provider->register_menu( new Editor_One_Theme_Builder_Menu_Item() );
+			}, static::THEME_BUILDER_MENU_PRIORITY_BEFORE_SUBMISSIONS );
 		}
 
 		add_filter( 'elementor/template-library/create_new_dialog_types', [ $this, 'create_new_dialog_types' ] );
@@ -491,5 +510,9 @@ class Module extends Module_Base {
 
 		// Common
 		add_filter( 'elementor/finder/categories', [ $this, 'add_finder_items' ] );
+
+		add_filter( 'elementor/import-export-customization/export/templates_data', [ $this->get_component( 'import_export_export' ), 'add_theme_builder_to_export' ], 10, 3 );
+		add_filter( 'elementor/import-export-customization/import/templates_result', [ $this->get_component( 'import_export_import' ), 'add_theme_builder_to_import' ], 10, 4 );
+		add_action( 'elementor/import-export-customization/revert/templates', [ $this->get_component( 'import_export_revert' ), 'revert_theme_builder_templates_conditions' ], 10, 1 );
 	}
 }

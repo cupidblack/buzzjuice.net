@@ -33,9 +33,10 @@ function useNotesActionProps() {
     icon: _elementor_icons__WEBPACK_IMPORTED_MODULE_1__.MessageIcon,
     onClick: () => {
       const extendedWindow = window;
-      const config = extendedWindow?.elementor?.editorEvents?.config;
+      const eventsManager = extendedWindow?.elementorCommon?.eventsManager || extendedWindow?.elementor?.editorEvents;
+      const config = eventsManager?.config;
       if (config) {
-        extendedWindow.elementor.editorEvents.dispatchEvent(config.names.topBar.notes, {
+        eventsManager.dispatchEvent(config.names.topBar.notes, {
           location: config.locations.topBar,
           secondaryLocation: config.secondaryLocations.notes,
           trigger: config.triggers.toggleClick,
@@ -67,9 +68,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function init() {
-  _elementor_editor_app_bar__WEBPACK_IMPORTED_MODULE_0__.toolsMenu.registerToggleAction({
+  _elementor_editor_app_bar__WEBPACK_IMPORTED_MODULE_0__.mainMenu.registerAction({
     id: 'toggle-notes',
-    priority: 4,
+    group: 'default',
+    priority: 20,
     useProps: _hooks_use_notes_action_props__WEBPACK_IMPORTED_MODULE_1__["default"]
   });
 }

@@ -1,0 +1,141 @@
+<?php
+/**
+ * Copyright (с) Cloud Linux GmbH & Cloud Linux Software, Inc 2010-2025 All Rights Reserved
+ *
+ * Licensed under CLOUD LINUX LICENSE AGREEMENT
+ * https://www.cloudlinux.com/legal/
+ */
+
+namespace CloudLinux\Imunify\App\Defender\Handler;
+
+use CloudLinux\Imunify\App\Defender\ConditionEvaluator;
+use CloudLinux\Imunify\App\Defender\IncidentRecorder;
+use CloudLinux\Imunify\App\Defender\Model\Rule;
+use CloudLinux\Imunify\App\Defender\Model\TargetInfo;
+use CloudLinux\Imunify\App\Defender\Request;
+
+/**
+ * Handler class for rule handlers in the Defender module.
+ * Provides common functionality for blocking requests and handling configuration.
+ *
+ * @since 2.1.0
+ */
+class Handler implements HandlerInterface {
+
+	/**
+	 * Rule object for this handler.
+	 *
+	 * @var Rule
+	 */
+	protected $rule;
+
+	/**
+	 * Request object.
+	 *
+	 * @var Request
+	 */
+	protected $request;
+
+	/**
+	 * Incident recorder.
+	 *
+	 * @var IncidentRecorder
+	 */
+	protected $incidentRecorder;
+
+	/**
+	 * Target information.
+	 *
+	 * @var TargetInfo
+	 */
+	protected $targetInfo;
+
+	/**
+	 * Ruleset version.
+	 *
+	 * @var string
+	 */
+	protected $version;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param Rule             $rule             Rule object.
+	 * @param Request          $request          Request object.
+	 * @param IncidentRecorder $incidentRecorder Incident recorder instance.
+	 * @param TargetInfo       $targetInfo       Target information.
+	 * @param string           $version          Ruleset version.
+	 */
+	public function __construct( $rule, $request, $incidentRecorder, $targetInfo, $version = '' ) {
+		$this->rule             = $rule;
+		$this->request          = $request;
+		$this->incidentRecorder = $incidentRecorder;
+		$this->targetInfo       = $targetInfo;
+		$this->version          = $version;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function apply() {
+		$hooks = $this->getHooks();
+		foreach ( $hooks as $hook ) {
+			add_action( $hook, array( $this, 'maybeBlock' ), 0 );
+		}
+	}
+
+	/**
+	 * Get the hooks to which this handler should be applied.
+	 *
+	 * @return array
+	 */
+	protected function getHooks() {
+		// Check for AJAX action configuration.
+		if ( $this->rule->getAjaxAction() ) {
+			$ajaxAction = $this->rule->getAjaxAction();
+			return array(
+				'wp_ajax_' . $ajaxAction,
+				'wp_ajax_nopriv_' . $ajaxAction,
+			);
+		}
+
+		// Check for regular action configuration.
+		if ( $this->rule->getAction() ) {
+			return array( $this->rule->getAction() );
+		}
+
+		return array();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function maybeBlock() {
+		$conditions = $this->rule->getConditions();
+		if ( ! empty( $conditions ) ) {
+			// Evaluate all conditions.
+			$evaluator = new ConditionEvaluator();
+			if ( ! $evaluator->evaluateConditions( $conditions, $this->request ) ) {
+				// If any condition fails, don't block (action is not targeted).
+				return;
+			}
+		}
+
+		$this->processIncident();
+	}
+
+	/**
+	 * Process a security incident by evaluating the rule mode and potentially blocking.
+	 *
+	 * Records the incident and blocks if mode is 'block'.
+	 *
+	 * @return void
+	 */
+	protected function processIncident() {
+		// Record the incident in both pass and block modes.
+		do_action( 'imunify_security_set_error_handler' );
+		$this->incidentRecorder->recordIncident( $this->rule, $this->rule->getMode(), $this->targetInfo, $this->request, $this->version );
+		do_action( 'imunify_security_restore_error_handler' );
+	}
+}
+

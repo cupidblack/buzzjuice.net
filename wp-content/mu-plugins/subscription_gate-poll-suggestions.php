@@ -1,23 +1,21 @@
 <?php
 /*
-Plugin Name: Buzzjuice — Poll "Other" Field Gate (MU)
-Description: Hides TotalPoll "Other" choice field for non-subscribers and replaces it with a CTA placeholder.
+Plugin Name: Buzzjuice — Poll "Other" Suggestion Gate (MU)
+Description: Role-based gating for TotalPoll custom suggestion field, with native UI and CTA replacement.
 Author: Buzzjuice Dev
-Version: 1.0
+Version: 2.0
 */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Require subscription helpers if present.
- */
+// Shared subscription helpers
 if ( file_exists( ABSPATH . 'shared/subscription_gate_helpers.php' ) ) {
 	require_once ABSPATH . 'shared/subscription_gate_helpers.php';
 }
 
-// Conservative fallback if helpers not available
+// Fallback: allowed roles
 if ( ! function_exists( 'bzj_allowed_subscription_roles' ) ) {
 	function bzj_allowed_subscription_roles() {
 		return array(
@@ -41,86 +39,68 @@ if ( ! function_exists( 'bzj_user_has_subscription_role' ) ) {
 		} elseif ( is_numeric( $user ) ) {
 			$user = get_userdata( (int) $user );
 		}
-
 		if ( ! $user || empty( $user->roles ) ) {
 			return false;
 		}
-
 		return (bool) array_intersect( (array) $user->roles, bzj_allowed_subscription_roles() );
 	}
 }
 
 /**
- * Inject CTA and hide/show the "Other" poll choice field
+ * Let TotalPoll render questions naturally (do NOT override allowCustomChoice server-side).
+ * For users not allowed, replace native field with CTA.
  */
 add_action( 'wp_footer', function () {
-	// Only output if TotalPoll is present on page
-	if ( ! function_exists( 'totalpoll' ) ) {
-		return;
-	}
+	if ( is_admin() ) return;
 
-	$cta_url  = esc_url( home_url( '/streams/ww-sso-bridge.php?redirect_to=go-pro' ) );
-	$cta_text = 'Tap here and subscribe to add discussion topic suggestions';
+	// If user has allowed role, do nothing.
+	if ( bzj_user_has_subscription_role() ) return;
 
-	// Style borrowed from group share CTA
 	?>
-	<style>
-		/* Always hide the Other field by default */
-		form > div.totalpoll-questions > div > div > div.totalpoll-question-choices > label.totalpoll-question-choices-item-type-other {
-			display: none !important;
-		}
-
-		/* CTA placeholder */
-		.bzj-poll-cta-wrap {
-			margin: 12px 0 !important;
-			font-family: inherit;
-			min-width: 100%;
-		}
-		.bzj-poll-cta-link {
-			display: block !important;
-			padding: 14px 16px !important;
-			border-radius: 8px !important;
-			background: #fff7ed !important;
-			border: 2px dashed #ff8c00 !important;
-			text-align: center !important;
-			font-weight: 700 !important;
-			color: #111 !important;
-			text-decoration: none !important;
-		}
-		.bzj-poll-cta-link:hover {
-			text-decoration: underline !important;
-		}
-}
-	</style>
-
 	<script>
-	(function(){
-		var userHasRole = <?php echo bzj_user_has_subscription_role() ? 'true' : 'false'; ?>;
-		var selector = 'form > div.totalpoll-questions > div > div > div.totalpoll-question-choices > label.totalpoll-question-choices-item-type-other';
+	document.addEventListener("DOMContentLoaded", function() {
+		// Selector for TotalPoll custom ("Other") fields.
+		var selectors = [
+			'.totalpoll-choice--custom', // Modern Basic template
+			'.totalpoll-question-custom-choice', // Legacy template
+			'label.totalpoll-question-choices-item-type-other' // Your prior selector
+		];
 
-		function togglePollOtherField(){
-			var field = document.querySelector(selector);
+		function replaceOtherField(context) {
+			selectors.forEach(function(sel) {
+				var fields = context.querySelectorAll(sel);
+				if (!fields.length) return;
+				fields.forEach(function(field) {
+					// Prevent multiple replacement
+					if (field.classList.contains('bzj-cta-replaced')) return;
 
-			if (!field) return;
-
-			if (userHasRole) {
-				// Show actual Other field
-				field.style.display = 'block';
-			} else {
-				// Replace with CTA
-				var ctaWrap = document.createElement('div');
-				ctaWrap.className = 'bzj-poll-cta-wrap';
-				ctaWrap.innerHTML = '<a href="<?php echo esc_url( $cta_url ); ?>" class="bzj-poll-cta-link"><?php echo esc_html( $cta_text ); ?></a>';
-				field.parentNode.insertBefore(ctaWrap, field);
-			}
+					// Clone class for styling; keep layout
+					var cta = document.createElement('div');
+					cta.className = field.className + ' bzj-cta-replaced';
+					cta.style.margin = field.style.margin || '';
+					cta.innerHTML = `
+						<div class="totalpoll-choice-content" style="padding:14px 16px;border:2px dashed #ff8c00;border-radius:8px;background:#fff7ed;text-align:center;font-family:inherit;">
+							<strong>Want to add your own suggestion?</strong><br>
+							Custom suggestions are available to active subscribers.<br>
+							<a href="/streams/ww-sso-bridge.php?redirect_to=go-pro"
+								class="bzj-poll-cta-link"
+								style="display:inline-block;margin-top:10px;padding:10px 22px;background:#ff8c00;color:#111;border-radius:6px;text-decoration:none;font-weight:700;border:2px dashed #ff8c00;">
+								Tap here to subscribe and suggest!
+							</a>
+						</div>
+					`;
+					field.parentNode.replaceChild(cta, field);
+				});
+			});
 		}
+		// On initial page load
+		replaceOtherField(document);
 
-		if (document.readyState === 'loading') {
-			document.addEventListener('DOMContentLoaded', togglePollOtherField);
-		} else {
-			togglePollOtherField();
-		}
-	})();
+		// On AJAX poll render (TotalPoll triggers `totalpoll.render`)
+		document.addEventListener('totalpoll.render', function(e) {
+			replaceOtherField(document);
+		});
+	});
 	</script>
 	<?php
 });

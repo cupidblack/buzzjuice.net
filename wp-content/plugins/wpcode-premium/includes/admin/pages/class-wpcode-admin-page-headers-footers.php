@@ -157,7 +157,7 @@ class WPCode_Admin_Page_Headers_Footers extends WPCode_Admin_Page {
 			esc_html__( 'These scripts will be printed in the %s section.', 'insert-headers-and-footers' ),
 			'<code>&lt;head&gt;</code>'
 		);
-		$body_desc   = sprintf(
+		$body_desc = sprintf(
 		/* translators: %s: The `<head>` tag */
 			esc_html__( 'These scripts will be printed just below the opening %s tag.', 'insert-headers-and-footers' ),
 			'<code>&lt;body&gt;</code>'
@@ -250,7 +250,7 @@ class WPCode_Admin_Page_Headers_Footers extends WPCode_Admin_Page {
 		}
 
 		?>
-		<div>
+		<div class="wpcode-simple-mode-container-button">
 			<label for="headers_footers_mode" class="wpcode-status-text"><?php esc_html_e( 'Simple mode', 'insert-headers-and-footers' ); ?></label>
 			<?php echo $this->get_checkbox_toggle( true, 'headers_footers_mode' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		</div>
@@ -355,6 +355,5 @@ class WPCode_Admin_Page_Headers_Footers extends WPCode_Admin_Page {
 			$html,
 			__( 'Easily switch back to a previous version of your global scripts.', 'insert-headers-and-footers' )
 		);
-
 	}
 }

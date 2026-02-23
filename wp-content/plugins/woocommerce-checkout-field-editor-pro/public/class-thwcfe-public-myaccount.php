@@ -263,8 +263,13 @@ class THWCFE_Public_MyAccount extends THWCFE_Public {
 		}
 
 		$display_hidden_as_text = apply_filters('thwcfe_myaccount_display_hidden_field_as_text_field', false);
+		$hide_usermeta_custom_fields = apply_filters('thwcfe_hide_usermeta_custom_fields_in_my_account', false);
+		if($hide_usermeta_custom_fields){
+			return;
+		}
 
-		$sections = THWCFE_Utils::get_custom_sections();
+		$sections = $this->get_all_custom_checkout_sections();
+		
 		if($sections && is_array($sections)){
 			$this->output_myaccount_form_hidden_fields();
 
@@ -274,6 +279,7 @@ class THWCFE_Public_MyAccount extends THWCFE_Public {
 					$show_section = apply_filters('thwcfe_show_section_in_my_account_page', true, $sname);
 					$has_user_fields = THWCFE_Utils_Section::has_user_fields($section, $fieldset);
 					$show_section = $has_user_fields ? $show_section : false;
+					$checkout_type = $section->get_property('checkout_type');
 
 					if($fieldset && $sname != 'billing' && $sname != 'shipping' && $show_section){
 						$show_section_title = $section->get_property('show_title_my_account');
@@ -299,17 +305,17 @@ class THWCFE_Public_MyAccount extends THWCFE_Public {
 						if($show_section_title){
 							echo THWCFE_Utils_Section::get_title_html($section, $rn);
 						}
-
 						foreach($fieldset as $key => $field) {
 							if(isset($field['custom']) && $field['custom']){
 								$ftype = isset($field['type']) ? $field['type'] : 'text';
-
+								if($ftype === 'datepicker' && $checkout_type === 'block'){
+									continue;
+								}
 								if(isset($field['user_meta']) && $field['user_meta']){
 									$value = get_user_meta( $user_id, $key, true );
 									$value = isset($_POST[$key]) ? $_POST[$key] : $value;
 									$value = is_array($value) ? implode(",", $value) : $value;
 									//$label = $this->get_field_display_name($field);
-
 									if($ftype === 'hidden' && $display_hidden_as_text){
 										$field['type'] = 'text';
 									}
@@ -322,7 +328,6 @@ class THWCFE_Public_MyAccount extends THWCFE_Public {
 										$field['required'] = false;
 										$field['validate'] = '';
 									}
-
 									if(apply_filters('thwcfe_show_in_my_account_page', true, $key)) {
 										woocommerce_form_field( $key, $field, $value );
 									}
@@ -537,8 +542,7 @@ class THWCFE_Public_MyAccount extends THWCFE_Public {
 	}
 
 	public function woo_save_account_details( $user_id ) {
-		$sections = THWCFE_Utils::get_custom_sections();
-		
+		$sections = $this->get_all_custom_checkout_sections();
 		foreach($sections as $sname => $section) {
 			if($sname != 'billing' && $sname != 'shipping'){
 				$fieldset = THWCFE_Utils_Section::get_fieldset($section, false, true);
@@ -627,6 +631,25 @@ class THWCFE_Public_MyAccount extends THWCFE_Public {
 			}
 			$order->save();
 		}
+	}
+
+// Get all custom checkout sections in block and classic
+	public function get_all_custom_checkout_sections() { // used in woo_save_account_details & woo_edit_account_form
+		$sections = THWCFE_Utils::get_custom_sections();
+		$block_sections = THWCFE_Utils_Block::get_block_checkout_sections();
+		if($block_sections && is_array($block_sections)){
+			$exclude_sections = array( 'address', 'order'); // WooCommerce handles these sections.
+			foreach($block_sections as $sname => $section){
+				if ( in_array( $sname, $exclude_sections, true ) ) {
+					continue;
+				}
+				if ( ! isset( $sections[ $sname ] ) ) {
+					$section->set_property( 'checkout_type', 'block' );
+					$sections[ $sname ] = $section;
+				}
+			}
+		}
+		return $sections;
 	}
 
 	private function get_usermeta_enabled_custom_fields(){

@@ -53,7 +53,7 @@ class Prerequisites extends LDLMS_V2_Endpoint {
 
 		return $this->discover_routes(
 			trailingslashit( $courses_endpoint ) . '(?P<id>[\d]+)/' . $prerequisites_endpoint,
-			[ 'nested' ]
+			[ 'collection' ]
 		);
 	}
 
@@ -69,10 +69,10 @@ class Prerequisites extends LDLMS_V2_Endpoint {
 	 */
 	protected function get_method_summary( string $method, string $route_type = 'collection' ): string {
 		$summaries = [
-			'nested' => [
+			'collection' => [
 				'GET' => sprintf(
 					// translators: %s: singular course label.
-					__( 'Get associated prerequisites for a %s.', 'learndash' ),
+					__( 'Get associated prerequisites for a %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 			],
@@ -80,9 +80,9 @@ class Prerequisites extends LDLMS_V2_Endpoint {
 
 		return $summaries[ $route_type ][ $method ]
 			?? sprintf(
-				// translators: %s: singular prerequisite label.
+				// translators: %s: singular course label.
 				__( '%s prerequisite operation', 'learndash' ),
-				learndash_get_custom_label( 'prerequisite' )
+				learndash_get_custom_label( 'course' )
 			);
 	}
 
@@ -98,7 +98,7 @@ class Prerequisites extends LDLMS_V2_Endpoint {
 	 */
 	protected function get_method_description( string $method, string $route_type = 'collection' ): string {
 		$descriptions = [
-			'nested' => [
+			'collection' => [
 				'GET' => sprintf(
 					// translators: %s: singular course label.
 					__( 'Retrieves the %1$s prerequisites for a specific %2$s.', 'learndash' ),
@@ -114,5 +114,16 @@ class Prerequisites extends LDLMS_V2_Endpoint {
 			learndash_get_custom_label_lower( 'course' ),
 			learndash_get_custom_label_lower( 'course' )
 		);
+	}
+
+	/**
+	 * Returns the tags for this endpoint.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return string[]
+	 */
+	protected function get_tags(): array {
+		return [ sprintf( '%s-prerequisites', learndash_get_custom_label_lower( 'course' ) ) ];
 	}
 }

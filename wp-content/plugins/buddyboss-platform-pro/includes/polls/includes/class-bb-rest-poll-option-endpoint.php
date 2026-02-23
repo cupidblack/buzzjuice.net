@@ -570,7 +570,10 @@ class BB_REST_Poll_Option_Endpoint extends WP_REST_Controller {
 		if ( is_user_logged_in() ) {
 			$retval       = true;
 			$poll         = bb_load_polls()->bb_get_poll( $request->get_param( 'id' ) );
-			$option_title = sanitize_text_field( wp_unslash( trim( $request->get_param( 'option_title' ) ) ) );
+			$option_title = $request->get_param( 'option_title' );
+			if ( ! empty( $option_title ) ) {
+				$option_title = sanitize_text_field( wp_unslash( trim( $option_title ) ) );
+			}
 
 			$user_id = $request->get_param( 'user_id' );
 			if ( empty( $user_id ) ) {
@@ -601,7 +604,7 @@ class BB_REST_Poll_Option_Endpoint extends WP_REST_Controller {
 						'status' => 403,
 					)
 				);
-			} elseif ( strlen( $option_title ) > 50 ) {
+			} elseif ( ! empty( $option_title ) && strlen( $option_title ) > 50 ) {
 				$retval = new WP_Error(
 					'bp_rest_poll_option_max_length',
 					__( 'Poll option must be between 1 and 50 characters long.', 'buddyboss-pro' ),

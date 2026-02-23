@@ -31,8 +31,13 @@ class Better_Messages_Options
             'attachmentsRetention'        => 365,
             'attachmentsEnable'           => '0',
             'attachmentsHide'             => '1',
+            'attachmentsProxy'            => '0',
+            'attachmentsProxyMethod'      => 'php',
+            'attachmentsXAccelPrefix'     => '/bm-files/',
             'attachmentsMaxSize'          => wp_max_upload_size() / 1024 / 1024,
             'attachmentsMaxNumber'        => 0,
+            'attachmentsUploadMethod'     => 'post',
+            'attachmentsBrowserEnable'    => '1',
             'miniChatsEnable'             => '0',
             'combinedChatsEnable'         => '0',
             'searchAllUsers'              => '1',
@@ -263,6 +268,7 @@ class Better_Messages_Options
             'bpFallback'                    => '0',
             'miniChatDisableSync'           => '0',
             'pinnedThreads'                 => '1',
+            'enableDrafts'                  => '1',
             'bpAppPush'                     => '0',
             'guestChat'                     => '0',
             'deleteMessagesOnUserDelete'    => '0',
@@ -276,6 +282,9 @@ class Better_Messages_Options
             'pinnedMessages'                => '0',
             'privateReplies'                => '0',
             'openAiApiKey'                  => '',
+            'voiceTranscription'            => '0',
+            'voiceTranscriptionModel'       => 'gpt-4o-mini-transcribe',
+            'voiceTranscriptionPrompt'      => '',
 
             'deleteOldMessages'             => 0,
             'suggestedConversations'        => [],
@@ -284,7 +293,14 @@ class Better_Messages_Options
             'messagesPremoderationRolesNewConv'    => [],
             'messagesPremoderationRolesReplies'    => [],
             'messagesModerateFirstTimeSenders'     => '0',
-            'messagesModerationNotificationEmails' => ''
+            'messagesModerationNotificationEmails' => '',
+
+            'aiModerationEnabled'           => '0',
+            'aiModerationAction'            => 'hold',
+            'aiModerationImages'            => '0',
+            'aiModerationCategories'        => ['hate', 'harassment', 'sexual', 'violence', 'self-harm', 'illicit'],
+            'aiModerationThreshold'         => '0.5',
+            'aiModerationBypassRoles'       => []
         );
 
         $args = get_option( 'bp-better-chat-settings', array() );
@@ -623,6 +639,21 @@ class Better_Messages_Options
         if ( !isset( $settings['attachmentsHide'] ) ) {
             $settings['attachmentsHide'] = '0';
         }
+        if ( !isset( $settings['attachmentsProxy'] ) ) {
+            $settings['attachmentsProxy'] = '0';
+        }
+        if ( !isset( $settings['attachmentsProxyMethod'] ) || !in_array( $settings['attachmentsProxyMethod'], array( 'php', 'xsendfile', 'xaccel', 'litespeed' ), true ) ) {
+            $settings['attachmentsProxyMethod'] = 'php';
+        }
+        if ( !isset( $settings['attachmentsXAccelPrefix'] ) ) {
+            $settings['attachmentsXAccelPrefix'] = '/bm-files/';
+        }
+        if ( !isset( $settings['attachmentsUploadMethod'] ) || !in_array( $settings['attachmentsUploadMethod'], array( 'tus', 'post' ), true ) ) {
+            $settings['attachmentsUploadMethod'] = 'tus';
+        }
+        if ( !isset( $settings['attachmentsBrowserEnable'] ) ) {
+            $settings['attachmentsBrowserEnable'] = '0';
+        }
         if ( !isset( $settings['miniChatsEnable'] ) ) {
             $settings['miniChatsEnable'] = '0';
         }
@@ -710,6 +741,53 @@ class Better_Messages_Options
 
         if( ! isset( $settings['messagesModerationNotificationEmails'] ) ){
             $settings['messagesModerationNotificationEmails'] = '';
+        }
+
+        if( ! isset( $settings['aiModerationEnabled'] ) ){
+            $settings['aiModerationEnabled'] = '0';
+        }
+
+        // When AI moderation is disabled, sub-setting inputs are disabled and not submitted.
+        // Preserve existing sub-settings from database to prevent silent reset to defaults.
+        if( $settings['aiModerationEnabled'] !== '1' ) {
+            $existing = $this->settings;
+            if( ! isset( $settings['aiModerationAction'] ) ){
+                $settings['aiModerationAction'] = isset( $existing['aiModerationAction'] ) ? $existing['aiModerationAction'] : 'hold';
+            }
+            if( ! isset( $settings['aiModerationImages'] ) ){
+                $settings['aiModerationImages'] = isset( $existing['aiModerationImages'] ) ? $existing['aiModerationImages'] : '0';
+            }
+            if( ! isset( $settings['aiModerationCategories'] ) ){
+                $settings['aiModerationCategories'] = isset( $existing['aiModerationCategories'] ) ? $existing['aiModerationCategories'] : [];
+            }
+            if( ! isset( $settings['aiModerationThreshold'] ) ){
+                $settings['aiModerationThreshold'] = isset( $existing['aiModerationThreshold'] ) ? $existing['aiModerationThreshold'] : '0.5';
+            }
+            if( ! isset( $settings['aiModerationBypassRoles'] ) ){
+                $settings['aiModerationBypassRoles'] = isset( $existing['aiModerationBypassRoles'] ) ? $existing['aiModerationBypassRoles'] : [];
+            }
+        } else {
+            if( ! isset( $settings['aiModerationAction'] ) ){
+                $settings['aiModerationAction'] = 'hold';
+            }
+            if( ! isset( $settings['aiModerationImages'] ) ){
+                $settings['aiModerationImages'] = '0';
+            }
+            if( ! isset( $settings['aiModerationCategories'] ) ){
+                $settings['aiModerationCategories'] = [];
+            }
+            if( ! isset( $settings['aiModerationThreshold'] ) ){
+                $settings['aiModerationThreshold'] = '0.5';
+            }
+            if( ! isset( $settings['aiModerationBypassRoles'] ) ){
+                $settings['aiModerationBypassRoles'] = [];
+            }
+        }
+
+        // Validate threshold is within 0-1 range
+        if( isset( $settings['aiModerationThreshold'] ) ){
+            $settings['aiModerationThreshold'] = max( 0, min( 1, (float) $settings['aiModerationThreshold'] ) );
+            $settings['aiModerationThreshold'] = (string) $settings['aiModerationThreshold'];
         }
 
         if ( !isset( $settings['restrictBlockUsers'] ) ) {
@@ -1020,6 +1098,10 @@ class Better_Messages_Options
             $settings['pinnedThreads'] = '0';
         }
 
+        if( ! isset( $settings['enableDrafts'] ) ) {
+            $settings['enableDrafts'] = '0';
+        }
+
         if( ! isset( $settings['bpAppPush'] ) ) {
             $settings['bpAppPush'] = '0';
         }
@@ -1144,6 +1226,7 @@ class Better_Messages_Options
             'dialingSound'              => 0,
             'dialingSoundId'            => 0,
             'modernBorderRadius'        => 0,
+            'attachmentsMaxSize'        => 1,
             'attachmentsMaxNumber'      => 0,
             'deleteOldMessages'         => 0,
             'emailLogoId'               => 0

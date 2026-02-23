@@ -119,7 +119,7 @@ if ( !class_exists( 'CVPro_AutoUpdate' ) ) {
 		function show_update_message( $plugin_data, $r ) {
 			if ( empty( $plugin_data[ 'package' ] ) ) {
 				if ( empty( $this->license_key ) ) {
-					$url	 = 'https://docs.contentviewspro.com/wp-content/uploads/2017/05/Content-Views-Settings-add-license-key.png';
+					$url	 = 'https://contentviewspro.com/documentation/wp-content/uploads/2017/05/Content-Views-Settings-add-license-key.png';
 					$text	 = __( 'activate your license', 'content-views-pro' );
 				} else {
 					$url	 = esc_url( 'https://www.contentviewspro.com/license-key-info/?license_key=' . $this->license_key );

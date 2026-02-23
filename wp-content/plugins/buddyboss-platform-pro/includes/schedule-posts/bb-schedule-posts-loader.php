@@ -19,8 +19,7 @@ function bb_register_schedule_posts() {
 	if (
 		! defined( 'BP_PLATFORM_VERSION' ) ||
 		version_compare( BP_PLATFORM_VERSION, '2.6.10', '<' ) ||
-		! bp_is_active( 'activity' ) ||
-		! bbp_pro_is_license_valid()
+		! bp_is_active( 'activity' )
 	) {
 		return;
 	}

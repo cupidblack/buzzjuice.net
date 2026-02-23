@@ -322,7 +322,11 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             $attachments = $wpdb->get_col( $sql );
 
             foreach( $attachments as $attachment_id ){
+                $file_path = get_attached_file( $attachment_id );
                 wp_delete_attachment( $attachment_id, true );
+                if ( $file_path ) {
+                    Better_Messages()->files->cleanup_empty_directories( $file_path );
+                }
             }
 
             if( $deleteMethod === 'replace' ) {
@@ -2464,7 +2468,9 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 'temp_id'          => '',
                 'return'           => 'thread_id',
                 'error_type'       => 'bool',
-                'is_update'        => false
+                'is_update'        => false,
+                'ai_moderation_result' => null,
+                'ai_moderation_deferred' => false
             ), 'bm_new_message' );
 
             // Bail if no sender or no content.
@@ -2505,6 +2511,8 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             $message->meta          = $r['meta'];
             $message->notification  = $r['notification'];
             $message->is_update     = $r['is_update'];
+            $message->ai_moderation_result = $r['ai_moderation_result'];
+            $message->ai_moderation_deferred = $r['ai_moderation_deferred'];
 
             $is_pending = $message->is_pending;
             $new_thread = false;
@@ -2645,7 +2653,15 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
 
             if( isset($args['meta_data']) && is_array( $args['meta_data'] ) && count( $args['meta_data'] ) > 0 ){
                 foreach( $args['meta_data'] as $key => $value ){
-                    Better_Messages()->functions->update_message_meta( $message->id, sanitize_text_field($key), sanitize_text_field($value) );
+                    if( is_array( $value ) ){
+                        $value = array_map( function( $v ){
+                            return is_numeric( $v ) ? $v : sanitize_text_field( $v );
+                        }, $value );
+                    } else {
+                        $value = sanitize_text_field( $value );
+                    }
+
+                    Better_Messages()->functions->update_message_meta( $message->id, sanitize_text_field($key), $value );
                 }
             }
 
@@ -2661,6 +2677,13 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                         if ($attachment_thread_id !== ( $new_thread ? 0 : (int) $message->thread_id ) ) continue;
                         $attachment_uploader_id = (int) get_post_meta($attachment_id, 'bp-better-messages-uploader-user-id', true);
                         if ( $attachment_uploader_id !== (int) $message->sender_id ) continue;
+                    }
+
+                    if( $enable_double_check && $new_thread ) {
+                        if ( function_exists( 'Better_Messages_Files' ) ) {
+                            Better_Messages_Files()->relocate_attachment_to_thread( $attachment_id, (int) $message->thread_id );
+                        }
+                        update_post_meta($attachment_id, 'bp-better-messages-thread-id', $message->thread_id);
                     }
 
                     $attachment_meta[ $attachment_id ] = wp_get_attachment_url( $attachment_id );

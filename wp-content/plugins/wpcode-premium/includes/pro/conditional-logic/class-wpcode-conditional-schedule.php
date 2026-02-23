@@ -38,6 +38,29 @@ class WPCode_Conditional_Schedule extends WPCode_Conditional_Type {
 	}
 
 	/**
+	 * Load evaluation-only options (without translations) for frontend use.
+	 * This method is called when translations are not yet loaded to avoid WP 6.7 notices.
+	 *
+	 * @return void
+	 */
+	public function load_evaluation_options() {
+		$this->options = array(
+			'date_is' => array(
+				'callback' => array( $this, 'get_current_date' ),
+			),
+			'time_is' => array(
+				'callback' => array( $this, 'get_current_time' ),
+			),
+			'weekday' => array(
+				'callback' => array( $this, 'get_weekday' ),
+			),
+			'time'    => array(
+				'callback' => array( $this, 'get_time_of_day' ),
+			),
+		);
+	}
+
+	/**
 	 * Set the type options for the admin mainly.
 	 *
 	 * @return void

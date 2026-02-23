@@ -1,4 +1,3 @@
-/*! elementor - v3.31.0 - 09-09-2025 */
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -314,11 +313,12 @@ var _react = __webpack_require__(/*! react */ "react");
 function usePageTitle(_ref) {
   var title = _ref.title,
     prefix = _ref.prefix;
+  var prefixRef = (0, _react.useRef)(prefix);
   (0, _react.useEffect)(function () {
     if (!prefix) {
-      prefix = __('Elementor', 'elementor');
+      prefixRef.current = __('Elementor', 'elementor');
     }
-    document.title = "".concat(prefix, " | ").concat(title);
+    document.title = "".concat(prefixRef.current, " | ").concat(title);
   }, [title, prefix]);
 }
 
@@ -579,7 +579,7 @@ function Header(props) {
   }, /*#__PURE__*/_react.default.createElement(TitleTag, (0, _extends2.default)({
     className: "eps-app__logo-title-wrapper"
   }, titleAttrs), /*#__PURE__*/_react.default.createElement("i", {
-    className: "eps-app__logo eicon-elementor"
+    className: "eps-app__logo eicon-elementor-circle"
   }), /*#__PURE__*/_react.default.createElement("h1", {
     className: "eps-app__title"
   }, props.title)), /*#__PURE__*/_react.default.createElement(_headerButtons.default, {
@@ -836,11 +836,13 @@ function Collapse(props) {
     if (props.isOpened !== isOpened) {
       setIsOpened(props.isOpened);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.isOpened]);
   (0, _react.useEffect)(function () {
     if (props.onChange) {
       props.onChange(isOpened);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpened]);
   return /*#__PURE__*/_react.default.createElement(_collapseContext.CollapseContext.Provider, {
     value: {
@@ -1317,6 +1319,7 @@ function UnfilteredFilesDialog(props) {
         onEnable();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enableUnfilteredFiles]);
 
   // Enabling unfiltered files ajax status.
@@ -1330,11 +1333,13 @@ function UnfilteredFilesDialog(props) {
         setShow(true);
         break;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ajaxState]);
   (0, _react.useEffect)(function () {
     if (show && onLoad) {
       onLoad();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show]);
   if (!show) {
     return null;
@@ -1916,22 +1921,31 @@ Heading.defaultProps = {
 
 
 var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "../node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+var _typeof = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "../node_modules/@babel/runtime/helpers/typeof.js");
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports["default"] = Icon;
-var _react = _interopRequireDefault(__webpack_require__(/*! react */ "react"));
-function Icon(props) {
-  return /*#__PURE__*/_react.default.createElement("i", {
-    className: "eps-icon ".concat(props.className)
-  });
-}
+exports["default"] = void 0;
+var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "react"));
+var _extends2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/extends */ "../node_modules/@babel/runtime/helpers/extends.js"));
+var _objectWithoutProperties2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/objectWithoutProperties */ "../node_modules/@babel/runtime/helpers/objectWithoutProperties.js"));
+var _excluded = ["className"];
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != _typeof(e) && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }
+var Icon = (0, _react.forwardRef)(function (props, ref) {
+  var className = props.className,
+    rest = (0, _objectWithoutProperties2.default)(props, _excluded);
+  return /*#__PURE__*/_react.default.createElement("i", (0, _extends2.default)({
+    ref: ref,
+    className: "eps-icon ".concat(className)
+  }, rest));
+});
 Icon.propTypes = {
   className: PropTypes.string.isRequired
 };
 Icon.defaultProps = {
   className: ''
 };
+var _default = exports["default"] = Icon;
 
 /***/ }),
 
@@ -2258,7 +2272,8 @@ function CardImage(props) {
     src: props.src,
     alt: props.alt,
     className: "eps-card__image",
-    loading: "lazy"
+    loading: "lazy",
+    onError: props.onError
   });
   return /*#__PURE__*/_react.default.createElement("figure", {
     className: "eps-card__figure ".concat(props.className)
@@ -2268,10 +2283,12 @@ CardImage.propTypes = {
   className: PropTypes.string,
   src: PropTypes.string.isRequired,
   alt: PropTypes.string.isRequired,
-  children: PropTypes.any
+  children: PropTypes.any,
+  onError: PropTypes.func
 };
 CardImage.defaultProps = {
-  className: ''
+  className: '',
+  onError: function onError() {}
 };
 
 /***/ }),
@@ -3088,6 +3105,7 @@ var Modal = exports.Modal = function Modal(props) {
     return function () {
       return document.removeEventListener('mousedown', closeModal, false);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.show]);
   if (!props.show) {
     return null;
@@ -3249,6 +3267,7 @@ var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/h
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "../node_modules/@babel/runtime/helpers/defineProperty.js"));
 var _router = __webpack_require__(/*! @reach/router */ "../node_modules/@reach/router/es/index.js");
 var _router2 = _interopRequireDefault(__webpack_require__(/*! @elementor/router */ "@elementor/router"));
+var _popoverDialog = _interopRequireDefault(__webpack_require__(/*! ../popover-dialog/popover-dialog */ "../app/assets/js/ui/popover-dialog/popover-dialog.js"));
 var _icon = _interopRequireDefault(__webpack_require__(/*! elementor-app/ui/atoms/icon */ "../app/assets/js/ui/atoms/icon.js"));
 function _callSuper(t, o, e) { return o = (0, _getPrototypeOf2.default)(o), (0, _possibleConstructorReturn2.default)(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], (0, _getPrototypeOf2.default)(t).constructor) : o.apply(t, e)); }
 function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
@@ -3290,11 +3309,12 @@ var Button = exports["default"] = /*#__PURE__*/function (_React$Component) {
     key: "getIcon",
     value: function getIcon() {
       if (this.props.icon) {
+        var iconRef = _react.default.createRef(null);
         var tooltip = this.props.tooltip || this.props.text;
         var icon = /*#__PURE__*/_react.default.createElement(_icon.default, {
+          ref: iconRef,
           className: this.props.icon,
-          "aria-hidden": "true",
-          title: tooltip
+          "aria-hidden": "true"
         });
         var screenReaderText = '';
         if (this.props.hideText) {
@@ -3302,7 +3322,10 @@ var Button = exports["default"] = /*#__PURE__*/function (_React$Component) {
             className: "sr-only"
           }, tooltip);
         }
-        return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, icon, screenReaderText);
+        return /*#__PURE__*/_react.default.createElement(_react.default.Fragment, null, icon, screenReaderText, this.props.tooltip && /*#__PURE__*/_react.default.createElement(_popoverDialog.default, {
+          targetRef: iconRef,
+          wrapperClass: "e-kit-library__tooltip"
+        }, this.props.tooltip));
       }
       return '';
     }
@@ -3781,6 +3804,7 @@ function Select2(props) {
     return function () {
       $select2.select2('destroy').off('select2:select select2:unselect');
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.settings, props.options]);
 
   // Listen to changes in the prop `value`, if changed update the select 2.
@@ -3824,6 +3848,176 @@ Select2.defaultProps = {
 
 /***/ }),
 
+/***/ "../app/assets/js/ui/popover-dialog/popover-dialog.js":
+/*!************************************************************!*\
+  !*** ../app/assets/js/ui/popover-dialog/popover-dialog.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+/* provided dependency */ var PropTypes = __webpack_require__(/*! prop-types */ "../node_modules/prop-types/index.js");
+
+
+var _typeof = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "../node_modules/@babel/runtime/helpers/typeof.js");
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = PopoverDialog;
+var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "react"));
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != _typeof(e) && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }
+function PopoverDialog(props) {
+  var targetRef = props.targetRef,
+    offsetTop = props.offsetTop,
+    offsetLeft = props.offsetLeft,
+    wrapperClass = props.wrapperClass,
+    trigger = props.trigger,
+    hideAfter = props.hideAfter,
+    popoverRef = (0, _react.useCallback)(function (popoverEl) {
+      var target = targetRef === null || targetRef === void 0 ? void 0 : targetRef.current;
+
+      // If the target or the popover element does not exist on the page anymore after a re-render, do nothing.
+      if (!target || !popoverEl) {
+        return;
+      }
+
+      /**
+       * Show Popover
+       */
+      var showPopover = function showPopover() {
+        popoverEl.style.display = 'block';
+        popoverEl.setAttribute('aria-expanded', true);
+        var targetRect = target.getBoundingClientRect(),
+          popoverRect = popoverEl.getBoundingClientRect(),
+          widthDifference = popoverRect.width - targetRect.width;
+        popoverEl.style.top = targetRect.bottom + offsetTop + 'px';
+        popoverEl.style.left = targetRect.left - widthDifference / 2 - offsetLeft + 'px';
+
+        // 16px to compensate for the arrow width.
+        popoverEl.style.setProperty('--popover-arrow-offset-end', (popoverRect.width - 16) / 2 + 'px');
+      };
+
+      /**
+       * Hide Popover
+       */
+      var hidePopover = function hidePopover() {
+        popoverEl.style.display = 'none';
+        popoverEl.setAttribute('aria-expanded', false);
+      };
+
+      /**
+       * Handle the Popover's hover functionality
+       */
+      var handlePopoverHover = function handlePopoverHover() {
+        var hideOnMouseOut = true,
+          timeOut = null;
+
+        // Show popover on hover of the target
+        target.addEventListener('mouseover', function () {
+          hideOnMouseOut = true;
+          showPopover();
+        });
+
+        // Hide popover when not overing over the target or the popover itself
+        target.addEventListener('mouseleave', function () {
+          timeOut = setTimeout(function () {
+            if (hideOnMouseOut) {
+              if ('block' === popoverEl.style.display) {
+                hidePopover();
+              }
+            }
+          }, hideAfter);
+        });
+
+        // Don't hide the popover if the user is still hovering over it.
+        popoverEl.addEventListener('mouseover', function () {
+          hideOnMouseOut = false;
+          if (timeOut) {
+            clearTimeout(timeOut);
+            timeOut = null;
+          }
+        });
+
+        // Once the user stops hovering over the popover, hide it.
+        popoverEl.addEventListener('mouseleave', function () {
+          timeOut = setTimeout(function () {
+            if (hideOnMouseOut) {
+              if ('block' === popoverEl.style.display) {
+                hidePopover();
+              }
+            }
+          }, hideAfter);
+          hideOnMouseOut = true;
+        });
+      };
+
+      /**
+       * Handle the Popover's click functionality
+       */
+      var handlePopoverClick = function handlePopoverClick() {
+        var popoverIsActive = false;
+        target.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (popoverIsActive) {
+            hidePopover();
+            popoverIsActive = false;
+          } else {
+            showPopover();
+            popoverIsActive = true;
+          }
+        });
+
+        // Make sure the popover doesn't close when it is clicked on.
+        popoverEl.addEventListener('click', function (e) {
+          e.stopPropagation();
+        });
+
+        // Hide the popover when clicking outside of it.
+        document.body.addEventListener('click', function () {
+          if (popoverIsActive) {
+            hidePopover();
+            popoverIsActive = false;
+          }
+        });
+      };
+      if ('hover' === trigger) {
+        handlePopoverHover();
+      } else if ('click' === trigger) {
+        handlePopoverClick();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [targetRef]);
+  var wrapperClasses = 'e-app__popover';
+  if (wrapperClass) {
+    wrapperClasses += ' ' + wrapperClass;
+  }
+  return /*#__PURE__*/_react.default.createElement("div", {
+    className: wrapperClasses,
+    ref: popoverRef
+  }, props.children);
+}
+PopoverDialog.propTypes = {
+  targetRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({
+    current: PropTypes.any
+  })]).isRequired,
+  trigger: PropTypes.string,
+  direction: PropTypes.string,
+  offsetTop: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  offsetLeft: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  wrapperClass: PropTypes.string,
+  children: PropTypes.any,
+  hideAfter: PropTypes.number
+};
+PopoverDialog.defaultProps = {
+  direction: 'bottom',
+  trigger: 'hover',
+  offsetTop: 10,
+  offsetLeft: 0,
+  hideAfter: 300
+};
+
+/***/ }),
+
 /***/ "../app/assets/js/utils/utils.js":
 /*!***************************************!*\
   !*** ../app/assets/js/utils/utils.js ***!
@@ -3837,7 +4031,7 @@ var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/inte
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.stringToRemValues = exports.rgbToHex = exports.pxToRem = exports.isOneOf = exports.arrayToObjectByKey = exports.arrayToClassName = void 0;
+exports.stringToRemValues = exports.rgbToHex = exports.pxToRem = exports.isOneOf = exports.htmlDecodeTextContent = exports.arrayToObjectByKey = exports.arrayToClassName = void 0;
 var _typeof2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/typeof */ "../node_modules/@babel/runtime/helpers/typeof.js"));
 var pxToRem = exports.pxToRem = function pxToRem(pixels) {
   if (!pixels) {
@@ -3880,6 +4074,66 @@ var arrayToObjectByKey = exports.arrayToObjectByKey = function arrayToObjectByKe
   });
   return finalObject;
 };
+var htmlDecodeTextContent = exports.htmlDecodeTextContent = function htmlDecodeTextContent(input) {
+  var doc = new DOMParser().parseFromString(input, 'text/html');
+  return doc.documentElement.textContent;
+};
+
+/***/ }),
+
+/***/ "../app/modules/import-export/assets/js/shared/utils/is-valid-redirect-url.js":
+/*!************************************************************************************!*\
+  !*** ../app/modules/import-export/assets/js/shared/utils/is-valid-redirect-url.js ***!
+  \************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = isValidRedirectUrl;
+function isValidRedirectUrl(url) {
+  try {
+    var parsedUrl = new URL(url);
+    return parsedUrl.hostname === window.location.hostname && ('http:' === parsedUrl.protocol || 'https:' === parsedUrl.protocol);
+  } catch (e) {
+    return false;
+  }
+}
+
+/***/ }),
+
+/***/ "../app/modules/import-export/assets/js/shared/utils/redirect.js":
+/*!***********************************************************************!*\
+  !*** ../app/modules/import-export/assets/js/shared/utils/redirect.js ***!
+  \***********************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "../node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = safeRedirect;
+var _isValidRedirectUrl = _interopRequireDefault(__webpack_require__(/*! ./is-valid-redirect-url */ "../app/modules/import-export/assets/js/shared/utils/is-valid-redirect-url.js"));
+function safeRedirect(url) {
+  try {
+    if (url.startsWith('/')) {
+      url = window.location.origin + url;
+    }
+    var decodedUrl = decodeURIComponent(url);
+    if ((0, _isValidRedirectUrl.default)(decodedUrl)) {
+      window.location.href = decodedUrl;
+      return true;
+    }
+  } catch (e) {
+    return false;
+  }
+}
 
 /***/ }),
 
@@ -4598,27 +4852,42 @@ function Promotion() {
 
 
 var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "../node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+var _typeof = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "../node_modules/@babel/runtime/helpers/typeof.js");
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = Layout;
-var _react = _interopRequireDefault(__webpack_require__(/*! react */ "react"));
+var _react = _interopRequireWildcard(__webpack_require__(/*! react */ "react"));
 var _page = _interopRequireDefault(__webpack_require__(/*! elementor-app/layout/page */ "../app/assets/js/layout/page.js"));
 var _menu = _interopRequireDefault(__webpack_require__(/*! ../organisms/menu */ "../app/modules/site-editor/assets/js/organisms/menu.js"));
 var _templateTypes = _interopRequireDefault(__webpack_require__(/*! ../context/template-types */ "../app/modules/site-editor/assets/js/context/template-types.js"));
+var _useQueryParams = _interopRequireDefault(__webpack_require__(/*! elementor-app/hooks/use-query-params */ "../app/assets/js/hooks/use-query-params.js"));
+var _redirect = _interopRequireDefault(__webpack_require__(/*! ../../../../import-export/assets/js/shared/utils/redirect */ "../app/modules/import-export/assets/js/shared/utils/redirect.js"));
 __webpack_require__(/*! ./site-editor.scss */ "../app/modules/site-editor/assets/js/templates/site-editor.scss");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != _typeof(e) && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }
 function Layout(props) {
-  var _props$titleRedirectR;
-  var config = {
-    title: __('Theme Builder', 'elementor'),
-    titleRedirectRoute: (_props$titleRedirectR = props.titleRedirectRoute) !== null && _props$titleRedirectR !== void 0 ? _props$titleRedirectR : null,
-    headerButtons: props.headerButtons,
-    sidebar: /*#__PURE__*/_react.default.createElement(_menu.default, {
-      allPartsButton: props.allPartsButton,
-      promotion: props.promotion
-    }),
-    content: props.children
-  };
+  var _useQueryParams$getAl = (0, _useQueryParams.default)().getAll(),
+    returnTo = _useQueryParams$getAl.return_to;
+  var onClose = (0, _react.useCallback)(function () {
+    if (returnTo && (0, _redirect.default)(returnTo)) {
+      return;
+    }
+    window.top.location = elementorAppConfig.admin_url;
+  }, [returnTo]);
+  var config = (0, _react.useMemo)(function () {
+    var _props$titleRedirectR;
+    return {
+      title: __('Theme Builder', 'elementor'),
+      titleRedirectRoute: (_props$titleRedirectR = props.titleRedirectRoute) !== null && _props$titleRedirectR !== void 0 ? _props$titleRedirectR : null,
+      headerButtons: props.headerButtons,
+      sidebar: /*#__PURE__*/_react.default.createElement(_menu.default, {
+        allPartsButton: props.allPartsButton,
+        promotion: props.promotion
+      }),
+      content: props.children,
+      onClose: onClose
+    };
+  }, [props.titleRedirectRoute, props.headerButtons, props.allPartsButton, props.promotion, props.children, onClose]);
   return /*#__PURE__*/_react.default.createElement(_templateTypes.default, null, /*#__PURE__*/_react.default.createElement(_page.default, config));
 }
 Layout.propTypes = {
@@ -4980,6 +5249,47 @@ module.exports = _nonIterableSpread, module.exports.__esModule = true, module.ex
 
 /***/ }),
 
+/***/ "../node_modules/@babel/runtime/helpers/objectWithoutProperties.js":
+/*!*************************************************************************!*\
+  !*** ../node_modules/@babel/runtime/helpers/objectWithoutProperties.js ***!
+  \*************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var objectWithoutPropertiesLoose = __webpack_require__(/*! ./objectWithoutPropertiesLoose.js */ "../node_modules/@babel/runtime/helpers/objectWithoutPropertiesLoose.js");
+function _objectWithoutProperties(e, t) {
+  if (null == e) return {};
+  var o,
+    r,
+    i = objectWithoutPropertiesLoose(e, t);
+  if (Object.getOwnPropertySymbols) {
+    var n = Object.getOwnPropertySymbols(e);
+    for (r = 0; r < n.length; r++) o = n[r], -1 === t.indexOf(o) && {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]);
+  }
+  return i;
+}
+module.exports = _objectWithoutProperties, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+
+/***/ "../node_modules/@babel/runtime/helpers/objectWithoutPropertiesLoose.js":
+/*!******************************************************************************!*\
+  !*** ../node_modules/@babel/runtime/helpers/objectWithoutPropertiesLoose.js ***!
+  \******************************************************************************/
+/***/ ((module) => {
+
+function _objectWithoutPropertiesLoose(r, e) {
+  if (null == r) return {};
+  var t = {};
+  for (var n in r) if ({}.hasOwnProperty.call(r, n)) {
+    if (-1 !== e.indexOf(n)) continue;
+    t[n] = r[n];
+  }
+  return t;
+}
+module.exports = _objectWithoutPropertiesLoose, module.exports.__esModule = true, module.exports["default"] = module.exports;
+
+/***/ }),
+
 /***/ "../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js":
 /*!***************************************************************************!*\
   !*** ../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js ***!
@@ -5183,19 +5493,17 @@ function _regeneratorDefine(e, r, n, t) {
     i = 0;
   }
   module.exports = _regeneratorDefine = function regeneratorDefine(e, r, n, t) {
-    if (r) i ? i(e, r, {
+    function o(r, n) {
+      _regeneratorDefine(e, r, function (e) {
+        return this._invoke(r, n, e);
+      });
+    }
+    r ? i ? i(e, r, {
       value: n,
       enumerable: !t,
       configurable: !t,
       writable: !t
-    }) : e[r] = n;else {
-      var o = function o(r, n) {
-        _regeneratorDefine(e, r, function (e) {
-          return this._invoke(r, n, e);
-        });
-      };
-      o("next", 0), o("throw", 1), o("return", 2);
-    }
+    }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2));
   }, module.exports.__esModule = true, module.exports["default"] = module.exports, _regeneratorDefine(e, r, n, t);
 }
 module.exports = _regeneratorDefine, module.exports.__esModule = true, module.exports["default"] = module.exports;
@@ -5514,12 +5822,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   Redirect: () => (/* binding */ Redirect),
 /* harmony export */   Router: () => (/* binding */ Router),
 /* harmony export */   ServerLocation: () => (/* binding */ ServerLocation),
-/* harmony export */   createHistory: () => (/* reexport safe */ _lib_history__WEBPACK_IMPORTED_MODULE_5__.createHistory),
-/* harmony export */   createMemorySource: () => (/* reexport safe */ _lib_history__WEBPACK_IMPORTED_MODULE_5__.createMemorySource),
-/* harmony export */   globalHistory: () => (/* reexport safe */ _lib_history__WEBPACK_IMPORTED_MODULE_5__.globalHistory),
+/* harmony export */   createHistory: () => (/* reexport safe */ _lib_history__WEBPACK_IMPORTED_MODULE_6__.createHistory),
+/* harmony export */   createMemorySource: () => (/* reexport safe */ _lib_history__WEBPACK_IMPORTED_MODULE_6__.createMemorySource),
+/* harmony export */   globalHistory: () => (/* reexport safe */ _lib_history__WEBPACK_IMPORTED_MODULE_6__.globalHistory),
 /* harmony export */   isRedirect: () => (/* binding */ isRedirect),
-/* harmony export */   matchPath: () => (/* reexport safe */ _lib_utils__WEBPACK_IMPORTED_MODULE_4__.match),
-/* harmony export */   navigate: () => (/* reexport safe */ _lib_history__WEBPACK_IMPORTED_MODULE_5__.navigate),
+/* harmony export */   matchPath: () => (/* reexport safe */ _lib_utils__WEBPACK_IMPORTED_MODULE_5__.match),
+/* harmony export */   navigate: () => (/* reexport safe */ _lib_history__WEBPACK_IMPORTED_MODULE_6__.navigate),
 /* harmony export */   redirectTo: () => (/* binding */ redirectTo),
 /* harmony export */   useLocation: () => (/* binding */ useLocation),
 /* harmony export */   useMatch: () => (/* binding */ useMatch),
@@ -5528,15 +5836,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! prop-types */ "../node_modules/prop-types/index.js");
-/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var invariant__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! invariant */ "../node_modules/invariant/browser.js");
-/* harmony import */ var invariant__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(invariant__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var create_react_context__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! create-react-context */ "../node_modules/create-react-context/lib/index.js");
-/* harmony import */ var create_react_context__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(create_react_context__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var react_lifecycles_compat__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react-lifecycles-compat */ "../node_modules/react-lifecycles-compat/react-lifecycles-compat.es.js");
-/* harmony import */ var _lib_utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./lib/utils */ "../node_modules/@reach/router/es/lib/utils.js");
-/* harmony import */ var _lib_history__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./lib/history */ "../node_modules/@reach/router/es/lib/history.js");
+/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! prop-types */ "../node_modules/prop-types/index.js");
+/* harmony import */ var prop_types__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(prop_types__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var invariant__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! invariant */ "../node_modules/invariant/browser.js");
+/* harmony import */ var invariant__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(invariant__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var create_react_context__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! create-react-context */ "../node_modules/create-react-context/lib/index.js");
+/* harmony import */ var create_react_context__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(create_react_context__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var react_lifecycles_compat__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react-lifecycles-compat */ "../node_modules/react-lifecycles-compat/react-lifecycles-compat.es.js");
+/* harmony import */ var _lib_utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./lib/utils */ "../node_modules/@reach/router/es/lib/utils.js");
+/* harmony import */ var _lib_history__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./lib/history */ "../node_modules/@reach/router/es/lib/history.js");
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
@@ -5559,7 +5867,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 ////////////////////////////////////////////////////////////////////////////////
 
 var createNamedContext = function createNamedContext(name, defaultValue) {
-  var Ctx = create_react_context__WEBPACK_IMPORTED_MODULE_2___default()(defaultValue);
+  var Ctx = create_react_context__WEBPACK_IMPORTED_MODULE_3___default()(defaultValue);
   Ctx.displayName = name;
   return Ctx;
 };
@@ -5673,10 +5981,10 @@ var LocationProvider = function (_React$Component) {
 
 
 LocationProvider.defaultProps = {
-  history: _lib_history__WEBPACK_IMPORTED_MODULE_5__.globalHistory
+  history: _lib_history__WEBPACK_IMPORTED_MODULE_6__.globalHistory
 };
  true ? LocationProvider.propTypes = {
-  history: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().object).isRequired
+  history: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().object).isRequired
 } : 0;
 var ServerLocation = function ServerLocation(_ref2) {
   var url = _ref2.url,
@@ -5762,7 +6070,7 @@ var RouterImpl = function (_React$PureComponent) {
     var pathname = location.pathname;
 
 
-    var match = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.pick)(routes, pathname);
+    var match = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.pick)(routes, pathname);
 
     if (match) {
       var params = match.params,
@@ -5778,7 +6086,7 @@ var RouterImpl = function (_React$PureComponent) {
         uri: uri,
         location: location,
         navigate: function navigate(to, options) {
-          return _navigate2((0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.resolve)(to, uri), options);
+          return _navigate2((0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.resolve)(to, uri), options);
         }
       });
 
@@ -5961,7 +6269,7 @@ var FocusHandlerImpl = function (_React$Component2) {
   return FocusHandlerImpl;
 }((react__WEBPACK_IMPORTED_MODULE_0___default().Component));
 
-(0,react_lifecycles_compat__WEBPACK_IMPORTED_MODULE_3__.polyfill)(FocusHandlerImpl);
+(0,react_lifecycles_compat__WEBPACK_IMPORTED_MODULE_4__.polyfill)(FocusHandlerImpl);
 
 var k = function k() {};
 
@@ -5998,10 +6306,10 @@ var Link = forwardRef(function (_ref4, ref) {
               getProps = _props$getProps === undefined ? k : _props$getProps,
               anchorProps = _objectWithoutProperties(props, ["to", "state", "replace", "getProps"]);
 
-          var href = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.resolve)(to, baseuri);
+          var href = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.resolve)(to, baseuri);
           var encodedHref = encodeURI(href);
           var isCurrent = location.pathname === encodedHref;
-          var isPartiallyCurrent = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.startsWith)(location.pathname, encodedHref);
+          var isPartiallyCurrent = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.startsWith)(location.pathname, encodedHref);
 
           return react__WEBPACK_IMPORTED_MODULE_0___default().createElement("a", _extends({
             ref: ref || innerRef,
@@ -6018,7 +6326,7 @@ var Link = forwardRef(function (_ref4, ref) {
                       key = _location$state.key,
                       restState = _objectWithoutProperties(_location$state, ["key"]);
 
-                  shouldReplace = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.shallowCompare)(_extends({}, state), restState);
+                  shouldReplace = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.shallowCompare)(_extends({}, state), restState);
                 }
                 navigate(href, {
                   state: state,
@@ -6036,7 +6344,7 @@ var Link = forwardRef(function (_ref4, ref) {
 Link.displayName = "Link";
 
  true ? Link.propTypes = {
-  to: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().string).isRequired
+  to: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().string).isRequired
 } : 0;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -6075,8 +6383,8 @@ var RedirectImpl = function (_React$Component3) {
         props = _objectWithoutProperties(_props3, ["navigate", "to", "from", "replace", "state", "noThrow", "baseuri"]);
 
     Promise.resolve().then(function () {
-      var resolvedTo = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.resolve)(to, baseuri);
-      navigate((0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.insertParams)(resolvedTo, props), { replace: replace, state: state });
+      var resolvedTo = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.resolve)(to, baseuri);
+      navigate((0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.insertParams)(resolvedTo, props), { replace: replace, state: state });
     });
   };
 
@@ -6091,8 +6399,8 @@ var RedirectImpl = function (_React$Component3) {
         baseuri = _props4.baseuri,
         props = _objectWithoutProperties(_props4, ["navigate", "to", "from", "replace", "state", "noThrow", "baseuri"]);
 
-    var resolvedTo = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.resolve)(to, baseuri);
-    if (!noThrow) redirectTo((0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.insertParams)(resolvedTo, props));
+    var resolvedTo = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.resolve)(to, baseuri);
+    if (!noThrow) redirectTo((0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.insertParams)(resolvedTo, props));
     return null;
   };
 
@@ -6117,8 +6425,8 @@ var Redirect = function Redirect(props) {
 };
 
  true ? Redirect.propTypes = {
-  from: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().string),
-  to: (prop_types__WEBPACK_IMPORTED_MODULE_6___default().string).isRequired
+  from: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().string),
+  to: (prop_types__WEBPACK_IMPORTED_MODULE_1___default().string).isRequired
 } : 0;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -6137,8 +6445,8 @@ var Match = function Match(_ref8) {
           var navigate = _ref10.navigate,
               location = _ref10.location;
 
-          var resolvedPath = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.resolve)(path, baseuri);
-          var result = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.match)(resolvedPath, location.pathname);
+          var resolvedPath = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.resolve)(path, baseuri);
+          var result = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.match)(resolvedPath, location.pathname);
           return children({
             navigate: navigate,
             location: location,
@@ -6185,7 +6493,7 @@ var useParams = function useParams() {
 
   var location = useLocation();
 
-  var results = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.match)(context.basepath, location.pathname);
+  var results = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.match)(context.basepath, location.pathname);
 
   return results ? results.params : null;
 };
@@ -6202,8 +6510,8 @@ var useMatch = function useMatch(path) {
 
   var location = useLocation();
 
-  var resolvedPath = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.resolve)(path, context.baseuri);
-  var result = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.match)(resolvedPath, location.pathname);
+  var resolvedPath = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.resolve)(path, context.baseuri);
+  var result = (0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.match)(resolvedPath, location.pathname);
   return result ? _extends({}, result.params, {
     uri: result.uri,
     path: path
@@ -6225,11 +6533,11 @@ var createRoute = function createRoute(basepath) {
     if (element.type === (react__WEBPACK_IMPORTED_MODULE_0___default().Fragment) && element.props.children) {
       return react__WEBPACK_IMPORTED_MODULE_0___default().Children.map(element.props.children, createRoute(basepath));
     }
-    !(element.props.path || element.props.default || element.type === Redirect) ?  true ? invariant__WEBPACK_IMPORTED_MODULE_1___default()(false, "<Router>: Children of <Router> must have a `path` or `default` prop, or be a `<Redirect>`. None found on element type `" + element.type + "`") : 0 : void 0;
+    !(element.props.path || element.props.default || element.type === Redirect) ?  true ? invariant__WEBPACK_IMPORTED_MODULE_2___default()(false, "<Router>: Children of <Router> must have a `path` or `default` prop, or be a `<Redirect>`. None found on element type `" + element.type + "`") : 0 : void 0;
 
-    !!(element.type === Redirect && (!element.props.from || !element.props.to)) ?  true ? invariant__WEBPACK_IMPORTED_MODULE_1___default()(false, "<Redirect from=\"" + element.props.from + "\" to=\"" + element.props.to + "\"/> requires both \"from\" and \"to\" props when inside a <Router>.") : 0 : void 0;
+    !!(element.type === Redirect && (!element.props.from || !element.props.to)) ?  true ? invariant__WEBPACK_IMPORTED_MODULE_2___default()(false, "<Redirect from=\"" + element.props.from + "\" to=\"" + element.props.to + "\"/> requires both \"from\" and \"to\" props when inside a <Router>.") : 0 : void 0;
 
-    !!(element.type === Redirect && !(0,_lib_utils__WEBPACK_IMPORTED_MODULE_4__.validateRedirect)(element.props.from, element.props.to)) ?  true ? invariant__WEBPACK_IMPORTED_MODULE_1___default()(false, "<Redirect from=\"" + element.props.from + " to=\"" + element.props.to + "\"/> has mismatched dynamic segments, ensure both paths have the exact same dynamic segments.") : 0 : void 0;
+    !!(element.type === Redirect && !(0,_lib_utils__WEBPACK_IMPORTED_MODULE_5__.validateRedirect)(element.props.from, element.props.to)) ?  true ? invariant__WEBPACK_IMPORTED_MODULE_2___default()(false, "<Redirect from=\"" + element.props.from + " to=\"" + element.props.to + "\"/> has mismatched dynamic segments, ensure both paths have the exact same dynamic segments.") : 0 : void 0;
 
     if (element.props.default) {
       return { value: element, default: true };

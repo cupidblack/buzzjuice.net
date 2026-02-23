@@ -32,6 +32,22 @@ class WPCode_Conditional_Page_Pro extends WPCode_Conditional_Page {
 		return $this->evaluate_rule( $rule_row['option'], $rule_row['relation'], $rule_row['value'], $snippet );
 	}
 	/**
+	 * Load evaluation-only options (without translations) for frontend use.
+	 * This method is called when translations are not yet loaded to avoid WP 6.7 notices.
+	 *
+	 * @return void
+	 */
+	public function load_evaluation_options() {
+		parent::load_evaluation_options();
+
+		// Add callbacks for Pro features.
+		$this->options['post_id']['callback']       = array( $this, 'get_post_id' );
+		$this->options['page_template']['callback'] = array( $this, 'get_page_template' );
+		$this->options['post_author']['callback']   = array( $this, 'get_post_author' );
+		$this->options['post_meta']['callback']     = array( $this, 'get_post_meta' );
+	}
+
+	/**
 	 * Set the type options for the admin mainly.
 	 *
 	 * @return void

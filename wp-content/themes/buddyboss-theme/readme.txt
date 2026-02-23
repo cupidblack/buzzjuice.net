@@ -2,7 +2,7 @@
 Contributors: BuddyBoss
 Requires at least: 4.9.1
 Tested up to: 6.8.1
-Version: 2.16.1
+Version: 2.18.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -18,6 +18,23 @@ BuddyBoss Theme is a community theme for the BuddyBoss Platform.
 4. Upload the file 'buddyboss-theme-child.zip'
 
 == Changelog ==
+
+= 2.18.0 =
+* Bug: Core - Fixed multiple XSS vulnerabilities by properly sanitizing and escaping user-supplied URL parameters in the theme
+* Bug: LifterLMS - Fixed an issue where private LifterLMS courses were not consistently displayed when loaded via AJAX
+* Bug: Styling - Fixed a visual alignment issue with the search icon in the menu icons modal to ensure consistent positioning
+
+= 2.17.0 =
+* Bug: Core - Fixed alignment and spacing issues in the Color Customizer text block to ensure a consistent and properly aligned layout
+* Bug: Core - Fixed an issue where Spotify embed content was not displaying on the frontend when the BuddyBoss theme was active
+* Bug: Core - Fixed theme update stability by preventing database-related issues during updates
+* Bug: Elementor - Fixed an issue where the Elementor Header Bar element was displaying an unintended box-shadow
+* Bug: Forums - Fixed a visual alignment issue with the “Notify me of new replies” checkbox in forum discussion modals
+* Bug: Header - Fixed an issue where the header background color was not applying correctly to the header
+* Bug: LearnDash - Fixed an issue where LearnDash Profile block colors were not applied correctly on mobile view
+* Bug: LearnDash - Fixed an issue where the LearnDash restricted message was incorrectly displayed to admin users even when the Bypass Course Limits setting was enabled.
+* Bug: Members - Fixed an issue where members’ action buttons displayed incorrect active and focus colors during follow/unfollow actions
+* Bug: Members - Fixed styling issues with the Members Directory search form on mobile devices to ensure a consistent and responsive layout
 
 = 2.16.1 =
 * Bug: Core - Enhanced the license activation system with improved rate limiting and stability fixes to strengthen security

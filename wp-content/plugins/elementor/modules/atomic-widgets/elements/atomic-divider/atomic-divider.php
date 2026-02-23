@@ -2,15 +2,18 @@
 
 namespace Elementor\Modules\AtomicWidgets\Elements\Atomic_Divider;
 
-use Elementor\Modules\AtomicWidgets\Elements\Atomic_Widget_Base;
-use Elementor\Modules\AtomicWidgets\Elements\Has_Template;
+use Elementor\Modules\AtomicWidgets\Elements\Base\Atomic_Widget_Base;
+use Elementor\Modules\AtomicWidgets\Elements\Base\Has_Template;
 use Elementor\Modules\AtomicWidgets\PropTypes\Background_Prop_Type;
-use Elementor\Modules\AtomicWidgets\PropTypes\Key_Value_Array_Prop_Type;
+use Elementor\Modules\AtomicWidgets\PropTypes\Attributes_Prop_Type;
 use Elementor\Modules\AtomicWidgets\PropTypes\Classes_Prop_Type;
 use Elementor\Modules\AtomicWidgets\PropTypes\Color_Prop_Type;
 use Elementor\Modules\AtomicWidgets\PropTypes\Size_Prop_Type;
 use Elementor\Modules\AtomicWidgets\Styles\Style_Definition;
 use Elementor\Modules\AtomicWidgets\Styles\Style_Variant;
+use Elementor\Modules\AtomicWidgets\Controls\Section;
+use Elementor\Modules\AtomicWidgets\Controls\Types\Text_Control;
+use Elementor\Modules\Components\PropTypes\Overridable_Prop_Type;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -48,16 +51,25 @@ class Atomic_Divider extends Atomic_Widget_Base {
 			'classes' => Classes_Prop_Type::make()
 				->default( [] ),
 
-			'attributes' => Key_Value_Array_Prop_Type::make(),
+			'attributes' => Attributes_Prop_Type::make()->meta( Overridable_Prop_Type::ignore() ),
 		];
 	}
 
 	protected function define_atomic_controls(): array {
-		return [];
+		return [
+			Section::make()
+				->set_label( __( 'Settings', 'elementor' ) )
+				->set_id( 'settings' )
+				->set_items( $this->get_settings_controls() ),
+		];
 	}
 
 	protected function get_settings_controls(): array {
-		return [];
+		return [
+			Text_Control::bind_to( '_cssid' )
+				->set_label( __( 'ID', 'elementor' ) )
+				->set_meta( $this->get_css_id_control_meta() ),
+		];
 	}
 
 	protected function define_base_styles(): array {

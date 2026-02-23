@@ -185,6 +185,10 @@ function bbp_pro_version_updater() {
 			bbp_pro_update_to_2_6_81();
 		}
 
+		if ( $raw_db_version < 325 ) {
+			bbp_pro_update_to_2_12_00();
+		}
+
 		if ( $raw_db_version !== $current_db ) {
 			if ( function_exists( 'bb_pro_reaction_migration' ) ) {
 				bb_pro_reaction_migration();
@@ -660,4 +664,13 @@ function bb_pro_background_remove_empty_identifiers() {
 	);
 
 	$bb_background_updater->save()->schedule_event();
+}
+
+/**
+ * Update migration for a version 2.9.0.
+ *
+ * @since 2.9.0
+ */
+function bbp_pro_update_to_2_12_00() {
+	flush_rewrite_rules();
 }

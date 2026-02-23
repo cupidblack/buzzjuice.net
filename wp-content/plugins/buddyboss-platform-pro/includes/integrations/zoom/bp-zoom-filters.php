@@ -19,6 +19,7 @@ add_filter( 'bp_zoom_webinar_timezone_before_save', 'bb_zoom_get_server_allowed_
 add_filter( 'bp_get_zoom_meeting_timezone', 'bb_zoom_get_server_allowed_timezone', 99, 1 );
 add_filter( 'bp_get_zoom_webinar_timezone', 'bb_zoom_get_server_allowed_timezone', 99, 1 );
 add_filter( 'bb_notification_is_read_only', 'bb_zoom_group_notification_linkable', 99, 2 );
+add_filter( 'bp_activity_get_where_conditions', 'bp_zoom_exclude_activities_when_locked', 10, 5 );
 
 /**
  * Install or upgrade zoom integration.
@@ -260,4 +261,33 @@ function bb_zoom_group_notification_linkable( $retval, $notification ) {
 				bb_moderation_moderated_user_ids( $user_id )
 			)
 		);
+}
+
+/**
+ * Exclude zoom meeting and webinar activities when DRM features are locked.
+ *
+ * @since 2.11.0
+ *
+ * @param array  $where_conditions Current WHERE conditions.
+ * @param array  $r                Query arguments.
+ * @param string $select_sql       SELECT clause.
+ * @param string $from_sql         FROM clause.
+ * @param string $join_sql         JOIN clause.
+ *
+ * @return array Modified WHERE conditions.
+ */
+function bp_zoom_exclude_activities_when_locked( $where_conditions, $r, $select_sql, $from_sql, $join_sql ) {
+	if ( function_exists( 'bb_pro_should_lock_features' ) && bb_pro_should_lock_features() ) {
+		$excluded_zoom_types = array(
+			'zoom_meeting_create',
+			'zoom_meeting_notify',
+			'zoom_webinar_create',
+			'zoom_webinar_notify',
+		);
+
+		$not_in                                  = "'" . implode( "', '", esc_sql( $excluded_zoom_types ) ) . "'";
+		$where_conditions['excluded_zoom_types'] = "a.type NOT IN ({$not_in})";
+	}
+
+	return $where_conditions;
 }

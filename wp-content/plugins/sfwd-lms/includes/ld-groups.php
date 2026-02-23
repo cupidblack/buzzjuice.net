@@ -346,13 +346,18 @@ add_filter( 'woocommerce_prevent_admin_access', 'learndash_check_group_leader_ac
  * Gets the list of enrolled courses for a group.
  *
  * @since 2.1.0
+ * @since 5.0.0 Deprecated `$bypass_transient` parameter. Transient cache is no longer used here, so that parameter is no longer needed.
  *
- * @param int     $group_id         Optional. Group ID. Default 0.
- * @param boolean $bypass_transient Optional. Whether to bypass transient cache or not. Default false.
+ * @param int   $group_id         Optional. Group ID. Default 0.
+ * @param ?bool $bypass_transient Deprecated.
  *
  * @return array An array of course IDs.
  */
-function learndash_group_enrolled_courses( $group_id = 0, $bypass_transient = false ) {
+function learndash_group_enrolled_courses( $group_id = 0, $bypass_transient = null ) {
+	if ( ! is_null( $bypass_transient ) ) {
+		_deprecated_argument( __FUNCTION__, '5.0.0' );
+	}
+
 	$course_ids = array();
 
 	$group_id = absint( $group_id );
@@ -391,7 +396,7 @@ function learndash_set_group_enrolled_courses( $group_id = 0, $group_courses_new
 	$group_id = absint( $group_id );
 	if ( ! empty( $group_id ) ) {
 
-		$group_courses_old = learndash_group_enrolled_courses( $group_id, true );
+		$group_courses_old = learndash_group_enrolled_courses( $group_id );
 
 		$group_courses_intersect = array_intersect( $group_courses_new, $group_courses_old );
 
@@ -689,10 +694,11 @@ function learndash_user_group_enrolled_to_course_from( $user_id = 0, $course_id 
  *
  * @since 2.1.0
  *
- * @global wpdb   $wpdb    WordPress database abstraction object.
- *
- * @param int     $user_id User ID.
- * @param boolean $menu    Optional. Menu. Default false.
+ * @param int  $user_id User ID.
+ * @param bool $menu    Optional. When false (default), admin users get all groups.
+ *                      When true, admin users only get groups they actually lead.
+ *                      Useful for menu/UI contexts where you want to show only
+ *                      explicitly assigned groups. Default false.
  *
  * @return array A list of group ids managed by user.
  */
@@ -923,16 +929,21 @@ function learndash_set_users_group_ids( $user_id = 0, $user_groups_new = array()
 }
 
 /**
- * Gets the list of groups associated with the course.
+ * Gets the list of group IDs that are associated with the course.
  *
  * @since 2.2.1
+ * @since 5.0.0 Deprecated `$bypass_transient` parameter. Transient cache is no longer used here, so that parameter is no longer needed.
  *
- * @param int     $course_id        Optional. Course ID. Default 0.
- * @param boolean $bypass_transient Optional. Whether to bypass transient cache or not. Default false.
+ * @param int   $course_id        Optional. Course ID. Default 0.
+ * @param ?bool $bypass_transient Deprecated.
  *
  * @return array An array of group IDs associated with the course.
  */
-function learndash_get_course_groups( $course_id = 0, $bypass_transient = false ) {
+function learndash_get_course_groups( $course_id = 0, $bypass_transient = null ) {
+	if ( ! is_null( $bypass_transient ) ) {
+		_deprecated_argument( __FUNCTION__, '5.0.0' );
+	}
+
 	$group_ids = array();
 
 	$course_id = absint( $course_id );
@@ -973,7 +984,7 @@ function learndash_set_course_groups( $course_id = 0, $course_groups_new = array
 	}
 
 	if ( ! empty( $course_id ) ) {
-		$course_groups_old       = learndash_get_course_groups( $course_id, true );
+		$course_groups_old       = learndash_get_course_groups( $course_id );
 		$course_groups_intersect = array_intersect( $course_groups_new, $course_groups_old );
 
 		$course_groups_add = array_diff( $course_groups_new, $course_groups_intersect );
@@ -1487,8 +1498,7 @@ function learndash_is_group_leader_of_user( $group_leader_id = 0, $user_id = 0 )
 	$group_leader_id = absint( $group_leader_id );
 	$user_id         = absint( $user_id );
 
-	$admin_groups     = learndash_get_administrators_group_ids( $group_leader_id );
-	$has_admin_groups = ! empty( $admin_groups ) && is_array( $admin_groups ) && ! empty( $admin_groups[0] );
+	$admin_groups = learndash_get_administrators_group_ids( $group_leader_id );
 
 	foreach ( $admin_groups as $group_id ) {
 		$learndash_is_user_in_group = learndash_is_user_in_group( $user_id, $group_id );
@@ -1507,11 +1517,12 @@ function learndash_is_group_leader_of_user( $group_leader_id = 0, $user_id = 0 )
  * Checks whether a user is part of the group or not.
  *
  * @since 2.1.0
+ * @since 5.0.0 Always returns boolean, previously returned group ID when hierarchical was not enabled.
  *
  * @param int $user_id  User ID.
  * @param int $group_id Group ID.
  *
- * @return boolean Returns true if the user is part of the group otherwise false.
+ * @return bool Returns true if the user is part of the group otherwise false.
  */
 function learndash_is_user_in_group( $user_id = 0, $group_id = 0 ) {
 	$user_id  = absint( $user_id );
@@ -1523,7 +1534,9 @@ function learndash_is_user_in_group( $user_id = 0, $group_id = 0 ) {
 				return true;
 			}
 		} else {
-			return get_user_meta( $user_id, 'learndash_group_users_' . $group_id, true );
+			return ! empty(
+				get_user_meta( $user_id, 'learndash_group_users_' . $group_id, true )
+			);
 		}
 	}
 
@@ -1575,6 +1588,7 @@ add_action( 'delete_post', 'learndash_delete_group', 10 );
 
 /**
  * Updates a user's group access.
+ * Not recommended to use, use `Product::enroll` and `Product::unenroll` instead.
  *
  * @since 2.1.0
  * @since 3.4.0 Added return boolean.
@@ -1647,6 +1661,12 @@ function ld_update_group_access( $user_id = 0, $group_id = 0, $remove = false ):
 					$product && $product->get_start_date() ? $product->get_start_date() : time()
 				);
 
+				// Create 'access' activity records for all courses in this group.
+				learndash_bulk_create_course_access_activities(
+					[ $user_id ],
+					learndash_group_enrolled_courses( $group_id )
+				);
+
 				/**
 				 * Fires after the user is added to group access meta.
 				 *
@@ -1713,8 +1733,21 @@ function ld_update_course_group_access( $course_id = 0, $group_id = 0, $remove =
 		} else {
 			$group_enrolled = get_post_meta( $course_id, 'learndash_group_enrolled_' . $group_id, true );
 			if ( empty( $group_enrolled ) ) {
-				$action_success = true;
-				update_post_meta( $course_id, 'learndash_group_enrolled_' . $group_id, time() );
+				$action_success  = true;
+				$enrollment_time = time();
+				update_post_meta( $course_id, 'learndash_group_enrolled_' . $group_id, $enrollment_time );
+
+				// Store permanent enrollment timestamp for historical data (not deleted on removal).
+				$enrolled_at = get_post_meta( $course_id, 'learndash_group_' . $group_id . '_enrolled_at', true );
+				if ( empty( $enrolled_at ) ) {
+					update_post_meta( $course_id, 'learndash_group_' . $group_id . '_enrolled_at', $enrollment_time );
+				}
+
+				// Create 'access' activity records for all users in this group.
+				learndash_bulk_create_course_access_activities(
+					learndash_get_groups_user_ids( $group_id ),
+					[ $course_id ]
+				);
 
 				/**
 				 * Fires after the user is added to the course group access meta.
@@ -1731,7 +1764,6 @@ function ld_update_course_group_access( $course_id = 0, $group_id = 0, $remove =
 
 	return $action_success;
 }
-
 
 /**
  * Updates the group access for a group leader.
@@ -2418,8 +2450,12 @@ function learndash_get_group_courses_per_page( $group_id = 0 ) {
 	if ( ! empty( $group_id ) ) {
 		$group_settings = learndash_get_setting( intval( $group_id ) );
 
-		if ( ( isset( $group_settings['group_courses_per_page_enabled'] ) ) && ( 'CUSTOM' === $group_settings['group_courses_per_page_enabled'] ) && ( isset( $group_settings['group_courses_per_page_custom'] ) ) ) {
-			$group_courses_per_page = absint( $group_settings['group_courses_per_page_custom'] );
+		if (
+			isset( $group_settings['group_courses_per_page_enabled'] )
+			&& $group_settings['group_courses_per_page_enabled'] === 'on'
+			&& isset( $group_settings['group_courses_per_page_custom'] )
+		) {
+			$group_courses_per_page = $group_settings['group_courses_per_page_custom'];
 		}
 	}
 
@@ -2427,11 +2463,14 @@ function learndash_get_group_courses_per_page( $group_id = 0 ) {
 	 * Filters group courses per page.
 	 *
 	 * @since 3.2.0
+	 * @since 5.0.0 Forced the return value to be an integer.
 	 *
 	 * @param int $group_courses_per_page Per page value.
 	 * @param int $group_id               Group ID.
+	 *
+	 * @return int
 	 */
-	return apply_filters( 'learndash_group_courses_per_page', $group_courses_per_page, $group_id );
+	return apply_filters( 'learndash_group_courses_per_page', absint( Cast::to_int( $group_courses_per_page ) ), $group_id );
 }
 
 /**

@@ -207,9 +207,7 @@ final class LearnDash_Course_Reviews_Loader {
 			return;
 		}
 
-		if ( empty( $comment_query->query_vars['type__not_in'] ) ) {
-			$comment_query->query_vars['type__not_in'] = [];
-		}
+		$comment_query->query_vars['type__not_in'] = (array) $comment_query->query_vars['type__not_in'];
 
 		$comment_query->query_vars['type__not_in'][] = 'ld_review';
 	}
@@ -219,10 +217,10 @@ final class LearnDash_Course_Reviews_Loader {
 	 *
 	 * @since 4.25.1
 	 *
-	 * @param int $comment_count Comment Count, pulled from wp_posts.
-	 * @param int $post_id       Post ID.
+	 * @param int|string $comment_count Comment Count, pulled from wp_posts.
+	 * @param int        $post_id       Post ID.
 	 *
-	 * @return int               Comment Count.
+	 * @return int|string               Comment Count. Returns string when > 0, int 0 otherwise, matching WordPress core behavior.
 	 */
 	public function fix_comment_counts( $comment_count, $post_id ) {
 		$comments = get_comments(
@@ -236,7 +234,14 @@ final class LearnDash_Course_Reviews_Loader {
 			return $comment_count;
 		}
 
-		return count( $comments );
+		$count = count( $comments );
+
+		// Match WordPress core behavior: return string when > 0, int 0 otherwise.
+		if ( $count > 0 ) {
+			return (string) $count;
+		}
+
+		return 0;
 	}
 }
 

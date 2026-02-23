@@ -1855,9 +1855,10 @@ if ( ! function_exists( 'buddyboss_theme_sudharo_tapas' ) ) {
 			}
 		} elseif (
 				! class_exists( '\BuddyBoss\Core\Admin\Mothership\BB_License_Manager' ) &&
-				class_exists( '\BuddyBossTheme\Admin\Mothership\BB_Theme_License_Manager' )
+				class_exists( '\BuddyBossTheme\Admin\Mothership\BB_Theme_Connector' )
 		) {
-			$is_cached = \BuddyBossTheme\Admin\Mothership\BB_Theme_License_Manage::checkLicenseStatus();
+			$theme_connector = new \BuddyBossTheme\Admin\Mothership\BB_Theme_Connector();
+			$is_cached       = $theme_connector->getLicenseActivationStatus();
 		}
 
 		return $is_cached;

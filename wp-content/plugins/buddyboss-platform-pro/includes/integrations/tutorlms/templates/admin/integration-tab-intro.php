@@ -17,7 +17,7 @@
 		if ( ! empty( $meta_icon ) ) {
 			$meta_icon_html .= '<i class="' . esc_attr( $meta_icon ) . '"></i>';
 		}
-		if ( ! bbp_pro_is_license_valid() ) {
+		if ( bb_pro_should_lock_features() ) {
 			?>
 			<h2>
 				<?php

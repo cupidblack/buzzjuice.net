@@ -32,7 +32,7 @@ class Lesson extends LDLMS_V2_Endpoint {
 	 * @return array<string,array<string,mixed>|string>
 	 */
 	public function get_response_schema( string $path = '', string $method = '' ): array {
-		$route_path = '/' . trim( $this->get_namespace(), '/' ) . '/' . ltrim( $path, '/' );
+		$route_path = '/' . ltrim( $path, '/' );
 
 		if ( $this->determine_route_type( $route_path ) === 'singular' ) {
 			return [
@@ -184,5 +184,16 @@ class Lesson extends LDLMS_V2_Endpoint {
 			__( 'Performs operations on %s.', 'learndash' ),
 			learndash_get_custom_label_lower( 'lessons' )
 		);
+	}
+
+	/**
+	 * Returns the tags for this endpoint.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return string[]
+	 */
+	protected function get_tags(): array {
+		return [ learndash_get_custom_label_lower( 'lessons' ) ];
 	}
 }

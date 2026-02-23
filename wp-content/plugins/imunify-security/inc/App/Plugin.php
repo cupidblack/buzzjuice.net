@@ -8,9 +8,14 @@
 
 namespace CloudLinux\Imunify\App;
 
-use CloudLinux\Imunify\App\Views\Widget;
-use CloudLinux\Imunify\App\Views\AdminPage;
 use CloudLinux\Imunify\App\Api\AjaxHandler;
+use CloudLinux\Imunify\App\Defender\Defender;
+use CloudLinux\Imunify\App\Defender\IncidentRecorder;
+use CloudLinux\Imunify\App\Defender\RateLimiter;
+use CloudLinux\Imunify\App\Defender\Request;
+use CloudLinux\Imunify\App\Defender\RuleProvider;
+use CloudLinux\Imunify\App\Views\AdminPage;
+use CloudLinux\Imunify\App\Views\Widget;
 
 /**
  * Initial class
@@ -103,9 +108,24 @@ class Plugin {
 	 */
 	private function coreSetup() {
 		$this->container[ Debug::class ]         = new Debug( $this->environment() );
-		$this->container[ DataStore::class ]     = new DataStore();
+		$this->container[ DataStore::class ]     = new DataStore( $this->container[ Debug::class ] );
 		$this->container[ AccessManager::class ] = new AccessManager();
 		$this->container[ AjaxHandler::class ]   = new AjaxHandler( $this->container[ DataStore::class ] );
+
+		$ruleProvider = new RuleProvider( $this->container[ Debug::class ], $this->container[ DataStore::class ] );
+		$rules        = $ruleProvider->loadRules();
+
+		if ( ! empty( $rules ) ) {
+			$request          = new Request();
+			$rateLimiter      = new RateLimiter();
+			$incidentRecorder = new IncidentRecorder( $rateLimiter );
+			$defender         = new Defender( $ruleProvider, $incidentRecorder );
+			$defender->processRules( $request );
+
+			$this->container[ RateLimiter::class ]      = $rateLimiter;
+			$this->container[ IncidentRecorder::class ] = $incidentRecorder;
+			$this->container[ Defender::class ]         = $defender;
+		}
 
 		add_action( 'init', array( $this, 'load_translations' ) );
 	}

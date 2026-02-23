@@ -5,7 +5,7 @@ Text Domain: wp-slimstat
 Requires at least: 5.6
 Requires PHP: 7.4
 Tested up to: 6.8
-Stable tag: 5.2.13
+Stable tag: 5.3.5
 License: GPL-2.0+
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,6 +17,7 @@ Track returning customers and registered users, monitor Javascript events, detec
 = Main Features =
 * **Real-Time Access Log**: measure server latency, track page events, keep an eye on your bounce rate and much more.
 * **Shortcodes**: display reports in widgets or directly in posts and pages.
+* **Customize Reports**: Customize all pages—Real-time, Overview, Audience, Site Analysis, and Traffic Sources—to fit your needs easily!
 * **GDPR**: fully compliant with the GDPR European law. You can test your website at [cookiebot.com](https://www.cookiebot.com/en/).
 * **Filters**: exclude users from statistics collection based on various criteria, including user roles, common robots, IP subnets, admin pages, country, etc.
 * **Export to Excel**: download your reports as CSV files, generate user heatmaps or get daily emails right in your mailbox (via Pro).
@@ -36,7 +37,7 @@ Track returning customers and registered users, monitor Javascript events, detec
 * **Extended Overview**: Add custom columns to the User Overview widget and export file.
 
 = Requirements =
-* WordPress 5.0+
+* WordPress 5.6+
 * PHP 7.4+
 * MySQL 5.0.3+
 * At least 5 MB of free web space (240 MB if you plan on using the external libraries for geolocation and browser detection)
@@ -62,35 +63,42 @@ An extensive knowledge base is available on our [website](https://www.wp-slimsta
 
 == Screenshots ==
 1. **Real-Time** - A real-time view of your visitors' whereabouts
-2. **Overview** - Your website traffic at a glance
-3. **Audience** - See your visitors' full information
-4. **Site Analysis** - Provides insights into how visitors are using your website
-5. **Traffic Sources** - See where your visitors are coming from, such as search engines, social media, or referral websites
-6. **Customize widgets** - Allows you to customize the analytics widgets that are displayed in your Slimstat dashboard
-7. **Settings** - Plenty of options to customize the plugin's behavior
+2. **Word Map** - Identify them by country, browser, and operating system in a snap.
+3. **Overview** - Your website traffic at a glance. Enjoy a simple, all-in-one dashboard to check your website stats quickly.
+4. **Audience** - See your visitors' full information
+5. **Site Analysis** - See top pages, categories, download and outbound links in an easy, simple view.
+6. **Traffic Sources** - See where your visitors are coming from, such as search engines, social media, or referral websites
+7. **Customize widgets** - Customize all pages—Real-time, Overview, Audience, Site Analysis, and Traffic Sources—to fit your needs easily!
+8. **WordPress Dashboard** - Add and display custom reports like Traffic Sources directly on your WordPress dashboard!
+9. **Settings** - Plenty of options to customize the plugin's behavior
 
 == Changelog ==
-= 5.2.13 - 2025-04-29 =
-- **Fix**: Resolved issues with pagination in reports.
+= 5.3.5 - 2025-12-31 =
+* Security: Hardened plugin security
 
-= 5.2.12 - 2025-04-26 =
-- **Enhancement**: Removed red color from report export boxes to reduce eye strain and improve user experience.
+= 5.3.4 - 2024-12-28 =
+* Security: Hardened plugin security
 
-= 5.2.11 - 2025-04-25 =
-- Full release notes → [WordPress Real-time Analytics Plugin](https://wp-slimstat.com/wordpress-analytics-plugin-slimstat-5-2-11-release-notes/?utm_source=wordpress&utm_medium=changelog&utm_campaign=changelog&utm_content=5-2-11) – SlimStat 5.2.11 Release Notes
-- **Visual Enhancement**: Improved UI with eye-catching visual elements for better user experience.
-- **Enhancement**: Optimized SQL query to reduce the chances of errors and improve overall performance.
-- **Enhancement**: The "Export" button for non-Pro users now links to the Slimstat PRO version page, improving clarity around upgrade options.
-- **Enhancement**: Added support for the WordPress date format setting for the charts.
-- **Fix**: Fatal error in EmailReportsAddon.php for missing `get_plugins` method.
-- **Fix**: Prevented PHP warning by checking if 'referer' array key is set in searchterms reports view.
-- **Fix**: Fix a database error related to the notes column.
-- **Fix**: Prevented horizontal scrolling in the reports area and improved page loading animations by ensuring styles are applied correctly.
-- **Fix**: Addressed several user-reported issues to enhance overall stability and user experience.
-- **Fix**: Investigate and resolve the "Division by zero" fatal error in `wp-slimstat-db.php` caused by PHP version 8.2.22. Further investigation needed to determine the root cause and provide a fix.
+= 5.3.3 - 2025-12-17 =
+* Maintenance: Stability and compatibility improvements.
 
-= 5.2.9 - 2024-11-12 =
-- **Enhancement**: Ensured compatibility with WordPress version 6.7.
-- **Fix**: Resolved the Top Referring Domain Issue.
+= 5.3.2 - 2025-11-24 =
+- Fix: Minor improvements & Hardened plugin security.
 
-[See changelog for all versions](https://raw.githubusercontent.com/wp-slimstat/wp-slimstat/master/CHANGELOG.md).
+= 5.3.1 - 2025-09-09 =
+- **Fix**: Resolved "Invalid Date, NaN" error in monthly charts for 12-month ranges.
+- **Fix**: Real-time report date filters not properly cleared during auto-refresh.
+- **Fix**: Real-time report not updating at midnight with filters.
+- **Fix**: Undefined variable $unpacked in PHP tracking logic;
+- **Enhancement**: Enhanced responsive design for the "Access Log" report.
+- **Enhancement**: Improved tracking logic to prevent duplicate pageviews and events.
+- **Enhancement**: Enhanced interaction tracking and heartbeat finalization.
+
+= 5.3.0 - 2025-08-25 =
+- **New**: Tracker type options (REST API + Ad-blocker bypass) for improved tracking flexibility.
+- **New**: Support for WordPress date format setting in charts.
+- **New**: Hourly, daily, weekly, monthly, and yearly chart granularities for deeper insights.
+- **Enhancement**: Redesigned line charts for better readability.
+- **Enhancement**: Compatibility with WordPress’s Interactivity API for seamless integration.
+- **Enhancement**: Added new 3 date ranges formats (Last 2 weeks, Previous month, This month).
+[See full release notes](https://wp-slimstat.com/wordpress-analytics-plugin-slimstat-5-3-release-notes/?utm_source=wordpress&utm_medium=changelog&utm_campaign=changelog&utm_content=5-3-0)

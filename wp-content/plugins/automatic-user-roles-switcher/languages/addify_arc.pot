@@ -1,0 +1,500 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Automatic User Roles Switcher\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-20 13:04+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.8.0; wp-6.9; php-8.2.12\n"
+"X-Domain: addify_arc"
+
+#: class-addify-automatic-role-changer-admin.php:817
+msgid " All Rules"
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:608
+msgid " General Settings"
+msgstr ""
+
+#. %s: custom post revision
+#: class-addify-automatic-role-changer-admin.php:68
+#, php-format
+msgid "%1$s restored to revision from %2$s"
+msgstr ""
+
+#. %s: custom post scheduled update
+#: class-addify-automatic-role-changer-admin.php:76
+#, php-format
+msgid "%1$s scheduled for: <strong>%2$s</strong>."
+msgstr ""
+
+#. %s: custom post draft update
+#: class-addify-automatic-role-changer-admin.php:78
+#, php-format
+msgid "%s draft updated."
+msgstr ""
+
+#. %s: custom post published
+#: class-addify-automatic-role-changer-admin.php:70
+#, php-format
+msgid "%s published."
+msgstr ""
+
+#. %s: rules count
+#: class-addify-automatic-role-changer-admin.php:100
+#, php-format
+msgid "%s rule moved to the Trash."
+msgid_plural "%s rules moved to the Trash."
+msgstr[0] ""
+msgstr[1] ""
+
+#. %s: rules count
+#: class-addify-automatic-role-changer-admin.php:96
+#, php-format
+msgid "%s rule not updated, somebody is editing it."
+msgid_plural "%s rules not updated, somebody is editing them."
+msgstr[0] ""
+msgstr[1] ""
+
+#. %s: rules count
+#: class-addify-automatic-role-changer-admin.php:98
+#, php-format
+msgid "%s rule permanently deleted."
+msgid_plural "%s rules permanently deleted."
+msgstr[0] ""
+msgstr[1] ""
+
+#. %s: rules count
+#: class-addify-automatic-role-changer-admin.php:102
+#, php-format
+msgid "%s rule restored from the Trash."
+msgid_plural "%s rules restored from the Trash."
+msgstr[0] ""
+msgstr[1] ""
+
+#. %s: rules count
+#: class-addify-automatic-role-changer-admin.php:94
+#, php-format
+msgid "%s rule updated."
+msgid_plural "%s rules updated."
+msgstr[0] ""
+msgstr[1] ""
+
+#. %s: custom post saved
+#: class-addify-automatic-role-changer-admin.php:72
+#, php-format
+msgid "%s saved."
+msgstr ""
+
+#. %s: custom post submitted
+#: class-addify-automatic-role-changer-admin.php:74
+#, php-format
+msgid "%s submitted."
+msgstr ""
+
+#. %s: custom post update
+#: class-addify-automatic-role-changer-admin.php:62
+#: class-addify-automatic-role-changer-admin.php:66
+#, php-format
+msgid "%s updated."
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:819
+msgid "Add New Rule"
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:821
+msgid "Add Rule"
+msgstr ""
+
+#. Author of the plugin
+msgid "Addify"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:195
+msgid "Additional Role"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:889
+msgid "After how many days of membership you want to revert back the user role"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:738
+msgid ""
+"After how many days of subscription purchase you want to change user role"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:672
+#: includes/class-addify-automatic-role-changer-rules.php:796
+msgid "All"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:274
+msgid "And case in between"
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:825
+msgid "Automatic \tUser Roles Switcher"
+msgstr ""
+
+#. Page title.
+#. Name of the plugin
+#: class-addify-automatic-role-changer-admin.php:434
+msgid "Automatic User Roles Switcher"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:481
+msgid "Category"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:283
+msgid "Choose Product(s)"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:171
+msgid "Current Role"
+msgstr ""
+
+#: includes/addify-automatic-role-changer-general-functions.php:54
+msgid "Current Role Change Date "
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:441
+msgid "Customers total spend falls within the following price range."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:909
+msgid "Days"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:736
+#: includes/class-addify-automatic-role-changer-rules.php:887
+msgid "days"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:586
+msgid "Domain URL"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:903
+msgid "Duration for The Roles"
+msgstr ""
+
+#. Description of the plugin
+msgid ""
+"Easily manage your customers and offer tailored products and promotions by "
+"automatically switching user roles."
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:827
+msgid "Edit Rule"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:164
+msgid "Enable this for assign multiple user roles."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:155
+msgid "Enable this for switch to single user role."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:593
+msgid "Enter domain URL(s). Comma(,) separated. Ex: gamil.com"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:737
+#: includes/class-addify-automatic-role-changer-rules.php:888
+msgid "Enter no of days"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:408
+msgid "Enter number of products a customer purchased to switch/gain new role."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:527
+msgid "Enter product category."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:570
+msgid "Enter product tags."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:221
+msgid "From This User Role"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:132
+#: includes/class-addify-automatic-role-changer-rules.php:427
+#: includes/class-addify-automatic-role-changer-rules.php:450
+msgid "From:"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:145
+msgid "Gain Role"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:375
+msgid "Grant role based on number of products ordered from selected products."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:364
+msgid "Grant role based on the quantity ordered from selected products."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:353
+msgid "Grant role when all of the selected products are purchased."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:342
+msgid "Grant role when any of the selected products are purchased."
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:766
+msgid ""
+"Hello {customer_full_name} your role has changed from  "
+"{customer_switch_from_role}. Congratulations you are now an "
+"{customer_switch_to_role}"
+msgstr ""
+
+#. URI of the plugin
+msgid "https://woo.com/products/automatic-user-roles-switcher/"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://woo.com/vendor/addify/"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:913
+msgid "If empty, the role will not change."
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:76
+#: class-addify-automatic-role-changer-main.php:149
+msgid "M j, Y @ G:i"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:785
+msgid "Memberships"
+msgstr ""
+
+#: includes/addify-automatic-role-changer-general-functions.php:240
+msgid "No History Available."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:729
+#: includes/class-addify-automatic-role-changer-rules.php:880
+msgid "No of Days"
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:823
+msgid "No Rules found"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:403
+msgid "Number of Products"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:275
+msgid "Or case in between"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:417
+msgid "Order subtotal falls within the following price range."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:383
+msgid "Product counter:"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:661
+msgid "Products"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:331
+msgid "Products Matching"
+msgstr ""
+
+#: includes/addify-automatic-role-changer-general-functions.php:50
+msgid "Reason to Change"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:813
+msgid "Remove User Role on Membership Status"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:689
+msgid "Remove User Role on Status"
+msgstr ""
+
+#: includes/addify-automatic-role-changer-general-functions.php:66
+msgid "Role End Date "
+msgstr ""
+
+#: includes/addify-automatic-role-changer-general-functions.php:62
+msgid "Role Start Date "
+msgstr ""
+
+#: class-addify-automatic-role-changer-main.php:102
+#: class-addify-automatic-role-changer-main.php:116
+msgid "Role Switcher"
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:815
+msgid "Roles Switchers"
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:64
+msgid "Rule deleted."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:21
+msgid "Rule Settings"
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:63
+msgid "Rule updated."
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:600
+msgid "Rules"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:471
+msgid "Select a Taxonomy"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:873
+msgid "Select membership status."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:422
+#: includes/class-addify-automatic-role-changer-rules.php:445
+msgid "Select Price Range"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:495
+msgid "Select Product Category"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:534
+msgid "Select Product Tag"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:778
+msgid "Select specific memberships"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:653
+msgid "Select specific subscription products"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:722
+msgid "Select subscription status"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:215
+msgid ""
+"Select user roles to gain new role. (A customer having any of above selected "
+"role will be gain to the new roles)."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:189
+msgid ""
+"Select user roles to switch. (A customer having any of above selected role "
+"will be switch to the new role)."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:911
+msgid "Set a duration for user roles in days."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:126
+msgid "Set Date Range"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:138
+msgid "Set date range for this rule."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:387
+msgid "Set number products for change user role."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:432
+#: includes/class-addify-automatic-role-changer-rules.php:455
+msgid "Set price range for user role change."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:758
+msgid "Specific Memberships"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:611
+msgid "Specific Subscription Products"
+msgstr ""
+
+#: includes/addify-automatic-role-changer-general-functions.php:42
+msgid "Switch From"
+msgstr ""
+
+#: includes/addify-automatic-role-changer-general-functions.php:46
+msgid "Switch To"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:581
+msgid "Switch User Role By Email Domain URL."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:487
+msgid "Tag"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:241
+msgid "To This Role"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:134
+msgid "To:"
+msgstr ""
+
+#: includes/addify-automatic-role-changer-general-functions.php:58
+msgid "Total Days For Role"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:753
+msgid "User has a membership."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:605
+msgid "User has an active subscription"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:280
+msgid "User purchased a specific product."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:399
+msgid "User purchased number of products from entire catalog."
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:464
+msgid "User purchased products from specific categories or tags."
+msgstr ""
+
+#: class-addify-automatic-role-changer-admin.php:514
+#: class-addify-automatic-role-changer-admin.php:569
+#: includes/class-addify-automatic-role-changer-user-profile.php:55
+msgid "User Role Change history"
+msgstr ""
+
+#: includes/class-addify-automatic-role-changer-rules.php:261
+msgid "When will:"
+msgstr ""

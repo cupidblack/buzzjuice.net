@@ -165,8 +165,8 @@ class THWCFE_Block {
                 continue;
             }
             if (isset($field_set[$key])) {
-                $field['index'] = $field_set[$key]['priority'] ?? $field['index'];
-                $field['label'] = $field_set[$key]['label']?? $field['label'];
+                $field['index'] = ! empty( $field_set[$key]['priority'] )? $field_set[$key]['priority'] : $field['index'];
+                $field['label'] = ! empty( $field_set[$key]['label'] ) ? $field_set[$key]['label']: $field['label'];
                 if($remove_optional){
                     $field['optionalLabel'] = $field_set[$key]['label']?? $field['optionalLabel'];
                 }else{
@@ -408,6 +408,8 @@ class THWCFE_Block {
 
         $order_meta_updates = array();
         $user_meta_updates = array();
+        // Check if we need to convert datepicker values to WP timezone.
+        $force_wp_server_time_date_picker = apply_filters('thwcfe_force_wp_date_time_for_date_picker', false);
 		foreach ($request_data as $section_key => $section_fields) {
             if (!isset($sections[$section_key]) || empty($section_fields)) {
                 continue;
@@ -425,7 +427,9 @@ class THWCFE_Block {
                 }
                 $field = $section->fields[$field_key];
                 if($field->type && $field->type === 'datepicker' && $field_value){
-                    $field_value = $this->convert_to_wp_timezone($field_value);
+                    if($force_wp_server_time_date_picker){
+                        $field_value = $this->convert_to_wp_timezone($field_value);
+                    }
                 }
 
                 if(is_array($field_value)){

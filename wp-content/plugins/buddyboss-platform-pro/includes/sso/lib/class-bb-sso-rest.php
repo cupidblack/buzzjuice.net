@@ -323,6 +323,11 @@ class BB_SSO_REST {
 							)
 						);
 
+						// Append invalid nickname message to bb-sso-reg-error div if available.
+						if ( ! empty( $allow_signup['signup_fields_invalid_nickname_message'] )) {
+							$signup_fields_msg = bb_sso_append_error_to_signup_div( $signup_fields_msg, $allow_signup['signup_fields_invalid_nickname_message'] );
+						}
+
 						$redirect_url = BB_SSO::enable_notice_for_url( $allow_signup['redirect_url'] );
 
 						$data = array(
@@ -358,6 +363,31 @@ class BB_SSO_REST {
 										'required'    => $field_label['required'],
 										'options'     => array(),
 										'member_type' => '',
+									);
+								}
+							}
+
+							// Append invalid nickname field.
+							if ( ! empty( $allow_signup['signup_fields_invalid_nickname_message'] ) ) {
+								$nickname_field_id = bp_xprofile_nickname_field_id();
+								$nickname_field    = xprofile_get_field( $nickname_field_id );
+								if ( ! empty( $nickname_field ) ) {
+
+									// Get the value for the nickname field.
+									$nickname_url_components = wp_parse_url( $redirect_url );
+									parse_str( $nickname_url_components['query'], $nickname_query_params );
+									$nickname_value = ! empty( $nickname_query_params['field_' . $nickname_field_id] ) ? $nickname_query_params['field_' . $nickname_field_id] : '';
+
+									$field             = $fields_endpoint->assemble_response_data( $nickname_field, $request );
+									$required_fields[] = array(
+										'id'          => 'field_' . $nickname_field_id,
+										'label'       => ( ! empty( $field['alternate_name'] ) ? $field['alternate_name'] : $field['name'] ),
+										'description' => $field['description']['rendered'],
+										'type'        => $field['type'],
+										'required'    => $field['is_required'],
+										'options'     => array(),
+										'member_type' => '',
+										'value'       => $nickname_value,
 									);
 								}
 							}
@@ -405,8 +435,13 @@ class BB_SSO_REST {
 						if ( isset( $allow_signup['fields']['first_name'] ) && $allow_signup['fields']['first_name'] ) {
 							$prefill_fields['field_1'] = $provider->get_auth_user_data_by_auth_options( 'first_name', $access_token );
 						}
-						if ( isset( $allow_signup['fields']['last_name'] ) && $allow_signup['fields']['last_name'] ) {
-							$prefill_fields['field_2'] = $provider->get_auth_user_data_by_auth_options( 'last_name', $access_token );
+
+						// Prefill last name if it's not a required field.
+						if ( isset( $allow_signup['require_fields_label'] ) && ! array_key_exists( 2, $allow_signup['require_fields_label'] ) ) {
+							$lname = $provider->get_auth_user_data_by_auth_options( 'last_name', $access_token );
+							if ( ! empty( $lname ) ) {
+								$prefill_fields['field_2'] = $lname;
+							}
 						}
 
 						// If Apple, remove required fields based on available data from the social table and access token data.
@@ -471,10 +506,14 @@ class BB_SSO_REST {
 									if ( 'signup_password_confirm' === $key ) {
 										$prefill_fields[ $key ] = $prefill_fields['signup_password'];
 									}
+
+									if ( ! empty( $allow_signup['signup_fields_invalid_nickname_message'] ) && 'field_' . $nickname_field_id === $key ) {
+										unset( $prefill_fields[ $key ] );
+									}
 								}
 							}
 						}
-						$prefill_fields['picture']      = ! empty( $provider->get_auth_user_data_by_auth_options( 'picture', $access_token ) ) ?? '';
+						$prefill_fields['picture']      = $provider->get_auth_user_data_by_auth_options( 'picture', $access_token ) ?? '';
 						$prefill_fields['device_token'] = $device_token;
 						$prefill_fields['login_type']   = 'register';
 
@@ -506,7 +545,7 @@ class BB_SSO_REST {
 							$name            = sanitize_user( strtolower( $first_name ) . strtolower( $last_name ), true );
 						}
 					}
-					if ( empty( $name ) ) {
+					if ( empty( $name ) || ! validate_username( $name ) ) {
 						$bb_autogenerate_user_prefix = apply_filters( 'bb_sso_autogenerate_user_prefix', '' );
 						$name                        = function_exists( 'bb_generate_user_random_profile_slugs' ) ? bb_generate_user_random_profile_slugs( 1, $bb_autogenerate_user_prefix ) : '';
 						if ( ! empty( $name ) ) {

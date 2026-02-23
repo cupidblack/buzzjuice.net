@@ -34,11 +34,6 @@ class DataStore {
 	const AUTH_FILE = 'auth.php';
 
 	/**
-	 * Transient key prefix for error throttling.
-	 */
-	const ERROR_THROTTLE_PREFIX = 'imunify_security_error_';
-
-	/**
 	 * API host.
 	 */
 	const API_HOST = '127.0.0.1';
@@ -73,10 +68,20 @@ class DataStore {
 	private $dataDirectoryLocation = '';
 
 	/**
-	 * Constructor.
+	 * Debug instance.
+	 *
+	 * @var Debug
 	 */
-	public function __construct() {
+	private $debug;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param Debug $debug Debug instance.
+	 */
+	public function __construct( $debug ) {
 		$this->dataDirectoryLocation = WP_CONTENT_DIR;
+		$this->debug                 = $debug;
 	}
 
 	/**
@@ -117,7 +122,7 @@ class DataStore {
 	 *
 	 * @return string
 	 */
-	private function getDataDirectory() {
+	public function getDataDirectory() {
 		return $this->dataDirectoryLocation . DIRECTORY_SEPARATOR . self::DIRECTORY;
 	}
 
@@ -184,7 +189,7 @@ class DataStore {
 	 *
 	 * @return array|null
 	 */
-	private function load( $filename ) {
+	public function load( $filename ) {
 		if ( ! $this->isDataFileAvailable( $filename ) ) {
 			return null;
 		}
@@ -279,26 +284,7 @@ class DataStore {
 	 * @since 2.0.0
 	 */
 	public function handleError( $message, $errorCode, $context = array(), $throwException = true ) {
-		$transientKey = self::ERROR_THROTTLE_PREFIX . $errorCode;
-
-		// Check if this error was already reported in the last hour.
-		if ( ! get_transient( $transientKey ) ) {
-
-			// Set transient to prevent this error from being reported again for an hour.
-			set_transient( $transientKey, true, HOUR_IN_SECONDS );
-
-			do_action(
-				'imunify_security_set_error',
-				E_WARNING,
-				$message,
-				__FILE__,
-				__LINE__,
-				array(
-					'fingerprint' => array( $errorCode ),
-					'context'     => $context,
-				)
-			);
-		}
+		$this->debug->sendThrottledError( $message, $errorCode, $context );
 
 		if ( $throwException ) {
 			throw new ApiException( $message, $errorCode );
@@ -410,27 +396,7 @@ class DataStore {
 		}
 
 		$command = implode( ' ', $commands );
-		if ( 'permissions list' === $command ) {
-			$data['items'][] = 'upgrade_button';
-		}
-
-		// Update versioning information to include the WordPress plugin version.
-		if ( 'get-package-versions' === $command ) {
-			if ( isset( $data['data']['items'] ) && is_array( $data['data']['items'] ) ) {
-				$data['data']['items']['imunify-wp-plugin'] = IMUNIFY_SECURITY_VERSION;
-			}
-		}
-
-		// Inject missing license data to the response from scan data.
-		if ( array_key_exists( 'license', $data['data'] ) && is_array( $data['data']['license'] ) ) {
-			$scanData = $this->getScanData();
-			if ( $scanData ) {
-				$license = $this->getScanData()->getLicense();
-				if ( ! empty( $license ) ) {
-					$data['data']['license'] = array_merge( $license, $data['data']['license'] );
-				}
-			}
-		}
+		$data    = $this->processApiResponseData( $data, $command );
 
 		return $data;
 	}
@@ -470,5 +436,55 @@ class DataStore {
 			self::API_PORT,
 			self::API_ENDPOINT
 		);
+	}
+
+	/**
+	 * Process API response data by applying command-specific modifications.
+	 *
+	 * This method handles post-processing of API response data, including:
+	 * - Adding upgrade button for permissions list command
+	 * - Modifying proactive defense settings for config show command
+	 * - Injecting WordPress plugin version for get-package-versions command
+	 * - Merging license data from scan data
+	 *
+	 * @param array  $data    The API response data to process.
+	 * @param string $command The command string that was executed.
+	 *
+	 * @return array The processed data.
+	 *
+	 * @since 2.0.0
+	 */
+	private function processApiResponseData( $data, $command ) {
+
+		if ( 'config show' === $command ) {
+			// Add upgrade button to the permissions list.
+			if ( isset( $data['data']['items']['PERMISSIONS'] ) && is_array( $data['data']['items']['PERMISSIONS'] ) ) {
+				$data['data']['items']['PERMISSIONS']['upgrade_button'] = true;
+			}
+			// Disable user override for proactive defense in config show.
+			if ( isset( $data['data']['items']['PERMISSIONS']['user_override_proactive_defense'] ) ) {
+				$data['data']['items']['PERMISSIONS']['user_override_proactive_defense'] = false;
+			}
+		}
+
+		// Update versioning information to include the WordPress plugin version.
+		if ( 'get-package-versions' === $command ) {
+			if ( isset( $data['data']['items'] ) && is_array( $data['data']['items'] ) ) {
+				$data['data']['items']['imunify-wp-plugin'] = IMUNIFY_SECURITY_VERSION;
+			}
+		}
+
+		// Inject missing license data to the response from scan data.
+		if ( array_key_exists( 'license', $data['data'] ) && is_array( $data['data']['license'] ) ) {
+			$scanData = $this->getScanData();
+			if ( $scanData ) {
+				$license = $scanData->getLicense();
+				if ( ! empty( $license ) ) {
+					$data['data']['license'] = array_merge( $license, $data['data']['license'] );
+				}
+			}
+		}
+
+		return $data;
 	}
 }

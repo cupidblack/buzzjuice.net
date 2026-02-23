@@ -56,6 +56,19 @@ class WPCode_Conditional_User_Pro extends WPCode_Conditional_User {
 	}
 
 	/**
+	 * Load evaluation-only options (without translations) for frontend use.
+	 * This method is called when translations are not yet loaded to avoid WP 6.7 notices.
+	 *
+	 * @return void
+	 */
+	public function load_evaluation_options() {
+		parent::load_evaluation_options();
+
+		// Add callback for user meta in Pro version.
+		$this->options['user_meta']['callback'] = array( $this, 'get_user_meta' );
+	}
+
+	/**
 	 * Set the type options for the admin mainly.
 	 *
 	 * @return void

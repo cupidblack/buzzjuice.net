@@ -57,12 +57,9 @@ class Steps extends LDLMS_V2_Endpoint {
 	 * @return array<string,array<string,string|callable>>
 	 */
 	protected function get_routes(): array {
-		$courses_endpoint = LearnDash_Settings_Section::get_section_setting( 'LearnDash_Settings_Section_General_REST_API', 'courses_v2' );
-		$steps_endpoint   = LearnDash_Settings_Section::get_section_setting( 'LearnDash_Settings_Section_General_REST_API', 'courses-steps_v2' );
-
 		return $this->discover_routes(
-			trailingslashit( $courses_endpoint ) . '(?P<id>[\d]+)/' . $steps_endpoint,
-			[ 'nested' ]
+			$this->get_base_endpoint(),
+			[ 'collection' ]
 		);
 	}
 
@@ -78,30 +75,36 @@ class Steps extends LDLMS_V2_Endpoint {
 	 */
 	protected function get_method_summary( string $method, string $route_type = 'collection' ): string {
 		$summaries = [
-			'nested' => [
+			'collection' => [
 				'GET'    => sprintf(
-					// translators: %s: singular course label.
-					__( 'Get associated steps for a %s.', 'learndash' ),
-					learndash_get_custom_label_lower( 'course' )
+					// translators: 1: singular course label, 2: singular lesson label, 3: singular topic label, 4: singular quiz label.
+					__( 'Get %1$s structure: returns %2$s/%3$s/%4$s hierarchy and order', 'learndash' ),
+					learndash_get_custom_label_lower( 'course' ),
+					learndash_get_custom_label_lower( 'lesson' ),
+					learndash_get_custom_label_lower( 'topic' ),
+					learndash_get_custom_label_lower( 'quiz' )
 				),
 				'POST'   => sprintf(
-					// translators: %s: singular course label.
-					__( 'Add associated steps for a %s.', 'learndash' ),
-					learndash_get_custom_label_lower( 'course' )
+					// translators: 1: singular course label, 2: plural lessons label, 3: plural topics label, 4: plural quizzes label.
+					__( 'Set the %1$s structure: assign and organize %2$s, %3$s, and %4$s', 'learndash' ),
+					learndash_get_custom_label_lower( 'course' ),
+					learndash_get_custom_label_lower( 'lessons' ),
+					learndash_get_custom_label_lower( 'topics' ),
+					learndash_get_custom_label_lower( 'quizzes' ),
 				),
 				'PUT'    => sprintf(
 					// translators: %s: singular course label.
-					__( 'Update associated steps for a %s.', 'learndash' ),
+					__( 'Update associated steps for a %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 				'PATCH'  => sprintf(
 					// translators: %s: singular course label.
-					__( 'Update associated steps for a %s.', 'learndash' ),
+					__( 'Update associated steps for a %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 				'DELETE' => sprintf(
 					// translators: %s: singular course label.
-					__( 'Delete associated steps for a %s.', 'learndash' ),
+					__( 'Delete associated steps for a %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 			],
@@ -109,9 +112,9 @@ class Steps extends LDLMS_V2_Endpoint {
 
 		return $summaries[ $route_type ][ $method ]
 			?? sprintf(
-				// translators: %s: singular step label.
+				// translators: %s: singular course label.
 				__( '%s step operation', 'learndash' ),
-				learndash_get_custom_label( 'step' )
+				learndash_get_custom_label( 'course' )
 			);
 	}
 
@@ -127,30 +130,37 @@ class Steps extends LDLMS_V2_Endpoint {
 	 */
 	protected function get_method_description( string $method, string $route_type = 'collection' ): string {
 		$descriptions = [
-			'nested' => [
+			'collection' => [
 				'GET'   => sprintf(
-					// translators: %s: singular course label.
-					__( 'Retrieves the %1$s steps for a specific %2$s.', 'learndash' ),
+					// translators: 1: singular course label, 2: plural lessons label, 3: plural topics label, 4: plural quizzes label.
+					__( 'Returns the current %1$s structure showing the hierarchy and ordering of %2$s, %3$s, and %4$s. Parameter \'type\' controls response format (hierarchy, flat lists, sequential order, etc).', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' ),
-					learndash_get_custom_label_lower( 'course' )
+					learndash_get_custom_label_lower( 'lessons' ),
+					learndash_get_custom_label_lower( 'topics' ),
+					learndash_get_custom_label_lower( 'quizzes' ),
 				),
 				'POST'  => sprintf(
-					// translators: %s: singular course label.
-					__( 'Adds %1$s steps for a specific %2$s. This will overwrite any existing steps. Passing empty data will remove the associated steps from the %3$s.', 'learndash' ),
+					// translators: 1: singular course label, 2: plural lessons label, 3: plural topics label, 4: plural quizzes label.
+					__( 'Establishes the complete %1$s hierarchy by assigning %2$s, %3$s, and %4$s with their parent-child relationships and ordering. Must be called after creating %1$s content to make the %1$s functional.', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' ),
-					learndash_get_custom_label_lower( 'course' ),
-					learndash_get_custom_label_lower( 'course' )
+					learndash_get_custom_label_lower( 'lessons' ),
+					learndash_get_custom_label_lower( 'topics' ),
+					learndash_get_custom_label_lower( 'quizzes' ),
 				),
 				'PUT'   => sprintf(
 					// translators: %s: singular course label.
 					__( 'Updates the %1$s step association for an existing %2$s.', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' ),
-					learndash_get_custom_label_lower( 'course' )
+					learndash_get_custom_label_lower( 'course' ),
 				),
 				'PATCH' => sprintf(
-					// translators: %s: singular course label.
-					__( 'Partially updates the %1$s step association for an existing %2$s. Only the provided fields will be updated, leaving other fields unchanged.', 'learndash' ),
+					// translators: 1: singular course label, 2: singular course label, 3: plural lessons label, 4: plural topics label, 5: plural quizzes label.
+					__( 'Partially updates the %1$s step association for an existing %2$s. Only the provided fields will be updated, leaving other fields unchanged. Use this to assign %3$s, %4$s and %5$s to a specific %1$s.', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' ),
+					learndash_get_custom_label_lower( 'course' ),
+					learndash_get_custom_label_lower( 'lessons' ),
+					learndash_get_custom_label_lower( 'topics' ),
+					learndash_get_custom_label_lower( 'quizzes' ),
 					learndash_get_custom_label_lower( 'course' )
 				),
 			],
@@ -162,5 +172,30 @@ class Steps extends LDLMS_V2_Endpoint {
 			learndash_get_custom_label_lower( 'course' ),
 			learndash_get_custom_label_lower( 'course' )
 		);
+	}
+
+	/**
+	 * Returns the base endpoint for this endpoint.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return string
+	 */
+	protected function get_base_endpoint(): string {
+		$courses_endpoint = LearnDash_Settings_Section::get_section_setting( 'LearnDash_Settings_Section_General_REST_API', 'courses_v2' );
+		$steps_endpoint   = LearnDash_Settings_Section::get_section_setting( 'LearnDash_Settings_Section_General_REST_API', 'courses-steps_v2' );
+
+		return trailingslashit( $courses_endpoint ) . '(?P<id>[\d]+)/' . $steps_endpoint;
+	}
+
+	/**
+	 * Returns the tags for this endpoint.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return string[]
+	 */
+	protected function get_tags(): array {
+		return [ sprintf( '%s-steps', learndash_get_custom_label_lower( 'course' ) ) ];
 	}
 }

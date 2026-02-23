@@ -554,12 +554,7 @@ class BBP_Forums extends Widget_Base {
 													<div class="bb-forums__ww">
 														<span class="bs-replied">
 															<?php
-															
-															//BCR&D
-															//$bbp_author_link = str_replace('&nbsp;', '', bbp_author_link( array( 'post_id' => bbp_get_topic_last_active_id(), 'size' => 1 ) ));
-															$__bbp_author_link_raw = bbp_author_link( array( 'post_id' => bbp_get_topic_last_active_id(), 'size' => 1 ) );
-															$bbp_author_link = str_replace( '&nbsp;', '', is_null( $__bbp_author_link_raw ) ? '' : (string) $__bbp_author_link_raw );
-															
+															$bbp_author_link = str_replace('&nbsp;', '', bbp_author_link( array( 'post_id' => bbp_get_topic_last_active_id(), 'size' => 1 ) ));
 															?>
 															<span class="bbp-topic-freshness-author"><?php //echo $bbp_author_link; ?></span> <?php _e('replied', 'buddyboss-theme'); ?> <?php bbp_topic_freshness_link(); ?>
 														</span>

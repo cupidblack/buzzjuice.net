@@ -181,3 +181,26 @@ function bb_enable_sso_reg_options( $retval = false ) {
 	 */
 	return (bool) apply_filters( 'bb_sso_reg_options', bp_get_option( 'bb-sso-reg-options', $retval ) );
 }
+
+/**
+ * Appends an error message paragraph to the bb-sso-reg-error div.
+ *
+ * This helper function uses regex to insert an error message paragraph
+ * before the closing div tag of elements with the bb-sso-reg-error class.
+ *
+ * @since 2.12.0
+ *
+ * @param string $signup_fields_msg The HTML content containing the bb-sso-reg-error div.
+ * @param string $error_message     The error message to append.
+ *
+ * @return string The modified HTML with the error message appended.
+ */
+function bb_sso_append_error_to_signup_div( $signup_fields_msg, $error_message ) {
+	return preg_replace_callback(
+		'/(<div[^>]*class="[^"]*bb-sso-reg-error[^"]*"[^>]*>.*?)(<\/div>)/s',
+		function( $matches ) use ( $error_message ) {
+			return $matches[1] . '<p>' . $error_message . '</p>' . $matches[2];
+		},
+		$signup_fields_msg
+	);
+}

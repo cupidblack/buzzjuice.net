@@ -27,6 +27,9 @@ class Provider extends ServiceProvider {
 	 */
 	public function register(): void {
 		$this->container->register( Endpoints\Courses\Provider::class );
+		$this->container->register( Endpoints\Users\Provider::class );
+		$this->container->register( Endpoints\Groups\Provider::class );
+		$this->container->register( Endpoints\Quizzes\Provider::class );
 
 		$this->hooks();
 	}
@@ -44,10 +47,14 @@ class Provider extends ServiceProvider {
 		return array_merge(
 			$endpoints,
 			[
-				Endpoints\Lesson::class,
-				Endpoints\Topic::class,
-				Endpoints\Price_Types::class,
 				Endpoints\Assignment::class,
+				Endpoints\Essay::class,
+				Endpoints\Lesson::class,
+				Endpoints\Price_Types::class,
+				Endpoints\Progress_Status::class,
+				Endpoints\Question::class,
+				Endpoints\Topic::class,
+				Endpoints\Question_Types::class,
 			]
 		);
 	}

@@ -46,12 +46,20 @@ class Provider extends ServiceProvider {
 	 * @return array<string,array<string,mixed>>
 	 */
 	public function add_common_schemas( array $schemas ): array {
-		$schemas['LDLMS_v2_Course']     = Schemas\Course::get_schema();
-		$schemas['LDLMS_v2_Group']      = Schemas\Group::get_schema();
-		$schemas['LDLMS_v2_Lesson']     = Schemas\Lesson::get_schema();
-		$schemas['LDLMS_v2_Topic']      = Schemas\Topic::get_schema();
-		$schemas['LDLMS_v2_User']       = Schemas\WP_User::get_schema();
-		$schemas['LDLMS_v2_Assignment'] = Schemas\Assignment::get_schema();
+		$schemas['LDLMS_v2_Assignment']                = Schemas\Assignment::get_schema();
+		$schemas['LDLMS_v2_Course']                    = Schemas\Course::get_schema();
+		$schemas['LDLMS_v2_Essay']                     = Schemas\Essay::get_schema();
+		$schemas['LDLMS_v2_Group']                     = Schemas\Group::get_schema();
+		$schemas['LDLMS_v2_Lesson']                    = Schemas\Lesson::get_schema();
+		$schemas['LDLMS_v2_Question']                  = Schemas\Question::get_schema();
+		$schemas['LDLMS_v2_Quiz_Statistic']            = Schemas\Quiz_Statistic::get_schema();
+		$schemas['LDLMS_v2_Quiz']                      = Schemas\Quiz::get_schema();
+		$schemas['LDLMS_v2_Quiz_Statistic_Question']   = Schemas\Quiz_Statistic_Question::get_schema();
+		$schemas['LDLMS_v2_Topic']                     = Schemas\Topic::get_schema();
+		$schemas['LDLMS_v2_User_Course_Progress_Exam'] = Schemas\User_Course_Progress_Exam::get_schema();
+		$schemas['LDLMS_v2_User_Course_Progress_Step'] = Schemas\User_Course_Progress_Step::get_schema();
+		$schemas['LDLMS_v2_User_Course_Progress']      = Schemas\User_Course_Progress::get_schema();
+		$schemas['LDLMS_v2_User']                      = Schemas\WP_User::get_schema();
 
 		return $schemas;
 	}

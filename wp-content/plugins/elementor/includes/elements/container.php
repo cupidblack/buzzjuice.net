@@ -39,7 +39,7 @@ class Container extends Element_Base {
 	 *
 	 * @return void
 	 */
-	public function __construct( array $data = [], array $args = null ) {
+	public function __construct( array $data = [], ?array $args = null ) {
 		parent::__construct( $data, $args );
 
 		$this->active_kit = Plugin::$instance->kits_manager->get_active_kit();
@@ -140,6 +140,7 @@ class Container extends Element_Base {
 		$config['tabs_controls'] = $this->get_tabs_controls();
 		$config['show_in_panel'] = true;
 		$config['categories'] = [ 'layout' ];
+		$config['include_in_widgets_config'] = true;
 
 		return $config;
 	}
@@ -166,7 +167,6 @@ class Container extends Element_Base {
 				'background-video-container',
 				{
 					'class': 'elementor-background-video-container',
-					'aria-hidden': 'true',
 				}
 			);
 
@@ -175,8 +175,8 @@ class Container extends Element_Base {
 			}
 			#>
 			<div {{{ view.getRenderAttributeString( 'background-video-container' ) }}}>
-				<div class="elementor-background-video-embed"></div>
-				<video class="elementor-background-video-hosted" {{ videoAttributes }}></video>
+				<div class="elementor-background-video-embed" role="presentation"></div>
+				<video class="elementor-background-video-hosted" role="presentation" {{ videoAttributes }}></video>
 			</div>
 		<# } #>
 		<div class="elementor-shape elementor-shape-top" aria-hidden="true"></div>
@@ -209,7 +209,6 @@ class Container extends Element_Base {
 			'background-video-container',
 			[
 				'class' => 'elementor-background-video-container',
-				'aria-hidden' => 'true',
 			]
 		);
 
@@ -219,7 +218,7 @@ class Container extends Element_Base {
 
 		?><div <?php $this->print_render_attribute_string( 'background-video-container' ); ?>>
 			<?php if ( $video_properties ) : ?>
-				<div class="elementor-background-video-embed"></div>
+				<div class="elementor-background-video-embed" role="presentation"></div>
 				<?php
 			else :
 				$video_tag_attributes = 'autoplay muted playsinline';
@@ -228,7 +227,7 @@ class Container extends Element_Base {
 					$video_tag_attributes .= ' loop';
 				}
 				?>
-				<video class="elementor-background-video-hosted" <?php echo esc_attr( $video_tag_attributes ); ?>></video>
+				<video class="elementor-background-video-hosted" role="presentation" <?php echo esc_attr( $video_tag_attributes ); ?>></video>
 			<?php endif; ?>
 		</div><?php
 	}
@@ -339,6 +338,10 @@ class Container extends Element_Base {
 
 		if ( in_array( $element_data['elType'], $el_types, true ) ) {
 			return Plugin::$instance->elements_manager->get_element_types( $element_data['elType'] );
+		}
+
+		if ( ! isset( $element_data['widgetType'] ) ) {
+			return null;
 		}
 
 		return Plugin::$instance->widgets_manager->get_widget_types( $element_data['widgetType'] );
@@ -490,6 +493,7 @@ class Container extends Element_Base {
 					],
 				],
 				'description' => sprintf(
+					/* translators: %s: 100vh. */
 					esc_html__( 'To achieve full height Container use %s.', 'elementor' ),
 					'100vh'
 				),

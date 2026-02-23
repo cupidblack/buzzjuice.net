@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || exit;
 add_filter( 'bbp_pro_core_install', 'bbp_pro_core_install_poll_tables' );
 add_filter( 'bp_core_get_js_strings', 'bb_polls_localize_scripts', 11 );
 add_filter( 'bp_activity_get_edit_data', 'bb_poll_get_edit_activity_data' );
+add_filter( 'sanitize_option__bb_enable_activity_post_polls', 'bb_poll_prevent_settings_update_when_locked', 10, 3 );
 
 /**
  * Function to add poll tables when new install.
@@ -25,29 +26,6 @@ function bbp_pro_core_install_poll_tables() {
 	if ( function_exists( 'bp_is_active' ) && bp_is_active( 'activity' ) ) {
 		BB_Polls::instance()->create_table();
 	}
-}
-
-/**
- * Check whether activity polls are enabled.
- *
- * @since 2.6.00
- *
- * @param bool $retval true Activity polls always are enabled for admin.
- *
- * @return bool true if activity polls are enabled, otherwise false.
- */
-function bb_is_enabled_activity_post_polls( $retval = true ) {
-
-	// Return false if platform pro has not valid license.
-	if ( ! bbp_pro_is_license_valid() ) {
-		return false;
-	}
-
-	if ( true === $retval && bp_current_user_can( 'administrator' ) ) {
-		return true;
-	}
-
-	return (bool) bp_get_option( '_bb_enable_activity_post_polls', false );
 }
 
 /**
@@ -157,4 +135,24 @@ function bb_poll_get_edit_activity_data( $activity ) {
 	unset( $bb_poll_id, $get_poll, $vote_results, $get_poll_options, $edit_poll );
 
 	return $activity;
+}
+
+/**
+ * Prevent poll settings from being updated when features are locked.
+ *
+ * @since 2.11.0
+ *
+ * @param mixed  $value          The new, unserialized option value.
+ * @param string $option         The option name.
+ * @param mixed  $original_value The original option value.
+ *
+ * @return mixed The option value (unchanged if locked, otherwise the new value).
+ */
+function bb_poll_prevent_settings_update_when_locked( $value, $option, $original_value ) {
+	// If features are locked, return the old value to prevent changes.
+	if ( bb_pro_should_lock_features() ) {
+		return $original_value;
+	}
+
+	return $value;
 }

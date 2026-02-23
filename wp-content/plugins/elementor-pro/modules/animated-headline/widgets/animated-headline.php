@@ -312,20 +312,25 @@ class Animated_Headline extends Base_Widget {
 				'label' => esc_html__( 'Alignment', 'elementor-pro' ),
 				'type' => Controls_Manager::CHOOSE,
 				'options' => [
-					'left' => [
-						'title' => esc_html__( 'Left', 'elementor-pro' ),
+					'start' => [
+						'title' => esc_html__( 'Start', 'elementor-pro' ),
 						'icon' => 'eicon-text-align-left',
 					],
 					'center' => [
 						'title' => esc_html__( 'Center', 'elementor-pro' ),
 						'icon' => 'eicon-text-align-center',
 					],
-					'right' => [
-						'title' => esc_html__( 'Right', 'elementor-pro' ),
+					'end' => [
+						'title' => esc_html__( 'End', 'elementor-pro' ),
 						'icon' => 'eicon-text-align-right',
 					],
 				],
 				'default' => 'center',
+				'classes' => 'elementor-control-start-end',
+				'selectors_dictionary' => [
+					'left' => is_rtl() ? 'end' : 'start',
+					'right' => is_rtl() ? 'start' : 'end',
+				],
 				'selectors' => [
 					'{{WRAPPER}} .elementor-headline' => 'text-align: {{VALUE}}',
 				],
@@ -642,7 +647,7 @@ class Animated_Headline extends Base_Widget {
 			}
 		}
 
-		if ( settings.link.url ) { #>
+		if ( settings.link?.url ) { #>
 			<a href="#">
 		<# } #>
 				<{{{ tag }}} class="{{{ headlineClasses }}}">
@@ -672,7 +677,7 @@ class Animated_Headline extends Base_Widget {
 						<span class="elementor-headline-plain-text elementor-headline-text-wrapper">{{{ elementor.helpers.sanitize( settings.after_text, { ALLOW_DATA_ATTR: false } ) }}}</span>
 					<# } #>
 				</{{{ tag }}}>
-		<# if ( settings.link.url ) { #>
+		<# if ( settings.link?.url ) { #>
 			</a>
 		<# } #>
 		<?php

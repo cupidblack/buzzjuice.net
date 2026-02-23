@@ -191,6 +191,13 @@ class THWCFE_Utils_Field {
 		return false;
 	}
 
+	public static function is_valid_custom($field){
+		if(self::is_valid_field($field) && self::is_custom_field($field)){
+			return true;
+		}
+		return false;
+	}
+
 	public static function is_custom_enabled($field){
 		if(self::is_valid_field($field) && self::is_custom_field($field) && self::is_enabled($field)){
 			return true;
@@ -507,6 +514,7 @@ class THWCFE_Utils_Field {
 			$props_set['custom'] = self::is_custom_field($field);
 			$props_set['priority'] = THWCFE_Utils::is_blank($order) ? $field->get_property('priority') : $order;
 			$props_set['label'] = THWCFE_i18n::t($props_set['label']);
+			$props_set['placeholder'] = THWCFE_i18n::t($props_set['placeholder']);
 			
 			$props_set['options'] = $options;
 			$props_set['options_object'] = $optionsObj;

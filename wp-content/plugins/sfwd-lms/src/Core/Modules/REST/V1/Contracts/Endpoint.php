@@ -65,7 +65,7 @@ abstract class Endpoint implements Interface_Endpoint {
 	 *
 	 * @since 4.25.0
 	 *
-	 * @return array<string,array<string,string|callable>>
+	 * @return array<string,array<string,string|callable|mixed[]>>
 	 */
 	abstract protected function get_routes(): array;
 
@@ -331,6 +331,11 @@ abstract class Endpoint implements Interface_Endpoint {
 			$property['maximum'] = $config['maximum'];
 		}
 
+		// Map readonly to the proper JSON readOnly.
+		if ( isset( $config['readonly'] ) ) {
+			$property['readOnly'] = $config['readonly'];
+		}
+
 		// Map array items.
 		if ( isset( $config['items'] ) ) {
 			$property['items'] = $config['items'];
@@ -356,6 +361,10 @@ abstract class Endpoint implements Interface_Endpoint {
 			&& is_array( $config['additionalProperties'] )
 		) {
 			$property['additionalProperties'] = $this->convert_property_config( $config['additionalProperties'] );
+		}
+
+		if ( isset( $config['example'] ) ) {
+			$property['example'] = $config['example'];
 		}
 
 		// Add example if not present but default is available.
@@ -426,15 +435,15 @@ abstract class Endpoint implements Interface_Endpoint {
 	 *
 	 * @since 4.25.0
 	 *
-	 * @param string                        $path   The path of the route.
-	 * @param array<string,string|callable> $config Route configuration.
+	 * @param string                              $path   The path of the route.
+	 * @param array<string,string|callable|mixed> $config Route configuration.
 	 *
 	 * @return array<string,array<string,mixed>>
 	 */
 	protected function build_openapi_path_schema( string $path, array $config ): array {
 		$path_schema = [];
 
-		if ( is_array( $config ) && isset( $config['methods'] ) ) {
+		if ( isset( $config['methods'] ) ) {
 			$config = [ $config ];
 		}
 
@@ -464,17 +473,13 @@ abstract class Endpoint implements Interface_Endpoint {
 				}
 
 				$path_schema[ $method_lower ] = [
+					'operationId' => $this->get_operation_id( $path, $method ),
 					'summary'     => Arr::get( $method_config, 'summary', '' ),
 					'description' => Arr::get( $method_config, 'description', '' ),
 					'security'    => $this->get_security_schemes( $path, $method ),
 					'parameters'  => $this->build_openapi_parameters( $path, $method ),
 					'responses'   => $this->build_openapi_responses( $path, $method ),
 					'tags'        => $this->get_tags(),
-					'servers'     => [
-						[
-							'url' => rest_url( $this->get_namespace() ),
-						],
-					],
 				];
 
 				if ( in_array( $method, [ 'POST', 'PUT', 'PATCH' ], true ) ) {
@@ -501,6 +506,116 @@ abstract class Endpoint implements Interface_Endpoint {
 	 */
 	protected function get_tags(): array {
 		return [ trim( $this->get_base_route(), '/' ) ];
+	}
+
+	/**
+	 * Generates an operation ID for the given path and method.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param string $path   The path of the route.
+	 * @param string $method The HTTP method.
+	 *
+	 * @return string The operation ID.
+	 */
+	protected function get_operation_id( string $path, string $method ): string {
+		// Remove leading slash and convert to lowercase.
+		$path = trim( $path, '/' );
+
+		// Convert method to lowercase.
+		$method_lower = strtolower( $method );
+
+		// Handle special cases for better readability.
+		$path_parts      = explode( '/', $path );
+		$operation_parts = [];
+		$filter_parts    = [];
+
+		foreach ( $path_parts as $part ) {
+			// Skip empty parts.
+			if ( empty( $part ) ) {
+				continue;
+			}
+
+			// Handle path parameters.
+			if ( str_starts_with( $part, '{' ) && str_ends_with( $part, '}' ) ) {
+				$param_name = trim( $part, '{}' );
+				// Convert parameter names to descriptive action words.
+				switch ( $param_name ) {
+					case 'id':
+						$filter_parts[] = 'id';
+						break;
+					case 'slug':
+						$filter_parts[] = 'slug';
+						break;
+					case 'type':
+						$filter_parts[] = 'type';
+						break;
+					default:
+						$filter_parts[] = $param_name;
+				}
+			} else {
+				// Clean up the part name and remove 'sfwd' prefix.
+				$clean_part = str_replace( [ '-', '_' ], ' ', $part );
+				$clean_part = ucwords( $clean_part );
+				$clean_part = str_replace( ' ', '', $clean_part );
+
+				// Remove 'sfwd' prefix if present.
+				if ( str_starts_with( $clean_part, 'Sfwd' ) ) {
+					$clean_part = substr( $clean_part, 4 );
+				}
+
+				// Convert camelCase to snake_case.
+				$clean_part = Cast::to_string( preg_replace( '/([a-z])([A-Z])/', '$1_$2', $clean_part ) );
+				$clean_part = strtolower( $clean_part );
+
+				$operation_parts[] = $clean_part;
+			}
+		}
+
+		// Handle multiple filters with 'and' instead of chaining 'by_'.
+
+		if ( ! empty( $filter_parts ) ) {
+			$operation_parts[] = count( $filter_parts ) === 1
+				? "by_{$filter_parts[0]}"
+				: 'by_' . implode( '_and_', $filter_parts );
+		}
+
+		// Create a meaningful operation ID.
+		$operation_id = implode( '_', $operation_parts );
+
+		// Add method-specific suffixes for better clarity.
+		switch ( $method_lower ) {
+			case 'get':
+				$operation_id = str_contains( $operation_id, 'by_' )
+					? "get_{$operation_id}"
+					: "list_{$operation_id}";
+				break;
+			case 'post':
+				$operation_id = "create_$operation_id";
+				break;
+			case 'put':
+				$operation_id = "update_$operation_id";
+				break;
+			case 'patch':
+				$operation_id = "patch_$operation_id";
+				break;
+			case 'delete':
+				$operation_id = "delete_$operation_id";
+				break;
+			default:
+				$operation_id = "{$method_lower}_$operation_id";
+		}
+
+		// Clean up the final operation ID.
+		$operation_id = preg_replace( '/_+/', '_', $operation_id );
+		$operation_id = trim( Cast::to_string( $operation_id ), '_' );
+
+		// If the operation ID is empty or doesn't start with a letter, use a fallback.
+		if ( empty( $operation_id ) || ! ctype_alpha( $operation_id[0] ) ) {
+			$operation_id = "operation_$method_lower";
+		}
+
+		return $operation_id;
 	}
 
 	/**
@@ -575,6 +690,21 @@ abstract class Endpoint implements Interface_Endpoint {
 			// Add example if present.
 			if ( Arr::has( $config, 'example' ) ) {
 				$parameter['schema']['example'] = $config['example'];
+			}
+
+			if ( Arr::has( $config, 'default' ) ) {
+				$default_value = $config['default'];
+
+				// If the parameter type is array and the default value is not an array, wrap it in an array.
+
+				if (
+					$parameter['schema']['type'] === 'array'
+					&& ! is_array( $default_value )
+				) {
+					$default_value = [ $default_value ];
+				}
+
+				$parameter['schema']['default'] = $default_value;
 			}
 
 			$parameters[] = $parameter;
@@ -830,16 +960,29 @@ abstract class Endpoint implements Interface_Endpoint {
 	 * Returns the OpenAPI schema for this endpoint.
 	 *
 	 * @since 4.25.0
+	 * @since 5.0.0 Added $trim parameter.
 	 *
-	 * @return array<string,array<string,array<string,mixed>>>
+	 * @param bool $trim Whether to trim documentation from the OpenAPI schema. Only used if an Endpoint class overrides this method. Default is true.
+	 *
+	 * @return array<string, array<string, array<string, mixed>>>
 	 */
-	public function get_openapi_schema(): array {
+	public function get_openapi_schema( bool $trim = true ): array {
 		$routes = $this->get_routes();
 		$schema = [];
 
 		foreach ( $routes as $route => $config ) {
-			$path = '/' . $this->get_base_route() . $route;
+			// Add the namespace and base route to the path, so that the whole thing is properly listed in the OpenAPI schema.
+			$path = '/' . trailingslashit( trim( $this->get_namespace(), '/' ) ) . trailingslashit( trim( $this->get_base_route(), '/' ) ) . ltrim( $route, '/' );
+
 			$path = str_replace( '//', '/', $path );
+
+			// Don't include manifest endpoints in the OpenAPI schema, these are just for the MCP server.
+			if ( str_contains( $path, '/manifest' ) ) {
+				continue;
+			}
+
+			// Convert patterns like (?P<id>[\d]+) to {id}.
+			$path = Cast::to_string( preg_replace( '/\(\?P<([^>]+)>[^)]+\)/', '{$1}', $path ) );
 
 			$schema[ $path ] = $this->build_openapi_path_schema( $path, $config );
 		}

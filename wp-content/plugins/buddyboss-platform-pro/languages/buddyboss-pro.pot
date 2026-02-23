@@ -1,14 +1,14 @@
-# Copyright (C) 2025 BuddyBoss
+# Copyright (C) 2026 BuddyBoss
 # This file is distributed under the GPLv2 or later (license.txt).
 msgid ""
 msgstr ""
-"Project-Id-Version: BuddyBoss Platform Pro 2.8.0\n"
+"Project-Id-Version: BuddyBoss Platform Pro 2.13.0\n"
 "Report-Msgid-Bugs-To: https://www.buddyboss.com/contact/\n"
-"POT-Creation-Date: 2025-08-19 14:01:09+00:00\n"
+"POT-Creation-Date: 2026-02-05 12:08:58+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2025-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
 "Last-Translator: BuddyBoss <support@buddyboss.com>\n"
 "Language-Team: BuddyBoss <support@buddyboss.com>\n"
 "Language: en\n"
@@ -28,19 +28,19 @@ msgstr ""
 msgid "BuddyBoss Platform Pro"
 msgstr ""
 
-#: buddyboss-platform-pro.php:38
+#: buddyboss-platform-pro.php:41
 msgid "requires the BuddyBoss Platform plugin to work. Please"
 msgstr ""
 
-#: buddyboss-platform-pro.php:39
+#: buddyboss-platform-pro.php:42
 msgid "install BuddyBoss Platform"
 msgstr ""
 
-#: buddyboss-platform-pro.php:40
+#: buddyboss-platform-pro.php:43
 msgid "first."
 msgstr ""
 
-#: buddyboss-platform-pro.php:53
+#: buddyboss-platform-pro.php:56
 msgid ""
 "requires BuddyBoss Platform plugin version 1.3.5 or higher to work. Please "
 "update BuddyBoss Platform."
@@ -87,7 +87,6 @@ msgstr ""
 #: includes/integrations/zoom/bp-zoom-functions.php:1367
 #: includes/integrations/zoom/bp-zoom-functions.php:1394
 #: includes/integrations/zoom/bp-zoom-functions.php:4296
-#: includes/lib/buddyboss-updater/includes/views/package.php:20
 #: includes/sso/admin/sso-fields.php:56 includes/sso/admin/sso-fields.php:116
 #: includes/sso/admin/sso-fields.php:168 includes/sso/admin/sso-fields.php:241
 #: includes/sso/admin/sso-fields.php:295 includes/sso/admin/sso-fields.php:353
@@ -504,44 +503,54 @@ msgstr ""
 msgid "BuddyBoss Platform Pro v"
 msgstr ""
 
-#: includes/bb-pro-update-buddyboss.php:95
+#: includes/bb-pro-update-buddyboss.php:98
 msgid "Overview"
 msgstr ""
 
-#: includes/bb-pro-update-buddyboss.php:97
+#: includes/bb-pro-update-buddyboss.php:104
 msgid "Changelog"
 msgstr ""
 
-#: includes/bb-pro-update-buddyboss.php:111
+#: includes/bb-pro-update-buddyboss.php:119
 msgid "Welcome to BuddyBoss Theme 2.0 🥳"
 msgstr ""
 
-#: includes/bb-pro-update-buddyboss.php:112
+#: includes/bb-pro-update-buddyboss.php:120
 msgid ""
 "Check out the video below for a full walkthrough of all the new features "
 "and updates available to you in this release."
 msgstr ""
 
-#: includes/bb-pro-update-buddyboss.php:117
+#: includes/bb-pro-update-buddyboss.php:125
 #. translators: %1$s - Overview tab link for details.
 msgid ""
-"As this update contains a number of improvements to the theme’s colors, "
+"As this update contains a number of improvements to the theme's colors, "
 "layouts and styling, we recommend you reconfigure your Theme Options and "
 "review any custom CSS you may have.  For more information on how to update, "
 "%1$s."
 msgstr ""
 
-#: includes/bb-pro-update-buddyboss.php:122
+#: includes/bb-pro-update-buddyboss.php:130
 #. translators: %1$s - Overview tab link for details. %2$s - tutorial text
 msgid "check out this tutorial"
 msgstr ""
 
-#: includes/bb-pro-update-buddyboss.php:130
+#: includes/bb-pro-update-buddyboss.php:138
 msgid "For more information, please watch the video below:"
 msgstr ""
 
-#: includes/bb-pro-update-buddyboss.php:145
+#: includes/bb-pro-update-buddyboss.php:153
 msgid "Changes:"
+msgstr ""
+
+#: includes/bb-pro-update-buddyboss.php:163
+msgid ""
+"Release notes are not available at this time. Please visit the BuddyBoss "
+"website for the latest information."
+msgstr ""
+
+#: includes/bb-pro-update-buddyboss.php:166
+msgid "View Release Notes"
 msgstr ""
 
 #: includes/integrations/meprlms/bb-meprlms-actions.php:62
@@ -709,10 +718,10 @@ msgstr ""
 msgid "Memberpress Courses"
 msgstr ""
 
-#: includes/integrations/meprlms/includes/class-bb-meprlms-integration.php:205
+#: includes/integrations/meprlms/includes/class-bb-meprlms-integration.php:229
 #: includes/integrations/meprlms/templates/buddypress/groups/single/admin/edit-courses.php:139
 #: includes/integrations/meprlms/templates/readylaunch/groups/single/admin/edit-courses.php:137
-#: includes/integrations/tutorlms/bb-tutorlms-integration.php:182
+#: includes/integrations/tutorlms/bb-tutorlms-integration.php:206
 #: includes/integrations/tutorlms/templates/buddypress/groups/single/admin/edit-courses.php:127
 msgid "Start typing a course name to associate with this group."
 msgstr ""
@@ -1096,11 +1105,13 @@ msgid "Sorry, something goes wrong please try again."
 msgstr ""
 
 #: includes/integrations/onesignal/bb-onesignal-admin-tab.php:114
-#: includes/polls/bb-polls-filters.php:71
+#: includes/polls/bb-polls-filters.php:49
 msgid "Are you sure?"
 msgstr ""
 
 #: includes/integrations/onesignal/bb-onesignal-admin-tab.php:116
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:748
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:915
 msgid "No file was uploaded."
 msgstr ""
 
@@ -1191,8 +1202,6 @@ msgstr ""
 #: includes/integrations/zoom/templates/readylaunch/groups/single/zoom-settings-edit.php:713
 #: includes/integrations/zoom/templates/readylaunch/groups/single/zoom-settings-edit.php:730
 #: includes/integrations/zoom/templates/readylaunch/groups/single/zoom-settings-edit.php:747
-#: includes/lib/buddyboss-updater/includes/views/package.php:58
-#: includes/lib/buddyboss-updater/includes/views/package.php:82
 msgid "Toggle"
 msgstr ""
 
@@ -1211,35 +1220,35 @@ msgstr ""
 msgid "Enable Web Push Notifications"
 msgstr ""
 
-#: includes/integrations/onesignal/bb-onesignal-filters.php:56
+#: includes/integrations/onesignal/bb-onesignal-filters.php:60
 msgid "Default Notification Icon"
 msgstr ""
 
-#: includes/integrations/onesignal/bb-onesignal-filters.php:62
+#: includes/integrations/onesignal/bb-onesignal-filters.php:66
 msgid "Skip Active Members"
 msgstr ""
 
-#: includes/integrations/onesignal/bb-onesignal-filters.php:68
+#: includes/integrations/onesignal/bb-onesignal-filters.php:72
 msgid "Automatically Request Permission"
 msgstr ""
 
-#: includes/integrations/onesignal/bb-onesignal-filters.php:74
+#: includes/integrations/onesignal/bb-onesignal-filters.php:78
 msgid "Enable Soft Prompt"
 msgstr ""
 
-#: includes/integrations/onesignal/bb-onesignal-filters.php:132
+#: includes/integrations/onesignal/bb-onesignal-filters.php:136
 msgid "There was a problem cropping custom profile avatar."
 msgstr ""
 
-#: includes/integrations/onesignal/bb-onesignal-filters.php:133
+#: includes/integrations/onesignal/bb-onesignal-filters.php:137
 msgid "The custom profile avatar was uploaded successfully."
 msgstr ""
 
-#: includes/integrations/onesignal/bb-onesignal-filters.php:134
+#: includes/integrations/onesignal/bb-onesignal-filters.php:138
 msgid "There was a problem deleting custom profile avatar. Please try again."
 msgstr ""
 
-#: includes/integrations/onesignal/bb-onesignal-filters.php:135
+#: includes/integrations/onesignal/bb-onesignal-filters.php:139
 msgid "The custom profile avatar was deleted successfully!"
 msgstr ""
 
@@ -1475,6 +1484,8 @@ msgstr ""
 #: includes/integrations/zoom/templates/readylaunch/zoom/edit-meeting.php:512
 #: includes/integrations/zoom/templates/readylaunch/zoom/edit-webinar.php:508
 #: includes/integrations/zoom/templates/readylaunch/zoom/single-meeting-item.php:54
+#: includes/platform-settings/activity/post-feature-image/templates/buddypress/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:63
+#: includes/platform-settings/activity/post-feature-image/templates/readylaunch/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:63
 #: includes/polls/templates/buddypress/common/js-templates/activity/parts/bb-activity-poll-form.php:123
 #: includes/reactions/bb-reactions-actions.php:201
 #: includes/reactions/bb-reactions-actions.php:217
@@ -1956,7 +1967,7 @@ msgid "Yes, I want to add a group tab"
 msgstr ""
 
 #: includes/integrations/zoom/bp-zoom-actions.php:216
-#: includes/integrations/zoom/bp-zoom-filters.php:202
+#: includes/integrations/zoom/bp-zoom-filters.php:203
 #: includes/integrations/zoom/includes/class-bp-zoom-groups-notification.php:98
 msgid "A Zoom meeting is scheduled in a group"
 msgstr ""
@@ -1972,7 +1983,7 @@ msgid "No, do not send email"
 msgstr ""
 
 #: includes/integrations/zoom/bp-zoom-actions.php:232
-#: includes/integrations/zoom/bp-zoom-filters.php:214
+#: includes/integrations/zoom/bp-zoom-filters.php:215
 #: includes/integrations/zoom/includes/class-bp-zoom-groups-notification.php:113
 msgid "A Zoom webinar is scheduled in a group"
 msgstr ""
@@ -2043,13 +2054,13 @@ msgstr ""
 msgid "Zoom Browser Settings"
 msgstr ""
 
-#: includes/integrations/zoom/bp-zoom-filters.php:206
-#: includes/integrations/zoom/bp-zoom-filters.php:218
+#: includes/integrations/zoom/bp-zoom-filters.php:207
+#: includes/integrations/zoom/bp-zoom-filters.php:219
 msgid "Yes"
 msgstr ""
 
-#: includes/integrations/zoom/bp-zoom-filters.php:207
-#: includes/integrations/zoom/bp-zoom-filters.php:219
+#: includes/integrations/zoom/bp-zoom-filters.php:208
+#: includes/integrations/zoom/bp-zoom-filters.php:220
 msgid "No"
 msgstr ""
 
@@ -5856,282 +5867,367 @@ msgstr ""
 msgid "Zoom webinars"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/buddyboss-updater.php:67
-msgid "Once every 4 hours"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-attachment-preview.php:132
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-preview.php:140
+msgid "Invalid security token."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/admin.php:256
-msgid "BuddyBoss License Keys"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-attachment-preview.php:133
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-preview.php:141
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:422
+#: includes/platform-settings/activity/post-feature-image/templates/preview/attachment.php:20
+#: includes/platform-settings/activity/post-feature-image/templates/preview/preview.php:22
+msgid "Security Error"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/admin.php:257
-msgid "License Keys"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:87
+msgid "There was a problem when trying to upload this file."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/admin.php:647
-msgid "Dismiss this notice."
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:144
+msgid "There was a problem displaying the content. Please try again."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/admin.php:679
-msgid "activate your product licenses"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:174
+msgid "Please provide attachment id to delete."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/admin.php:680
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:221
+msgid "Could not delete the attachment."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:236
+msgid "There was a problem when trying to crop and replace this image."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:320
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:466
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:1471
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:1691
+msgid "Invalid attachment ID."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:334
+msgid "Attachment file not found."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:345
+msgid "Invalid file path detected."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:354
+msgid "Path traversal invalid."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:423
+msgid "Invalid arguments."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:429
+msgid "There was a problem when trying to replace this image."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:475
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:970
+msgid "Invalid attachment."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:483
+msgid "No file data provided."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:491
+msgid "File upload failed."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:535
+msgid "Failed to create backup of original image."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:548
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:588
+msgid "Upload directory is not writable."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:559
+msgid "Failed to process the uploaded image."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:576
+msgid "Uploaded image file is invalid or empty."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:603
+msgid "Failed to replace the original image."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:629
+msgid "Failed to generate new image metadata."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:756
+msgid "Invalid file data provided."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:764
+msgid "File upload failed or file was not uploaded properly."
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:773
 msgid ""
-"<strong>Your BuddyBoss products are almost ready.</strong> To get started, "
-"please %s."
+"File type not allowed. Please upload a valid image file (JPG, PNG, GIF, "
+"BMP)."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/admin.php:709
-msgid "here"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:782
+msgid "File size is empty."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/admin.php:710
-msgid "This license for <strong>%1$s</strong> is invalid or incomplete. %2$s"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:794
+#. translators: %s: Maximum file size in MB
+msgid "File size exceeds the maximum allowed size of %s MB."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/admin.php:868
-#: includes/lib/buddyboss-updater/includes/admin.php:899
-#: includes/lib/buddyboss-updater/includes/admin.php:988
-#: includes/lib/buddyboss-updater/includes/admin.php:994
-msgid ""
-"Your account was successfully connected. No new activations have been made. "
-"If you are attempting to activate a new license key, please make sure that "
-"the product is installed on your site, and that an active license key is "
-"available in your BuddyBoss.com account."
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:818
+msgid "Please login in order to upload feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/admin.php:959
-msgid ""
-"Congratulations! License keys for the following product(s) have been "
-"activated: %s"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:911
+#. translators: %d: Maximum upload size in MB
+msgid "The uploaded file exceeds %d MB"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/admin.php:983
-#: includes/lib/buddyboss-updater/includes/admin.php:996
-msgid ""
-"The connection was successful, however, no license key was activated. We "
-"could not find any active license in your account, for any of the installed "
-"BuddyBoss products."
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:914
+msgid "The uploaded file was only partially uploaded."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/classes/license.php:126
-#: includes/lib/buddyboss-updater/includes/classes/license.php:161
-msgid ""
-"We've checked the license key, but it <strong>doesn't appear to be a valid "
-"BuddyBoss license.</strong> Please double check the license key and try "
-"again."
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:917
+msgid "Missing a temporary folder."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/classes/license.php:142
-msgid "We are unable to validate the license key. Service unavailable."
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:918
+msgid "Failed to write file to disk."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/classes/updater.php:408
-msgid ""
-"An Unexpected HTTP Error occurred during the API request.</p> <p><a "
-"href=\"?\" onclick=\"document.location.reload(); return false;\">Try "
-"again</a>"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:919
+msgid "File upload stopped by extension."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/classes/updater.php:412
-#: includes/lib/buddyboss-updater/includes/classes/updater.php:413
-msgid "An unknown error occurred"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image-upload.php:947
+msgid "Error while uploading feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:84
-#: includes/lib/buddyboss-updater/includes/functions.php:88
-msgid "Boss Theme"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:244
+msgid "Set feature Image"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:101
-#: includes/lib/buddyboss-updater/includes/functions.php:105
-#: includes/lib/buddyboss-updater/includes/functions.php:264
-#: includes/lib/buddyboss-updater/includes/functions.php:350
-msgid "OneSocial Theme"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:422
+#: includes/reactions/includes/class-bb-reactions-picker.php:239
+msgid "Security check failed."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:120
-msgid "BB Theme & Platform Pro"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:683
+msgid "Upload failed"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:126
-msgid "BuddyBoss Theme"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:684
+msgid "Reposition photo"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:164
-msgid "BB Platform Pro"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:685
+msgid "Reposition and Crop Image"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:181
-#: includes/lib/buddyboss-updater/includes/functions.php:185
-msgid "BuddyBoss Media"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:686
+msgid "Unable to upload the file"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:198
-#: includes/lib/buddyboss-updater/includes/functions.php:202
-msgid "BuddyBoss Wall"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:687
+msgid "Connection lost with the server."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:213
-#: includes/lib/buddyboss-updater/includes/functions.php:217
-msgid "Location Autocomplete"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:688
+msgid "Crop operation failed:"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:230
-msgid "Social Learner - Learndash"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:689
+msgid "Failed to save cropped image. Please try again."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:239
-msgid "Boss for Learndash"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:690
+msgid "Error destroying cropper:"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:243
-msgid "Boss"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:691
+msgid "Error destroying cropper during cleanup:"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:256
-#: includes/lib/buddyboss-updater/includes/functions.php:260
-msgid "Social MarketPlace"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:692
+msgid "Error destroying dropzone:"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:277
-#: includes/lib/buddyboss-updater/includes/functions.php:281
-msgid "BuddyPress Member Types"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:693
+msgid "Invalid thumbnail URL, skipping thumbnail creation:"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:325
-#: includes/lib/buddyboss-updater/includes/functions.php:329
-#: includes/lib/buddyboss-updater/includes/functions.php:346
-msgid "BuddyPress User Blog"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:978
+msgid "You are not allowed to use this attachment."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/functions.php:342
-msgid "Social Blogger"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:988
+msgid "Please select a valid attachment id for feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:8
-msgid "Auto Connect (Recommended)"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:1414
+msgid "Sorry, you are not allowed to perform this action."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:10
-msgid ""
-"Click the \"Connect to BuddyBoss\" button to log into your BuddyBoss "
-"account. Then click \"Allow\" to have your license automatically filled in "
-"to activate your products."
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:1451
+msgid "Invalid request: No valid attachment, activity, or group context provided."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:14
-msgid "Connect to BuddyBoss"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:1494
+msgid "Invalid activity ID."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:16
-msgid "Connecting"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:1519
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:1607
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:777
+msgid "Invalid group ID."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:22
-msgid "Manual Connect"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:1534
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:1567
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:1700
+#. translators: %s: action
+msgid "Sorry, you are not allowed to %s this feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:25
-msgid "Log into %s"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:1623
+msgid "Sorry, you are not allowed to edit this feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:28
-msgid "Go to your %s"
+#: includes/platform-settings/activity/post-feature-image/class-bb-activity-post-feature-image.php:1635
+msgid "Sorry, you are not allowed to delete this feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:31
-msgid "Go to the \"Subscriptions\" tab"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:175
+msgid "You do not have permission to upload feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:34
-msgid "Find your product's license key"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:185
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:454
+msgid "Upload handler not available."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:37
-msgid "Enter your license key below"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:228
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:499
+msgid "Sorry, you are not allowed to upload feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:40
-msgid "Enter your BuddyBoss account email"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:250
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:314
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:374
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:514
+msgid "Feature instance not found."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:43
-msgid "Click \"Update License\""
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:256
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:520
+msgid "File is required."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:51
-msgid "Benefits of a License"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:268
+msgid "You do not have permission to upload a feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:54
-msgid "Stay Up to Date"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:302
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:442
+msgid "Missing or invalid attachment ID."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:55
-msgid "Get the latest features right away"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:362
+msgid "Sorry, you need to be logged in to delete this feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:58
-msgid "Admin Notifications"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:564
+msgid "Activity Post Feature Image"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:59
-msgid "Get updates in WordPress"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:568
+msgid "Unique identifier for the feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:62
-msgid "Professional Support"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:574
+msgid "Thumbnail URL for the feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/admin.php:63
-msgid "Get help with any questions"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:580
+msgid "Medium URL for the feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/intro.php:2
-msgid "How does BuddyBoss subscriptions work?"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:586
+msgid "URL for the feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/intro.php:3
-#: includes/lib/buddyboss-updater/includes/views/intro.php:7
-msgid ""
-"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor "
-"placerat ipsum. Maecenas venenatis euismod urna pretium faucibus. Fusce at "
-"interdum neque, vitae cursus augue. In ac dignissim mi. Quisque et nulla "
-"commodo, elementum dui at, tempus magna. Nam fringilla ac ipsum non tempor."
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:592
+msgid "Name for the feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/package.php:8
-msgid "Update License"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:597
+msgid "Can edit feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/package.php:28
-msgid "Product(s)"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:602
+msgid "Can delete feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/package.php:36
-msgid "%s"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:633
+msgid "Activity post feature image id."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/package.php:45
-msgid "License Key"
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:784
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:797
+msgid "You cannot update a feature image."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/package.php:49
-msgid ""
-"You can find the license key for your product by going to the <a "
-"href=\"https://my.buddyboss.com/my-account/?tab=mysubscriptions\" "
-"target=\"_blank\" rel=\"noopener\" >My Subscriptions</a> page in your "
-"account area."
+#: includes/platform-settings/activity/post-feature-image/class-bb-rest-activity-post-feature-image-endpoint.php:793
+msgid "You cannot update a feature image for this group."
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/package.php:68
-msgid "Email"
+#: includes/platform-settings/activity/post-feature-image/templates/buddypress/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:19
+#: includes/platform-settings/activity/post-feature-image/templates/readylaunch/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:19
+msgid "Feature Image"
 msgstr ""
 
-#: includes/lib/buddyboss-updater/includes/views/package.php:72
-msgid "This is your account email you use to log into your BuddyBoss.com account."
+#: includes/platform-settings/activity/post-feature-image/templates/buddypress/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:21
+#: includes/platform-settings/activity/post-feature-image/templates/readylaunch/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:21
+msgid "Or drag and drop"
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/templates/buddypress/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:29
+#: includes/platform-settings/activity/post-feature-image/templates/readylaunch/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:29
+msgid "Upload Failed"
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/templates/buddypress/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:57
+#: includes/platform-settings/activity/post-feature-image/templates/readylaunch/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:57
+msgid "Image to crop"
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/templates/buddypress/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:61
+#: includes/platform-settings/activity/post-feature-image/templates/readylaunch/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:61
+msgid "Drag to move photo"
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/templates/buddypress/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:64
+#: includes/platform-settings/activity/post-feature-image/templates/readylaunch/common/js-templates/activity/parts/bb-activity-post-feature-image-form.php:64
+msgid "Crop"
+msgstr ""
+
+#: includes/platform-settings/activity/post-feature-image/templates/preview/attachment.php:19
+#: includes/platform-settings/activity/post-feature-image/templates/preview/preview.php:21
+msgid "Silence is golden."
 msgstr ""
 
 #: includes/polls/bb-polls-actions.php:32
@@ -6155,7 +6251,7 @@ msgstr ""
 #: includes/polls/includes/class-bb-rest-poll-endpoint.php:181
 #: includes/polls/includes/class-bb-rest-poll-endpoint.php:542
 #: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:352
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:607
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:610
 msgid "Poll option must be between 1 and 50 characters long."
 msgstr ""
 
@@ -6342,11 +6438,11 @@ msgstr ""
 msgid "Error while deleting poll."
 msgstr ""
 
-#: includes/polls/bb-polls-filters.php:69
+#: includes/polls/bb-polls-filters.php:47
 msgid "Are you sure you would like to delete this poll?"
 msgstr ""
 
-#: includes/polls/bb-polls-filters.php:70
+#: includes/polls/bb-polls-filters.php:48
 #: includes/polls/templates/buddypress/activity/bb-activity-poll-view.php:113
 #: includes/polls/templates/buddypress/common/js-templates/activity/parts/bb-activity-poll-entry.php:65
 #: includes/polls/templates/buddypress/common/js-templates/activity/parts/bb-activity-poll-view.php:74
@@ -6356,7 +6452,7 @@ msgstr ""
 msgid "Added by you"
 msgstr ""
 
-#: includes/polls/bb-polls-filters.php:72
+#: includes/polls/bb-polls-filters.php:50
 msgid "Any options you have chosen will be removed"
 msgstr ""
 
@@ -6454,7 +6550,7 @@ msgstr ""
 #: includes/polls/includes/class-bb-rest-poll-endpoint.php:837
 #: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:191
 #: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:457
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:754
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:757
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:168
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:299
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:450
@@ -6467,7 +6563,7 @@ msgid "Sorry, you need to be logged in to update this poll."
 msgstr ""
 
 #: includes/polls/includes/class-bb-rest-poll-endpoint.php:713
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:599
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:602
 msgid ""
 "You are not authorized to update this poll option. Only the poll creator "
 "can update it."
@@ -6521,7 +6617,7 @@ msgid "Poll options."
 msgstr ""
 
 #: includes/polls/includes/class-bb-rest-poll-endpoint.php:1108
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:998
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1001
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:679
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:719
 msgid "A unique numeric ID for the poll."
@@ -6556,7 +6652,7 @@ msgid "The options for the poll."
 msgstr ""
 
 #: includes/polls/includes/class-bb-rest-poll-endpoint.php:1211
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1070
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1073
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:786
 msgid "The date the option was recorded."
 msgstr ""
@@ -6592,7 +6688,7 @@ msgstr ""
 
 #: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:131
 #: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:304
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:583
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:586
 msgid "Invalid poll."
 msgstr ""
 
@@ -6609,8 +6705,8 @@ msgid "Adding new options is not allowed for this poll."
 msgstr ""
 
 #: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:323
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:591
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:774
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:594
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:777
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:319
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:469
 msgid "Activity post polls are not enabled."
@@ -6621,7 +6717,7 @@ msgid "You must be an admin, moderator, or member of the group to add new option
 msgstr ""
 
 #: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:367
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:635
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:638
 #: includes/polls/templates/buddypress/activity/bb-activity-poll-view.php:190
 #: includes/polls/templates/buddypress/common/js-templates/activity/parts/bb-activity-poll-entry.php:136
 #: includes/polls/templates/readylaunch/activity/bb-activity-poll-view.php:199
@@ -6630,8 +6726,8 @@ msgid "This is already an option"
 msgstr ""
 
 #: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:467
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:619
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:766
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:622
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:769
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:183
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:484
 msgid "Invalid poll option ID."
@@ -6641,93 +6737,93 @@ msgstr ""
 msgid "Could not update the poll option."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:627
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:630
 msgid "You can not update this poll option."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:643
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:646
 msgid "You cannot update this poll option because it has votes."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:699
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:702
 msgid "Could not delete the poll option."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:741
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:744
 msgid "Sorry, you need to be logged in to delete this poll option."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:785
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:788
 msgid ""
 "You are not authorized to delete this poll option. Only the option creator "
 "can delete it."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:914
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:925
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:917
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:928
 msgid "Poll ID."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:932
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:935
 msgid "Option ID."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1004
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1007
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:725
 msgid "Order sort attribute ascending or descending."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1013
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1016
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:734
 msgid "Order by a specific parameter."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1043
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1046
 msgid "Unique identifier for the option."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1049
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1052
 msgid "ID of the poll this option belongs to."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1055
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1058
 #: includes/polls/includes/class-bb-rest-poll-option-vote-endpoint.php:781
 msgid "ID of the user who created the option."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1060
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1063
 msgid "The title of the option."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1065
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1068
 msgid "Order of the option."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1077
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1080
 msgid "The date the option was last updated."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1084
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1087
 msgid "The total votes for poll option."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1091
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1094
 msgid "Option user data."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1102
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1105
 msgid "Poll option username."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1107
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1110
 msgid "Poll option user link."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1114
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1117
 msgid "Whether to check user voted the option or not."
 msgstr ""
 
-#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1120
+#: includes/polls/includes/class-bb-rest-poll-option-endpoint.php:1123
 msgid "User's vote id."
 msgstr ""
 
@@ -7428,10 +7524,6 @@ msgstr ""
 msgid "There was a problem deleting the icon."
 msgstr ""
 
-#: includes/reactions/includes/class-bb-reactions-picker.php:239
-msgid "Security check failed."
-msgstr ""
-
 #: includes/reactions/includes/class-bb-reactions-picker.php:362
 #: includes/reactions/includes/class-bb-reactions-picker.php:454
 msgid "All Categories"
@@ -7624,7 +7716,7 @@ msgstr ""
 msgid "You are not allowed to delete scheduled posts for this user."
 msgstr ""
 
-#: includes/schedule-posts/templates/buddypress/activity-schedule/entry.php:83
+#: includes/schedule-posts/templates/buddypress/activity-schedule/entry.php:104
 msgid "Schedule for:"
 msgstr ""
 
@@ -7692,7 +7784,7 @@ msgstr ""
 msgid "Delete post"
 msgstr ""
 
-#: includes/schedule-posts/templates/readylaunch/activity-schedule/entry.php:93
+#: includes/schedule-posts/templates/readylaunch/activity-schedule/entry.php:114
 msgid "Schedule for"
 msgstr ""
 
@@ -7984,6 +8076,19 @@ msgstr ""
 msgid "Access token"
 msgstr ""
 
+#: includes/sso/includes/class-bb-sso-provider-oauth.php:565
+msgid "Invalid redirect schema."
+msgstr ""
+
+#: includes/sso/includes/class-bb-sso-provider-oauth.php:592
+msgid "Missing required parameters for authentication."
+msgstr ""
+
+#: includes/sso/includes/class-bb-sso-provider-oauth.php:633
+#: includes/sso/includes/class-bb-sso-provider-oauth.php:640
+msgid "Authentication failed. Please try again."
+msgstr ""
+
 #: includes/sso/includes/class-bb-sso-provider.php:417
 msgid "Error Please check and try again"
 msgstr ""
@@ -8063,13 +8168,20 @@ msgid ""
 "your %s account to register.</p>"
 msgstr ""
 
-#: includes/sso/includes/class-bb-sso-user.php:662
+#: includes/sso/includes/class-bb-sso-user.php:664
 #: includes/sso/lib/class-bb-sso-rest.php:313
 #. translators: %1$s: required fields list, %2$s: required fields list
 msgid "Please fill in the required fields to complete your registration:"
 msgstr ""
 
-#: includes/sso/includes/class-bb-sso-user.php:883
+#: includes/sso/includes/class-bb-sso-user.php:679
+#. translators: %s: field name
+msgid ""
+"Invalid <strong>%s</strong>. Only \"a-z\", \"0-9\", \"-\", \"_\" and \".\" "
+"are allowed."
+msgstr ""
+
+#: includes/sso/includes/class-bb-sso-user.php:904
 #. translators: %1$s: provider name, %2$s: provider name
 msgid ""
 "We found a user with your %1$s email address. Unfortunately, it belongs to "
@@ -8077,7 +8189,7 @@ msgid ""
 "%1$s account or log in with your password!"
 msgstr ""
 
-#: includes/sso/includes/class-bb-sso-user.php:998
+#: includes/sso/includes/class-bb-sso-user.php:1019
 msgid "User login is currently not allowed."
 msgstr ""
 
@@ -8156,19 +8268,19 @@ msgid ""
 "WordPress account that has the email match. They should use that account."
 msgstr ""
 
-#: includes/sso/lib/class-bb-sso-rest.php:376
+#: includes/sso/lib/class-bb-sso-rest.php:406
 #. translators: 1. Term agreement page. 2. Privacy page.
 msgid "I agree to the %1$s and %2$s."
 msgstr ""
 
-#: includes/sso/lib/class-bb-sso-rest.php:383
-#: includes/sso/lib/class-bb-sso-rest.php:389
+#: includes/sso/lib/class-bb-sso-rest.php:413
+#: includes/sso/lib/class-bb-sso-rest.php:419
 #. translators: Term agreement page.
 #. translators: Privacy page.
 msgid "I agree to the %s."
 msgstr ""
 
-#: includes/sso/lib/class-bb-sso-rest.php:570
+#: includes/sso/lib/class-bb-sso-rest.php:609
 msgid "There was an error with the registration."
 msgstr ""
 
@@ -8233,8 +8345,8 @@ msgstr ""
 msgid "Continue with Apple"
 msgstr ""
 
-#: includes/sso/providers/facebook/class-bb-social-provider-facebook.php:306
-#: includes/sso/providers/facebook/class-bb-social-provider-facebook.php:317
+#: includes/sso/providers/facebook/class-bb-social-provider-facebook.php:308
+#: includes/sso/providers/facebook/class-bb-social-provider-facebook.php:319
 msgid "Continue with Facebook"
 msgstr ""
 
@@ -8429,11 +8541,6 @@ msgstr ""
 
 #. Author of the plugin/theme
 msgid "BuddyBoss"
-msgstr ""
-
-#: includes/lib/buddyboss-updater/includes/views/package.php:35
-msgctxt "Conjuction joining different product names"
-msgid " and "
 msgstr ""
 
 #: includes/reactions/assets/icons/bb-icons/font-map.php:3

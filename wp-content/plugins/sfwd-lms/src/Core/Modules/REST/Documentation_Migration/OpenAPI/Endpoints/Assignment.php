@@ -32,7 +32,7 @@ class Assignment extends LDLMS_V2_Endpoint {
 	 * @return array<string,array<string,mixed>|string>
 	 */
 	public function get_response_schema( string $path = '', string $method = '' ): array {
-		$route_path = '/' . trim( $this->get_namespace(), '/' ) . '/' . ltrim( $path, '/' );
+		$route_path = '/' . ltrim( $path, '/' );
 
 		if ( $this->determine_route_type( $route_path ) === 'singular' ) {
 			return [
@@ -88,22 +88,22 @@ class Assignment extends LDLMS_V2_Endpoint {
 				),
 				'POST'   => sprintf(
 					// translators: %s: singular assignment label.
-					__( 'Update a %s', 'learndash' ),
+					__( 'Update an %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'assignment' )
 				),
 				'PUT'    => sprintf(
 					// translators: %s: singular assignment label.
-					__( 'Update a %s', 'learndash' ),
+					__( 'Update an %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'assignment' )
 				),
 				'PATCH'  => sprintf(
 					// translators: %s: singular assignment label.
-					__( 'Update a %s', 'learndash' ),
+					__( 'Update an %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'assignment' )
 				),
 				'DELETE' => sprintf(
 					// translators: %s: singular assignment label.
-					__( 'Delete a %s', 'learndash' ),
+					__( 'Delete an %s', 'learndash' ),
 					learndash_get_custom_label_lower( 'assignment' )
 				),
 			],
@@ -179,5 +179,16 @@ class Assignment extends LDLMS_V2_Endpoint {
 			__( 'Performs operations on %s.', 'learndash' ),
 			learndash_get_custom_label_lower( 'assignments' )
 		);
+	}
+
+	/**
+	 * Returns the tags for this endpoint.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return string[]
+	 */
+	protected function get_tags(): array {
+		return [ learndash_get_custom_label_lower( 'assignments' ) ];
 	}
 }

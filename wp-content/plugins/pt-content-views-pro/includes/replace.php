@@ -33,7 +33,7 @@ class CVP_Replace_Layout {
 	}
 
 	public static function where_to_start() {
-		$settings = get_option( CVP_REPLAYOUT );
+		$settings = get_option( CVP_REPLAYOUT, [] );
 
 		// @since 5.7.0: use pre_get_posts to able to change posts per page for SEO pagination
 		if ( !empty( $settings[ '-1-use-standard-pagination' ][ 'rep_status' ] ) ) {
@@ -49,10 +49,12 @@ class CVP_Replace_Layout {
 	public function __construct() {
 		if ( !is_admin() ) {
 			// for Block theme
-			if ( function_exists( 'wp_is_block_theme' ) && wp_is_block_theme() ) {
+			if ( (function_exists( 'wp_is_block_theme' ) && wp_is_block_theme()) || self::check_blocktheme() ) {
 				add_filter( 'render_block_data', array( $this, 'filter_render_block_data' ), 10, 3 );
+				// replace children blocks output
 				add_filter( 'render_block_core/post-template', array( $this, 'filter_render_block_core_post_template' ), 10, 3 );
 				add_filter( 'render_block_woocommerce/product-template', array( $this, 'filter_render_block_core_post_template' ), 10, 3 );
+				add_filter( 'render_block_divi/blog', array( $this, 'filter_render_block_core_post_template' ), 10, 3 );
 			}
 
 			// @since 5.7.0: use pre_get_posts to able to change posts per page for SEO pagination
@@ -75,8 +77,16 @@ class CVP_Replace_Layout {
 		}
 	}
 
+	// @since 7.2
+	static function check_blocktheme() {
+		// is block theme since Divi 5
+		$theme = get_template();
+		return strtolower( $theme ) === 'divi' && version_compare( wp_get_theme( $theme )->get( 'Version' ), '5', '>=' );
+	}
+
+	// list parent blocks
 	function filter_render_block_data( $parsed_block, $source_block, $parent_block ) {
-		if ( !empty( $parsed_block[ 'blockName' ] ) && in_array( $parsed_block[ 'blockName' ], [ 'core/query', 'woocommerce/product-collection' ] ) ) {
+		if ( !empty( $parsed_block[ 'blockName' ] ) && in_array( $parsed_block[ 'blockName' ], [ 'core/query', 'woocommerce/product-collection', 'divi/column' ] ) ) {
 			$is_nested = false;
 			$this->is_nested_block( $is_nested, array( $parsed_block ), $this->block_to_check() );
 			$this->is_query_block = $is_nested;
@@ -100,8 +110,9 @@ class CVP_Replace_Layout {
 		}
 	}
 
+	// list children blocks
 	function block_to_check() {
-		return [ 'core/post-template', 'woocommerce/product-template' ];
+		return [ 'core/post-template', 'woocommerce/product-template', 'divi/blog' ];
 	}
 
 	function filter_render_block_core_post_template( $block_content, $parsed_block, $this_block ) {
@@ -211,7 +222,7 @@ class CVP_Replace_Layout {
 			return;
 		}
 
-		$settings	 = get_option( CVP_REPLAYOUT );
+		$settings	 = get_option( CVP_REPLAYOUT, [] );
 		$page		 = $this->which_page;
 		if ( !empty( $settings[ $page ][ 'rep_status' ] ) ) {
 			if ( !empty( $settings[ $page ][ 'selected_view' ] ) ) {
@@ -677,7 +688,7 @@ class CVP_Replace_Layout_Admin {
 	 * @since 4.6.0
 	 */
 	public static function admin_action_term() {
-		$replace_data	 = get_option( CVP_REPLAYOUT );
+		$replace_data	 = get_option( CVP_REPLAYOUT, [] );
 		$taxes			 = get_taxonomies( array( 'public' => true ) );
 
 		foreach ( $taxes as $tax ) {
@@ -754,7 +765,7 @@ class CVP_Replace_Layout_Compatible {
 	 * @return boolean
 	 */
 	static function _is_enabled( $page, $term_id = 0 ) {
-		$replace_data = get_option( CVP_REPLAYOUT );
+		$replace_data = get_option( CVP_REPLAYOUT, [] );
 		if ( empty( $replace_data[ $page ][ 'rep_status' ] ) ) {
 			return false;
 		}

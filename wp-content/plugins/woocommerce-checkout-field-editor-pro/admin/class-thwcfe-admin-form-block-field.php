@@ -844,11 +844,12 @@ class THWCFE_Admin_Form_Block_Field extends THWCFE_Admin_Form{
 		?>
 		
         <table id="thwcfe_field_form_id_datepicker" class="thwcfe_field_form_table" width="100%" style="display:none;">
-		<tr class="">
+		<!-- Commented the note in order to use the browser timezone for the datepicker to align with the jQuery Datepicker behavior -->
+		<!-- <tr class="">
 			<td colspan="3">
-			<p style="margin:0;padding:0;">Note: <a href="<?php echo esc_url(admin_url('options-general.php#WPLANG'));?>" target="_blank" rel="noopener noreferrer" > This will be considered as the timezone </a>for the date picker, not the default browser time.</p>
-			 </td>
-		</tr>
+			<p style="margin:0;padding:0;">Note: <a href="<?php //echo esc_url(admin_url('options-general.php#WPLANG'));?>" target="_blank" rel="noopener noreferrer" > This will be considered as the timezone </a>for the date picker, not the default browser time.</p>
+			</td>
+		</tr> -->
 		<div class = "th-note">
 	    			
 	    		</div>

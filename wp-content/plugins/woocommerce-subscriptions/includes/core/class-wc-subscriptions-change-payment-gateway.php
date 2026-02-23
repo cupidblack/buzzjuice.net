@@ -871,11 +871,12 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	/**
 	 * Update the recurring payment method on a subscription order.
 	 *
+	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
+	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
+	 *
 	 * @param string $subscription_key The subscription key.
 	 * @param WC_Order $order The order.
 	 * @param string $new_payment_method The new payment method.
-	 * @since 1.0.0 - Migrated from WooCommerce Subscriptions v1.4
-	 * @deprecated 1.0.0 - Migrated from WooCommerce Subscriptions v2.0
 	 */
 	public static function update_recurring_payment_method( $subscription_key, $order, $new_payment_method ) {
 		_deprecated_function( __METHOD__, '2.0', __CLASS__ . '::update_payment_method()' );
@@ -913,6 +914,8 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 * For the recurring payment method to be changeable, the subscription must be active, have future (automatic) payments
 	 * and use a payment gateway which allows the subscription to be cancelled.
 	 *
+	 * @deprecated 2.0 Use WC_Subscriptions_Change_Payment_Gateway::can_subscription_be_updated_to_new_payment_method() instead.
+	 *
 	 * @param bool $subscription_can_be_changed Flag of whether the subscription can be changed to
 	 * @param string $new_status_or_meta The status or meta data you want to change th subscription to. Can be 'active', 'on-hold', 'cancelled', 'expired', 'trash', 'deleted', 'failed', 'new-payment-date' or some other value attached to the 'woocommerce_can_subscription_be_changed_to' filter.
 	 * @param object $args Set of values used in @see WC_Subscriptions_Manager::can_subscription_be_changed_to() for determining if a subscription can be changes, include:
@@ -938,7 +941,6 @@ class WC_Subscriptions_Change_Payment_Gateway {
 	 * Attach WooCommerce version dependent hooks
 	 *
 	 * @since 1.0.0
-	 *
 	 * @deprecated 1.6.4
 	 */
 	public static function attach_dependant_hooks() {

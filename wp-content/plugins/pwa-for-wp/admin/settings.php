@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 require_once PWAFORWP_PLUGIN_DIR.'/admin/class-pwaforwp-utility.php';
 
-function pwaforpw_add_menu_links() {
+function pwaforwp_add_menu_links() {
 
     $license_alert_icon = '';
     $days = '';
@@ -51,7 +51,7 @@ function pwaforpw_add_menu_links() {
 		$submenu['pwaforwp'][] = array( '<div style="color:#fff176;" onclick="window.open(\'https://pwa-for-wp.com/pricing/\')">'.esc_html__( 'Upgrade To Premium', 'pwa-for-wp' ).'</div>', 'manage_options', $permalink);
 	}
 }
-add_action( 'admin_menu', 'pwaforpw_add_menu_links');
+add_action( 'admin_menu', 'pwaforwp_add_menu_links');
 add_action( 'admin_head', 'pwaforwp_add_menu_styles');
 
 /**
@@ -566,7 +566,7 @@ function pwaforwp_settings_init(){
 		add_settings_field(
 			'pwaforwp_orientation',									// ID
 			esc_html__('Orientation', 'pwa-for-wp'),		// Title
-			'pwaforpw_orientation_callback',								// CB
+			'pwaforwp_orientation_callback',								// CB
 			'pwaforwp_general_section',						// Page slug
 			'pwaforwp_general_section'						// Settings Section ID
 		); 
@@ -575,7 +575,7 @@ function pwaforwp_settings_init(){
 		add_settings_field(
 			'pwaforwp_display',									// ID
 			esc_html__('Display', 'pwa-for-wp'),		// Title
-			'pwaforpw_display_callback',								// CB
+			'pwaforwp_display_callback',								// CB
 			'pwaforwp_general_section',						// Page slug
 			'pwaforwp_general_section'						// Settings Section ID
 		);
@@ -862,6 +862,13 @@ function pwaforwp_settings_init(){
 			'pwaforwp_compatibility_setting_section',				// Page slug
 			'pwaforwp_compatibility_setting_section'				// Settings Section ID
 		);
+		add_settings_field(
+			'pwaforwp_gravitec_support',							// ID
+			'<label for="pwaforwp_settings[gravitec_support_setting]"><b>'.esc_html__('Gravitec', 'pwa-for-wp').'</b></label>',					// Title
+			'pwaforwp_gravitec_support_callback',					// CB
+			'pwaforwp_compatibility_setting_section',				// Page slug
+			'pwaforwp_compatibility_setting_section'				// Settings Section ID
+		);
 
 		add_settings_field(
 			'pwaforwp_wphide_support',							// ID
@@ -925,6 +932,7 @@ function pwaforwp_settings_init(){
 
 function pwaforwp_sanitize_fields($inputs=array()){
 	$fields_type_data = pwaforwp_fields_and_type('type');
+	$old_settings = get_option('pwaforwp_settings', array());
 
 	foreach ($inputs as $key => $value) {
 		if (isset($fields_type_data[$key])) {
@@ -971,6 +979,29 @@ function pwaforwp_sanitize_fields($inputs=array()){
 			}
 		}
 	}
+	
+	$visibility_settings = get_option('pwaforwp_visibility_settings', array());
+	if (!empty($visibility_settings)) {
+		if (!isset($inputs['visibility_feature']) && isset($visibility_settings['visibility_feature'])) {
+			$inputs['visibility_feature'] = $visibility_settings['visibility_feature'];
+		}
+		if (!isset($inputs['include_targeting_type']) && !empty($visibility_settings['include_targeting_type'])) {
+			$inputs['include_targeting_type'] = $visibility_settings['include_targeting_type'];
+		}
+		if (!isset($inputs['include_targeting_value']) && !empty($visibility_settings['include_targeting_value'])) {
+			$inputs['include_targeting_value'] = $visibility_settings['include_targeting_value'];
+		}
+		if (!isset($inputs['exclude_targeting_type']) && !empty($visibility_settings['exclude_targeting_type'])) {
+			$inputs['exclude_targeting_type'] = $visibility_settings['exclude_targeting_type'];
+		}
+		if (!isset($inputs['exclude_targeting_value']) && !empty($visibility_settings['exclude_targeting_value'])) {
+			$inputs['exclude_targeting_value'] = $visibility_settings['exclude_targeting_value'];
+		}
+		if (!isset($inputs['exclude_url_from_pwa']) && isset($visibility_settings['exclude_url_from_pwa'])) {
+			$inputs['exclude_url_from_pwa'] = $visibility_settings['exclude_url_from_pwa'];
+		}
+	}
+	
 	return $inputs;
 	
 }
@@ -1462,7 +1493,7 @@ function pwaforwp_url_exclude_from_cache_list_callback(){
 	// Get Settings
 	$settings = pwaforwp_defaultSettings(); 
 	?>
-        <label><textarea placeholder="<?php esc_attr('https://example.com/admin.php?page=newpage, https://example.com/admin.php?page=newpage2') ?>"  rows="4" cols="70" id="pwaforwp_settings[excluded_urls]" name="pwaforwp_settings[excluded_urls]"><?php echo (isset($settings['excluded_urls']) ? esc_attr($settings['excluded_urls']): ''); ?></textarea></label>
+        <label><textarea placeholder="<?php echo esc_attr('https://example.com/admin.php?page=newpage, https://example.com/admin.php?page=newpage2') ?>"  rows="4" cols="70" id="pwaforwp_settings[excluded_urls]" name="pwaforwp_settings[excluded_urls]"><?php echo (isset($settings['excluded_urls']) ? esc_attr($settings['excluded_urls']): ''); ?></textarea></label>
         <p><?php echo esc_html__('Note: Put in comma separated, do not add enter in urls', 'pwa-for-wp'); ?></p>
 	<p><?php echo esc_html__('Put the list of urls which you do not want to cache by service worker', 'pwa-for-wp'); ?></p>	
 	
@@ -1564,7 +1595,7 @@ function pwaforwp_precaching_setting_callback(){
                 <tr>    
                     <td> <strong> <?php echo esc_html__('Enter Urls To Be Cached', 'pwa-for-wp'); ?> </strong></td>
                    <td>
-                       <label><textarea placeholder="<?php esc_attr('https://example.com/2019/06/06/hello-world/, https://example.com/2019/06/06/hello-world-2/')?>"  rows="4" cols="50" id="pwaforwp_settings_precaching_urls" name="pwaforwp_settings[precaching_urls]"><?php if(isset($settings['precaching_urls'])){ echo esc_attr($settings['precaching_urls']);} ?></textarea></label>
+                       <label><textarea placeholder="<?php echo esc_attr('https://example.com/2019/06/06/hello-world/, https://example.com/2019/06/06/hello-world-2/')?>"  rows="4" cols="50" id="pwaforwp_settings_precaching_urls" name="pwaforwp_settings[precaching_urls]"><?php if(isset($settings['precaching_urls'])){ echo esc_attr($settings['precaching_urls']);} ?></textarea></label>
                        <p><?php echo esc_html__('Note: Put in comma separated', 'pwa-for-wp'); ?></p>
                        <p><?php echo esc_html__('Put the list of urls which you want to pre cache by service worker', 'pwa-for-wp'); ?></p>
                    </td>
@@ -1577,6 +1608,10 @@ function pwaforwp_precaching_setting_callback(){
 function pwaforwp_visibility_setting_callback(){
     
     $settings = pwaforwp_defaultSettings();
+    $visibility_settings = get_option('pwaforwp_visibility_settings', array());
+    if (!empty($visibility_settings)) {
+        $settings = array_merge($settings, $visibility_settings);
+    }
 
     $arrayOPT = array(
                     'post_type'     => 'Post Type',
@@ -1654,8 +1689,8 @@ function pwaforwp_visibility_setting_callback(){
                     <?php $rand = time().wp_rand(000,999);
                     if(!empty( $settings['exclude_targeting_type']))  {
                         $expo_exclude_type = explode(',', $settings['exclude_targeting_type']);
-                        $expo_exclude_data = explode(',', $settings['exclude_targeting_value']);
-                       for ($i=0; $i < count($expo_exclude_type); $i++) {
+                        $expo_exclude_data = explode(',', $settings['exclude_targeting_value']);						
+                       	for ($i=0; $i < count($expo_exclude_type); $i++) {
                            echo '<span class="pwaforwp-visibility-target-icon-'.esc_attr($rand).'"><input type="hidden" name="exclude_targeting_type" value="'.esc_attr($expo_exclude_type[$i]).'">
                                 <input type="hidden" name="exclude_targeting_data" value="'.esc_attr($expo_exclude_data[$i]).'">';
                            $expo_exclude_type_test = pwaforwpRemoveExtraValue($expo_exclude_type[$i]);
@@ -1694,7 +1729,11 @@ function pwaforwp_visibility_setting_callback(){
                  <div class="exclude_type_error">&nbsp;</div>
             </td>
             <td class="include-btn-box"><a class="pwaforwp-exclude-btn button-primary" onclick="add_exclude_condition()"><?php echo esc_html__('ADD', 'pwa-for-wp'); ?></a></td>
-        </tr>   
+        </tr> 
+		<tr>
+			<td colspan="2"><label><input type="checkbox" name="pwaforwp_settings[exclude_url_from_pwa]" id="pwaforwp_settings_exclude_url_from_pwa" class="" <?php echo (isset( $settings['exclude_url_from_pwa'] ) &&  $settings['exclude_url_from_pwa'] == 1 ? 'checked="checked"' : ''); ?> data-uncheck-val="0" value="1"><?php echo esc_html__('Exclude Url from Pwa', 'pwa-for-wp'); ?></label>
+			<p> <?php echo esc_html__('Any excluded page or post will open directly in the system browser, completely bypassing the PWA app.', 'pwa-for-wp'); ?></p></td>
+        </tr>     
     <?php
 }
 
@@ -2151,7 +2190,7 @@ function pwaforwp_push_notification_callback(){
                 <tbody>
                     
                     <tr>
-                        <th><?php echo esc_html__('Title', 'pwa-for-wp') ?>:<br/><input style="width: 100%" placeholder="<?php esc_attr__("Title","pwa-for-wp") ?>" type="text" id="pwaforwp_notification_message_title" name="pwaforwp_notification_message_title" value="<?php echo esc_attr(get_bloginfo()); ?>">
+                        <th><?php echo esc_html__('Title', 'pwa-for-wp') ?>:<br/><input style="width: 100%" placeholder="<?php echo esc_attr__("Title","pwa-for-wp") ?>" type="text" id="pwaforwp_notification_message_title" name="pwaforwp_notification_message_title" value="<?php echo esc_attr(get_bloginfo()); ?>">
                             <br>
 			                   
                         </th>  
@@ -2160,7 +2199,7 @@ function pwaforwp_push_notification_callback(){
                      <tr>
                         <th>
                         	<?php echo esc_html__('Redirection Url Onclick of notification', 'pwa-for-wp') ?>:<br/>
-                        	<input style="width: 100%" placeholder="<?php esc_attr__("URL","pwa-for-wp") ?>" type="text" id="pwaforwp_notification_message_url" name="pwaforwp_notification_message_url" value="<?php echo esc_attr(pwaforwp_home_url()); ?>">
+                        	<input style="width: 100%" placeholder="<?php echo esc_attr__("URL","pwa-for-wp") ?>" type="text" id="pwaforwp_notification_message_url" name="pwaforwp_notification_message_url" value="<?php echo esc_attr(pwaforwp_home_url()); ?>">
                             <br>
 			                   
                         </th>  
@@ -2169,7 +2208,7 @@ function pwaforwp_push_notification_callback(){
                     <tr>
                         <th>
                         	<?php echo esc_html__('Image Url', 'pwa-for-wp') ?>:<br/>
-                        	<input style="width: 100%" placeholder="<?php esc_attr__("Image URL","pwa-for-wp") ?>" type="text" id="pwaforwp_notification_message_image_url" name="pwaforwp_notification_message_image_url" value="">
+                        	<input style="width: 100%" placeholder="<?php echo esc_attr__("Image URL","pwa-for-wp") ?>" type="text" id="pwaforwp_notification_message_image_url" name="pwaforwp_notification_message_image_url" value="">
                             <br>
 			                   
                         </th>  
@@ -2578,7 +2617,7 @@ function pwaforwp_start_page_callback(){
 	<?php
 }
 
-function pwaforpw_orientation_callback(){
+function pwaforwp_orientation_callback(){
 	
 	$settings = pwaforwp_defaultSettings();         
         ?>
@@ -2614,13 +2653,13 @@ function pwaforpw_orientation_callback(){
 	</label>
 	
 	<p class="description">
-		<?php esc_html__( 'Orientation of application on devices. When set to Follow Device Orientation your application will rotate as the device is rotated.', 'pwa-for-wp' ); ?>
+		<?php esc_html_e( 'Orientation of application on devices. When set to Follow Device Orientation your application will rotate as the device is rotated.', 'pwa-for-wp' ); ?>
 	</p>
 
 	<?php
 }
 
-function pwaforpw_display_callback(){
+function pwaforwp_display_callback(){
 	
 	$settings = pwaforwp_defaultSettings();         
         ?>
@@ -2647,7 +2686,7 @@ function pwaforpw_display_callback(){
 	</label>
 	
 	<p class="description">
-		<?php esc_html__( 'Orientation of application on devices. When set to Follow Device Orientation your application will rotate as the device is rotated.', 'pwa-for-wp' ); ?>
+		<?php esc_html_e( 'Orientation of application on devices. When set to Follow Device Orientation your application will rotate as the device is rotated.', 'pwa-for-wp' ); ?>
 	</p>
 
 	<?php
@@ -2671,7 +2710,7 @@ function pwaforwp_apple_status_bar_callback(){
 	</label>
 	
 	<p class="description">
-		<?php esc_html__( 'The status bar at the top of the screen (which usually displays the time and battery status).', 'pwa-for-wp' ); ?>
+		<?php esc_html_e( 'The status bar at the top of the screen (which usually displays the time and battery status).', 'pwa-for-wp' ); ?>
 	</p>
 
 	<?php
@@ -2689,11 +2728,11 @@ function pwaforwp_related_applications_callback(){
 	<div id="related_applications_div" style="display:<?php echo esc_attr($related_applications_div); ?>">
 	<fieldset>
 		<label for="pwaforwp_settings[related_applications]"><?php echo esc_html__( 'PlayStore App ID', 'pwa-for-wp' ); ?></label>&nbsp;
-		<input type="text" name="pwaforwp_settings[related_applications]" class="regular-text" placeholder="<?php esc_attr__("com.example.app","pwa-for-wp") ?>" value="<?php if ( isset( $settings['related_applications'] ) && ( ! empty($settings['related_applications']) ) ) echo esc_attr($settings['related_applications']); ?>"/>
+		<input type="text" name="pwaforwp_settings[related_applications]" class="regular-text" placeholder="<?php echo esc_attr__("com.example.app","pwa-for-wp") ?>" value="<?php if ( isset( $settings['related_applications'] ) && ( ! empty($settings['related_applications']) ) ) echo esc_attr($settings['related_applications']); ?>"/>
 	</fieldset>
 	<fieldset>
 		<label for="pwaforwp_settings[related_applications_ios]"><?php echo esc_html__( 'AppStore App ID', 'pwa-for-wp' ); ?></label>&nbsp;
-		<input type="text" name="pwaforwp_settings[related_applications_ios]" placeholder="<?php esc_attr__("id123456789","pwa-for-wp") ?>" class="regular-text" value="<?php if ( isset( $settings['related_applications_ios'] ) && ( ! empty($settings['related_applications_ios']) ) ) echo esc_attr($settings['related_applications_ios']); ?>"/>
+		<input type="text" name="pwaforwp_settings[related_applications_ios]" placeholder="<?php echo esc_attr__("id123456789","pwa-for-wp") ?>" class="regular-text" value="<?php if ( isset( $settings['related_applications_ios'] ) && ( ! empty($settings['related_applications_ios']) ) ) echo esc_attr($settings['related_applications_ios']); ?>"/>
 	</fieldset>
 	</div>
 
@@ -2734,6 +2773,15 @@ function pwaforwp_webpushr_support_callback(){
 	$settings = pwaforwp_defaultSettings();
 	?>
 	<input type="checkbox" name="pwaforwp_settings[webpusher_support_setting]" id="pwaforwp_settings[webpusher_support_setting]" class="pwaforwp-pushnami-support" <?php echo (isset( $settings['webpusher_support_setting'] ) &&  $settings['webpusher_support_setting'] == 1 ? 'checked="checked"' : ''); ?> value="1">
+
+	<?php
+}
+
+function pwaforwp_gravitec_support_callback(){
+	// Get Settings
+	$settings = pwaforwp_defaultSettings();
+	?>
+	<input type="checkbox" name="pwaforwp_settings[gravitec_support_setting]" id="pwaforwp_settings[gravitec_support_setting]" class="pwaforwp-pushnami-support" <?php echo (isset( $settings['gravitec_support_setting'] ) &&  $settings['gravitec_support_setting'] == 1 ? 'checked="checked"' : ''); ?> value="1">
 
 	<?php
 }
@@ -3730,6 +3778,10 @@ function pwaforwp_license_status($add_on, $license_status, $license_key){
                 
                 $get_options   = get_option('pwaforwp_settings');
                 $merge_options = array_merge($get_options, $license);
+                $visibility_settings = get_option('pwaforwp_visibility_settings', array());
+                if (!empty($visibility_settings)) {
+                    $merge_options = array_merge($merge_options, $visibility_settings);
+                }
                 update_option('pwaforwp_settings', $merge_options);  
                 
                 return array('status'=> $current_status, 'message'=> $message, 'days_remaining' => $days_remaining, 'username' => $fname ,'addon_name' => $addon_name  );
@@ -4108,7 +4160,7 @@ function pwaforwp_features_settings(){
 		';
 }
 
-function whitelable_for_pwa_custom_config_file($data) {
+function pwaforwp_whitelable_custom_config_file($data) {
     if ( ! function_exists( 'request_filesystem_credentials' ) ) {
         require_once ABSPATH . 'wp-admin/includes/file.php';
     }
@@ -4267,7 +4319,7 @@ function pwaforwp_update_features_options(){
 
 		}
 		if(!empty($whitelabel_data)){
-			whitelable_for_pwa_custom_config_file($whitelabel_data);
+			pwaforwp_whitelable_custom_config_file($whitelabel_data);
 		}
 		if(!empty($navigation_bar_data)){
 			if(isset($navigation_bar_data['navigation']) && count($navigation_bar_data['navigation']) >= 3){
@@ -4382,16 +4434,46 @@ function pwaforwp_update_features_options(){
 		}
 		
 		$pre_settings = pwaforwp_defaultSettings();
+		$old_settings = get_option('pwaforwp_settings', array());
 		$actualFields = wp_parse_args($actualFields, $pre_settings);
 		
 		if($visibility_flag === true && $visibility_data === false ){
 			
-			$actualFields['include_targeting_type'] = '';
-			$actualFields['include_targeting_value'] = '';
-			$actualFields['include_targeting_data'] = '';
-			$actualFields['exclude_targeting_type'] = '';
-			$actualFields['exclude_targeting_value'] = '';
-			$actualFields['exclude_targeting_data'] = '';
+			// $actualFields['include_targeting_type'] = '';
+			// $actualFields['include_targeting_value'] = '';
+			// $actualFields['include_targeting_data'] = '';
+			// $actualFields['exclude_targeting_type'] = '';
+			// $actualFields['exclude_targeting_value'] = '';
+			// $actualFields['exclude_targeting_data'] = '';
+		}
+		
+		if ($visibility_flag === true) {
+			$visibility_data_to_save = array();
+			if (isset($actualFields['visibility_feature'])) {
+				$visibility_data_to_save['visibility_feature'] = $actualFields['visibility_feature'];
+			}
+			if (isset($actualFields['include_targeting_type'])) {
+				$visibility_data_to_save['include_targeting_type'] = $actualFields['include_targeting_type'];
+			}
+			if (isset($actualFields['include_targeting_value'])) {
+				$visibility_data_to_save['include_targeting_value'] = $actualFields['include_targeting_value'];
+			}
+			if (isset($actualFields['exclude_targeting_type'])) {
+				$visibility_data_to_save['exclude_targeting_type'] = $actualFields['exclude_targeting_type'];
+			}
+			if (isset($actualFields['exclude_targeting_value'])) {
+				$visibility_data_to_save['exclude_targeting_value'] = $actualFields['exclude_targeting_value'];
+			}
+			if (isset($actualFields['exclude_url_from_pwa'])) {
+				$visibility_data_to_save['exclude_url_from_pwa'] = $actualFields['exclude_url_from_pwa'];
+			}
+			update_option('pwaforwp_visibility_settings', $visibility_data_to_save);
+			$actualFields = array_merge($actualFields, $visibility_data_to_save);
+		} else {
+			$visibility_settings = get_option('pwaforwp_visibility_settings', array());
+			if (!empty($visibility_settings)) {
+				$actualFields = array_merge($actualFields, $visibility_settings);
+			}
 		}
 
 
@@ -4588,6 +4670,7 @@ function pwaforwp_exclude_visibility_condition_callback() {
     $exclude_targeting_data = sanitize_text_field($_POST['exclude_targeting_data']);
 
     $rand = time().wp_rand(000,999);
+	$option = '';
     $option .= '<span class="pwaforwp-visibility-target-icon-'.esc_attr($rand).'">
     <input type="hidden" name="exclude_targeting_type" value="'.esc_attr($exclude_targeting_type).'">
     <input type="hidden" name="exclude_targeting_data" value="'.esc_attr($exclude_targeting_data).'">';
@@ -4662,6 +4745,10 @@ function pwaforwp_resize_images( $old_value, $new_value, $option='' ){
 					}
 
 				}}//Foreach closed
+				$visibility_settings = get_option('pwaforwp_visibility_settings', array());
+				if (!empty($visibility_settings)) {
+					$new_value = array_merge($new_value, $visibility_settings);
+				}
 				update_option( 'pwaforwp_settings', $new_value);
 
 			}
@@ -4784,6 +4871,11 @@ if ( ! function_exists( 'pwaforwp_splashscreen_uploader' ) ) {
 		}
 
 		$pwaforwp_settings['iosSplashScreenOpt'] = 'generate-auto';
+		
+		$visibility_settings = get_option('pwaforwp_visibility_settings', array());
+		if (!empty($visibility_settings)) {
+			$pwaforwp_settings = array_merge($pwaforwp_settings, $visibility_settings);
+		}
 
 		update_option( 'pwaforwp_settings', $pwaforwp_settings ) ;
 		wp_delete_file( $zipfilename );

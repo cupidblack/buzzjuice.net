@@ -25,11 +25,32 @@ class WPCode_Snippet_Execute_CSS extends WPCode_Snippet_Execute_Type {
 	protected function prepare_snippet_output() {
 		$code = $this->get_snippet_code();
 
-		if ( ! empty( $code ) ) {
-			// Wrap our code in a style tag.
-			$code = '<style class="wpcode-css-snippet">' . $code . '</style>';
+		$snippet_id = $this->snippet->get_id();
+		$style_id   = 'wpcode-snippet-css-' . $snippet_id;
+
+		// Detect live preview context for this snippet.
+		$is_live_preview = false;
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		if ( is_user_logged_in() && current_user_can( 'wpcode_edit_snippets' ) && isset( $_GET['wpcode_preview'], $_GET['snippet_id'] ) && '1' === $_GET['wpcode_preview'] && absint( $_GET['snippet_id'] ) === $snippet_id ) {
+			$is_live_preview = true;
+		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+
+		// For normal output, only render when code is not empty.
+		// For live preview of this snippet, always output a style tag so the editor can target it,
+		// inserting a harmless comment placeholder when the CSS is empty.
+		if ( '' === trim( $code ) ) {
+			if ( ! $is_live_preview ) {
+				return '';
+			}
+			$code = '/* inserted by WPCode live preview */';
 		}
 
-		return $code;
+		// In live preview add a deterministic id for targeting; otherwise keep original behavior (no id).
+		if ( $is_live_preview ) {
+			return '<style id="' . esc_attr( $style_id ) . '" class="wpcode-css-snippet">' . $code . '</style>';
+		}
+
+		return '<style class="wpcode-css-snippet">' . $code . '</style>';
 	}
 }

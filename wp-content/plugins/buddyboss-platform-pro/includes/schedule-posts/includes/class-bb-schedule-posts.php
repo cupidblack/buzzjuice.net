@@ -224,7 +224,8 @@ if ( ! class_exists( 'BB_Schedule_Posts' ) ) {
 						remove_action( 'bp_activity_after_save', 'bp_activity_save_link_data', 2, 1 );
 
 						// Publish the activity.
-						$activity->status = $published_status;
+						$activity->status         = $published_status;
+						$activity->title_required = false;
 						$activity->save();
 
 						add_action( 'bp_activity_after_save', 'bp_activity_save_link_data', 2, 1 );
@@ -296,9 +297,10 @@ if ( ! class_exists( 'BB_Schedule_Posts' ) ) {
 						// Also update the individual medias/videos/document activity.
 						if ( count( $ids ) > 1 ) {
 							// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-							$activity_id      = $wpdb->get_var( $wpdb->prepare( "SELECT activity_id FROM {$table_name} WHERE id = %d", $id ) );
-							$activity         = new BP_Activity_Activity( $activity_id );
-							$activity->status = bb_get_activity_published_status();
+							$activity_id              = $wpdb->get_var( $wpdb->prepare( "SELECT activity_id FROM {$table_name} WHERE id = %d", $id ) );
+							$activity                 = new BP_Activity_Activity( $activity_id );
+							$activity->status         = bb_get_activity_published_status();
+							$activity->title_required = false;
 							$activity->save();
 						}
 					}
@@ -317,7 +319,7 @@ if ( ! class_exists( 'BB_Schedule_Posts' ) ) {
 		 */
 		protected function bb_schedule_posts_check_has_licence( $has_access = true ) {
 
-			if ( ! bbp_pro_is_license_valid() ) {
+			if ( bb_pro_should_lock_features() ) {
 				return false;
 			}
 

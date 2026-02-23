@@ -478,7 +478,7 @@ class THWCFE_Admin_Utils extends WCFE_Checkout_Fields_Utils{
 					return $custom_field_keys;
 				}
 				
-				if(isset($keys)){
+				if(isset($keys) && is_array($keys)){
 					$keys = array_diff($keys, $custom_field_keys);
 					$keys = array_merge($custom_field_keys, $keys);
 				}

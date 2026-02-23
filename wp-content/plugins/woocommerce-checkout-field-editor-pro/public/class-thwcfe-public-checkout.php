@@ -177,6 +177,7 @@ class THWCFE_Public_Checkout extends THWCFE_Public {
             'reset_country_address_autofill' => apply_filters('thwcfe_reset_country_address_autofill', true),
 			'is_wc_version_grt_9_x' => version_compare(THWCFE_Utils::get_wc_version(), '9.7.0', ">="),
 			'shipping_visible_after_adrs' => $shipping_visible_after_adrs,
+			'use_base64decode' => apply_filters('thwcfe_use_base64decode_for_paypal_payment', false),
 		);
         if($force_wp_server_time_date_picker or $force_wp_server_time_time_picker){
             $wp_now = current_datetime();
@@ -1525,12 +1526,37 @@ class THWCFE_Public_Checkout extends THWCFE_Public {
 		if($use_legacy_call){
 			$extra_cost = $this->get_extra_cost_from_session();
 		}else{
-			$extra_cost_json = urldecode($this->get_posted_value('thwcfe_price_data'));
-			//$extra_cost_json = $this->get_posted_value('thwcfe_price_data');
+			$raw_value = $this->get_posted_value('thwcfe_price_data');
+			if($raw_value) {
+				$extra_cost_json = null;
+				// Fallback to urldecode for backward compatibility (old method)
+				if(!apply_filters('thwcfe_use_base64decode_for_paypal_payment', false)) {
+					$decoded = urldecode($raw_value);
+					$test_json = json_decode($decoded, true);
+					if(json_last_error() === JSON_ERROR_NONE) {
+						$extra_cost_json = $decoded;
+					}
+				} else {
+					// Try base64 decode first (new method)
+					$decoded = base64_decode($raw_value, true);
+					if($decoded !== false) {
+						// Check if it's valid JSON
+						$test_json = json_decode($decoded, true);
+						if(json_last_error() === JSON_ERROR_NONE) {
+							$extra_cost_json = $decoded;
+						}
+					}
+				}
 
-			if($extra_cost_json) {
-				$extra_cost = json_decode($extra_cost_json, true);
-				$extra_cost = $this->validate_and_filter_fields($extra_cost);
+				if($extra_cost_json) {
+					$extra_cost = json_decode($extra_cost_json, true);
+					
+					if(json_last_error() === JSON_ERROR_NONE && is_array($extra_cost)){
+						$extra_cost = $this->validate_and_filter_fields($extra_cost);
+					} else {
+						$extra_cost = null;
+					}
+				} 
 			}
 		}
 		// return is_array($extra_cost) ? $extra_cost : array();
@@ -1538,7 +1564,7 @@ class THWCFE_Public_Checkout extends THWCFE_Public {
 	}
 
 	public function woo_cart_calculate_fees($cart){
-		if(is_checkout()){
+		if(is_checkout() || apply_filters('thwcfe_use_base64decode_for_paypal_payment', false)){
 			$extra_cost = $this->get_extra_cost_data();
 			//$extra_cost = $this->get_extra_cost_from_session();
 			

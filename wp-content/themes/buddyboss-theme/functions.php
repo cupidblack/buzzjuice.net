@@ -17,13 +17,13 @@ add_filter('pre_http_request', function($pre, $parsed_args, $url) {
 	return $pre;
 }, 10, 3);
 
-update_option('buddyboss-platform-pro_license_key', 'B5E0B5F8DD8689E6ACA49DD6E6E1A930');
+update_option('buddyboss-platform-pro_license_key', 'OYLITE0000000005603B1EBE59708542');
 update_option('buddyboss-platform-pro_license_activation_status', true);
-update_option('bb-web_license_key', 'B5E0B5F8DD8689E6ACA49DD6E6E1A930');
+update_option('bb-web_license_key', 'OYLITE0000000005603B1EBE59708542');
 update_option('bb-web_license_activation_status', true);
-update_option('buddyboss-sharing_license_key', 'B5E0B5F8DD8689E6ACA49DD6E6E1A930');
+update_option('buddyboss-sharing_license_key', 'OYLITE0000000005603B1EBE59708542');
 update_option('buddyboss-sharing_license_activation_status', true);
-update_option('buddyboss-theme_license_key', 'B5E0B5F8DD8689E6ACA49DD6E6E1A930');
+update_option('buddyboss-theme_license_key', 'OYLITE0000000005603B1EBE59708542');
 update_option('buddyboss-theme_license_activation_status', true);
 function buddyboss_theme_get_theme_sudharo() {
 	return false;

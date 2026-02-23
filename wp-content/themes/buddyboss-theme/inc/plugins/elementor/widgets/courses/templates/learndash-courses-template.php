@@ -78,7 +78,7 @@ $courses_label = LearnDash_Custom_Label::get_label( 'courses' );
 		<div class="ld-secondary-header">
 			<div class="bb-secondary-list-tabs flex align-items-center" id="subnav" aria-label="Members directory secondary navigation" role="navigation">
 
-				<input type="hidden" id="course-order" name="order" value="<?php echo ! empty( $_GET['order'] ) ? $_GET['order'] : 'desc'; ?>"/>
+				<input type="hidden" id="course-order" name="order" value="<?php echo ! empty( $_GET['order'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) : 'desc'; ?>"/>
 				<input type="hidden" id="post-per-page" name="posts_per_page" value="<?php echo $posts_per_page; ?>"/>
 				<input type="hidden" id="current-page" name="current_page" value="<?php echo $current_page; ?>"/>
 

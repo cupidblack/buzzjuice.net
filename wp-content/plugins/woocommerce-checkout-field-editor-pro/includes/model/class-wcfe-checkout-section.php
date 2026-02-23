@@ -54,6 +54,7 @@ class WCFE_Checkout_Section {
 	
 	public $fields = array();
 	public $condition_sets = array();
+	public $checkout_type = 'standard';
 	
 	public function __construct() {}	
 		

@@ -24,7 +24,7 @@ add_action( 'update_option_bb-sso-reg-options', 'bb_sso_save_validate_reg_option
 function bb_sso_admin_setting_general_registration_fields( $field_obj ) {
 	$enable_sso                = function_exists( 'bb_enable_sso' ) ? bb_enable_sso() : false;
 	$sso_list_args             = array();
-	$sso_list_args['class']    = 'child-no-padding sso-lists ' . ( function_exists( 'bbp_pro_is_license_valid' ) && bbp_pro_is_license_valid() ? '' : 'hidden' ) . ( function_exists( 'bb_enable_sso' ) && bb_enable_sso() ? '' : 'sso-fields-disable' );
+	$sso_list_args['class']    = 'child-no-padding sso-lists ' . ( function_exists( 'bb_pro_should_lock_features' ) && ! bb_pro_should_lock_features() ? '' : 'hidden' ) . ( function_exists( 'bb_enable_sso' ) && bb_enable_sso() ? '' : 'sso-fields-disable' );
 	$sso_list_args['disabled'] = ! $enable_sso;
 	$field_obj->add_field(
 		'bb_enable_sso_lists',

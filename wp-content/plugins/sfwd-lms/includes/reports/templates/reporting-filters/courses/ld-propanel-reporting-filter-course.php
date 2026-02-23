@@ -304,7 +304,6 @@ if ( ( ! class_exists( 'LearnDash_ProPanel_Reporting_Filter_Courses' ) ) && ( cl
 			$response = array(
 				'total_rows'  => 0,
 				'rows_html'   => '',
-				// 'user_ids' => array(),
 				'total_users' => 0,
 			);
 
@@ -315,7 +314,6 @@ if ( ( ! class_exists( 'LearnDash_ProPanel_Reporting_Filter_Courses' ) ) && ( cl
 				'activity_types'  => 'course',
 				'activity_status' => '',
 				'orderby_order'   => 'users.display_name, posts.post_title',
-			// 'date_format'       =>  'F j, Y H:i:s',
 			);
 
 			$this->activity_query_args = wp_parse_args( $this->activity_query_args, $activity_query_defaults );

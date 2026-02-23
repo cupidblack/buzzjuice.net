@@ -1,14 +1,14 @@
-# <!=Copyright (C) 2025
+# <!=Copyright (C) 2026
 # This file is distributed under the same license as the  package.=!>
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-16 12:46:23+00:00\n"
+"POT-Creation-Date: 2026-01-22 14:28:44+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2025-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
 "Last-Translator: BuddyBoss\n"
 "Language-Team: BuddyBoss\n"
 "Language: en\n"
@@ -89,7 +89,7 @@ msgstr ""
 #: archive-sfwd-courses.php:103
 #: inc/plugins/elementor/widgets/courses/templates/learndash-courses-template.php:87
 #: inc/plugins/elementor/widgets/courses/templates/lifterlms-courses-template.php:100
-#: lifterlms/course/course-index.php:183
+#: lifterlms/course/course-index.php:182
 msgid "Order by"
 msgstr ""
 
@@ -97,14 +97,14 @@ msgstr ""
 #: inc/plugins/elementor/widgets/courses/templates/learndash-courses-template.php:118
 #: inc/plugins/elementor/widgets/courses/templates/learndash-courses-template.php:147
 #: inc/plugins/elementor/widgets/courses/templates/lifterlms-courses-template.php:160
-#: lifterlms/course/course-index.php:194
+#: lifterlms/course/course-index.php:193
 msgid "Filter by category"
 msgstr ""
 
 #: archive-sfwd-courses.php:118
 #: inc/plugins/elementor/widgets/courses/templates/learndash-courses-template.php:158
 #: inc/plugins/elementor/widgets/courses/templates/lifterlms-courses-template.php:171
-#: lifterlms/course/course-index.php:205
+#: lifterlms/course/course-index.php:204
 msgid "Filter by instructor"
 msgstr ""
 
@@ -114,7 +114,7 @@ msgstr ""
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/dashicons.php:659
 #: inc/plugins/elementor/widgets/courses/templates/learndash-courses-template.php:165
 #: inc/plugins/elementor/widgets/courses/templates/lifterlms-courses-template.php:179
-#: inc/plugins/learndash-helper.php:429 lifterlms/course/course-index.php:213
+#: inc/plugins/learndash-helper.php:429 lifterlms/course/course-index.php:212
 #: lifterlms/membership/membership-index.php:29
 msgid "Grid View"
 msgstr ""
@@ -125,7 +125,7 @@ msgstr ""
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/dashicons.php:649
 #: inc/plugins/elementor/widgets/courses/templates/learndash-courses-template.php:169
 #: inc/plugins/elementor/widgets/courses/templates/lifterlms-courses-template.php:183
-#: inc/plugins/learndash-helper.php:434 lifterlms/course/course-index.php:216
+#: inc/plugins/learndash-helper.php:434 lifterlms/course/course-index.php:215
 #: lifterlms/membership/membership-index.php:33
 msgid "List View"
 msgstr ""
@@ -137,9 +137,9 @@ msgstr ""
 #: inc/plugins/elementor/templates/types/page.php:35
 #: inc/plugins/elementor/widgets/courses/templates/learndash-courses-template.php:221
 #: inc/plugins/elementor/widgets/courses/templates/lifterlms-courses-template.php:220
-#: inc/plugins/learndash-helper.php:849 inc/plugins/lifterlms-helper.php:858
-#: inc/plugins/lifterlms-helper.php:962 lifterlms/course/course-index.php:250
-#: lifterlms/course/course-index.php:294
+#: inc/plugins/learndash-helper.php:849 inc/plugins/lifterlms-helper.php:863
+#: inc/plugins/lifterlms-helper.php:967 lifterlms/course/course-index.php:249
+#: lifterlms/course/course-index.php:293
 #: lifterlms/membership/membership-index.php:66
 msgid "Page"
 msgstr ""
@@ -147,8 +147,8 @@ msgstr ""
 #: archive-sfwd-courses.php:182
 #: inc/plugins/elementor/widgets/courses/templates/learndash-courses-template.php:240
 #: inc/plugins/elementor/widgets/courses/templates/lifterlms-courses-template.php:239
-#: inc/plugins/learndash-helper.php:862 inc/plugins/lifterlms-helper.php:885
-#: lifterlms/course/course-index.php:269 lifterlms/course/course-index.php:312
+#: inc/plugins/learndash-helper.php:862 inc/plugins/lifterlms-helper.php:890
+#: lifterlms/course/course-index.php:268 lifterlms/course/course-index.php:311
 #: lifterlms/membership/membership-index.php:78
 msgid "Sorry, no courses were found."
 msgstr ""
@@ -244,8 +244,8 @@ msgstr ""
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/fa.php:2594
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/genericon.php:623
 #: inc/plugins/learndash-compat.php:63 inc/theme/template-functions.php:905
-#: inc/theme/template-functions.php:1920 inc/theme/template-functions.php:1933
-#: inc/theme/template-functions.php:2042 inc/theme/template-functions.php:2057
+#: inc/theme/template-functions.php:1921 inc/theme/template-functions.php:1934
+#: inc/theme/template-functions.php:2043 inc/theme/template-functions.php:2058
 #: learndash/ld30/focus/comments_list.php:120
 #: tutor/dashboard/question-answer/answers.php:107
 #: tutor/single/lesson/comments-loop.php:37
@@ -275,7 +275,7 @@ msgstr ""
 msgid "Start of Discussion"
 msgstr ""
 
-#: bbpress/content-single-topic.php:149 learndash/ld30/lesson.php:216
+#: bbpress/content-single-topic.php:149 learndash/ld30/lesson.php:222
 #: learndash/ld30/quiz.php:100
 #: lifterlms/assignment/template-single-assignment-content.php:61
 #: lifterlms/lesson/template-single-lesson-content.php:63
@@ -912,7 +912,7 @@ msgstr ""
 
 #: buddypress.php:24
 #: inc/plugins/elementor/widgets/bb-profile-completion.php:958
-#: inc/plugins/lifterlms-helper.php:1873 inc/plugins/lifterlms-helper.php:1952
+#: inc/plugins/lifterlms-helper.php:1882 inc/plugins/lifterlms-helper.php:1961
 #: inc/theme/login.php:487 inc/theme/template-functions.php:856
 #: learndash/ld30/learndash-sidebar.php:189
 #: learndash/ld30/learndash-sidebar.php:213
@@ -4807,7 +4807,7 @@ msgid "Icon Picker"
 msgstr ""
 
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/loader.php:240
-#: inc/plugins/learndash-helper.php:1115 inc/plugins/lifterlms-helper.php:1338
+#: inc/plugins/learndash-helper.php:1115 inc/plugins/lifterlms-helper.php:1343
 msgid "All Categories"
 msgstr ""
 
@@ -7276,7 +7276,7 @@ msgstr ""
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/dashicons.php:184
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/elusive.php:416
 #: inc/plugins/buddyboss-menu-icons/vendor/kucrut/icon-picker/includes/types/fa.php:1039
-#: inc/plugins/lifterlms-helper.php:2217 tutor/dashboard/dashboard.php:135
+#: inc/plugins/lifterlms-helper.php:2226 tutor/dashboard/dashboard.php:135
 #: tutor/dashboard.php:47
 msgid "Dashboard"
 msgstr ""
@@ -11638,7 +11638,7 @@ msgid "Profile Photo"
 msgstr ""
 
 #: inc/plugins/elementor/widgets/bb-profile-completion.php:158
-#: inc/plugins/learndash-helper.php:585 inc/plugins/lifterlms-helper.php:1624
+#: inc/plugins/learndash-helper.php:585 inc/plugins/lifterlms-helper.php:1633
 #: template-parts/header-profile-menu.php:38
 msgid "Cover Photo"
 msgstr ""
@@ -11664,7 +11664,7 @@ msgid "Completion Text"
 msgstr ""
 
 #: inc/plugins/elementor/widgets/bb-profile-completion.php:236
-#: inc/plugins/lifterlms-helper.php:1671 inc/plugins/lifterlms-helper.php:1743
+#: inc/plugins/lifterlms-helper.php:1680 inc/plugins/lifterlms-helper.php:1752
 #: lifterlms/assignment/template-single-assignment-content.php:72
 #: lifterlms/course/course-index-loop.php:56
 #: lifterlms/lesson/template-single-lesson-content.php:121
@@ -12884,19 +12884,19 @@ msgstr ""
 msgid "Your response is awaiting for approval."
 msgstr ""
 
-#: inc/plugins/learndash-helper.php:298 inc/plugins/lifterlms-helper.php:211
+#: inc/plugins/learndash-helper.php:298 inc/plugins/lifterlms-helper.php:212
 msgid "Invalid request."
 msgstr ""
 
-#: inc/plugins/learndash-helper.php:305 inc/plugins/lifterlms-helper.php:217
+#: inc/plugins/learndash-helper.php:305 inc/plugins/lifterlms-helper.php:218
 msgid "Not a valid object"
 msgstr ""
 
-#: inc/plugins/learndash-helper.php:313 inc/plugins/lifterlms-helper.php:225
+#: inc/plugins/learndash-helper.php:313 inc/plugins/lifterlms-helper.php:226
 msgid "Not a valid option"
 msgstr ""
 
-#: inc/plugins/learndash-helper.php:323 inc/plugins/lifterlms-helper.php:235
+#: inc/plugins/learndash-helper.php:323 inc/plugins/lifterlms-helper.php:236
 msgid "Not a valid value"
 msgstr ""
 
@@ -12930,19 +12930,19 @@ msgid ""
 "course price box."
 msgstr ""
 
-#: inc/plugins/learndash-helper.php:1213 inc/plugins/lifterlms-helper.php:625
+#: inc/plugins/learndash-helper.php:1213 inc/plugins/lifterlms-helper.php:626
 msgid "All Instructors"
 msgstr ""
 
-#: inc/plugins/learndash-helper.php:1312 inc/plugins/lifterlms-helper.php:599
+#: inc/plugins/learndash-helper.php:1312 inc/plugins/lifterlms-helper.php:600
 msgid "Alphabetical"
 msgstr ""
 
-#: inc/plugins/learndash-helper.php:1313 inc/plugins/lifterlms-helper.php:600
+#: inc/plugins/learndash-helper.php:1313 inc/plugins/lifterlms-helper.php:601
 msgid "Newly Created"
 msgstr ""
 
-#: inc/plugins/learndash-helper.php:1317 inc/plugins/lifterlms-helper.php:604
+#: inc/plugins/learndash-helper.php:1317 inc/plugins/lifterlms-helper.php:605
 msgid "My Progress"
 msgstr ""
 
@@ -12956,16 +12956,16 @@ msgstr ""
 msgid "Pages:"
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:977
+#: inc/plugins/lifterlms-helper.php:982
 msgid "Sorry, no memberships were found."
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1656
+#: inc/plugins/lifterlms-helper.php:1665
 #: learndash/ld30/template-single-course-sidebar.php:272
 msgid "Continue"
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1671
+#: inc/plugins/lifterlms-helper.php:1680
 #: learndash/ld30/learndash-sidebar.php:228
 #: learndash/ld30/learndash-sidebar.php:301
 #: learndash/ld30/learndash-sidebar.php:347
@@ -12979,15 +12979,15 @@ msgstr ""
 msgid "Completed"
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1721
+#: inc/plugins/lifterlms-helper.php:1730
 msgid "Steps"
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1723
+#: inc/plugins/lifterlms-helper.php:1732
 msgid "Last activity on"
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1746
+#: inc/plugins/lifterlms-helper.php:1755
 #: learndash/ld30/shortcodes/course_list_grid_template.php:218
 #: lifterlms/assignment/template-single-assignment-content.php:75
 #: lifterlms/course/course-index-loop.php:63
@@ -12997,43 +12997,53 @@ msgstr ""
 msgid "In Progress"
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1845
+#: inc/plugins/lifterlms-helper.php:1854
 msgid "What Others Have Said"
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1931 inc/plugins/lifterlms-helper.php:1986
+#: inc/plugins/lifterlms-helper.php:1940 inc/plugins/lifterlms-helper.php:1995
 msgid "Thank you for your review!"
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1940
+#: inc/plugins/lifterlms-helper.php:1949
 msgid "Write a Review"
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1963
+#: inc/plugins/lifterlms-helper.php:1972
 msgid "Review Title"
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1965
+#: inc/plugins/lifterlms-helper.php:1974
 msgid "Review Title is required."
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1967
+#: inc/plugins/lifterlms-helper.php:1976
 msgid "Review Text"
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1970
+#: inc/plugins/lifterlms-helper.php:1979
 msgid "Review Text is required."
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:1976
+#: inc/plugins/lifterlms-helper.php:1985
 msgid "Leave Review"
 msgstr ""
 
-#: inc/plugins/lifterlms-helper.php:2217
+#: inc/plugins/lifterlms-helper.php:2226
 msgid "All certificates"
 msgstr ""
 
-#: inc/plugins/related-posts-helper.php:204
+#: inc/plugins/lifterlms-helper.php:2353
+#. translators: %s: Protected post title.
+msgid "Protected: %s"
+msgstr ""
+
+#: inc/plugins/lifterlms-helper.php:2373
+#. translators: %s: Private post title.
+msgid "Private: %s"
+msgstr ""
+
+#: inc/plugins/related-posts-helper.php:233
 msgid "There is no excerpt because this is a protected post."
 msgstr ""
 
@@ -13467,7 +13477,7 @@ msgstr ""
 msgid "Load More"
 msgstr ""
 
-#: inc/theme/template-functions.php:2243
+#: inc/theme/template-functions.php:2244
 msgid "Edit Post Privacy"
 msgstr ""
 
@@ -13957,13 +13967,13 @@ msgstr ""
 msgid "Please login to view sample content"
 msgstr ""
 
-#: learndash/ld30/lesson.php:232 learndash/ld30/quiz.php:111
-#: learndash/ld30/topic.php:246
+#: learndash/ld30/lesson.php:238 learndash/ld30/quiz.php:111
+#: learndash/ld30/topic.php:253
 msgid "Expires at"
 msgstr ""
 
-#: learndash/ld30/lesson.php:232 learndash/ld30/quiz.php:111
-#: learndash/ld30/topic.php:246
+#: learndash/ld30/lesson.php:238 learndash/ld30/quiz.php:111
+#: learndash/ld30/topic.php:253
 msgid "Expired at"
 msgstr ""
 
@@ -14301,7 +14311,7 @@ msgstr ""
 msgid "Course"
 msgstr ""
 
-#: lifterlms/course/course-index.php:159
+#: lifterlms/course/course-index.php:158
 #. translators: %d is the courses count
 msgid "<span class=\"bb-count\">%d</span> Course"
 msgid_plural "<span class=\"bb-count\">%d</span> Courses"

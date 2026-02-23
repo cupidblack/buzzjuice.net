@@ -14,72 +14,195 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 1.0.0
  *
- * @return bool License is valid then true otherwise true.
+ * @return bool License is valid then true otherwise false.
  */
 function bbp_pro_is_license_valid() {
-	return true;
-	$server_name = ! empty( $_SERVER['SERVER_NAME'] ) ? wp_unslash( $_SERVER['SERVER_NAME'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-
-	$whitelist_domain = array(
-		'.test',
-		'.dev',
-		'staging.',
-		'localhost',
-		'.local',
-		'.rapydapps.cloud',
-	);
-
-	if (
-		defined( 'WP_TESTS_DOMAIN' ) &&
-		WP_TESTS_DOMAIN === $server_name
-	) {
+	if ( bb_pro_check_staging_server() ) {
 		return true;
 	}
 
-	foreach ( $whitelist_domain as $domain ) {
-		if ( false !== strpos( $server_name, $domain ) ) {
-			return true;
-		}
-	}
-
-	$saved_licenses = get_option( 'bboss_updater_saved_licenses' );
-	if ( is_multisite() ) {
-		if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
-			require_once ABSPATH . '/wp-admin/includes/plugin.php';
-		}
-
-		if ( is_plugin_active_for_network( bb_platform_pro()->basename ) ) {
-			$saved_licenses = get_site_option( 'bboss_updater_saved_licenses' );
-		}
-	}
-
 	$license_exists = false;
-	if ( ! empty( $saved_licenses ) ) {
-		foreach ( $saved_licenses as $package_id => $license_details ) {
-			if (
-				! empty( $license_details['license_key'] ) &&
-				! empty( $license_details['token'] ) &&
-				! empty( $license_details['product_keys'] ) &&
-				(
-					in_array( 'BB_THEME', $license_details['product_keys'], true ) ||
-					in_array( 'BB_PLATFORM_PRO', $license_details['product_keys'], true )
-				)
-			) {
-				$token = $license_details['token'];
 
-				list( $header, $payload, $signature ) = explode( '.', $token );
+	if ( class_exists( '\BuddyBoss\Core\Admin\Mothership\BB_Plugin_Connector' ) ) {
+		$connector      = new \BuddyBoss\Core\Admin\Mothership\BB_Plugin_Connector();
+		$license_status = $connector->getLicenseActivationStatus();
 
-				$payload = json_decode( base64_decode( $payload ), true );
-				$exp     = $payload['licence_exp'];
-				if ( ! empty( $exp ) && strtotime( $exp ) > time() ) {
-					$license_exists = true;
-					break;
-				}
+		if (
+			! empty( $license_status ) &&
+			class_exists( '\BuddyBoss\Core\Admin\Mothership\BB_Addons_Manager' ) &&
+			\BuddyBoss\Core\Admin\Mothership\BB_Addons_Manager::checkProductBySlug( 'buddyboss-platform-pro' )
+		) {
+			$license_exists = true;
+		}
+	} else {
+		$license_exists = false;
+	}
+
+	return $license_exists;
+}
+
+/**
+ * Check if Platform Pro features should be locked due to DRM.
+ *
+ * This function implements grace period support - features remain enabled during
+ * the warning period (days 1-30) and only lock after day 31.
+ *
+ * @since 2.11.0
+ *
+ * @return bool True if features should be locked, false otherwise.
+ */
+function bb_pro_should_lock_features() {
+	// Check if DRM Registry is available.
+	if ( class_exists( '\BuddyBoss\Core\Admin\DRM\BB_DRM_Registry' ) ) {
+		// Use DRM system to check if features should be locked.
+		// This respects the grace period (days 1-20 features work, day 21+ locked).
+		return \BuddyBoss\Core\Admin\DRM\BB_DRM_Registry::should_lock_addon_features( 'buddyboss-platform-pro' );
+	}
+
+	// Fallback to legacy license check if DRM not available.
+	// This maintains backwards compatibility with older Platform versions.
+	return ! bbp_pro_is_license_valid();
+}
+
+/**
+ * Check if the current site is a staging or development server.
+ *
+ * This function checks the provided domain (or the current site URL if none is provided)
+ * against a list of known staging/development indicators, including reserved words,
+ * hosting provider domains, and local development TLDs.
+ *
+ * @since 2.10.0
+ *
+ * @param string $raw_domain Optional. The domain to check. If empty, uses the current site URL.
+ * @return bool True if the domain indicates a staging/development environment, false otherwise.
+ */
+function bb_pro_check_staging_server( $raw_domain = '' ) {
+	// If no domain provided, use the current site URL.
+	if ( empty( $raw_domain ) ) {
+		$raw_domain = site_url();
+	}
+
+	// Reserved hosting provider domains that indicate staging/development.
+	$reserved_hosting_provider_domains = array(
+		'accessdomain',     // Generic hosting.
+		'cloudwaysapps',    // Cloudways.
+		'flywheelsites',    // Flywheel.
+		'kinsta',           // Kinsta.
+		'mybluehost',       // BlueHost.
+		'myftpupload',      // GoDaddy.
+		'netsolhost',       // Network Solutions.
+		'pantheonsite',     // Pantheon.
+		'sg-host',          // SiteGround.
+		'wpengine',         // WP Engine (old).
+		'wpenginepowered',  // WP Engine.
+		'rapydapps.cloud',  // Rapyd.
+	);
+
+	// Reserved words that indicate testing/staging environments.
+	$reserved_words = array(
+		'dev',
+		'develop',
+		'development',
+		'test',
+		'testing',
+		'stg',
+		'stage',
+		'staging',
+		'demo',
+		'sandbox',
+		'preview',
+	);
+
+	// Reserved TLDs for local development.
+	$reserved_tlds = array(
+		'local',
+		'localhost',
+		'test',
+		'example',
+		'invalid',
+		'dev',
+		'staging',
+	);
+
+	// Known local development tool domains.
+	$reserved_local_domains = array(
+		'lndo.site',        // Lando.
+		'ddev.site',        // DDEV.
+		'docksal',          // Docksal.
+		'localwp.com',      // Local by Flywheel.
+		'local.test',       // Generic local.
+		'docker.internal',  // Docker.
+		'ngrok.io',         // ngrok tunneling.
+		'localtunnel.me',   // localtunnel.
+	);
+
+	// Parse the URL to get the host.
+	$parsed_url = wp_parse_url( $raw_domain );
+	$domain     = isset( $parsed_url['host'] ) ? $parsed_url['host'] : $raw_domain;
+
+	// Remove www prefix if present.
+	$domain = preg_replace( '/^www\./i', '', $domain );
+
+	// Check if domain is localhost or an IP address.
+	if ( 'localhost' === $domain || filter_var( $domain, FILTER_VALIDATE_IP ) ) {
+		return true;
+	}
+
+	// Check for port numbers (often indicates local development).
+	if ( isset( $parsed_url['port'] ) && ! in_array( $parsed_url['port'], array( 80, 443 ), true ) ) {
+		return true;
+	}
+
+	// Extract domain parts.
+	$domain_parts = explode( '.', $domain );
+	$tld          = end( $domain_parts );
+
+	// Check for reserved TLDs.
+	if ( in_array( $tld, $reserved_tlds, true ) ) {
+		return true;
+	}
+
+	// Check for reserved testing words in subdomains.
+	$subdomain_pattern = '/(\.|-)(' . implode( '|', $reserved_words ) . ')(\.|-)|(^(' . implode( '|', $reserved_words ) . ')\.)/i';
+	if ( preg_match( $subdomain_pattern, $domain ) ) {
+		return true;
+	}
+
+	// Check for known hosting provider staging domains.
+	$hosting_pattern = '/\.(' . implode( '|', $reserved_hosting_provider_domains ) . ')\./i';
+	if ( preg_match( $hosting_pattern, '.' . $domain . '.' ) ) {
+		return true;
+	}
+
+	// Check for known development tool domains.
+	$dev_tools_pattern = '/(' . implode( '|', array_map( 'preg_quote', $reserved_local_domains ) ) . ')$/i';
+	if ( preg_match( $dev_tools_pattern, $domain ) ) {
+		return true;
+	}
+
+	// Check WordPress-specific staging indicators.
+	if ( defined( 'WP_ENVIRONMENT_TYPE' ) && 'production' !== WP_ENVIRONMENT_TYPE ) {
+		return true;
+	}
+
+
+	// Check for common WordPress staging constants.
+	if ( defined( 'WP_STAGING' ) && WP_STAGING ) {
+		return true;
+	}
+
+	// Additional WordPress multisite check.
+	if ( is_multisite() ) {
+		$network_domain = parse_url( network_site_url(), PHP_URL_HOST );
+		if ( $network_domain !== $domain ) {
+			// Check if this is a staging subdomain in multisite.
+			if ( preg_match( $subdomain_pattern, $network_domain ) ) {
+				return true;
 			}
 		}
 	}
 
-	return $license_exists;
+	return false;
 }
 
 /**
@@ -497,4 +620,15 @@ function bb_pro_active_integrations( $integrations ) {
  */
 function bb_platform_topics_version() {
 	return '2.8.80';
+}
+
+/**
+ * Get the BuddyBoss Platform min version for a activity post feature image.
+ *
+ * @since 2.9.0
+ *
+ * @return string
+ */
+function bb_platform_activity_post_feature_image_version() {
+	return '2.13.0';
 }

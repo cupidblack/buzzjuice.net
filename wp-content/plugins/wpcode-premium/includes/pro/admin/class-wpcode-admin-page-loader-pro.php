@@ -33,6 +33,7 @@ class WPCode_Admin_Page_Loader_Pro extends WPCode_Admin_Page_Loader {
 	 * @return void
 	 */
 	public function require_files() {
+		require_once WPCODE_PLUGIN_PATH . 'includes/pro/admin/pages/trait-wpcode-library-refresh-button.php';
 		parent::require_files();
 		require_once WPCODE_PLUGIN_PATH . 'includes/pro/admin/pages/trait-wpcode-revisions-display.php';
 		require_once WPCODE_PLUGIN_PATH . 'includes/pro/admin/pages/class-wpcode-admin-page-snippet-manager-pro.php';
@@ -60,7 +61,7 @@ class WPCode_Admin_Page_Loader_Pro extends WPCode_Admin_Page_Loader {
 		$this->pages['settings']        = 'WPCode_Admin_Page_Settings_Pro';
 		$this->pages['pixel']           = 'WPCode_Admin_Page_Pixel_Pro';
 		$this->pages['file_editor']     = 'WPCode_Admin_Page_File_Editor_Pro';
-        $this->pages['code_snippets']   = 'WPCode_Admin_Page_Code_Snippets_Pro';
+		$this->pages['code_snippets']   = 'WPCode_Admin_Page_Code_Snippets_Pro';
 	}
 
 	/**

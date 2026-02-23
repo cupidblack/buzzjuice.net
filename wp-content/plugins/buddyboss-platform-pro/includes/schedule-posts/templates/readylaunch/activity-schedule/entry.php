@@ -82,6 +82,27 @@ $scheduled_date_string                  = wp_json_encode( $scheduled_date_data )
 		</div>
 	</div>
 
+	<?php
+	if (
+		function_exists( 'bb_pro_activity_post_feature_image_instance' ) &&
+		bb_pro_activity_post_feature_image_instance() &&
+		method_exists( bb_pro_activity_post_feature_image_instance(), 'bb_get_feature_image_data' )
+	) {
+		?>
+		<div class="bb-rl-activity-feature-image">
+			<?php
+			$feature_image_data = bb_pro_activity_post_feature_image_instance()->bb_get_feature_image_data( $activity_id );
+			if ( ! empty( $feature_image_data ) ) {
+				?>
+				<img class="activity-feature-image-media" src="<?php echo esc_url( $feature_image_data['url'] ); ?>" alt="<?php echo esc_attr( $feature_image_data['title'] ); ?>" />
+				<?php
+			}
+			?>
+		</div>
+		<?php
+	}
+	?>
+
 	<div class="bb-rl-activity-head">
 		<div class="bb-rl-activity-avatar bb-rl-item-avatar">
 			<a href="<?php bp_activity_user_link(); ?>"><?php bp_activity_avatar( array( 'type' => 'full' ) ); ?></a>
@@ -116,6 +137,20 @@ $scheduled_date_string                  = wp_json_encode( $scheduled_date_data )
 	</div>
 
 	<?php bp_nouveau_activity_hook( 'before', 'activity_content' ); ?>
+
+	<?php
+	if (
+		function_exists( 'bb_activity_has_post_title' ) &&
+		bb_activity_has_post_title() &&
+		function_exists( 'bb_activity_post_title' )
+	) {
+		?>
+		<div class="bb-rl-activity-title">
+			<h2><?php bb_activity_post_title(); ?></h2>
+		</div>
+		<?php
+	}
+	?>
 
 	<div class="bb-rl-activity-content <?php ( function_exists( 'bp_activity_entry_css_class' ) ) ? bp_activity_entry_css_class() : ''; ?>">
 		<?php

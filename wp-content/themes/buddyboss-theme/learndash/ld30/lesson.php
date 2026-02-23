@@ -87,7 +87,13 @@ if ( ! isset( $previous_lesson_completed ) ) {
 	// Initialize progression variables based on LearnDash's logic.
 	$previous_lesson_completed = true; // Default to true (no previous lesson to complete).
 
-	if ( ! empty( $user_id ) ) {
+	// Check if user can bypass course limits (admin users).
+	$bypass_course_limits_admin_users = learndash_can_user_bypass( $user_id, 'learndash_course_progression' );
+
+	if ( $bypass_course_limits_admin_users ) {
+		// Admin users with bypass enabled should skip progression checks.
+		$previous_lesson_completed = true;
+	} elseif ( ! empty( $user_id ) ) {
 		$current_step_complete = learndash_user_progress_is_step_complete( $user_id, $course_id, $post->ID );
 
 		if ( $current_step_complete ) {

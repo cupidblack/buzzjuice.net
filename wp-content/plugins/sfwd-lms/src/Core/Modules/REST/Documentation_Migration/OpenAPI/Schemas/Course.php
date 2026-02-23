@@ -133,6 +133,7 @@ class Course extends WP_Post {
 						'type'        => 'string',
 						'description' => __( 'The rendered materials content.', 'learndash' ),
 						'example'     => '',
+						'readOnly'    => true,
 					],
 				],
 			],
@@ -228,7 +229,7 @@ class Course extends WP_Post {
 				'type'        => 'boolean',
 				'description' => sprintf(
 					/* translators: %s: Course label (lowercase) */
-					__( 'Whether %s points are are the set requirement for access.', 'learndash' ),
+					__( 'Whether %s points are the set requirement for access.', 'learndash' ),
 					$course_singular_lowercase
 				),
 				'example'     => false,

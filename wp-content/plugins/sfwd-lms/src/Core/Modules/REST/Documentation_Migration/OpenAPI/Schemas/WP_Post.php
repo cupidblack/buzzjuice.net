@@ -39,6 +39,7 @@ class WP_Post {
 					'type'        => 'integer',
 					'description' => __( 'The post ID.', 'learndash' ),
 					'example'     => 123,
+					'readOnly'    => true,
 				],
 				'date'           => [
 					'type'        => 'string',
@@ -55,16 +56,19 @@ class WP_Post {
 				'guid'           => [
 					'type'        => 'object',
 					'description' => __( 'The globally unique identifier for the post.', 'learndash' ),
+					'readOnly'    => true,
 					'properties'  => [
 						'raw'      => [
 							'type'        => 'string',
 							'description' => __( 'The raw GUID.', 'learndash' ),
 							'example'     => 'https://example.com/?p=123',
+							'readOnly'    => true,
 						],
 						'rendered' => [
 							'type'        => 'string',
 							'description' => __( 'The rendered GUID.', 'learndash' ),
 							'example'     => 'https://example.com/?p=123',
+							'readOnly'    => true,
 						],
 					],
 				],
@@ -73,12 +77,14 @@ class WP_Post {
 					'format'      => 'date-time',
 					'description' => __( 'The date the post was last modified.', 'learndash' ),
 					'example'     => '2024-01-15T10:30:00Z',
+					'readOnly'    => true,
 				],
 				'modified_gmt'   => [
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'description' => __( 'The date the post was last modified in GMT.', 'learndash' ),
 					'example'     => '2024-01-15T10:30:00Z',
+					'readOnly'    => true,
 				],
 				'slug'           => [
 					'type'        => 'string',
@@ -95,6 +101,7 @@ class WP_Post {
 					'type'        => 'string',
 					'description' => __( 'The post type.', 'learndash' ),
 					'example'     => 'post',
+					'readOnly'    => true,
 				],
 				'link'           => [
 					'type'        => 'string',
@@ -115,6 +122,7 @@ class WP_Post {
 							'type'        => 'string',
 							'description' => __( 'The rendered title.', 'learndash' ),
 							'example'     => 'Sample Post Title',
+							'readOnly'    => true,
 						],
 					],
 				],
@@ -131,11 +139,13 @@ class WP_Post {
 							'type'        => 'string',
 							'description' => __( 'The rendered content.', 'learndash' ),
 							'example'     => '<p>This is the post content...</p>',
+							'readOnly'    => true,
 						],
 						'protected' => [
 							'type'        => 'boolean',
 							'description' => __( 'Whether the content is protected.', 'learndash' ),
 							'example'     => false,
+							'readOnly'    => true,
 						],
 					],
 				],
@@ -152,11 +162,13 @@ class WP_Post {
 							'type'        => 'string',
 							'description' => __( 'The rendered excerpt.', 'learndash' ),
 							'example'     => '<p>This is the post excerpt...</p>',
+							'readOnly'    => true,
 						],
 						'protected' => [
 							'type'        => 'boolean',
 							'description' => __( 'Whether the excerpt is protected.', 'learndash' ),
 							'example'     => false,
+							'readOnly'    => true,
 						],
 					],
 				],

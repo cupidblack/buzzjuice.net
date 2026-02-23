@@ -119,6 +119,8 @@ class WPCode_Admin_Page_Settings_Pro extends WPCode_Admin_Page_Settings {
 
 		$this->common_settings();
 
+		$this->php_load_as_file_setting();
+
 		$this->uninstall_setting();
 
 		wp_nonce_field( $this->action, $this->nonce_name );
@@ -180,9 +182,9 @@ class WPCode_Admin_Page_Settings_Pro extends WPCode_Admin_Page_Settings {
 		$key          = ! empty( $license['key'] ) ? $license['key'] : '';
 		$type         = ! empty( $license['type'] ) ? $license['type'] : '';
 		$is_valid_key = ! empty( $key ) &&
-		                ( isset( $license['is_expired'] ) && $license['is_expired'] === false ) &&
-		                ( isset( $license['is_disabled'] ) && $license['is_disabled'] === false ) &&
-		                ( isset( $license['is_invalid'] ) && $license['is_invalid'] === false );
+						( isset( $license['is_expired'] ) && $license['is_expired'] === false ) &&
+						( isset( $license['is_disabled'] ) && $license['is_disabled'] === false ) &&
+						( isset( $license['is_invalid'] ) && $license['is_invalid'] === false );
 
 		$hide        = $is_valid_key ? '' : 'wpcode-hide';
 		$account_url = wpcode_utm_url(
@@ -219,7 +221,19 @@ class WPCode_Admin_Page_Settings_Pro extends WPCode_Admin_Page_Settings {
 			);
 			?>
 		</p>
-		<?php
+		<?php if ( ! empty( $key ) ) : ?>
+			<p class="wpcode-setting-license-key-refresh">
+				<?php
+				printf(
+				/* translators: %1$s: opening link tag, %2$s: closing link tag */
+					esc_html__( 'If your license has been upgraded or is incorrect, then please %1$sforce a refresh%2$s.', 'wpcode-premium' ),
+					'<button class="wpcode-button-text"  id="wpcode-setting-license-key-refresh">',
+					'</button>'
+				);
+				?>
+			</p>
+			<?php
+		endif;
 
 		return ob_get_clean();
 	}
@@ -401,7 +415,64 @@ class WPCode_Admin_Page_Settings_Pro extends WPCode_Admin_Page_Settings {
 			$settings['emails_deactivated_addresses'] = $emails_deactivated_addresses;
 		}
 
+		// Handle PHP load as file setting.
+		if ( 'general' === $this->view ) {
+			$old_value = wpcode()->settings->get_option( 'php_load_as_file', false );
+			$new_value = isset( $_POST['wpcode-php-load-as-file'] );
+
+			$settings['php_load_as_file'] = $new_value;
+
+			// If the setting changed, trigger bulk operations.
+			if ( $old_value !== $new_value && class_exists( 'WPCode_Snippets_File_Handler' ) ) {
+				if ( $new_value ) {
+					// Setting enabled: generate files for all active PHP snippets.
+					WPCode_Snippets_File_Handler::bulk_generate_php_files();
+				} else {
+					// Setting disabled: delete all PHP snippet files.
+					WPCode_Snippets_File_Handler::bulk_delete_php_files();
+				}
+			}
+		}
+
 		return $settings;
+	}
+
+	/**
+	 * Output the PHP load as file setting field.
+	 *
+	 * @return void
+	 */
+	public function php_load_as_file_setting() {
+		$php_load_as_file = wpcode()->settings->get_option( 'php_load_as_file', false );
+		$description      = esc_html__( 'When enabled, all active PHP, HTML, and Universal snippets will be loaded from files instead of the database. Files are stored in ', 'wpcode-premium' );
+
+		// Show site-specific path in multisite.
+		if ( function_exists( 'is_multisite' ) && is_multisite() && function_exists( 'get_current_blog_id' ) ) {
+			$blog_id = get_current_blog_id();
+			if ( $blog_id > 0 ) {
+				$file_path = str_replace( ABSPATH, '', WP_CONTENT_DIR . '/wpcode/snippets/site-' . absint( $blog_id ) . '/' );
+			} else {
+				$file_path = str_replace( ABSPATH, '', WP_CONTENT_DIR . '/wpcode/snippets/' );
+			}
+		} else {
+			$file_path = str_replace( ABSPATH, '', WP_CONTENT_DIR . '/wpcode/snippets/' );
+		}
+
+		$description .= '<code>' . esc_html( $file_path ) . '</code>';
+
+		if ( is_multisite() ) {
+			$description .= ' <strong>' . esc_html__( 'Note: In multisite networks, each site has its own file directory to prevent cross-site conflicts.', 'wpcode-premium' ) . '</strong>';
+		}
+
+		$this->metabox_row(
+			__( 'Load PHP Snippets as Files', 'wpcode-premium' ),
+			$this->get_checkbox_toggle(
+				$php_load_as_file,
+				'wpcode-php-load-as-file',
+				$description
+			),
+			'wpcode-php-load-as-file'
+		);
 	}
 
 	/**

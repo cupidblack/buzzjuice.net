@@ -229,7 +229,7 @@ class BB_SSO {
 	 */
 	protected function bb_sso_check_has_licence( $has_access = true ) {
 
-		if ( ! bbp_pro_is_license_valid() ) {
+		if ( bb_pro_should_lock_features() ) {
 			return false;
 		}
 
@@ -1725,16 +1725,30 @@ class BB_SSO {
 	 * @return array
 	 */
 	public static function bb_sso_xprofile_field_css_class( $css_class ) {
-		global $profile_template;
+		global $profile_template, $bp;
+
+		$nickname_field_id = bp_xprofile_nickname_field_id();
+
+		// If the registration form is submitted without ajax and nickname is not valid, then the field should not be hidden.
+		if ( isset( $_POST['signup_submit'] ) && ! empty( $bp->signup->errors ) ) { // phpcs:ignore WordPress.Security
+			if ( $nickname_field_id === $profile_template->field->id && ! empty( $bp->signup->errors[ 'field_' . $nickname_field_id ] ) ) {
+				return $css_class;
+			}
+		}
 		$exclude_fields_from_url = array();
-		foreach ( $_GET as $key => $value ) {
-			if ( 0 === strpos( $key, 'field_' ) && ! empty( $value ) ) { // Check if the key starts with 'field_'
-				$exclude_fields_from_url[] = $key;                       // Add field name to the exclude list
+		foreach ( $_GET as $key => $value ) { // phpcs:ignore WordPress.Security
+			if ( 0 === strpos( $key, 'field_' ) && ! empty( $value ) ) { // Check if the key starts with 'field_'.
+				$is_nickname_field = ( 'field_' . $nickname_field_id === $key );
+				$is_valid_nickname = $is_nickname_field && validate_username( $value );
+
+				if ( ! $is_nickname_field || $is_valid_nickname ) {
+					$exclude_fields_from_url[] = $key; // Add field name to the exclude list.
+				}
 			}
 		}
 
 		if (
-			// Skip rendering if the current field ID is in the excluded list or URL contains 'field_X'
+			// Skip rendering if the current field ID is in the excluded list or URL contains 'field_X'.
 			(
 				! empty( $exclude_fields_from_url ) &&
 				in_array( 'field_' . $profile_template->field->id, $exclude_fields_from_url, true )

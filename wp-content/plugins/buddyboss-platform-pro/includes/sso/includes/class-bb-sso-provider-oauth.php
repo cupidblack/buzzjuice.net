@@ -532,7 +532,7 @@ abstract class BB_SSO_Provider_OAuth extends BB_SSO_Provider {
 
 			$provider_class = BB_SSO::$providers[ $provider ];
 
-			if ( 'twitter' === $provider || 'microsoft' === $provider ) {
+			if ( 'twitter' === $provider ) {
 				$redirect_uri = $_REQUEST['bb_app_redirect_schema']; // phpcs:ignore
 				$code         = ! empty( $_REQUEST['code'] ) ? $_REQUEST['code'] : ''; // phpcs:ignore
 				$state        = ! empty( $_REQUEST['state'] ) ? $_REQUEST['state'] : ''; // phpcs:ignore
@@ -553,6 +553,115 @@ abstract class BB_SSO_Provider_OAuth extends BB_SSO_Provider {
 					header( 'LOCATION: ' . $url );
 					exit;
 				}
+			} elseif ( 'microsoft' === $provider ) {
+				// Sanitize all user inputs.
+				$code                = ! empty( $_REQUEST['code'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['code'] ) ) : '';                                     // phpcs:ignore
+				$state               = ! empty( $_REQUEST['state'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['state'] ) ) : '';                                   // phpcs:ignore
+				$code_verifier       = ! empty( $_REQUEST['code_verifier'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['code_verifier'] ) ) : '';                   // phpcs:ignore PKCE support.
+				$app_redirect_schema = ! empty( $_REQUEST['bb_app_redirect_schema'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['bb_app_redirect_schema'] ) ) : ''; // phpcs:ignore
+
+				// Validate app redirect schema (should be alphanumeric with dots/hyphens for bundle ID).
+				if ( ! preg_match( '/^[a-zA-Z][a-zA-Z0-9.\-]*$/', $app_redirect_schema ) ) {
+					wp_die( esc_html__( 'Invalid redirect schema.', 'buddyboss-pro' ) );
+				}
+
+				$app_redirect_uri = $app_redirect_schema . '://oauth/redirect';
+
+				// Get Microsoft provider settings.
+				$client_id     = $provider_class->settings->get( 'client_id' );
+				$client_secret = $provider_class->settings->get( 'client_secret' );
+				$tenant        = $provider_class->settings->get( 'tenant' );
+
+				// Handle custom tenant.
+				if ( 'custom_tenant' === $tenant ) {
+					$tenant = $provider_class->settings->get( 'custom_tenant_value' );
+				}
+
+				// Default to 'common' if tenant is empty.
+				if ( empty( $tenant ) ) {
+					$tenant = 'common';
+				}
+
+				if (
+					empty( $app_redirect_uri ) ||
+					empty( $code ) ||
+					empty( $state ) ||
+					empty( $client_id ) ||
+					empty( $client_secret )
+				) {
+					wp_die( esc_html__( 'Missing required parameters for authentication.', 'buddyboss-pro' ) );
+				}
+
+				// Microsoft token endpoint.
+				$api_url = 'https://login.microsoftonline.com/' . $tenant . '/oauth2/v2.0/token';
+
+				// The redirect_uri must match EXACTLY what was used in the authorization request.
+				// This includes the query parameters added when initiating the OAuth flow.
+				// Note: code_verifier is NOT part of redirect_uri, it's sent separately in token exchange.
+				$oauth_redirect_uri = add_query_arg(
+					array(
+						'bb_app_redirect_schema' => $app_redirect_schema,
+						'bb_social_login'        => $provider,
+					),
+					rest_url( '/bb-social-login/v1/microsoft/redirect_uri' )
+				);
+
+				$args = array(
+					'grant_type'    => 'authorization_code',
+					'client_id'     => $client_id,
+					'client_secret' => $client_secret,
+					'redirect_uri'  => $oauth_redirect_uri,
+					'code'          => $code,
+				);
+
+				// Add code_verifier for PKCE if provided.
+				if ( ! empty( $code_verifier ) ) {
+					$args['code_verifier'] = $code_verifier;
+				}
+
+				$response = wp_remote_post(
+					$api_url,
+					array(
+						'headers' => array(
+							'Content-Type' => 'application/x-www-form-urlencoded',
+						),
+						'body'    => http_build_query( $args ),
+					)
+				);
+
+				if ( is_wp_error( $response ) ) {
+					wp_die( esc_html__( 'Authentication failed. Please try again.', 'buddyboss-pro' ) );
+				}
+
+				$body       = wp_remote_retrieve_body( $response );
+				$token_data = json_decode( $body, true );
+
+				if ( empty( $token_data ) || empty( $token_data['access_token'] ) ) {
+					wp_die( esc_html__( 'Authentication failed. Please try again.', 'buddyboss-pro' ) );
+				}
+
+				// The access_token must be JSON-encoded because set_access_token_data() uses json_decode().
+				// This matches the expected format: {"access_token": "eyJ...", "token_type": "Bearer", "expires_in": 3600}.
+				$json_token_data = wp_json_encode(
+					array(
+						'access_token' => $token_data['access_token'],
+						'token_type'   => ! empty( $token_data['token_type'] ) ? $token_data['token_type'] : 'Bearer',
+						'expires_in'   => ! empty( $token_data['expires_in'] ) ? $token_data['expires_in'] : '',
+					)
+				);
+
+				$url = add_query_arg(
+					array(
+						'bb_social_login' => $provider,
+						'access_token'    => rawurlencode( $json_token_data ),
+						'code'            => $code,
+						'state'           => $state,
+					),
+					$app_redirect_uri
+				);
+
+				header( 'LOCATION: ' . $url );
+				exit;
 			} elseif ( 'linkedin' === $provider ) {
 				$code         = ! empty( $_REQUEST['code'] ) ? $_REQUEST['code'] : ''; // phpcs:ignore
 				$state        = ! empty( $_REQUEST['state'] ) ? $_REQUEST['state'] : ''; // phpcs:ignore

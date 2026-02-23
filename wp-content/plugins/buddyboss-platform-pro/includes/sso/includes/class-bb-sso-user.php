@@ -574,8 +574,8 @@ class BB_SSO_User {
 		$first_name = '';
 		$last_name  = '';
 		if ( 'twitter' === $this->provider->get_id() || bb_enable_additional_sso_name() ) {
-			$first_name = $this->sanitize_user_name( $this->get_auth_user_data( 'first_name' ) );
-			$last_name  = $this->sanitize_user_name( $this->get_auth_user_data( 'last_name' ) );
+			$first_name = $this->get_auth_user_data( 'first_name' );
+			$last_name  = $this->get_auth_user_data( 'last_name' );
 		}
 
 		// If the first and last name is empty try to find from the wp_bb_social_sign_on_users table using the identifier.
@@ -615,6 +615,8 @@ class BB_SSO_User {
 
 		$valid_error   = array();
 		$fields_labels = array();
+
+		$generated_nickname = '';
 
 		// If the email is empty, then get the email field label and add it to
 		// the $fields_labels array to display the error message.
@@ -666,9 +668,28 @@ class BB_SSO_User {
 				)
 			);
 
-			$valid_error = array(
-				'signup_fields_not_found' => $signup_fields_msg,
-			);
+			// If the nickname is not valid, then add it to the $fields_labels array.
+			$nickname_field = xprofile_get_field( $nickname_id );
+			if ( ! empty( $nickname_field ) ) {
+				$generated_nickname = $this->generate_unique_username( $first_name . $last_name );
+				if ( ! empty( $generated_nickname ) && ! validate_username( $generated_nickname ) ) {
+					// Add new message using efficient string manipulation.
+					$invalid_nickname_message = sprintf( 
+						/* translators: %s: field name */
+						__( 'Invalid <strong>%s</strong>. Only "a-z", "0-9", "-", "_" and "." are allowed.', 'buddyboss-pro' ),
+						esc_html( $nickname_field->name ) 
+					);
+					
+					// Insert new paragraph before closing div using shared helper function.
+					$signup_fields_msg = bb_sso_append_error_to_signup_div( $signup_fields_msg, $invalid_nickname_message );
+
+					$signup_fields_msg = apply_filters( 'bb_sso_register_signup_invalid_nickname_error', $signup_fields_msg );
+
+					$response[ 'signup_fields_invalid_nickname_message' ] = $invalid_nickname_message;
+				}
+			}
+
+			$valid_error[ 'signup_fields_not_found' ] = $signup_fields_msg;
 		}
 
 		// Throw the error if the $valid_error is not empty.
@@ -695,13 +716,13 @@ class BB_SSO_User {
 			}
 
 			if ( in_array( $nickname_id, $signup_auto_fill_arr, true ) ) {
-				$query_string[ 'field_' . $nickname_id ] = $this->generate_unique_username( $first_name . $last_name );
-				$response['fields'][]                     = 'nickname';
+				$query_string[ 'field_' . $nickname_id ] = $generated_nickname;
+				$response['fields'][]                    = 'nickname';
 			}
 
 			$query_string['signup_email'] = $email;
 			$email_opt                    = function_exists( 'bp_register_confirm_email' ) && true === bp_register_confirm_email() ? true : false;
-			$pass_opt                    = function_exists( 'bp_register_confirm_password' ) && true === bp_register_confirm_password() ? true : false;
+			$pass_opt                     = function_exists( 'bp_register_confirm_password' ) && true === bp_register_confirm_password() ? true : false;
 			if ( $email_opt ) {
 				$query_string['signup_email_confirm'] = $email;
 			}
@@ -712,8 +733,8 @@ class BB_SSO_User {
 			// SSO Identifier.
 			$query_string['identifier'] = $this->get_auth_user_data( 'id' );
 
-			$query_string['confirm_email_on'] = $email_opt;
-			$query_string['signup_password'] = 1;
+			$query_string['confirm_email_on']        = $email_opt;
+			$query_string['signup_password']         = 1;
 			$query_string['signup_password_confirm'] = $pass_opt;
 
 			$bb_sso_login_url = BB_SSO::get_login_url();
@@ -734,7 +755,7 @@ class BB_SSO_User {
 	/**
 	 * Function to return unique username.
 	 *
-	 * @sicne 2.6.60
+	 * @since 2.6.60
 	 *
 	 * @param string $username Username to be checked for uniqueness.
 	 *

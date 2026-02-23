@@ -19,8 +19,7 @@ function bb_register_poll() {
 	if (
 		! defined( 'BP_PLATFORM_VERSION' ) ||
 		version_compare( BP_PLATFORM_VERSION, bb_platform_poll_version(), '<' ) ||
-		! bp_is_active( 'activity' ) ||
-		! bbp_pro_is_license_valid()
+		! bp_is_active( 'activity' )
 	) {
 		return;
 	}

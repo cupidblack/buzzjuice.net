@@ -22,6 +22,13 @@ class AjaxHandler {
 	const AJAX_ACTION = 'imunify_security';
 
 	/**
+	 * Nonce name for AJAX requests.
+	 *
+	 * @var string
+	 */
+	const AJAX_NONCE_NAME = 'imunify_security_ajax_nonce';
+
+	/**
 	 * DataStore instance.
 	 *
 	 * @var DataStore
@@ -44,16 +51,40 @@ class AjaxHandler {
 	 * @return void
 	 */
 	public function handleAjaxRequest() {
-		// Check for the JSON payload.
-		$json = file_get_contents( 'php://input' );
-		$data = json_decode( $json, true );
+		list( $statusCode, $response ) = $this->processRequest();
+		wp_send_json( $response, $statusCode );
+	}
 
-		// Initialize response array.
+	/**
+	 * Process AJAX request and return response code and data.
+	 *
+	 * @return array Array with status code (int) and response array with 'data', 'messages', and 'result' keys.
+	 */
+	public function processRequest() {
+
+		// Initialize response data.
 		$response = array(
 			'data'     => array(),
 			'messages' => array(),
 			'result'   => 'error',
 		);
+
+		// Check user capability.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			$response['messages'] [] = esc_html__( 'Insufficient permissions.', 'imunify-security' );
+			return array( 403, $response );
+		}
+
+		// Verify nonce.
+		$nonce = isset( $_REQUEST['_ajax_nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_ajax_nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, self::AJAX_NONCE_NAME ) ) {
+			$response['messages'] [] = esc_html__( 'Invalid security token.', 'imunify-security' );
+			return array( 403, $response );
+		}
+
+		// Check for the JSON payload.
+		$json = file_get_contents( 'php://input' );
+		$data = json_decode( $json, true );
 
 		// Check if method and params are set.
 		if ( isset( $data['method'] ) && is_array( $data['method'] ) && isset( $data['params'] ) && is_array( $data['params'] ) ) {
@@ -64,14 +95,13 @@ class AjaxHandler {
 
 				// Get the data from the data store.
 				$response = $this->dataStore->loadData( $method, $params );
-			} catch ( ApiException $e ) {
-				$response['messages'][] = $e->getMessage();
+			} catch ( ApiException $exception ) {
+				$response['messages'][] = $exception->getMessage();
 			}
 		} else {
-			$response['messages'][] = 'Invalid input data.';
+			$response['messages'][] = esc_html__( 'Invalid input data.', 'imunify-security' );
 		}
 
-		// Send JSON response.
-		wp_send_json( $response );
+		return array( 200, $response );
 	}
 }

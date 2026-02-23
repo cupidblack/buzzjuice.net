@@ -65,6 +65,9 @@ abstract class BB_SSO_Auth {
 	 */
 	public function set_access_token_data( $access_token_data ) {
 		$this->access_token_data = json_decode( $access_token_data, true );
+
+		// Handle nested JSON: if access_token is itself a JSON string, decode it.
+		$this->access_token_data = $this->extract_nested_token_data( $this->access_token_data );
 	}
 
 	/**
@@ -115,4 +118,45 @@ abstract class BB_SSO_Auth {
 	 * @return string The test URL for authentication.
 	 */
 	abstract public function get_test_url();
+
+	/**
+	 * Extract nested token data if access_token contains JSON-encoded token.
+	 *
+	 * Some apps wrap the token data in their own JSON structure, resulting in nested JSON.
+	 * This method extracts the actual token if it's nested.
+	 *
+	 * @since 2.12.0
+	 *
+	 * @param array|null $token_data The decoded token data.
+	 *
+	 * @return array|null The token data with nested access_token extracted if applicable.
+	 */
+	protected function extract_nested_token_data( $token_data ) {
+		if (
+			! is_array( $token_data ) ||
+			! isset( $token_data['access_token'] ) ||
+			! is_string( $token_data['access_token'] )
+		) {
+			return $token_data;
+		}
+
+		$nested_token = json_decode( $token_data['access_token'], true );
+
+		if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $nested_token ) || ! isset( $nested_token['access_token'] ) ) {
+			return $token_data;
+		}
+
+		// The access_token was nested JSON, extract the actual token.
+		$token_data['access_token'] = $nested_token['access_token'];
+
+		// Also copy other token data if present.
+		if ( isset( $nested_token['token_type'] ) ) {
+			$token_data['token_type'] = $nested_token['token_type'];
+		}
+		if ( isset( $nested_token['expires_in'] ) ) {
+			$token_data['expires_in'] = $nested_token['expires_in'];
+		}
+
+		return $token_data;
+	}
 }

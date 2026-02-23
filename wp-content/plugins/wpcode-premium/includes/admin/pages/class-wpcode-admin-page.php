@@ -10,6 +10,8 @@
  */
 abstract class WPCode_Admin_Page {
 
+	use WPCode_Library_Refresh_Button;
+
 	/**
 	 * The page slug.
 	 *
@@ -434,23 +436,27 @@ abstract class WPCode_Admin_Page {
 				absint( $notifications_count )
 			);
 		}
+
+		// Add the "Check for Updates" button before the testing mode toggle.
+		$this->add_check_for_updates_button();
+
 		echo '<span class="wpcode-toggle-testing-mode-wrap">';
 		echo $this->get_checkbox_toggle( wpcode_testing_mode_enabled(), 'wpcode-toggle-testing-mode', '', '', esc_html__( 'Testing Mode', 'insert-headers-and-footers' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo '</span>';
 		?>
-		<button
-				type="button"
-				id="wpcode-notifications-button"
-				class="wpcode-button-just-icon wpcode-notifications-inbox wpcode-open-notifications"
-				data-dismissed="<?php echo esc_attr( $dismissed_count ); ?>"
+			<button
+					type="button"
+					id="wpcode-notifications-button"
+					class="wpcode-button-just-icon wpcode-notifications-inbox wpcode-open-notifications"
+					data-dismissed="<?php echo esc_attr( $dismissed_count ); ?>"
 			<?php echo $data_count; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 			<?php wpcode_icon( 'inbox', 15, 16 ); ?>
-		</button>
-		<button class="wpcode-text-button-icon wpcode-show-help" type="button">
+			</button>
+			<button class="wpcode-text-button-icon wpcode-show-help" type="button">
 			<?php wpcode_icon( 'help', 21 ); ?>
 			<?php esc_html_e( 'Help', 'insert-headers-and-footers' ); ?>
-		</button>
-		<?php
+			</button>
+			<?php
 	}
 
 	/**
@@ -930,7 +936,7 @@ abstract class WPCode_Admin_Page {
 		$count             = 0;
 		foreach ( $snippets as $snippet ) {
 			if ( isset( $snippet['needs_auth'] ) && empty( $snippet['skip_count'] ) ) {
-				++ $count;
+				++$count;
 			}
 		}
 		$categories = $this->add_item_counts( $categories, $snippets );
@@ -982,7 +988,7 @@ abstract class WPCode_Admin_Page {
 				if ( ! isset( $category_counts[ $category ] ) ) {
 					$category_counts[ $category ] = 0;
 				}
-				++ $category_counts[ $category ];
+				++$category_counts[ $category ];
 			}
 		}
 
@@ -1014,7 +1020,7 @@ abstract class WPCode_Admin_Page {
 		$need_auth_count = 0;
 		foreach ( $snippets as $snippet ) {
 			if ( ! empty( $snippet['needs_auth'] ) ) {
-				++ $need_auth_count;
+				++$need_auth_count;
 			}
 		}
 		if ( $need_auth_count > 0 ) {

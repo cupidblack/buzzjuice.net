@@ -58,6 +58,7 @@ class Lesson extends WP_Post {
 						'type'        => 'string',
 						'description' => __( 'The rendered materials content.', 'learndash' ),
 						'example'     => '',
+						'readOnly'    => true,
 					],
 				],
 			],

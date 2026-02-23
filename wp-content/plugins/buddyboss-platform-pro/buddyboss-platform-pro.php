@@ -9,10 +9,11 @@
  * Description: Adds premium features to BuddyBoss Platform.
  * Author:      BuddyBoss
  * Author URI:  https://buddyboss.com/
- * Version:     2.8.0
+ * Version:     2.13.0
  * Text Domain: buddyboss-pro
  * Domain Path: /languages/
  * License:     GPLv2 or later (license.txt)
+ * Requires Plugins: buddyboss-platform
  */
 
 /**
@@ -22,18 +23,9 @@
 
 // Exit if accessed directly.
 defined( 'ABSPATH' ) || exit;
-$encoded_payload = base64_encode(json_encode(['licence_exp' => date('Y-m-d', strtotime('+50 years'))]));
-$dummy_token = "header.$encoded_payload.signature";
 
-update_site_option('bboss_updater_saved_licenses', [
-'buddyboss_theme' => [
-'is_active' => true,
-'license_key' => 'WEADOWN000000005603B1EBE59708542',
-'activation_email' => 'noreply@weadown.com',
-'product_keys' => ['BB_THEME', 'BB_PLATFORM_PRO'],
-'token' => $dummy_token,
-],
-]);
+define('PRO_EDITION', 'buddyboss-platform-pro');
+
 if ( file_exists( dirname( __FILE__ ) . '/vendor/autoload.php' ) ) {
 	require dirname( __FILE__ ) . '/vendor/autoload.php';
 }
@@ -86,9 +78,34 @@ function bb_platform_pro_init() {
 		require_once 'class-bb-platform-pro.php';
 
 		bb_platform_pro();
+
+		// Register with DRM system (only if Platform's DRM is available).
+		bb_platform_pro_register_with_drm();
 	}
 }
 add_action( 'plugins_loaded', 'bb_platform_pro_init', 9 );
+
+/**
+ * Register Platform Pro with DRM system.
+ *
+ * @since 2.11.0
+ */
+function bb_platform_pro_register_with_drm() {
+	// Check if Platform's DRM Registry is available.
+	if ( ! class_exists( '\BuddyBoss\Core\Admin\DRM\BB_DRM_Registry' ) ) {
+		return;
+	}
+
+	// Register with DRM system.
+	\BuddyBoss\Core\Admin\DRM\BB_DRM_Registry::register_addon(
+		'buddyboss-platform-pro',
+		'BuddyBoss Platform Pro',
+		array(
+			'version' => defined( 'BB_PLATFORM_PRO_PLUGIN_FILE' ) ? bb_platform_pro()->version : '2.13.0',
+			'file'    => defined( 'BB_PLATFORM_PRO_PLUGIN_FILE' ) ? BB_PLATFORM_PRO_PLUGIN_FILE : __FILE__,
+		)
+	);
+}
 
 /**
  * Platform Pro activation hook.

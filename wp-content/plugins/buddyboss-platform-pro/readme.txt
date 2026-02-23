@@ -1,15 +1,9 @@
-/**
- * W E A D O W N . C O M
- * ---- weadown.com ----
- */
-
-
 === BuddyBoss Platform Pro ===
 Contributors: buddyboss
 Requires at least: 4.9.1
 Tested up to: 6.8.1
 Requires PHP: 5.6.20
-Stable tag: 2.8.0
+Stable tag: 2.13.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -37,6 +31,34 @@ To run BuddyBoss Platform Pro, we recommend your host supports:
 5. Activate 'BuddyBoss Platform Pro' from your Plugins page.
 
 == Changelog ==
+
+= 2.13.0 =
+* Bug: MemberPress - Fixed UI inconsistencies in MemberPress Courses by aligning icons, colors, and spacing with the BuddyBoss Platform design
+
+= 2.12.0 =
+* Bug: Activity - Fixed a spacing issue in the poll answer statistics modal
+* Bug: Activity - Fixed an issue where the bb-activity-poll_block was duplicating when adding a new poll option
+* Bug: Activity - Fixed an issue where the comment three dot more options button was misaligned on single activity pages when a featured image was present
+* Bug: Activity - Fixed issues with the Featured Image “Reposition photo” option so it appears only when applicable
+* Bug: Blog - Fixed an issue where embedding links via the Embed Block were not rendering correctly on Pages and Blogs
+* Bug: Core - Fixed an issue where the “Select All” checkbox on the WordPress Plugins page did not work when BuddyBoss Platform was active
+* Bug: Social Login - Fixed an issue where Google SSO registration failed with Japanese nicknames by adding proper validation and handling during username generation
+* Bug: Social Login - Fixed an issue where Microsoft login was not working in the mobile app, ensuring users can successfully sign in with their Microsoft accounts
+* Bug: Social Login - Fixed an issue where the user name and avatar were not displaying correctly in the app menu after SSO registration
+
+= 2.11.0 =
+* Enhancement: Core – Improved the licensing service to reduce interruptions and increase the grace period when a license is not initially detected
+* Bug: Elementor - Fixed an issue where YouTube videos embedded using Elementor’s Video widget failed to load correctly on Safari for macOS and iOS
+
+= 2.10.1 =
+* Bug: Core - Fixed the license rate limit error and proper error handling
+
+= 2.10.0 =
+* New Feature! Core - Implemented a new licensing system for BuddyBoss plugins and theme
+
+= 2.9.0 =
+* New Feature! Activity - Added Featured Image above post content in activity and group posts, making feeds more visual and engaging
+* New Feature! Activity - Added support for Post Titles and H3/H4 text formatting in activity feeds, helping communities stay organized and posts easier to read
 
 = 2.8.0 =
 * Bug: Activity - Added permission checks to Scheduled Posts API endpoints to prevent users from accessing other users scheduled posts

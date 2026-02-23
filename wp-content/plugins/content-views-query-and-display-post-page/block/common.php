@@ -136,7 +136,7 @@ class ContentViews_Block_Common {
 			'upgrade_link'				 => 'https://www.contentviewspro.com/pricing/',
 			'upgrade_text'				 => __( "Upgrade Now", "content-views-query-and-display-post-page" ),
 			'button_text'				 => __( "Content Views Library", "content-views-query-and-display-post-page" ),
-			'confirm_text'				 => __( "Press OK/Enter to finish importing", "content-views-query-and-display-post-page" ),
+			'confirm_text'				 => __( "Click OK to finish (it overrides Display & Style settings of this view).\nClick Cancel to stop.", "content-views-query-and-display-post-page" ),
 			'hide_button'				 => PT_CV_Functions::get_option_value( 'hide_toolbar_button' ),
 			'layout_img'				 => plugins_url( 'assets/layouts/', __FILE__ ),
 			'pre_layouts'				 => self::layout_variants(),

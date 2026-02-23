@@ -1,9 +1,9 @@
-=== Advanced Conditional Shipping ===
+Automatic User Roles Switcher
+
 Contributors: Addify
-Requires at least: 4.5
-Tested up to: 6.8
-Stable tag: 1.3.1
+Requires at least: 3.0.9
 Requires PHP: 7.4
-License: GPLv3 or later
-License URI: https://www.gnu.org/licenses/gpl-3.0.html
-Add shipping methods and costs based on various conditions like cart amount, quantity, product, user role, location, weight, tax &amp; more
+Tested up to: 6.9
+Stable tag: 1.4.0
+License: GNU General Public License v3.0
+License URI: http://www.gnu.org/licenses/gpl-3.0.html

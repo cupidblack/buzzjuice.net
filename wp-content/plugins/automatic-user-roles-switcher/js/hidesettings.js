@@ -4,6 +4,38 @@ jQuery(document).ready(function($){
 
 	var nonce 	= custom_product_tab_url.nonce;
 
+	$(document).on('change','#af_rs_and_or-id',function(){
+		and_or_rule_fun();
+		
+	})
+	
+	function and_or_rule_fun(){
+		
+		const and_or_rule = $('#af_rs_and_or-id').val();
+			
+		if('and' == and_or_rule){
+			$('.pur_sub_prod').hide();
+			$('.af_rc_membership').hide();
+
+			$('.enable_specific_product').each(function () {
+				enable_specific_product($(this));
+			});
+
+		} else {
+			$('.pur_sub_prod').show();
+			$('.af_rc_membership').show();
+
+			$('.enable_specific_product').each(function () {
+				enable_specific_product($(this));
+			});
+		}
+	}
+
+	setTimeout(() => {
+		and_or_rule_fun();
+		multiple_roles();
+	}, 500);
+
 	// $(document).on('click','input[name=multiple_roles]', function(){
 
 	// 	multiple_roles();
@@ -38,11 +70,15 @@ jQuery(document).ready(function($){
 	// 	});
 	// });
 
-	multiple_roles();
+
 
 	new_cbox();
 
-	enable_specific_product();
+	$('.enable_specific_product').each(function () {
+
+		enable_specific_product($(this));
+	});
+
 
 	$(document).on('change','input[name=multiple_roles]', multiple_roles );
 
@@ -54,69 +90,110 @@ jQuery(document).ready(function($){
 	
 	$(document).on('change','.af_membership_status', af_membership_statuses );
 
-	$(document).on('click','.enable_specific_product', enable_specific_product );
+	$(document).on('click', '.enable_specific_product', function () {
+		
+    	enable_specific_product($(this)); 
+	});
 
-	function enable_specific_product() {
+	function enable_specific_product(current_input) {
 
-		let select_radio_btn  = $('.enable_specific_product:checked').val();
+		let select_radio_btn = current_input.val();
+		
+			if ('purchase_product' == select_radio_btn ) {			
+				
+				if(current_input.is(':checked')){
+					
+					$('#enable_specific_product_id').slideDown();
 
-		if ('purchase_product' == select_radio_btn ) {	
+				} else {
+				
+					$('#enable_specific_product_id').slideUp();
+				}
 
-			$('.af_arc_choose_products, .af_arc_products_matching').fadeIn('fast');
+				// new_cbox();
+			}
+				
+			if ('number_products' == select_radio_btn ) {
+			
+				if(current_input.is(':checked')){
+					$('#af_arc_no_of_products_id').slideDown('fast');
 
-			new_cbox();
+				} else {
+					$('#af_arc_no_of_products_id').slideUp('fast');
+				}
+			}
 
-			$('.af_arc_specific_membership, .af_arc_mem_status, .af_arc_mem_prod, .af_arc_select_taxonomy, .af_arc_no_of_products, .af_arc_price_range, .af_arc_category, .af_arc_tag, .af_arc_domain_url, .af_arc_sub_prod, .af_arc_sub_specific_prod, .af_arc_sub_status, .af_arc_sub_no_of_days, .af_arc_mem_no_of_days').hide();
+			if ('price_range' == select_radio_btn ) {
 
-		}else if ('number_products' == select_radio_btn ) {
+				if(current_input.is(':checked')){
+					$('#af_arc_price_range_id').slideDown('fast');
 
-			$('.af_arc_specific_membership, .af_arc_mem_status, .af_arc_mem_prod, .af_arc_choose_products, .af_arc_select_taxonomy, .af_arc_products_matching, .af_arc_product_counter, .af_arc_price_range, .af_arc_category, .af_arc_tag, .af_arc_domain_url, .af_arc_sub_prod, .af_arc_sub_specific_prod, .af_arc_sub_status, .af_arc_sub_no_of_days, .af_arc_mem_no_of_days').hide();
+				} else {
+					$('#af_arc_price_range_id').slideUp('fast');
+				}
+				
+			} 
+			if ('total_spend' == select_radio_btn ) {
 
-			$('.af_arc_no_of_products').fadeIn('fast');
+				if(current_input.is(':checked')){
+					$('#af_arc_total_spend_id').slideDown('fast');
 
-		}else if ('price_range' == select_radio_btn || 'total_spend' == select_radio_btn ) {
+				} else {
+					$('#af_arc_total_spend_id').slideUp('fast');
+				}
 
-			$('.af_arc_price_range').fadeIn('fast');
+			} 
+				
+			if ('product_cat_tag' == select_radio_btn ) {
 
-			$('.af_arc_specific_membership, .af_arc_mem_status, .af_arc_mem_prod, .af_arc_choose_products, .af_arc_select_taxonomy, .af_arc_products_matching, .af_arc_product_counter, .af_arc_no_of_products, .af_arc_category, .af_arc_tag, .af_arc_domain_url, .af_arc_sub_prod, .af_arc_sub_specific_prod, .af_arc_sub_status, .af_arc_sub_no_of_days, .af_arc_mem_no_of_days').hide();
+				if(current_input.is(':checked')){
+					$('#af_arc_select_taxonomy_id').slideDown('fast');
+					select_cat();
 
-		}else if ('product_cat_tag' == select_radio_btn ) {
+				} else {
+					$('#af_arc_select_taxonomy_id').slideUp('fast');
+				}
 
-			$('.af_arc_select_taxonomy').fadeIn('fast');
+			}
+			if ('email_domain_v' == select_radio_btn ) {
 
-			select_cat();
+				if(current_input.is(':checked')){
+					$('#af_rs_email_domain').slideDown('fast');
+					select_cat();
 
-			$( '.af_arc_price_range, .af_arc_specific_membership, .af_arc_mem_status, .af_arc_mem_prod, .af_arc_choose_products, .af_arc_products_matching, .af_arc_product_counter, .af_arc_no_of_products, .af_arc_domain_url, .af_arc_sub_prod, .af_arc_sub_specific_prod, .af_arc_sub_status, .af_arc_sub_no_of_days, .af_arc_mem_no_of_days').hide();
+				} else {
+					$('#af_rs_email_domain').slideUp('fast');
+				}
 
-		}else if ('email_domain_v' == select_radio_btn ) {
+			}
 
-			$('.af_arc_domain_url').fadeIn('fast');
+			if ('sub_prod' == select_radio_btn ) {
+				// let multiple_roles  = $('input[name=multiple_roles]:checked').val();
+				if(current_input.is(':checked') && 'single_u' !== multiple_roles){
+					$('#sub_specific_products-id').slideDown('fast');
+					af_subscription_status();
 
-			$('.af_arc_specific_membership, .af_arc_mem_status, .af_arc_mem_prod, .af_arc_choose_products, .af_arc_select_taxonomy, .af_arc_products_matching, .af_arc_product_counter, .af_arc_no_of_products, .af_arc_price_range, .af_arc_category, .af_arc_tag, .af_arc_sub_prod, .af_arc_sub_specific_prod, .af_arc_sub_status, .af_arc_sub_no_of_days, .af_arc_mem_no_of_days').hide();
 
+				} else {
+					$('#sub_specific_products-id').slideUp('fast');
+				}
 
-		}else if ('sub_prod' == select_radio_btn ) {
+			}
+				
+			if ('memberships' == select_radio_btn ) {
+				// let multiple_roles  = $('input[name=multiple_roles]:checked').val();
+				
+				if(current_input.is(':checked') && 'single_u' !== multiple_roles){
+					$('#af_arc_specific_membership-id').slideDown('fast');
+					af_membership_statuses();
 
-			$('.af_arc_sub_prod').fadeIn('fast');
+				} else {
+					
+					$('#af_arc_specific_membership-id').slideUp('fast');
+				}
 
-			af_subscription_status();
-
-			$('.af_arc_sub_status, .af_arc_sub_specific_prod').fadeIn('fast');
-
-			$('.af_arc_mem_no_of_days, .af_arc_specific_membership, .af_arc_duration_role, .af_arc_mem_status, .af_arc_mem_prod, .af_arc_choose_products, .af_arc_select_taxonomy, .af_arc_products_matching, .af_arc_product_counter, .af_arc_no_of_products, .af_arc_price_range, .af_arc_category, .af_arc_tag, .af_arc_domain_url, .af_arc_mem_no_of_days').hide();
-
-		}else if ('memberships' == select_radio_btn ) {
-
-			$('.af_arc_specific_membership, .af_arc_mem_status, .af_arc_mem_prod, .af_arc_mem_no_of_days').fadeIn('fast');
-
-			af_membership_statuses();
-
-			$('.af_arc_sub_prod, .af_arc_sub_no_of_days, .af_arc_choose_products, .af_arc_select_taxonomy, .af_arc_products_matching, .af_arc_product_counter, .af_arc_no_of_products, .af_arc_price_range, .af_arc_category, .af_arc_tag, .af_arc_domain_url, .af_arc_duration_role, .af_arc_sub_specific_prod, .af_arc_sub_status').hide();
-
-		}else{
-
-			$('.af_arc_mem_status, .af_arc_mem_prod, .af_arc_mem_no_of_days, .af_arc_choose_products, .af_arc_select_taxonomy, .af_arc_products_matching, .af_arc_product_counter, .af_arc_no_of_products, .af_arc_price_range, .af_arc_category, .af_arc_tag, .af_arc_domain_url, .af_arc_sub_prod, .af_arc_sub_specific_prod, .af_arc_sub_status, .af_arc_sub_no_of_days, .af_arc_mem_no_of_days').hide()
-		}
+			}
+			
 	}
 
 	function new_cbox(){
@@ -144,21 +221,20 @@ jQuery(document).ready(function($){
 			af_subscription_status = false;
 
 		}else{
-
+			
 			$('.af_arc_sub_no_of_days').hide();
 		}
 	}
 
 	function af_membership_statuses(){
 
-		let af_membership_status = $('.af_membership_status[value="days"]').is(':checked');
+		let af_membership_status = $('.af_membership_status[value="days"]').is(':checked');		
 
 		if (af_membership_status) {
 
 			$('.af_arc_mem_no_of_days').fadeIn('fast');
 
 			af_membership_status = false;
-
 		}else{
 
 			$('.af_arc_mem_no_of_days').hide();
@@ -168,8 +244,6 @@ jQuery(document).ready(function($){
 	function select_cat(){
 
 		var select_cat = $('input[name=select_cat]:checked').val();
-
-		console.log(select_cat);
 
 		if ( 'select_taxonomy_cat' == select_cat ) {
 
@@ -187,21 +261,35 @@ jQuery(document).ready(function($){
 
 	function multiple_roles(){
 
+		
 		let multiple_roles  = $('input[name=multiple_roles]:checked').val();
-
+			
 		if ('single_u' == multiple_roles) {
 
-			$('.af_arc_from_this_role, .af_arc_to_this_role').fadeIn('fast');
+			$('.af_arc_from_this_role,.af_arc_to_this_role').show();
 			
-			$('.af_arc_additional_role, .af_arc_current_role, .pur_sub_prod, .af_arc_sub_specific_prod, .af_arc_sub_prod, .af_arc_sub_status, .af_arc_sub_no_of_days, .af_arc_specific_membership, .af_arc_mem_status, .af_arc_mem_no_of_days, .af_arc_sub_specific_prod, .af_arc_sub_prod, .af_arc_sub_prod, .af_arc_sub_no_of_days, .af_arc_mem_prod').hide();
+			$('.af_arc_current_role,.af_arc_additional_role').hide();
+			// $('.af_arc_additional_role').hide();
+
+			$('.pur_sub_prod').hide();
+			$('.af_rc_membership').hide();
+			
 
 		}else{
 
-			$('.af_arc_additional_role, .af_arc_current_role, .pur_sub_prod').fadeIn('fast');
+			let and_or_rule = $('#af_rs_and_or-id').val();
+			if('or' == and_or_rule){
+				// $('.pur_sub_prod').show();
+				// $('.af_rc_membership').show();
+			}
 
-			enable_specific_product();
-			
+			$('.pur_sub_prod').show();
+			$('.af_rc_membership').show();
+
+			$('.af_arc_additional_role, .af_arc_current_role').show();
+
 			$('.af_arc_from_this_role, .af_arc_to_this_role').hide();
+
 		}
 	}
 });

@@ -39,7 +39,6 @@ $course_label      = esc_html__( 'Course', 'buddyboss-theme' );
 				$navs = apply_filters( 'BuddyBossTheme/lifterlms/Archive/Navs', $navs );
 
 				if ( ! empty( $navs ) ) {
-					error_log(print_r($navs, true));
 					$current_nav = isset( $_GET['type'] ) && isset( $navs[ $_GET['type'] ] ) ? $_GET['type'] : 'all';
 					$base_url    = get_post_type_archive_link( 'course' );
 					foreach ( $navs as $nav => $text ) {
@@ -176,7 +175,7 @@ $course_label      = esc_html__( 'Course', 'buddyboss-theme' );
 		<div class="ld-secondary-header ld-secondary-header--llms">
 			<div class="bb-secondary-list-tabs flex align-items-center" id="subnav" aria-label="Members directory secondary navigation" role="navigation">
 
-				<input type="hidden" id="course-order" name="order" value="<?php echo ! empty( $_GET['order'] ) ? $_GET['order'] : 'desc'; ?>"/>
+				<input type="hidden" id="course-order" name="order" value="<?php echo ! empty( $_GET['order'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) : 'desc'; ?>"/>
 
 				<div class="sfwd-courses-filters flex push-right">
 					<div class="select-wrap">

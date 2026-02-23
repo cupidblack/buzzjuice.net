@@ -1,14 +1,17 @@
 *** Automatic User Roles Switcher Change log ***
 
+2026-01-21 - version 1.4.0
+* Update – Added compatibility with WooCommerce Cart and Checkout blocks.
+* New – Customers can view the change switcher log on the My Account page.
+* New – Admins can select multiple restrictions within a single rule.
 
 2025-10-01 - version 1.3.1
-* Update - Updated compatibility for latest WooCommerce versions.
+* Fix - Typo fix.
 
 2024-08-22 - version 1.3.0
 * Update - Compatible with WooCommerce Subscriptions.
 * Update - Compatible with WooCommerce Membership.
 * Update - Compatible with Addify Ultimate Membership.
-
 
 2023-06-21 - version 1.2.1
 * Fix - Typo fix.
@@ -24,7 +27,6 @@
 2022-09-30 - version 1.1.1
 * Fix - Fixed nonce issues.
 
-
 2022-01-27 - version 1.1.0
 * Add - Added feature to gain new roles.
 * Add - Added feature to grant new roles based on email domain.
@@ -34,7 +36,6 @@
 * Add - 2-Grant role when all of the selected products are purchased.
 * Add - 3-Grant role based on the quantity ordered from selected products.
 * Add - 4-Grant role based on number of products ordered from selected products.
-
 
 2021-06-23 - version 1.0.0
 * Other - Initial release of the plugin.

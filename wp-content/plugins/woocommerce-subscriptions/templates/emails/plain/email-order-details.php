@@ -4,7 +4,7 @@
  *
  * @author  Prospress
  * @package WooCommerce_Subscriptions/Templates/Emails/Plain
- * @version 1.0.0 - Migrated from WooCommerce Subscriptions v2.1.0
+ * @version 8.4.0
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -24,7 +24,7 @@ echo "----------\n\n";
 
 if ( $totals = $order->get_order_item_totals() ) {
 	foreach ( $totals as $total ) {
-		echo esc_html( $total['label'] ) . "\t " . esc_html( $total['value'] ) . "\n";
+		echo esc_html( wp_strip_all_tags( $total['label'] . "\t " . $total['value'] ) ) . "\n";
 	}
 }
 

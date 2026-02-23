@@ -106,6 +106,31 @@ function pwaforwp_review_notice_remindme(){
 
 add_action('wp_ajax_pwaforwp_review_notice_remindme', 'pwaforwp_review_notice_remindme');
 
+function pwaforwp_get_post_slugs_by_titles( $titles = array() ) {
+    $slugs = array();
+
+    if ( empty( $titles ) ) {
+        return $slugs;
+    }
+
+    foreach ( $titles as $title ) {
+        $post = get_posts( array(
+            'post_type'      => 'any',       // check posts, pages, CPTs
+            'title'          => $title,      // match given title
+            'post_status'    => 'publish',
+            'numberposts'    => 1,
+        ) );
+
+        if ( ! empty( $post ) ) {
+            $slugs[] = $post[0]->post_name; // collect slug
+        }
+    }
+
+    return $slugs;
+}
+
+
+
 /*
  *	 REGISTER ALL NON-ADMIN SCRIPTS
  */
@@ -196,6 +221,14 @@ function pwaforwp_frontend_enqueue(){
                 if( isset( $settings['swipe_navigation'] ) && $settings['swipe_navigation'] == 1 ){
                     $swipe_navigation = 1;
                 }
+                $is_desplay = pwaforwp_visibility_check();
+                $visibility_settings = pwaforwp_get_visibility_settings();
+                $slugs = array();
+                if (isset($visibility_settings['exclude_url_from_pwa']) && $visibility_settings['exclude_url_from_pwa'] == 1 && isset($visibility_settings['exclude_targeting_value']) && !empty($visibility_settings['exclude_targeting_value'])) {
+                    $expo_exclude_data = explode(',', $visibility_settings['exclude_targeting_value']);
+                    $slugs = pwaforwp_get_post_slugs_by_titles( $expo_exclude_data );
+                }
+                
             
                 $object_js_name = array(
                 'ajax_url'       => admin_url( 'admin-ajax.php' ),
@@ -210,6 +243,10 @@ function pwaforwp_frontend_enqueue(){
                 'force_rememberme'=>$force_rememberme,
                 'swipe_navigation' => $swipe_navigation,
                 'pwa_manifest_name' => apply_filters('pwaforwp_manifest_file_name', "pwa-manifest".pwaforwp_multisite_postfix().".json"),
+                'is_desplay' => $is_desplay,
+                'visibility_excludes' => $slugs,
+                'utm_enabled' => isset($settings['utm_setting']) && $settings['utm_setting'] == 1 ? 1 : 0,
+                'utm_details' => isset($settings['utm_details']) ? array_filter($settings['utm_details']) : array(),
                 );
 
                 if( $swipe_navigation == 1 && is_single()){
@@ -399,6 +436,7 @@ function pwaforwp_fields_and_type($data_type = 'value'){
         'one_signal_support_setting'=>array('type'=>'checkbox','value'=>0),
         'pushnami_support_setting'=>array('type'=>'checkbox','value'=>0),
         'webpusher_support_setting'=>array('type'=>'checkbox','value'=>0),
+        'gravitec_support_setting'=>array('type'=>'checkbox','value'=>0),
         'wphide_support_setting'=>array('type'=>'checkbox','value'=>0),
 
         'pwa_uninstall_data'=>array('type'=>'checkbox','value'=>0),
@@ -961,7 +999,7 @@ function pwaforwp_current_user_can(){
 // Function to check if any plugin from the extension is active
 function pwaforwp_is_any_extension_active() {
     $addons_list = array('call-to-action-for-pwa/call-to-action-for-pwa.php', 'buddypress-for-pwaforwp/buddypress-for-pwaforwp.php', 'data-analytics-for-pwa/data-analytics-for-pwa.php', 'loading-icon-library-for-pwa/loading-icon-library-for-pwa.php', 'multilingual-compatibility-for-pwa/multilingual-compatibility-for-pwa.php', 'navigation-bar-for-pwa/navigation-bar-for-pwa.php', 'offline-forms-for-pwa-for-wp/offline-forms-for-pwa-for-wp.php', 'pull-to-refresh-for-pwa/pull-to-refresh-for-pwa.php', 'pwa-to-apk-plugin/pwa-to-apk-plugin.php', 'qr-code-for-pwa/qr-code-for-pwa.php','quick-action-for-pwa/quick-action-for-pwa.php','scroll-progress-bar-for-pwa/scroll-progress-bar-for-pwa.php','rewards-on-pwa-install/rewards-on-pwa-install.php');
-    $active_list = apply_filters('active_plugins', get_option('active_plugins'));
+    $active_list = apply_filters('active_plugins', get_option('active_plugins')); //phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- using WP core filter to get active plugins list
     $addons_active_list = array_intersect($addons_list, $active_list);
 
     if(!empty($addons_active_list)){
@@ -1078,14 +1116,13 @@ function pwaforwp_add_manifest_variables($url) {
 
 function pwaforwp_visibility_get_data_by_type($type,$from){
     $response_array = array();
-    global $pwaforwp_settings;
-    $settings = $pwaforwp_settings;
+    $settings = pwaforwp_get_visibility_settings();
     if((isset($settings['include_targeting_value']) && isset($settings['include_targeting_type'])) || (isset($settings['exclude_targeting_value']) && isset($settings['exclude_targeting_type']))){
         $expo_include_type = array();
         $expo_include_data = array();
 
         if (!empty($settings['include_targeting_type'])) {
-            $expo_include_type = explode(',', $settings['']);
+            $expo_include_type = explode(',', $settings['include_targeting_type']);
         }
         if (!empty($settings['include_targeting_value'])) {
             $expo_include_data = explode(',', $settings['include_targeting_value']);
@@ -1121,9 +1158,45 @@ function pwaforwp_visibility_get_data_by_type($type,$from){
 
 }
 
-function pwaforwp_visibility_check(){
+function pwaforwp_get_visibility_settings(){
+    $visibility_settings = get_option('pwaforwp_visibility_settings', array());
+    
+    if (!empty($visibility_settings)) {
+        return $visibility_settings;
+    }
+    
     global $pwaforwp_settings;
-    $settings = $pwaforwp_settings;
+    $main_settings = $pwaforwp_settings;
+    
+    $merged = array();
+    if (isset($main_settings['visibility_feature'])) {
+        $merged['visibility_feature'] = $main_settings['visibility_feature'];
+    }
+    if (!empty($main_settings['include_targeting_type'])) {
+        $merged['include_targeting_type'] = $main_settings['include_targeting_type'];
+    }
+    if (!empty($main_settings['include_targeting_value'])) {
+        $merged['include_targeting_value'] = $main_settings['include_targeting_value'];
+    }
+    if (!empty($main_settings['exclude_targeting_type'])) {
+        $merged['exclude_targeting_type'] = $main_settings['exclude_targeting_type'];
+    }
+    if (!empty($main_settings['exclude_targeting_value'])) {
+        $merged['exclude_targeting_value'] = $main_settings['exclude_targeting_value'];
+    }
+    if (isset($main_settings['exclude_url_from_pwa'])) {
+        $merged['exclude_url_from_pwa'] = $main_settings['exclude_url_from_pwa'];
+    }
+    
+    if (!empty($merged)) {
+        update_option('pwaforwp_visibility_settings', $merged);
+    }
+    
+    return $merged;
+}
+
+function pwaforwp_visibility_check(){
+    $settings = pwaforwp_get_visibility_settings();
     if(isset($settings['visibility_feature']) && $settings['visibility_feature'] == 1 && ((isset($settings['include_targeting_value']) && isset($settings['include_targeting_type']) && !empty($settings['include_targeting_type'])) || (isset($settings['exclude_targeting_value']) && isset($settings['exclude_targeting_type']) && !empty($settings['exclude_targeting_type'])))){
         $expo_include_type = array();
         $expo_include_data = array();
@@ -1162,7 +1235,8 @@ function pwaforwp_visibility_check(){
             }
         }
 
-        $is_desplay = 0;
+        $has_include_conditions = !empty($expo_include_type);
+        $is_desplay = $has_include_conditions ? 0 : 1;
 
         if(!empty(get_the_category()[0]->cat_name)){
             if(in_array(get_the_category()[0]->cat_name,$expo_include_data)){
@@ -1284,6 +1358,49 @@ function pwaforwp_visibility_check(){
     }
 }
 
+add_filter('pre_update_option_pwaforwp_settings', 'pwaforwp_fix_empty_option_update', 10, 3);
+
+/**
+ * Prevents empty values from overwriting existing ones in the pwaforwp_settings option.
+ * Special case only for visibility settings.
+ *
+ * @param mixed $new_value The new value of the option.
+ * @param mixed $old_value The old value of the option.
+ * @param string $option The name of the option.
+ * @return mixed The updated option value.
+ */
+function pwaforwp_fix_empty_option_update($new_value, $old_value, $option) {
+    $visibility_form_submitted = isset($new_value['include_targeting_type']) || 
+                                  isset($new_value['exclude_targeting_type']) ||
+                                    (isset($_POST['pwaforwp_visibility_flag']) && $_POST['pwaforwp_visibility_flag'] == 1); //phpcs:ignore WordPress.Security.NonceVerification --  This is a special case for visibility settings, we are checking if any of the visibility fields are set in the new value or if the visibility form is submitted.
+        
+    if (!$visibility_form_submitted) {
+        $visibility_settings = get_option('pwaforwp_visibility_settings', array());
+        if (!empty($visibility_settings)) {
+            if (!isset($new_value['visibility_feature']) && isset($visibility_settings['visibility_feature'])) {
+                $new_value['visibility_feature'] = $visibility_settings['visibility_feature'];
+            }
+            if (!isset($new_value['include_targeting_type']) && !empty($visibility_settings['include_targeting_type'])) {
+                $new_value['include_targeting_type'] = $visibility_settings['include_targeting_type'];
+            }
+            if (!isset($new_value['include_targeting_value']) && !empty($visibility_settings['include_targeting_value'])) {
+                $new_value['include_targeting_value'] = $visibility_settings['include_targeting_value'];
+            }
+            if (!isset($new_value['exclude_targeting_type']) && !empty($visibility_settings['exclude_targeting_type'])) {
+                $new_value['exclude_targeting_type'] = $visibility_settings['exclude_targeting_type'];
+            }
+            if (!isset($new_value['exclude_targeting_value']) && !empty($visibility_settings['exclude_targeting_value'])) {
+                $new_value['exclude_targeting_value'] = $visibility_settings['exclude_targeting_value'];
+            }
+            if (!isset($new_value['exclude_url_from_pwa']) && isset($visibility_settings['exclude_url_from_pwa'])) {
+                $new_value['exclude_url_from_pwa'] = $visibility_settings['exclude_url_from_pwa'];
+            }
+        }
+    }
+
+    return $new_value;
+}
+
 
 function pwaforwp_local_file_get_contents( $file_path ) {
 
@@ -1323,7 +1440,7 @@ function pwaforwp_sw_register_apk_detect($sw_template){
     return $sw_template;
 }
 
-function custom_pwaforwp_whitelabel_title($title) {
+function pwaforwp_whitelabel_title_cb($title) {
     $config_file_path = ABSPATH . 'pwa-config.php';
     if (file_exists($config_file_path)) {
         require_once($config_file_path);
@@ -1333,9 +1450,9 @@ function custom_pwaforwp_whitelabel_title($title) {
     }
     return esc_html( $title );
 }
-add_filter('pwaforwp_whitelabel_title', 'custom_pwaforwp_whitelabel_title');
+add_filter('pwaforwp_whitelabel_title', 'pwaforwp_whitelabel_title_cb');
 
-function custom_pwaforwp_whitelabel_logo($logo) {
+function pwaforwp_whitelabel_logo_cb($logo) {
     $config_file_path = ABSPATH . 'pwa-config.php';
     if (file_exists($config_file_path)) {
         require_once($config_file_path);
@@ -1345,9 +1462,9 @@ function custom_pwaforwp_whitelabel_logo($logo) {
     }
     return $logo;
 }
-add_filter('pwaforwp_whitelabel_logo', 'custom_pwaforwp_whitelabel_logo');
+add_filter('pwaforwp_whitelabel_logo', 'pwaforwp_whitelabel_logo_cb');
 
-function custom_pwaforwp_whitelabel_longtext($longtext) {
+function pwaforwp_whitelabel_longtext_cb($longtext) {
     $config_file_path = ABSPATH . 'pwa-config.php';
     if (file_exists($config_file_path)) {
         require_once($config_file_path);
@@ -1357,5 +1474,5 @@ function custom_pwaforwp_whitelabel_longtext($longtext) {
     }
     return $longtext;
 }
-add_filter('pwaforwp_whitelabel_longtext', 'custom_pwaforwp_whitelabel_longtext');
+add_filter('pwaforwp_whitelabel_longtext', 'pwaforwp_whitelabel_longtext_cb');
 

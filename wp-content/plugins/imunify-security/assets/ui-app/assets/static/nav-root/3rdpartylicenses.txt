@@ -780,6 +780,11 @@ export class License {
         return !!this.eligible_for_imunify_patch;
     }
 
+
+    public isSingleUser(): boolean {
+        return this.user_count === 1;
+    }
+
     public isLimitExceeded() {
         return this.user_count != null && this.user_count > this.user_limit;
     }

@@ -44,7 +44,7 @@ class BB_MeprLMS_Integration extends BP_Integration {
 	 * @since 2.6.70
 	 */
 	public function load_init() {
-		if ( class_exists( 'memberpress\courses\helpers\Courses' ) ) {
+		if ( class_exists( 'memberpress\courses\helpers\Courses' ) && ! bb_pro_should_lock_features() ) {
 
 			if ( bp_is_active( 'groups' ) ) {
 
@@ -60,6 +60,9 @@ class BB_MeprLMS_Integration extends BP_Integration {
 			// Register the template stack for buddyboss so that theme can override.
 			bp_register_template_stack( array( $this, 'register_template' ) );
 		}
+
+		// Always register the activity filter to exclude MemberPress LMS activities when features are locked.
+		add_filter( 'bp_activity_get_where_conditions', array( $this, 'exclude_meprlms_activities_when_locked' ), 10, 5 );
 	}
 
 	/**
@@ -123,6 +126,27 @@ class BB_MeprLMS_Integration extends BP_Integration {
 	 */
 	public function register_template() {
 		return bb_meprlms_integration_path( '/templates' );
+	}
+
+	/**
+	 * Exclude MemberPress LMS activities when features are locked.
+	 *
+	 * @since 2.11.0
+	 *
+	 * @param array  $where_conditions Current WHERE conditions.
+	 * @param array  $r                Query arguments.
+	 * @param string $select_sql       SELECT clause.
+	 * @param string $from_sql         FROM clause.
+	 * @param string $join_sql         JOIN clause.
+	 *
+	 * @return array Modified WHERE conditions.
+	 */
+	public function exclude_meprlms_activities_when_locked( $where_conditions, $r, $select_sql, $from_sql, $join_sql ) {
+		if ( bb_pro_should_lock_features() ) {
+			$where_conditions['excluded_meprlms_actions'] = "a.action NOT LIKE 'bb_meprlms_%'";
+		}
+
+		return $where_conditions;
 	}
 
 	/**

@@ -47,6 +47,23 @@ class WPCode_Conditional_MemberPress extends WPCode_Conditional_Type {
 	}
 
 	/**
+	 * Load evaluation-only options (without translations) for frontend use.
+	 * This method is called when translations are not yet loaded to avoid WP 6.7 notices.
+	 *
+	 * @return void
+	 */
+	public function load_evaluation_options() {
+		$this->options = array(
+			'memberpress_page' => array(
+				'callback' => array( $this, 'get_page_type' ),
+			),
+			'memberpress_user' => array(
+				'callback' => array( $this, 'get_membership' ),
+			),
+		);
+	}
+
+	/**
 	 * Set the type options for the admin mainly.
 	 *
 	 * @return void

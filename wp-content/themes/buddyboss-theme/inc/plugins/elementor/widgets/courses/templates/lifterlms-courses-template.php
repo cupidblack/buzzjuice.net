@@ -93,7 +93,7 @@ $search            = isset( $_GET['search'] ) ? sanitize_text_field( wp_unslash(
 		<div class="ld-secondary-header ld-secondary-header--llms">
 			<div class="bb-secondary-list-tabs flex align-items-center" id="subnav" aria-label="Members directory secondary navigation" role="navigation">
 
-				<input type="hidden" id="course-order" name="order" value="<?php echo ! empty( $_GET['order'] ) ? $_GET['order'] : 'desc'; ?>"/>
+				<input type="hidden" id="course-order" name="order" value="<?php echo ! empty( $_GET['order'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_GET['order'] ) ) ) : 'desc'; ?>"/>
 
 				<div class="sfwd-courses-filters flex push-right">
 					<div class="select-wrap <?php echo ! empty( $settings['orderby_filter'] ) && 'on' === $settings['orderby_filter'] ? 'active' : 'hide'; ?>">

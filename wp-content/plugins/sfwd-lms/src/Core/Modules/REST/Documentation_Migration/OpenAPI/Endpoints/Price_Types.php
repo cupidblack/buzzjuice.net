@@ -32,7 +32,7 @@ class Price_Types extends LDLMS_V2_Endpoint {
 	 * @return array<string,array<string,mixed>|string>
 	 */
 	public function get_response_schema( string $path = '', string $method = '' ): array {
-		$route_path = '/' . trim( $this->get_namespace(), '/' ) . '/' . ltrim( $path, '/' );
+		$route_path = '/' . ltrim( $path, '/' );
 
 		$price_type_schema = [
 			'type'       => 'object',
@@ -154,5 +154,16 @@ class Price_Types extends LDLMS_V2_Endpoint {
 		];
 
 		return $descriptions[ $route_type ][ $method ] ?? __( 'Price type operation.', 'learndash' );
+	}
+
+	/**
+	 * Returns the tags for this endpoint.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return string[]
+	 */
+	protected function get_tags(): array {
+		return [ 'price-types' ];
 	}
 }

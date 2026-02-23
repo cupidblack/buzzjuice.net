@@ -22,20 +22,6 @@ $progress = learndash_course_progress(
 	)
 );
 
-
-
-
-//BCR&D
-if ( ! function_exists( 'bz_ensure_string' ) ) {
-    function bz_ensure_string( $v ) {
-        return is_string( $v ) ? $v : ( $v === null ? '' : (string) $v );
-    }
-}
-
-
-
-
-
 if ( empty( $progress ) ) {
 	$progress = array(
 		'percentage' => 0,
@@ -94,12 +80,7 @@ $course_list_item_container_id = $course_list_item_id . '-container';
 				<a class="ld-certificate-link" target="_blank" href="<?php echo esc_url( $certificateLink ); ?>" aria-label="<?php esc_attr_e( 'Certificate', 'buddyboss-theme' ); ?>"><span class="ld-icon ld-icon-certificate"></span></span></a>
 			<?php endif; ?>
 
-			<?php //echo wp_kses_post( learndash_status_bubble( $status ) ); 
-			    
-			    //BCR&D
-			    echo wp_kses_post( bz_ensure_string( learndash_status_bubble( $status ) ) );
-			
-			?>
+			<?php echo wp_kses_post( learndash_status_bubble( $status ) ); ?>
 
 			<?php learndash_status_icon( $status, get_post_type(), null, true ); ?>
 

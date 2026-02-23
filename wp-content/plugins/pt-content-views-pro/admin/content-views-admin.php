@@ -3525,7 +3525,7 @@ class PT_Content_Views_Pro_Admin extends PT_Content_Views_Admin {
 					'params'		 => array(
 						array(
 							'type'		 => 'html',
-							'content'	 => sprintf( '<p class="cvp-notice">%s.</p>', sprintf( __( 'For a real front-end filter, please use %s Live Filter %s instead', 'content-views-pro' ), '<a href="https://docs.contentviewspro.com/live-filter-introduction/#taxonomy" target="_blank">', '</a>' ) ),
+							'content'	 => sprintf( '<p class="cvp-notice">%s.</p>', sprintf( __( 'For a real front-end filter, please use %s Live Filter %s instead', 'content-views-pro' ), '<a href="https://docs.contentviewspro.com/live-filter-introduction/" target="_blank">', '</a>' ) ),
 						),
 					),
 					'dependence'	 => array( 'enable-' . $prefix, 'yes' ),

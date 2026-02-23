@@ -3,7 +3,7 @@
  * Plugin Name: 	Checkout Field Editor for WooCommerce (Pro)
  * Plugin URI:  	https://www.themehigh.com/product/woocommerce-checkout-field-editor-pro/
  * Description: 	Design woocommerce checkout form in your own way, customize checkout fields(Add, Edit, Delete and re arrange fields).
- * Version:     	3.7.4
+ * Version:     	3.7.5
  * Author:      	ThemeHigh
  * Author URI:  	https://www.themehigh.com
  * Update URI: 		https://www.themehigh.com/product/woocommerce-checkout-field-editor-pro/
@@ -13,9 +13,9 @@
  *
  * Requires Plugins: woocommerce
  * WC requires at least: 3.0.0
- * WC tested up to: 9.9
+ * WC tested up to: 10.4
  */
-update_site_option( 'woocommerce_checkout_field_editor_thlmdata', [ 'license_key' => '******************************', 'status' => 'active', 'expiry' => 'lifetime' ] );
+ update_site_option( 'woocommerce_checkout_field_editor_thlmdata', [ 'license_key' => '******************************', 'status' => 'active', 'expiry' => 'lifetime' ] );
 if(!defined('WPINC')){	die; }
 
 if (!function_exists('is_woocommerce_active')){
@@ -34,7 +34,7 @@ if (!function_exists('is_woocommerce_active')){
 }
 
 if(is_woocommerce_active()) {
-	define('THWCFE_VERSION', '3.7.4');
+	define('THWCFE_VERSION', '3.7.5');
 	!defined('THWCFE_SOFTWARE_TITLE') && define('THWCFE_SOFTWARE_TITLE', 'WooCommerce Checkout Field Editor');
 	!defined('THWCFE_FILE_') && define('THWCFE_FILE_', __FILE__);
 	!defined('THWCFE_PATH') && define('THWCFE_PATH', plugin_dir_path( __FILE__ ));

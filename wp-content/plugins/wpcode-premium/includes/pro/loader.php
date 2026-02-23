@@ -68,6 +68,8 @@ require_once WPCODE_PLUGIN_PATH . 'includes/pro/class-wpcode-revisions.php';
 require_once WPCODE_PLUGIN_PATH . 'includes/pro/device-type.php';
 // Load schedule filtering.
 require_once WPCODE_PLUGIN_PATH . 'includes/pro/schedule.php';
+// Include trait for file loading before the execute class.
+require_once WPCODE_PLUGIN_PATH . 'includes/pro/execute/trait-wpcode-snippet-execute-file-loader.php';
 // Execute snippets.
 require_once WPCODE_PLUGIN_PATH . 'includes/pro/class-wpcode-snippet-execute-pro.php';
 // Access helpers.
@@ -91,6 +93,8 @@ require_once WPCODE_PLUGIN_PATH . 'includes/pro/emails/class-wpcode-emails.php';
 require_once WPCODE_PLUGIN_PATH . 'includes/pro/class-wpcode-error-notifications.php';
 // Assets file handler.
 require_once WPCODE_PLUGIN_PATH . 'includes/pro/class-wpcode-snippets-file-handler.php';
+// Pro-specific snippet cache with file loading support.
+require_once WPCODE_PLUGIN_PATH . 'includes/pro/class-wpcode-snippet-cache-pro.php';
 // Load the snippets compressed class.
 require_once WPCODE_PLUGIN_PATH . 'includes/pro/class-wpcode-snippets-compressed.php';
 // Load the integrations.
@@ -98,6 +102,7 @@ require_once WPCODE_PLUGIN_PATH . 'includes/pro/integrations/loader.php';
 
 add_action( 'plugins_loaded', 'wpcode_plugins_loaded_load_pro_files', 2 );
 add_action( 'plugins_loaded', 'wpcode_load_pro_updates' );
+add_action( 'plugins_loaded', 'wpcode_disable_simple_mode_for_pro', 1 );
 
 /**
  * Require files on plugins_loaded.
@@ -135,8 +140,8 @@ function wpcode_plugins_loaded_load_pro_files() {
 	require_once WPCODE_PLUGIN_PATH . 'includes/pro/conditional-logic/class-wpcode-conditional-page.php';
 	// Pro-specific location options.
 	require_once WPCODE_PLUGIN_PATH . 'includes/pro/conditional-logic/class-wpcode-conditional-location.php';
-    // Pro-specific user options.
-    require_once WPCODE_PLUGIN_PATH . 'includes/pro/conditional-logic/class-wpcode-conditional-user.php';
+	// Pro-specific user options.
+	require_once WPCODE_PLUGIN_PATH . 'includes/pro/conditional-logic/class-wpcode-conditional-user.php';
 	// Translations.
 	require_once WPCODE_PLUGIN_PATH . 'includes/pro/class-wpcode-translations.php';
 }
@@ -165,4 +170,14 @@ function wpcode_load_pro_updates() {
 			'key'         => $key,
 		)
 	);
+}
+
+/**
+ * Disable simple mode when Pro version is active.
+ *
+ * @return void
+ */
+function wpcode_disable_simple_mode_for_pro() {
+	// Force disable headers_footers_mode (simple mode) via settings getter filter.
+	add_filter( 'wpcode_get_option_headers_footers_mode', '__return_false', 100 );
 }

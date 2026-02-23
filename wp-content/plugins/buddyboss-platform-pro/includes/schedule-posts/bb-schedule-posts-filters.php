@@ -56,7 +56,7 @@ function bb_is_enabled_activity_schedule_posts_filter() {
 
 	// Return false if platform pro has not valid license.
 	if (
-		! bbp_pro_is_license_valid() ||
+		bb_pro_should_lock_features() ||
 		version_compare( bb_platform_pro()->version, '2.5.20', '<' )
 	) {
 		return false;

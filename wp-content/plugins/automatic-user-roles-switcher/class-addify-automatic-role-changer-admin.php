@@ -13,7 +13,7 @@ class Addify_Automatic_Role_Changer_Admin {
 
 		add_action( 'init', array( $this, 'adfy_mer_automatic_role_changer_post_type' ) );
 		
-		add_action( 'all_admin_notices', array( $this, 'af_a_nd_s_m_tabs' ), 5 );
+		add_action( 'all_admin_notices', array( $this, 'af_arc_tabs' ), 5 );
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'addify_arc_add_files' ) );
 		
@@ -28,8 +28,82 @@ class Addify_Automatic_Role_Changer_Admin {
 		add_action( 'wp_ajax_af_urs_memberships_optn', array( $this, 'af_urs_memberships_optn' ) );
 
 		add_action( 'wp_ajax_af_urs_live_search', array( $this, 'af_urs_live_search' ) );
+
+		add_filter( 'post_updated_messages', array( $this, 'af_arc_custom_post_published_messages' ));
+
+		add_filter( 'bulk_post_updated_messages', array( $this, 'af_arc_bulk_post_updated_messages' ), 10, 2 );
 	}
 
+	public function af_arc_custom_post_published_messages( $custom_messages ) {
+
+		global $post, $post_ID;
+
+		$post_types_array = array( 'automatic_rc' );
+
+
+		if ( !in_array($post->post_type, $post_types_array) ) {
+
+			return $custom_messages;
+		}
+
+
+		if ('automatic_rc' == $post->post_type) {
+				
+			// Define your custom post type messages
+			$custom_post_type = 'automatic_rc'; // Replace with your actual post type name
+			$custom_post_type_singular_name = 'Rule'; // Replace with singular name of your post type
+
+		}
+
+
+		$custom_messages[ $custom_post_type ] = array(
+			0 => '', // Unused. Messages start at index 1.
+		/* translators: %s: custom post update */
+			1 => sprintf( __( '%s updated.', 'addify_arc' ), $custom_post_type_singular_name ),
+			2 => __( 'Rule updated.', 'addify_arc' ),
+			3 => __( 'Rule deleted.', 'addify_arc' ),
+			/* translators: %s: custom post update */
+			4 => sprintf( __( '%s updated.', 'addify_arc' ), $custom_post_type_singular_name ),
+			/* translators: %s: custom post revision */
+			5 => isset( $_GET['revision'] ) ? sprintf( __( '%1$s restored to revision from %2$s', 'addify_arc' ), $custom_post_type_singular_name, wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
+			/* translators: %s: custom post published */
+			6 => sprintf( __( '%s published.', 'addify_arc' ), $custom_post_type_singular_name ),
+			/* translators: %s: custom post saved */
+			7 => sprintf( __( '%s saved.', 'addify_arc' ), $custom_post_type_singular_name ),
+			/* translators: %s: custom post submitted */
+			8 => sprintf( __( '%s submitted.', 'addify_arc' ), $custom_post_type_singular_name),
+			/* translators: %s: custom post scheduled update */
+			9 => sprintf(__( '%1$s scheduled for: <strong>%2$s</strong>.', 'addify_arc' ), $custom_post_type_singular_name, date_i18n(__( 'M j, Y @ G:i', 'addify_arc' ), strtotime( $post->post_date ) )),
+			/* translators: %s: custom post draft update */
+			10 => sprintf( __( '%s draft updated.', 'addify_arc' ), $custom_post_type_singular_name ),
+		);
+
+		return $custom_messages;
+	}
+	/**
+	* Specify custom bulk actions messages for different post types.
+	*
+	* @param array $bulk_messages Array of messages.
+	* @param array $bulk_counts Array of how many objects were updated.
+	* @return array
+	*/
+	public function af_arc_bulk_post_updated_messages( $bulk_messages, $bulk_counts ) {
+
+		$bulk_messages['automatic_rc'] = array(
+			/* translators: %s: rules count */
+			'updated' => _n( '%s rule updated.', '%s rules updated.', $bulk_counts['updated'], 'addify_arc' ),
+			/* translators: %s: rules count */
+			'locked' => _n( '%s rule not updated, somebody is editing it.', '%s rules not updated, somebody is editing them.', $bulk_counts['locked'], 'addify_arc' ),
+			/* translators: %s: rules count */
+			'deleted' => _n( '%s rule permanently deleted.', '%s rules permanently deleted.', $bulk_counts['deleted'], 'addify_arc' ),
+			/* translators: %s: rules count */
+			'trashed' => _n( '%s rule moved to the Trash.', '%s rules moved to the Trash.', $bulk_counts['trashed'], 'addify_arc' ),
+			/* translators: %s: rules count */
+			'untrashed' => _n( '%s rule restored from the Trash.', '%s rules restored from the Trash.', $bulk_counts['untrashed'], 'addify_arc' ),
+		);
+
+		return $bulk_messages;
+	}
 	public function af_urs_memberships_optn() {
 
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : 0;
@@ -62,7 +136,6 @@ class Addify_Automatic_Role_Changer_Admin {
 			}
 		
 		} else {
-
 			$af_wc_mem = array();
 
 			$af_mem = array();
@@ -87,6 +160,7 @@ class Addify_Automatic_Role_Changer_Admin {
 						'fields' => 'ids',
 					)
 				);
+
 			}
 
 			$af_options_array = array_merge( $af_wc_mem, $af_mem );
@@ -100,8 +174,7 @@ class Addify_Automatic_Role_Changer_Admin {
 				<?php echo esc_attr( get_the_title($membership) ); ?>
 			
 			</option>
-			<?php
-				
+			<?php	
 		}
 
 		wp_die();
@@ -120,6 +193,7 @@ class Addify_Automatic_Role_Changer_Admin {
 		$search_type = isset( $_POST['search_type'] ) ? sanitize_text_field( wp_unslash( $_POST['search_type'] ) ) : '';
 
 		$data_array = array();
+		
 		$aurguments = array();
 
 		if ('products' == $search_type) {
@@ -132,21 +206,27 @@ class Addify_Automatic_Role_Changer_Admin {
 				'order'       => 'ASC',
 				'fields'      => 'ids',
 			);
-			if ( !empty( $pro ) ) {
-				$args['s'] = $pro;
-			}
-			
-			$pros = get_posts( $args );
 
+			if ( !empty( $pro ) ) {
+
+				$args['s'] = $pro;
+
+			}
+			$pros = get_posts( $args );
 			if ( ! empty( $pros ) ) {
 
 				foreach ($pros as $product_id) {
 
 					$product  = wc_get_product($product_id);
 					
+					if ( ( 'variable-subscription'== $product->get_type() ) || ( 'subscription_variation'== $product->get_type() ) || ( 'subscription'==$product->get_type() ) ) {
+						continue;
+					}
+
 					$title = ( mb_strlen($product->get_name()) > 50 ) ? mb_substr($product->get_name(), 0, 49) . '...' : $product->get_name();
 
-					if ( 'variation' ==  $product->get_type() ) {
+					if ( 'variation' ==  $product->get_type()) {
+
 
 						if ( count( $product->get_variation_attributes() ) > 2 ) {
 							
@@ -154,6 +234,7 @@ class Addify_Automatic_Role_Changer_Admin {
 
 								if ( !empty($attribute_name) ) {
 									// $title .= ' ' . implode(' , ', $product->get_variation_attributes());
+									
 									$title .= ' , ' . $attribute_name;
 
 								}
@@ -224,27 +305,63 @@ class Addify_Automatic_Role_Changer_Admin {
 		if ('subscription' == $search_type ) {
 
 			if ( in_array( 'woocommerce-subscriptions/woocommerce-subscriptions.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true )) {
-			
-				$pros = wc_get_products(
-					array(
-						'status'    => 'publish', 
-						'limit'     => -1, 
-						'type'      => 'subscription',
-						'return'    => 'ids',
-					)
-				);
+				
+				$pros = wc_get_products(array(
+					'status' => 'publish',
+					'limit'  => -1,
+					'type'   => array( 'variable-subscription', 'subscription' ),
+					'return' => 'ids',
+				));
 
-				if ( ! empty( $pros ) ) {
-				
-					foreach ($pros as $proo_id) {
-				
-						$product = wc_get_product($proo_id);
-				
-						$title = ( mb_strlen($product->get_name()) > 50 ) ? mb_substr($product->get_name(), 0, 49) . '...' : $product->get_name();
-				
-						$data_array[] = array( $proo_id, $title ); // array( Post ID, Post Title ).
+				$data_array = array();
+
+				foreach ( $pros as $product_id ) {
+
+					$product = wc_get_product( $product_id );
+					if ( ! $product ) {
+						continue;
+					}
+
+					// SIMPLE / SUBSCRIPTION
+					if ( $product->is_type( 'subscription' ) ) {
+
+						$title = $product->get_name();
+						$title = mb_strlen( $title ) > 50 ? mb_substr( $title, 0, 49 ) . '...' : $title;
+
+						$data_array[] = array( $product_id, $title );
+						continue;
+					}
+
+					// VARIABLE SUBSCRIPTION → LOOP VARIATIONS
+					if ( $product->is_type( 'variable-subscription' ) ) {
+
+						foreach ( $product->get_children() as $variation_id ) {
+
+							$variation = wc_get_product( $variation_id );
+							if ( ! $variation ) {
+								continue;
+							}
+
+							$title = $product->get_name();
+
+							foreach ( $variation->get_variation_attributes() as $attr => $value ) {
+
+								if ( empty( $value ) ) {
+									continue;
+								}
+
+								$label = wc_attribute_label( str_replace( 'attribute_', '', $attr ) );
+								$title .= ' , ' . ucfirst( $value );
+							}
+
+							$title = mb_strlen( $title ) > 50 ? mb_substr( $title, 0, 49 ) . '...' : $title;
+
+							$data_array[] = array( $variation_id, $title );
+						}
 					}
 				}
+
+
 			}
 		}
 
@@ -255,7 +372,6 @@ class Addify_Automatic_Role_Changer_Admin {
 			$af_wc_mem = array();
 
 			if ( in_array( 'ultimate-memberships-woocommerce/woocommerce-ultimate-membership.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true ) ) {
-
 
 				$af_mem = get_posts( array(
 					'post_type' => 'af_membership_plan',
@@ -304,7 +420,6 @@ class Addify_Automatic_Role_Changer_Admin {
 		}
 
 		echo wp_json_encode($data_array);
-		
 		wp_die();
 	}
 
@@ -324,22 +439,44 @@ class Addify_Automatic_Role_Changer_Admin {
 		
 			array( $this, 'adfy_arc_email_general_settings_callback' ) // Callback.
 		);
+		// add_submenu_page(
+		
+		//  'woocommerce', // parent slug.
+		
+		//  '', // Page title.
+		
+		//  esc_html__( 'Automatic User Roles Switcher', 'addify_arc' ), // Title.
+		
+		//  'manage_options', // Capability.
+		
+		//  'af_sc_log', // slug.
+		
+		//  array( $this, 'adfy_arc_log_callback' ) // Callback.
+		// );
 
 		global $pagenow, $typenow;
-		
+
 		if ( ( ( 'edit.php' == $pagenow || 'post-new.php' == $pagenow ) && 'automatic_rc' == $typenow )
-			|| ( 'post.php' == $pagenow && isset( $_GET['post'] ) && 'automatic_rc' == get_post_type( sanitize_text_field( $_GET['post'] ) ) ) ) {
+			|| ( 'post.php' == $pagenow && isset( $_GET['post'] ) && 'automatic_rc' == get_post_type( sanitize_text_field( wp_unslash($_GET['post']) ) ) ) ) {
 
 			remove_submenu_page( 'woocommerce', 'first_page' );
 
 		} elseif ( ( ( 'edit.php' == $pagenow || 'post-new.php' == $pagenow ) && 'af_free_gift_log' == $typenow )
 
-			|| ( 'post.php' == $pagenow && isset( $_GET['post'] ) && 'first_page' == get_post_type( sanitize_text_field( $_GET['post'] ) ) ) ) {
+			|| ( 'post.php' == $pagenow && isset( $_GET['post'] ) && 'first_page' == get_post_type( sanitize_text_field( wp_unslash($_GET['post']) ) ) ) ) {
+
+
+			remove_submenu_page( 'woocommerce', 'edit.php?post_type=automatic_rc' );
+
+		} elseif ( ( ( 'edit.php' == $pagenow || 'post-new.php' == $pagenow ) && 'af_free_gift_log' == $typenow )
+
+			|| ( 'post.php' == $pagenow && isset( $_GET['post'] ) && 'af_sc_log' == get_post_type( sanitize_text_field( wp_unslash($_GET['post']) ) ) ) ) {
 
 
 			remove_submenu_page( 'woocommerce', 'edit.php?post_type=automatic_rc' );
 
 		} else {
+			remove_submenu_page( 'woocommerce', 'af_sc_log' );
 
 			remove_submenu_page( 'woocommerce', 'edit.php?post_type=automatic_rc' );
 
@@ -353,7 +490,7 @@ class Addify_Automatic_Role_Changer_Admin {
 		
 		global $active_tab;
 
-		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'email_setting';
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash($_GET['tab']) ) : 'email_setting';
 
 		?>
 		
@@ -362,13 +499,38 @@ class Addify_Automatic_Role_Changer_Admin {
 			<form method="post" action="options.php">
 		
 				<?php
+				switch ($active_tab) {
+					case 'email_setting':
+						settings_fields( 'arc_new_style_setting' );
+						do_settings_sections( 'arc_product_settings_page' );
+						submit_button( 'Save Settings', 'primary' );
+						break;
 
-				settings_fields( 'arc_new_style_setting' );
-		
-				do_settings_sections( 'arc_product_settings_page' );
-		
-				submit_button( 'Save Settings', 'primary' );
-		
+					case 'af_sc_log':
+						global $wp_roles;
+
+						$users = get_users();
+						?>
+						<h3><?php echo esc_html_e('User Role Change history', 'addify_arc' ); ?></h3>
+						<?php
+						
+						foreach ( $users as $user ) {
+							$customer_id = $user->ID;
+							$af_role_change_history = (array) get_user_meta( $customer_id, 'af_arc_data', true );
+							$af_role_change_history = $this->af_urs_unique_array($af_role_change_history);
+
+							if (is_array($af_role_change_history) && empty(current($af_role_change_history))) {
+								continue;
+							}
+
+							?>
+							<h2><?php echo esc_attr($user->display_name); ?></h2>
+							<?php
+							
+							af_urs_display_log($customer_id);
+
+						}
+				}
 				?>
 		
 			</form>
@@ -378,21 +540,64 @@ class Addify_Automatic_Role_Changer_Admin {
 		<?php
 	}
 
-	public function af_a_nd_s_m_tabs() {
+	public function af_urs_unique_array( $arrays ) {
+		
+		$uniqueArrays = array();
+		
+		$serializedArrays = array();
+		
+		foreach ($arrays as $innerArray) {
+		
+			$serialized = serialize($innerArray);
+			
+			if (!isset($serializedArrays[ $serialized ])) {
+		
+				$serializedArrays[ $serialized ] = true;
+		
+				$uniqueArrays[] = $innerArray;
+			}
+		}
+		
+		return $uniqueArrays;
+	}
+
+	public function adfy_arc_log_callback() {
+		global $wp_roles;
+
+		$users = get_users();
+		?>
+		<h3><?php echo esc_html_e('User Role Change history', 'addify_arc' ); ?></h3>
+		<?php
+		
+		foreach ( $users as $user ) {
+			$customer_id = $user->ID;
+			$af_role_change_history = (array) get_user_meta( $customer_id, 'af_arc_data', true );
+			$af_role_change_history = $this->af_urs_unique_array($af_role_change_history);
+
+			if (is_array($af_role_change_history) && empty(current($af_role_change_history))) {
+				continue;
+			}
+
+			?>
+			<h2><?php echo esc_attr($user->display_name); ?></h2>
+			<?php
+			af_urs_display_log($customer_id);
+
+		}
+	}
+
+	public function af_arc_tabs() {
 
 		global $post, $typenow, $pagenow;
-
 		$screen = get_current_screen();
-
-		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'general_setting';
-
+		// $active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash($_GET['tab']) ) : 'general_setting';
 		if ( $screen && in_array( $screen->id, $this->get_tab_screen_ids(), true ) ) {
 
 			$tabs = array(
 				
 				'rules'  =>array(
 				
-					'title' => __( 'Rules', 'addify_avsm' ),
+					'title' => __( 'Rules', 'addify_arc' ),
 				
 					'url'   => admin_url( 'edit.php?post_type=automatic_rc' ),
 				
@@ -400,11 +605,18 @@ class Addify_Automatic_Role_Changer_Admin {
 				
 				'general_setting' =>array(
 				
-					'title' => __( ' General Settings', 'addify_avsm' ),
+					'title' => __( ' General Settings', 'addify_arc' ),
 				
 					'url'   => admin_url( 'admin.php?page=first_page' ),
 				
 				),
+				// 'af_sc_log' =>array(
+				
+				//  'title' => __( ' User Switcher Log', 'addify_arc' ),
+				
+				//  'url'   => admin_url( 'admin.php?page=first_page&tab=af_sc_log' ),
+				
+				// )
 			
 			);
 			
@@ -414,19 +626,29 @@ class Addify_Automatic_Role_Changer_Admin {
 				
 				<div class="wrap woocommerce">
 				
-					<h2> <?php echo esc_html__('Automatic Role Setting', 'ad_wc_free_gifts'); ?></h2>
-				
 					<h2 class="nav-tab-wrapper woo-nav-tab-wrapper">
 				
 						<?php
 
-						$current_tab = '';
+						// $current_tab = '';
 
-						$current_tab = 'general_setting' == $current_tab ? $active_tab : $this->get_current_tab();
+						// $current_tab = 'general_setting' == $current_tab ? $active_tab : $this->get_current_tab();
+						// $current_tab 
+
+						$active_tab = filter_input(INPUT_GET, 'tab', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+						$screen_id  = get_current_screen()->id;
+						
+						if ('' == $active_tab) {
+							$active_tab = 'general_setting';
+						}
+
+						if ('edit-automatic_rc' == $screen_id || 'automatic_rc' == $screen_id) {
+							$active_tab = 'rules';
+						}
 
 						foreach ( $tabs as $id => $tab_data ) {
 
-							$class = $id == $current_tab ? array( 'nav-tab', 'nav-tab-active' ) : array( 'nav-tab' );
+							$class = $id == $active_tab ? array( 'nav-tab', 'nav-tab-active' ) : array( 'nav-tab' );
 
 							printf( '<a href="%1$s" class="%2$s">%3$s</a>', esc_url( $tab_data['url'] ), implode( ' ', array_map( 'sanitize_html_class', $class ) ), esc_html( $tab_data['title'] ) );
 					
@@ -453,8 +675,10 @@ class Addify_Automatic_Role_Changer_Admin {
 			
 			case 'woocommerce_page_first_page':
 				return 'general_setting';
-			
-			case 'automatic_rc':
+
+			case 'woocommerce_page_af_sc_log':
+				return 'af_sc_log';
+
 			case 'edit-automatic_rc':
 				return 'rules';
 		}
@@ -465,6 +689,8 @@ class Addify_Automatic_Role_Changer_Admin {
 		$tabs_screens = array(
 		
 			'woocommerce_page_first_page',
+
+			'woocommerce_page_af_sc_log',
 		
 			'edit-automatic_rc',
 		
@@ -501,11 +727,35 @@ class Addify_Automatic_Role_Changer_Admin {
 				'arc_email_section' // The name of the section to which this field belongs.
 		);
 
-		register_setting(
-		
+		register_setting(       
 			'arc_new_style_setting',
+			'arc_email_field',
+			array(
+				'type' => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			)
+		);
+
+		add_settings_field(
 		
-			'arc_email_field'
+				'arc_show_log_customer_field', // ID used to identify the field throughout the theme.
+		
+				esc_html__( 'Show Log to Customer', ' addify_arc' ), // The label to the left of the option interface element.
+		
+				array( $this, 'arc_show_log_customer_field_callback' ),   // The name of the function responsible for rendering the option interface.
+		
+				'arc_product_settings_page', // The page on which this option will be displayed.
+		
+				'arc_email_section' // The name of the section to which this field belongs.
+		);
+
+		register_setting(       
+			'arc_new_style_setting',
+			'arc_show_log_customer_field',
+			array(
+				'type' => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			)
 		);
 	}
 		
@@ -544,12 +794,18 @@ class Addify_Automatic_Role_Changer_Admin {
 			
 			?>
 			
-			<p><?php echo esc_html__( 'Enter email that you want send to customer. Use {customer_full_name} for customer full name. Use {customer_switch_from_role} Customer switch from old role. Use {customer_switch_to_role} for customer switch to new role ', ' addify_arc' ); ?></p>
+			<p><?php echo esc_html__( 'Enter email that you want send to customer. Use {customer_full_name} for customer full name. Use {customer_switch_from_role} Customer switch from old role. Use {customer_switch_to_role} for customer switch to new role.', ' addify_arc' ); ?></p>
 		</div>
 		
 		<?php
 	}
 
+	public function arc_show_log_customer_field_callback() {
+
+		$show_log_cust = get_option('arc_show_log_customer_field');
+
+		echo '<input type="checkbox" name="arc_show_log_customer_field" value="1" ' . checked(1, $show_log_cust, false) . ' />';
+	}
 	public function email_settings_section_e() {}
 
 	public function adfy_mer_automatic_role_changer_post_type() {
@@ -561,7 +817,11 @@ class Addify_Automatic_Role_Changer_Admin {
 			'singular_name' => esc_html__( ' All Rules', 'addify_arc' ),
 		
 			'add_new'       => esc_html__( 'Add New Rule', 'addify_arc' ),
-		
+
+			'add_new_item'  => esc_html__( 'Add Rule', 'addify_arc' ),
+
+			'not_found'     => esc_html__( 'No Rules found', 'addify_arc' ),
+
 			'all_items'     => esc_html__( 'Automatic 	User Roles Switcher', 'addify_arc' ),
 		
 			'edit_item'     => esc_html__( 'Edit Rule', 'addify_arc' ),
@@ -571,8 +831,11 @@ class Addify_Automatic_Role_Changer_Admin {
 		$args  = array(
 		
 			'labels'              => $label,
-		
-			'public'              => true,
+			
+			// 'public'              => true,
+			'public'              => false,
+
+			'show_ui'             => true,
 		
 			'has_archives'        => false,
 		

@@ -20,6 +20,44 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly
 }
 
+
+
+// ---- BuzzJuice SSO: Session Lifecycle Guards ----
+
+// 1. Context-aware session start: never begin a session in REST API, loopback, cron, CLI, or XMLRPC requests.
+function bz_sso_safe_session_start() {
+    if (
+        (defined('REST_REQUEST') && REST_REQUEST)
+        || (defined('DOING_CRON') && DOING_CRON)
+        || (defined('WP_CLI') && WP_CLI)
+        || (defined('XMLRPC_REQUEST') && XMLRPC_REQUEST)
+    ) {
+        return false; // Never start a session in these contexts!
+    }
+    if (session_status() === PHP_SESSION_NONE) {
+        @session_start();
+    }
+    return true;
+}
+
+// 2. Always close the session after using $_SESSION to release lock.
+function bz_sso_safe_session_close() {
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        @session_write_close();
+    }
+}
+
+// 3. Force-cleanup for REST/HTTP system requests (double insurance)
+add_action('rest_api_init', function () {
+    bz_sso_safe_session_close();
+}, 0);
+
+add_action('http_api_debug', function() {
+    bz_sso_safe_session_close();
+}, 0);
+
+
+
 require_once __DIR__ . '/../../shared/db_helpers.php';
 
 /* --------------------------- Config (safeguarded) --------------------------- */
@@ -225,7 +263,7 @@ add_action('wp_login', function ($user_login, \WP_User $user) {
     global $__buzz_sso_secret;
 
     // Ensure we have a fresh session and remove previous shadow for current old sid
-    if (session_status() !== PHP_SESSION_ACTIVE) { @session_start(); }
+    bz_sso_safe_session_start();
     $old_sid = session_id();
     try { bz_remove_shadow_session($old_sid); } catch (Throwable $e) { bz_debug_log('wp_login: remove old shadow failed', ['err'=>$e->getMessage()]); }
 
@@ -237,7 +275,7 @@ add_action('wp_login', function ($user_login, \WP_User $user) {
     @setcookie(session_name(), '', time() - 3600, '/', BUZZ_COOKIE_DOMAIN, true, true);
 
     // Start a fresh session and canonicalize
-    @session_start();
+    bz_sso_safe_session_start();
     $new_sid = session_id();
 
     bz_debug_log('wp_login: created fresh session', ['user'=>$user_login, 'id'=>$user->ID, 'old_sid'=>$old_sid, 'new_sid'=>$new_sid]);
@@ -319,6 +357,9 @@ add_action('wp_login', function ($user_login, \WP_User $user) {
                     $redirect_to = esc_url_raw(wp_unslash($_REQUEST['redirect_to']));
                 }
                 $sso_target = site_url('/sso-landing.php?token=' . rawurlencode($one_token) . '&redirect_to=' . rawurlencode($redirect_to));
+                
+                bz_sso_safe_session_close();
+                
                 wp_safe_redirect($sso_target);
                 exit;
             } else {
@@ -328,6 +369,9 @@ add_action('wp_login', function ($user_login, \WP_User $user) {
     } catch (Throwable $t) {
         bz_debug_log('wp_login: one-time token redirect failed', ['err' => $t->getMessage()]);
     }
+    
+    bz_sso_safe_session_close();
+    
 }, 10, 2);
 
 /* --------------------------- Optional injector (disabled by default) --------------------------- */
@@ -354,7 +398,7 @@ add_action('init', function () {
     global $__buzz_sso_secret;
     if ( ! is_user_logged_in() ) return; // only for authenticated users
 
-    if (session_status() !== PHP_SESSION_ACTIVE) { @session_start(); }
+    bz_sso_safe_session_start();
     $wp_sid = session_id();
 
     if ($wp_sid) {
@@ -395,6 +439,7 @@ add_action('init', function () {
                 }
 
                 $_SESSION['buzz_sso_last'] = $payload;
+                
                 bz_debug_log('init: buzz_sso cookie regenerated (long-lived)', ['wp_sid'=>$wp_sid, 'shadow_sid'=>bz_shadow_session_id($wp_sid), 'expires'=>date('c',$exp)]);
             }
         }
@@ -442,7 +487,7 @@ add_action('login_init', function() {
     }
 
     // Token valid: perform WP-side SSO cleanup (same actions performed on wp_logout)
-    if (session_status() !== PHP_SESSION_ACTIVE) { @session_start(); }
+    bz_sso_safe_session_start();
     $wp_sid = session_id();
 
     try { bz_remove_shadow_session($wp_sid); } catch (Throwable $e) { bz_debug_log('sso_token_login_init: remove shadow failed', ['err'=>$e->getMessage()]); }
@@ -464,6 +509,8 @@ add_action('login_init', function() {
     @session_unset();
     @session_destroy();
 
+    bz_sso_safe_session_close();
+
     try {
         $transient_key = 'buzz_shadow_sid_' . $wp_sid;
         delete_transient($transient_key);
@@ -478,6 +525,7 @@ add_action('login_init', function() {
     $ssec = $__buzz_sso_secret ?: (defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : getenv('BUZZ_SSO_SECRET'));
     $url = 'https://buzzjuice.net/shared/sso-logout.php?sso_secret=' . rawurlencode((string)$ssec) . '&from_wp=1&logged_out=1';
     wp_safe_redirect($url);
+    
     exit;
 }, 1);
 
@@ -485,7 +533,7 @@ add_action('login_init', function() {
  * Add wp_logout hook to trigger orchestrator-initiated Single Log Out when WP user logs out.
  */
 add_action('wp_logout', function() {
-    if (session_status() !== PHP_SESSION_ACTIVE) { @session_start(); }
+    bz_sso_safe_session_start();
     $wp_sid = session_id();
 
     try { bz_remove_shadow_session($wp_sid); } catch (Throwable $e) { bz_debug_log('wp_logout: remove shadow failed', ['err'=>$e->getMessage()]); }
@@ -517,6 +565,7 @@ add_action('wp_logout', function() {
 
     // Redirect into orchestrator for SLO chain (fallback: cabin=home triggers chain)
     wp_safe_redirect('https://buzzjuice.net/shared/sso-logout.php?cabin=home');
+    
     exit;
 }, 10);
 

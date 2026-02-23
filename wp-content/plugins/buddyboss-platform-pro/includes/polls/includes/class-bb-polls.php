@@ -362,7 +362,7 @@ class BB_Polls {
 	 */
 	protected function bb_poll_check_has_licence( $has_access = true ) {
 
-		if ( ! bbp_pro_is_license_valid() ) {
+		if ( bb_pro_should_lock_features() ) {
 			return false;
 		}
 

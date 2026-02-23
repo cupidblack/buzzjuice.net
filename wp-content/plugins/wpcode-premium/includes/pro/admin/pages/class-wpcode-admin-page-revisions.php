@@ -873,7 +873,7 @@ class WPCode_Admin_Page_Revisions extends WPCode_Admin_Page {
 	 * @return void
 	 */
 	public static function get_revision_compare_header( $revision, $disabled_restore_button = false, $prefix_label = '' ) {
-		$datef         = _x( 'F j, Y @ H:i:s', 'revision date format' );
+		$datef         = _x( 'F j, Y @ H:i:s', 'revision date format', 'wpcode-premium' );
 		$modified_time = strtotime( $revision->created );
 		$updated       = sprintf(
 		// Translators: time since the revision has been updated.

@@ -93,6 +93,9 @@ class WPCode_Testing_Mode {
 		add_action( 'wpcode_admin_notices', array( $this, 'display_testing_mode_notice' ) );
 
 		add_action( 'admin_init', array( $this, 'maybe_publish_snippet_changes' ) );
+
+		// Prevent file loading for snippets in testing mode to use testing mode data instead.
+		add_filter( 'wpcode_should_load_snippet_from_file', array( $this, 'maybe_prevent_file_loading' ), 10, 2 );
 	}
 
 	/**
@@ -145,6 +148,9 @@ class WPCode_Testing_Mode {
 						if ( ! array_key_exists( 'updated', $snippet ) ) {
 							continue;
 						}
+						// Unslash the code to match what the filters normally do.
+						// This ensures the code is properly formatted when saved.
+						$snippet['code'] = wp_unslash( $snippet['code'] );
 						// Let's update the snippet.
 						$snippet = new WPCode_Snippet( $snippet );
 						$snippet->save();
@@ -421,7 +427,10 @@ class WPCode_Testing_Mode {
 	public function get_data_for_snippet( $snippet ) {
 		$data              = $snippet->get_data_for_caching();
 		$data['post_data'] = get_post( $snippet->get_id() );
-		if ( $snippet->active ) {
+		// Use is_active() to ensure we get a proper boolean value.
+		// Accessing $snippet->active directly could return null if not explicitly set.
+		$is_active = $snippet->is_active();
+		if ( $is_active ) {
 			$data['post_data']->post_status = 'publish';
 		} else {
 			$data['post_data']->post_status = 'draft';
@@ -429,7 +438,8 @@ class WPCode_Testing_Mode {
 
 		$data['updated']          = time();
 		$data['custom_shortcode'] = $snippet->get_custom_shortcode();
-		$data['active']           = $snippet->active;
+		// Store as boolean to ensure isset() works correctly in load_from_array().
+		$data['active']           = (bool) $is_active;
 
 		return $data;
 	}
@@ -1089,6 +1099,9 @@ class WPCode_Testing_Mode {
 					remove_filter( 'wpcode_load_snippet', array( $this, 'load_snippet_from_testing_data' ) );
 					remove_filter( 'wpcode_pre_save_snippet', array( $this, 'pre_save_snippet' ) );
 
+					// Unslash the code to match what the filters normally do.
+					// This ensures the code is properly formatted when saved.
+					$snippet['code'] = wp_unslash( $snippet['code'] );
 					$snippet_object = new WPCode_Snippet( $snippet );
 					$snippet_object->save();
 					if ( isset( $data['snippets'][ $location ][ $key ]['updated'] ) ) {
@@ -1108,6 +1121,35 @@ class WPCode_Testing_Mode {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Prevent file loading for snippets when testing mode is enabled.
+	 * This ensures that the testing mode data is used instead of the file on disk.
+	 *
+	 * When testing mode is active, we want to load snippets from the testing mode option
+	 * (via wpcode_load_snippet filter) rather than from files on disk, so the admin
+	 * can see their changes before publishing.
+	 *
+	 * @param bool           $should_load Whether the snippet should be loaded from file.
+	 * @param WPCode_Snippet $snippet The snippet object.
+	 *
+	 * @return bool
+	 */
+	public function maybe_prevent_file_loading( $should_load, $snippet ) {
+		// If file loading is already disabled, no need to do anything.
+		if ( ! $should_load ) {
+			return $should_load;
+		}
+
+		// If testing mode is not enabled, allow file loading.
+		if ( ! $this->testing_mode_enabled() ) {
+			return $should_load;
+		}
+
+		// Testing mode is enabled - prevent file loading so we use database/testing mode data.
+		// This allows the admin to see their testing mode changes.
+		return false;
 	}
 }
 

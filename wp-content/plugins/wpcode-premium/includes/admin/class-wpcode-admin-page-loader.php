@@ -73,6 +73,7 @@ class WPCode_Admin_Page_Loader {
 		require_once WPCODE_PLUGIN_PATH . 'includes/admin/pages/class-wpcode-admin-page-file-editor.php';
 		require_once WPCODE_PLUGIN_PATH . 'includes/admin/pages/class-wpcode-admin-page-search-replace.php';
 		require_once WPCODE_PLUGIN_PATH . 'includes/admin/pages/class-wpcode-admin-page-duplicator.php';
+		require_once WPCODE_PLUGIN_PATH . 'includes/admin/pages/class-wpcode-admin-page-live-preview.php';
 	}
 
 	/**
@@ -100,6 +101,7 @@ class WPCode_Admin_Page_Loader {
 		$this->pages['tools']           = 'WPCode_Admin_Page_Tools';
 		$this->pages['settings']        = 'WPCode_Admin_Page_Settings';
 		$this->pages['click']           = 'WPCode_Admin_Page_Click';
+		$this->pages['live_preview']    = 'WPCode_Admin_Page_Live_Preview';
 	}
 
 	/**

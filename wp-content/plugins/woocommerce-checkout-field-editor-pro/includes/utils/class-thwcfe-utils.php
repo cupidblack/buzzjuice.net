@@ -507,7 +507,10 @@ class THWCFE_Utils {
 			$type = $field->get_property('type');
 			if($type === 'select' || $type === 'radio'){
 				$options = $field->get_property('options');
-				if(is_array($options) && isset($options[$value]) && $options[$value]['text']){
+				if ( ! is_array( $options ) ) {
+					return $value;
+				}
+				if(is_scalar( $value ) && isset($options[$value]) && $options[$value]['text']){
 					//$value = $options[$value]['text'];
 					$value = THWCFE_i18n::esc_attr__t($options[$value]['text']);
 				}

@@ -74,7 +74,14 @@ if ( ! isset( $previous_lesson_completed ) || ! isset( $previous_topic_completed
 	$previous_lesson_completed = true; // Default to true (no previous lesson to complete).
 	$previous_topic_completed  = true; // Default to true (no previous topic to complete).
 
-	if ( ! empty( $user_id ) ) {
+	// Check if user can bypass course limits (admin users).
+	$bypass_course_limits_admin_users = learndash_can_user_bypass( $user_id, 'learndash_course_progression' );
+
+	if ( $bypass_course_limits_admin_users ) {
+		// Admin users with bypass enabled should skip progression checks.
+		$previous_lesson_completed = true;
+		$previous_topic_completed  = true;
+	} elseif ( ! empty( $user_id ) ) {
 		if ( learndash_user_progress_is_step_complete( $user_id, $course_id, $post->ID ) ) {
 			$previous_lesson_completed = true;
 			$previous_topic_completed  = true;
@@ -328,7 +335,9 @@ $topics    = learndash_get_topic_list( $lesson_id, $course_id );
 							}
 						}
 						// Use LearnDash's core progression logic.
-						if ( ( ! learndash_is_sample( $post ) ) && ( $lesson_progression_enabled ) && ( ! empty( $sub_context ) || ! ( isset( $previous_topic_completed ) ? $previous_topic_completed : true ) || ! ( isset( $previous_lesson_completed ) ? $previous_lesson_completed : true ) ) ) :
+						// Check if user can bypass course limits (admin users).
+						$bypass_course_limits = learndash_can_user_bypass( $user_id, 'learndash_course_progression' );
+						if ( ( ! learndash_is_sample( $post ) ) && ( $lesson_progression_enabled ) && ! $bypass_course_limits && ( ! empty( $sub_context ) || ! ( isset( $previous_topic_completed ) ? $previous_topic_completed : true ) || ! ( isset( $previous_lesson_completed ) ? $previous_lesson_completed : true ) ) ) :
 
 							$previous_item_id = learndash_user_progress_get_previous_incomplete_step( $user_id, $course_id, $post->ID );
 							if ( ! empty( $previous_item_id ) ) {

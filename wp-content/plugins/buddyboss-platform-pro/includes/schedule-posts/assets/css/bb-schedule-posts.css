@@ -365,6 +365,10 @@ body:not(.buddyboss-theme) .bb-schedule-post_dropdown_section .bb-action-popup-c
 	opacity: 0.4;
 }
 
+.bb-schedule-post_dropdown_section .bb-schedule-posts_modal .activity-list .has-featured-image .bb-activity-schedule-actions {
+	top: 225px;
+}
+
 .bb-schedule-post_dropdown_section .bb-schedule-posts_modal .activity-list .activity-date .schedule-text {
 	font-size: 13px;
 	font-weight: 400;

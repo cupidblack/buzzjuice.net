@@ -20,7 +20,7 @@ class BP_Zoom_Group {
 	 * @since 1.0.0
 	 */
 	public function __construct() {
-		if ( ! bbp_pro_is_license_valid() || ! bp_is_active( 'groups' ) || ! bp_zoom_is_zoom_groups_enabled() ) {
+		if ( bb_pro_should_lock_features() || ! bp_is_active( 'groups' ) || ! bp_zoom_is_zoom_groups_enabled() ) {
 			return false;
 		}
 

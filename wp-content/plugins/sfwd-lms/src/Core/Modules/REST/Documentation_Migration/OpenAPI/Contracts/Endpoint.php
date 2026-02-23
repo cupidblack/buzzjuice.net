@@ -73,6 +73,54 @@ abstract class Endpoint extends EndpointV1 {
 	}
 
 	/**
+	 * Returns the OpenAPI schema for this endpoint.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param bool $trim Whether to trim the schema. Default is true.
+	 *
+	 * @return array<string,array<string,array<string,mixed>>>
+	 */
+	public function get_openapi_schema( bool $trim = true ): array {
+		$schema = parent::get_openapi_schema( $trim );
+
+		$supported_methods = $this->get_supported_methods();
+
+		if (
+			! $trim
+			|| empty( $supported_methods )
+		) {
+			return $schema;
+		}
+
+		foreach ( $schema as $path => $config ) {
+			$route_type              = $this->determine_route_type( $path, $this->get_base_endpoint() );
+			$supported_route_methods = $supported_methods[ $route_type ] ?? [];
+
+			// All methods are supported, continue.
+			if ( empty( $supported_route_methods ) ) {
+				continue;
+			}
+
+			$registered_methods = array_keys( $config );
+			$methods_to_remove  = array_diff(
+				$registered_methods,
+				array_map( 'strtolower', $supported_route_methods )
+			);
+
+			foreach ( $methods_to_remove as $method ) {
+				if ( ! isset( $schema[ $path ][ $method ] ) ) {
+					continue;
+				}
+
+				unset( $schema[ $path ][ $method ] );
+			}
+		}
+
+		return $schema;
+	}
+
+	/**
 	 * Builds the OpenAPI request body schema.
 	 *
 	 * @since 4.25.2
@@ -219,9 +267,25 @@ abstract class Endpoint extends EndpointV1 {
 	/**
 	 * Discovers all available routes for the endpoint.
 	 *
+	 * Examples:
+	 *
+	 * Basic routes (from 'users' base):
+	 * - discover_routes('users', ['collection'])           -> finds: users
+	 * - discover_routes('users', ['singular'])             -> finds: users/{id}
+	 * - discover_routes('users', ['collection','singular'])-> finds: users, users/{id}
+	 * - discover_routes('users', ['nested'])               -> finds: users/{id}/course-progress, users/{id}/enrollments, etc.
+	 * - discover_routes('users', [])                       -> finds: ALL routes (collection, singular, nested)
+	 *
+	 * Nested routes (from 'users/{id}/course-progress' base):
+	 * - discover_routes('users/{id}/course-progress', ['collection'])           -> finds: users/{id}/course-progress
+	 * - discover_routes('users/{id}/course-progress', ['singular'])             -> finds: users/{id}/course-progress/{course_id}
+	 * - discover_routes('users/{id}/course-progress', ['collection','singular'])-> finds: users/{id}/course-progress, users/{id}/course-progress/{course_id} (depth limited!)
+	 * - discover_routes('users/{id}/course-progress', ['nested'])               -> finds: users/{id}/course-progress/{course_id}/steps, users/{id}/course-progress/{course_id}/exam, etc. (ALL deeply nested)
+	 * - discover_routes('users/{id}/course-progress', [])                       -> finds: ALL routes under this base
+	 *
 	 * @since 4.25.2
 	 *
-	 * @param string   $base_endpoint The base endpoint (e.g., 'courses').
+	 * @param string   $base_endpoint The base endpoint (e.g., 'courses', 'users/{id}/course-progress').
 	 * @param string[] $types         The types of routes to discover. Defaults to all types. Accepts 'collection', 'singular', and 'nested'.
 	 *
 	 * @return array<string,array<string,string|callable>>
@@ -233,6 +297,21 @@ abstract class Endpoint extends EndpointV1 {
 		$namespace  = trim( $this->get_namespace(), '/' );
 		$all_routes = rest_get_server()->get_routes( $namespace );
 
+		/**
+		 * Determine if we should limit depth when matching routes.
+		 *
+		 * Depth is limited (true) when:
+		 * - Types includes ONLY 'collection' and/or 'singular'
+		 * - Example: ['collection', 'singular'] -> depth limited to immediate children
+		 *
+		 * Depth is NOT limited (false) when:
+		 * - Types is empty [] -> finds all routes at any depth
+		 * - Types includes 'nested' -> finds all deeply nested routes
+		 * - Example: ['nested'] or [] -> finds all nested routes regardless of depth
+		 */
+		$limit_depth = ! empty( $types )
+			&& ! in_array( 'nested', $types, true );
+
 		// Find all routes that start with the base endpoint.
 		$found_routes = [];
 		foreach ( $all_routes as $route_path => $route_config ) {
@@ -240,7 +319,8 @@ abstract class Endpoint extends EndpointV1 {
 			if (
 				$this->is_base_endpoint_route(
 					$this->normalize_route_path( $route_path ),
-					$this->normalize_route_path( $base_endpoint )
+					$this->normalize_route_path( $base_endpoint ),
+					$limit_depth
 				)
 			) {
 				$found_routes[ $route_path ] = $route_config;
@@ -250,7 +330,8 @@ abstract class Endpoint extends EndpointV1 {
 		// Process each discovered route.
 		$routes = [];
 		foreach ( $found_routes as $route_path => $route_config ) {
-			$route_type = $this->determine_route_type( $route_path );
+			// Determine route type relative to the base endpoint.
+			$route_type = $this->determine_route_type( $route_path, $base_endpoint );
 
 			if (
 				! empty( $types )
@@ -291,20 +372,75 @@ abstract class Endpoint extends EndpointV1 {
 	/**
 	 * Checks if a route is related to the base endpoint.
 	 *
-	 * @since 4.25.2
+	 * Examples with depth limiting (limit_depth = true, used for ['collection', 'singular']):
 	 *
-	 * @param string $route_path The full route path.
+	 * Base: 'users'
+	 * - 'users'                           -> ✅ matches (exact match)
+	 * - 'users/{id}'                      -> ✅ matches (one segment after base)
+	 * - 'users/{id}/course-progress'      -> ❌ no match (two segments after base, depth limited)
+	 *
+	 * Base: 'users/{id}/course-progress'
+	 * - 'users/{id}/course-progress'                    -> ✅ matches (exact match)
+	 * - 'users/{id}/course-progress/{course_id}'        -> ✅ matches (one segment after base)
+	 * - 'users/{id}/course-progress/{course_id}/steps'  -> ❌ no match (two segments after base, depth limited)
+	 *
+	 * Examples without depth limiting (limit_depth = false, used for ['nested'] or []):
+	 *
+	 * Base: 'users/{id}/course-progress'
+	 * - 'users/{id}/course-progress/{course_id}/steps'           -> ✅ matches (all nested routes found)
+	 * - 'users/{id}/course-progress/{course_id}/steps/{step_id}' -> ✅ matches (all deeply nested routes found)
+	 *
+	 * @since 4.25.2
+	 * @since 5.0.0 Added $limit_depth parameter.
+	 *
+	 * @param string $route_path    The full route path.
 	 * @param string $base_endpoint The base endpoint.
+	 * @param bool   $limit_depth   Whether to limit matching depth. Default true. Set to false when searching for 'nested' routes to find ALL nested routes.
 	 *
 	 * @return bool
 	 */
-	protected function is_base_endpoint_route( string $route_path, string $base_endpoint ): bool {
+	protected function is_base_endpoint_route( string $route_path, string $base_endpoint, bool $limit_depth = true ): bool {
 		// Remove the namespace prefix to get the relative path.
 		$namespace     = trim( $this->get_namespace(), '/' );
 		$relative_path = str_replace( '/' . $namespace . '/', '', $route_path );
 
 		// Check if the route starts with the base endpoint.
-		return strpos( $relative_path, $base_endpoint ) === 0;
+		if ( strpos( $relative_path, $base_endpoint ) !== 0 ) {
+			return false;
+		}
+
+		// If the base endpoint doesn't contain dynamic parameters, use simple prefix matching.
+		if (
+			! preg_match( '/\{[^\}]+\}/', $base_endpoint )
+			&& ! preg_match( '/\(\?P<[^>]+>\[[^\]]+\]\+\)/', $base_endpoint )
+		) {
+			return true;
+		}
+
+		/**
+		 * For nested base endpoints (containing dynamic params), optionally limit matching depth.
+		 * When limit_depth is true (for collection/singular): only match base + one more segment.
+		 * When limit_depth is false (for nested): match ALL routes starting with base.
+		 */
+		$remainder = substr( $relative_path, strlen( $base_endpoint ) );
+
+		if (
+			empty( $remainder )
+			|| $remainder === '/'
+		) {
+			return true;
+		}
+
+		// If not limiting depth, any route starting with the base endpoint is valid.
+		if ( ! $limit_depth ) {
+			return true;
+		}
+
+		$remainder = trim( $remainder, '/' );
+		$segments  = array_filter( explode( '/', $remainder ) );
+
+		// Only allow ONE additional segment to avoid matching deeper nested routes.
+		return count( $segments ) === 1;
 	}
 
 	/**
@@ -362,36 +498,191 @@ abstract class Endpoint extends EndpointV1 {
 	}
 
 	/**
-	 * Determines the type of route (collection, singular, or nested).
+	 * Determines the type of route (collection, singular, or nested) relative to a base endpoint.
+	 *
+	 * Examples with relative route typing ($base_endpoint provided):
+	 *
+	 * Base: 'users'
+	 * - 'users'                        -> 'collection' (exact match)
+	 * - 'users/{id}'                   -> 'singular'   (base + one dynamic param)
+	 * - 'users/{id}/course-progress'   -> 'nested'     (base + param + additional segment)
+	 *
+	 * Base: 'users/{id}' (searching from users/{id})
+	 * - 'users/{id}'                   -> 'collection' (exact match, relative to itself)
+	 * - 'users/{id}/course-progress'   -> 'nested'     (one additional segment after base)
+	 *
+	 * Base: 'users/{id}/course-progress' (searching from deeply nested base)
+	 * - 'users/{id}/course-progress'                  -> 'collection' (exact match, relative to this base)
+	 * - 'users/{id}/course-progress/{course_id}'      -> 'singular'   (base + one dynamic param)
+	 * - 'users/{id}/course-progress/{course_id}/steps'-> 'nested'     (base + param + additional segment)
+	 *
+	 * Examples with absolute route typing ($base_endpoint empty - legacy behavior):
+	 *
+	 * From namespace root:
+	 * - 'users'                                         -> 'collection' (no params)
+	 * - 'users/{id}'                                    -> 'singular'   (base + param)
+	 * - 'users/{id}/course-progress'                    -> 'nested'     (base + param + segment)
+	 * - 'users/{id}/course-progress/{course_id}'        -> 'nested'     (base + param + segment + param)
+	 * - 'users/{id}/course-progress/{course_id}/steps'  -> 'nested'     (base + param + segment + param + segment)
 	 *
 	 * @since 4.25.2
+	 * @since 5.0.0 Added $base_endpoint parameter.
 	 *
-	 * @param string $route_path The route path.
+	 * @param string $route_path    The route path.
+	 * @param string $base_endpoint The base endpoint to determine the route type relative to. If empty, uses absolute determination from namespace root. Defaults to the base endpoint returned by `get_base_endpoint()`.
 	 *
 	 * @return string
 	 */
-	protected function determine_route_type( string $route_path ): string {
+	protected function determine_route_type( string $route_path, string $base_endpoint = '' ): string {
 		// Remove the namespace prefix.
 		$namespace     = trim( $this->get_namespace(), '/' );
-		$relative_path = str_replace( '/' . $namespace . '/', '', $route_path );
-		$base_endpoint = Cast::to_string( preg_replace( '/^([^\/]+).*?$/', '$1', $relative_path ) );
+		$relative_path = ltrim( str_replace( '/' . $namespace . '/', '', $route_path ), '/' );
 
-		// Check for singular routes.
+		if ( empty( $base_endpoint ) ) {
+			$base_endpoint = $this->get_base_endpoint();
+		}
+
+		/**
+		 * Relative route typing: Determine route type relative to the provided base endpoint.
+		 *
+		 * This allows routes to be classified based on their relationship to a search base,
+		 * making deeply nested routes appear as "collection" or "singular" when appropriate.
+		 *
+		 * Example: When base is 'users/{id}/course-progress':
+		 * - 'users/{id}/course-progress'           -> 'collection' (the base itself)
+		 * - 'users/{id}/course-progress/{course_id}'-> 'singular'   (base + one param)
+		 * - 'users/{id}/course-progress/{course_id}/steps' -> 'nested' (beyond singular)
+		 */
+		if ( ! empty( $base_endpoint ) ) {
+			// Normalize the base endpoint.
+			$normalized_base = $this->normalize_route_path( $base_endpoint );
+			$normalized_base = trim( $normalized_base, '/' );
+
+			// Normalize the current route path.
+			$normalized_route = $this->normalize_route_path( $route_path );
+			$normalized_route = trim( $normalized_route, '/' );
+
+			// If the route exactly matches the base endpoint, it's a collection.
+			if ( $normalized_route === $normalized_base ) {
+				return 'collection';
+			}
+
+			// Get the remainder after the base endpoint.
+			if ( strpos( $normalized_route, $normalized_base ) === 0 ) {
+				$remainder = substr( $normalized_route, strlen( $normalized_base ) );
+				$remainder = trim( $remainder, '/' );
+
+				if ( empty( $remainder ) ) {
+					return 'collection';
+				}
+
+				// Split the remainder into segments.
+				$segments = array_filter( explode( '/', $remainder ) );
+
+				// If there's exactly one segment and it's a dynamic parameter, it's singular.
+				if (
+					count( $segments ) === 1
+					&& (
+						preg_match( '/^\{[^\}]+\}$/', $segments[0] )
+						|| preg_match( '/^\(\?P<[^>]+>\[[^\]]+\]\+\)$/', $segments[0] )
+					)
+				) {
+					return 'singular';
+				}
+
+				// If there's more than one segment (dynamic param + additional segments), it's nested.
+				if ( count( $segments ) > 1 ) {
+					return 'nested';
+				}
+			}
+
+			// If it doesn't match the base endpoint pattern, treat it as unrelated.
+			return 'collection';
+		}
+
+		// Legacy behavior: absolute determination from namespace root.
+
+		/**
+		 * Extract the base endpoint (first segment).
+		 *
+		 * Pattern: /^([^\/]+).*?$/
+		 * - ^ - Start of string
+		 * - ([^\/]+) - Capture group 1: one or more chars that are not "/"
+		 * - .*? - Non-greedy match of any remaining chars
+		 * - $ - End of string
+		 *
+		 * Example: "courses/(?P<id>[\d]+)/steps" extracts "courses".
+		 */
+		$first_segment = Cast::to_string( preg_replace( '/^([^\/]+).*?$/', '$1', $relative_path ) );
+
+		/**
+		 * Check for singular routes.
+		 *
+		 * A singular route has format: base/{param} or base/{param}/
+		 * Examples: courses/{id}, courses/(?P<id>[\d]+), users/{user_id}/
+		 */
 		if (
-			// Check for WordPress-formatted dynamic parameters. Example: /courses/(?P<id>[\d]+)/ .
-			preg_match( '/^' . preg_quote( $base_endpoint, '/' ) . '\/\(\?P<[^>]+>\[[^\]]+\]\+\)\/?$/', $relative_path )
-			// Check for OpenAPI-formatted dynamic parameters. Example: /courses/{id}/ .
-			|| preg_match( '/^' . preg_quote( $base_endpoint, '/' ) . '\/\{[^\}]+\}\/?$/', $relative_path )
+			/**
+			 * WordPress format: base/(?P<name>[pattern]+) or base/(?P<name>[pattern]+)/
+			 *
+			 * Pattern breakdown:
+			 * - ^ - Start of string
+			 * - [escaped first_segment] - The base endpoint (e.g., "courses")
+			 * - \/ - Literal forward slash
+			 * - \(\?P<[^>]+>\[[^\]]+\]\+\) - WordPress dynamic param like (?P<id>[\d]+)
+			 * - \/? - Optional trailing slash
+			 * - $ - End of string (ensures nothing after the param)
+			 */
+			preg_match( '/^' . preg_quote( $first_segment, '/' ) . '\/\(\?P<[^>]+>\[[^\]]+\]\+\)\/?$/', $relative_path )
+			/**
+			 * OpenAPI format: base/{name} or base/{name}/
+			 *
+			 * Pattern breakdown:
+			 * - ^ - Start of string
+			 * - [escaped first_segment] - The base endpoint (e.g., "courses")
+			 * - \/ - Literal forward slash
+			 * - \{[^\}]+\} - OpenAPI dynamic param like {id}
+			 * - \/? - Optional trailing slash
+			 * - $ - End of string (ensures nothing after the param)
+			 */
+			|| preg_match( '/^' . preg_quote( $first_segment, '/' ) . '\/\{[^\}]+\}\/?$/', $relative_path )
 		) {
 			return 'singular';
 		}
 
-		// Check for nested routes.
+		/**
+		 * Check for nested routes.
+		 *
+		 * A nested route has format: base/{param}/nested
+		 * Examples: courses/{id}/steps, courses/(?P<id>[\d]+)/users
+		 */
 		if (
-			// Check for WordPress-formatted dynamic parameters. Example: /courses/(?P<id>[\d]+)/steps .
-			preg_match( '/^' . preg_quote( $base_endpoint, '/' ) . '\/\(\?P<[^>]+>\[[^\]]+\]\+\)\/[^\/]+/', $relative_path )
-			// Check for OpenAPI-formatted dynamic parameters. Example: /courses/{id}/steps .
-			|| preg_match( '/^' . preg_quote( $base_endpoint, '/' ) . '\/\{[^\}]+\}\/[^\/]+/', $relative_path )
+			/**
+			 * WordPress format: base/(?P<name>[pattern]+)/nested
+			 *
+			 * Pattern breakdown:
+			 * - ^ - Start of string
+			 * - [escaped first_segment] - The base endpoint (e.g., "courses")
+			 * - \/ - Literal forward slash
+			 * - \(\?P<[^>]+>\[[^\]]+\]\+\) - WordPress dynamic param like (?P<id>[\d]+)
+			 * - \/ - Literal forward slash
+			 * - [^\/]+ - The nested segment (one or more chars that are not "/")
+			 * Note: No $ at end, so it can have more segments after (deep nesting).
+			 */
+			preg_match( '/^' . preg_quote( $first_segment, '/' ) . '\/\(\?P<[^>]+>\[[^\]]+\]\+\)\/[^\/]+/', $relative_path )
+			/**
+			 * OpenAPI format: base/{name}/nested
+			 *
+			 * Pattern breakdown:
+			 * - ^ - Start of string
+			 * - [escaped first_segment] - The base endpoint (e.g., "courses")
+			 * - \/ - Literal forward slash
+			 * - \{[^\}]+\} - OpenAPI dynamic param like {id}
+			 * - \/ - Literal forward slash
+			 * - [^\/]+ - The nested segment (one or more chars that are not "/")
+			 * Note: No $ at end, so it can have more segments after (deep nesting).
+			 */
+			|| preg_match( '/^' . preg_quote( $first_segment, '/' ) . '\/\{[^\}]+\}\/[^\/]+/', $relative_path )
 		) {
 			return 'nested';
 		}
@@ -617,6 +908,21 @@ abstract class Endpoint extends EndpointV1 {
 	}
 
 	/**
+	 * Returns the supported methods for the endpoint.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return array{
+	 *     collection?: string[],
+	 *     singular?: string[],
+	 *     nested?: string[],
+	 * }
+	 */
+	protected function get_supported_methods(): array {
+		return [];
+	}
+
+	/**
 	 * Returns the endpoint arguments.
 	 *
 	 * @since 4.25.2
@@ -629,6 +935,22 @@ abstract class Endpoint extends EndpointV1 {
 		 * This gets handled more directly in the build_openapi_request_body() method.
 		 */
 		return [];
+	}
+
+	/**
+	 * Returns the base endpoint for this endpoint.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return string
+	 */
+	protected function get_base_endpoint(): string {
+		/**
+		 * Intentionally left blank.
+		 *
+		 * Leaving this the default value will result in methods like determine_route_type() using the pre v5.0.0 logic.
+		 */
+		return '';
 	}
 
 	/**

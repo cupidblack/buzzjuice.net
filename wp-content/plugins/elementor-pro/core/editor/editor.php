@@ -8,15 +8,20 @@ use ElementorPro\License\Admin as License_Admin;
 use ElementorPro\License\API as License_API;
 use ElementorPro\Plugin;
 use ElementorPro\Modules\DisplayConditions\Module as Display_Conditions_Module;
+use Elementor\Modules\AtomicWidgets\Module as AtomicWidgetsModule;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
 class Editor extends App {
-	const EDITOR_V2_PACKAGES = [
-		'editor-documents-extended',
+	const APP_BAR_DEPS_V2 = [
 		'editor-site-navigation-extended',
+		'editor-documents-extended',
+	];
+	const EDITOR_V4_PACKAGES = [
+		'editor-controls-extended',
+		'editor-editing-panel-extended',
 	];
 
 	/**
@@ -40,16 +45,6 @@ class Editor extends App {
 		add_action( 'elementor/editor/before_enqueue_scripts', [ $this, 'enqueue_editor_scripts' ] );
 		add_filter( 'elementor/editor/localize_settings', [ $this, 'localize_settings' ] );
 
-		add_filter( 'elementor/editor/panel/get_pro_details', function( $get_pro_details ) {
-			if ( defined( '\Elementor\Modules\Apps\Module::PAGE_ID' ) ) {
-				$get_pro_details['link'] = admin_url( 'admin.php?page=' . \Elementor\Modules\Apps\Module::PAGE_ID );
-				$get_pro_details['message'] = __( 'Extend Elementor With Add-ons', 'elementor-pro' );
-				$get_pro_details['button_text'] = __( 'Explore Add-ons', 'elementor-pro' );
-			}
-
-			return $get_pro_details;
-		} );
-
 		add_action( 'elementor/editor/v2/scripts/enqueue', function () {
 			$this->enqueue_editor_v2_scripts();
 		} );
@@ -57,6 +52,7 @@ class Editor extends App {
 
 	public function get_init_settings() {
 		$settings = [
+			'version' => ELEMENTOR_PRO_VERSION,
 			'isActive' => License_API::is_license_active(),
 			'urls' => [
 				'modules' => ELEMENTOR_PRO_MODULES_URL,
@@ -85,7 +81,7 @@ class Editor extends App {
 	public function enqueue_editor_styles() {
 		wp_enqueue_style(
 			'elementor-pro',
-			$this->get_css_assets_url( 'editor', null, 'default', true ),
+			$this->get_css_assets_url( 'editor' ),
 			[
 				'elementor-editor',
 			],
@@ -118,7 +114,13 @@ class Editor extends App {
 				return ELEMENTOR_PRO_ASSETS_PATH . "js/packages/{$name}/{$name}.asset.php";
 			} );
 
-		$packages = apply_filters( 'elementor-pro/editor/v2/packages', self::EDITOR_V2_PACKAGES );
+		$packages_to_load = array_merge( self::APP_BAR_DEPS_V2 );
+
+		if ( Plugin::elementor()->experiments->is_feature_active( AtomicWidgetsModule::EXPERIMENT_NAME ) ) {
+			$packages_to_load = array_merge( $packages_to_load, self::EDITOR_V4_PACKAGES );
+		}
+
+		$packages = apply_filters( 'elementor-pro/editor/v2/packages', $packages_to_load );
 
 		foreach ( $packages as $package ) {
 			$assets_config->load( $package );

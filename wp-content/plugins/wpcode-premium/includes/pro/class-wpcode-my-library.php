@@ -53,6 +53,9 @@ class WPCode_My_Library extends WPCode_Library {
 		parent::__construct();
 		$this->ajax_hooks();
 		$this->push_hooks();
+
+		// Add cloud snippets to the list of snippets with updates.
+		add_filter( 'wpcode_snippets_with_updates', array( $this, 'add_cloud_snippets_with_updates' ) );
 	}
 
 	/**
@@ -75,8 +78,13 @@ class WPCode_My_Library extends WPCode_Library {
 		add_action( 'plugins_loaded', array( $this, 'maybe_receive_request' ), 0 );
 	}
 
+	/**
+	 * Check if the request is an AJAX request for updating snippets from the library.
+	 *
+	 * @return void
+	 */
 	public function maybe_receive_request() {
-		if ( wp_doing_ajax() && isset( $_GET['wpcode_library'] ) && 'push' === $_GET['wpcode_library'] ) {
+		if ( wp_doing_ajax() && isset( $_GET['wpcode_library'] ) && 'push' === $_GET['wpcode_library'] ) { // phpcs:ignore
 			// Don't execute any snippet when we execute the logic for updating snippets from the library.
 			add_filter( 'wpcode_do_auto_insert', '__return_false' );
 			add_action( 'wp_ajax_nopriv_wpcode_update_from_library', array( $this, 'update_from_library' ) );
@@ -98,8 +106,8 @@ class WPCode_My_Library extends WPCode_Library {
 			);
 		}
 
-		$snippet_id = isset( $_REQUEST['snippet_id'] ) ? sanitize_key( $_REQUEST['snippet_id'] ) : '';
-		$auth_key   = isset( $_REQUEST['auth_key'] ) ? sanitize_key( $_REQUEST['auth_key'] ) : '';
+		$snippet_id = isset( $_REQUEST['snippet_id'] ) ? sanitize_key( $_REQUEST['snippet_id'] ) : ''; // phpcs:ignore
+		$auth_key   = isset( $_REQUEST['auth_key'] ) ? sanitize_key( $_REQUEST['auth_key'] ) : ''; // phpcs:ignore
 		$unique_id  = isset( $_POST['t'] ) ? sanitize_key( $_POST['t'] ) : ''; // Unique id of this request.
 		if ( empty( $snippet_id ) || empty( $auth_key ) || empty( $unique_id ) ) {
 			wp_send_json_error(
@@ -192,6 +200,24 @@ class WPCode_My_Library extends WPCode_Library {
 		$data['note']             = $snippet->get_note();
 		$data['custom_shortcode'] = $snippet->get_custom_shortcode();
 
+		// Get current snippet_version.
+		$current_snippet_version = get_post_meta( $snippet->get_id(), '_wpcode_snippet_version', true );
+
+		// If no snippet_version exists, set default to 1.0.0.
+		if ( empty( $current_snippet_version ) ) {
+			$current_snippet_version = '1.0.0';
+		}
+
+		// Increment the snippet_version (1.0.0 -> 1.0.1).
+		$version_parts = explode( '.', $current_snippet_version );
+		if ( count( $version_parts ) === 3 ) {
+			$version_parts[2]    = intval( $version_parts[2] ) + 1;
+			$new_snippet_version = implode( '.', $version_parts );
+
+			// Update the snippet version in the database.
+			update_post_meta( $snippet->get_id(), '_wpcode_snippet_version', $new_snippet_version );
+		}
+
 		if ( 'blocks' === $snippet->get_code_type() ) {
 			$data['code'] = wpcode()->snippet_block_editor->get_blocks_content( $snippet );
 		}
@@ -240,7 +266,6 @@ class WPCode_My_Library extends WPCode_Library {
 		$response = json_decode( $request );
 
 		return isset( $response->status ) && 'success' === $response->status;
-
 	}
 
 	/**
@@ -288,7 +313,7 @@ class WPCode_My_Library extends WPCode_Library {
 	public function save_snippet_handler() {
 		check_ajax_referer( 'wpcode_admin' );
 
-		if ( ! current_user_can( 'wpcode_edit_snippets' ) ) {
+		if ( ! current_user_can( 'wpcode_edit_snippets' ) ) { // phpcs:ignore
 			// If they don't have this they shouldn't be able to load the snippet manager in the first place.
 			wp_send_json_error(
 				array(
@@ -343,7 +368,7 @@ class WPCode_My_Library extends WPCode_Library {
 	public function delete_snippet_handler() {
 		check_ajax_referer( 'wpcode_admin' );
 
-		if ( ! current_user_can( 'wpcode_edit_snippets' ) ) {
+		if ( ! current_user_can( 'wpcode_edit_snippets' ) ) { // phpcs:ignore
 			// If they don't have this they shouldn't be able to load the snippet manager in the first place.
 			wp_send_json_error(
 				array(
@@ -427,6 +452,31 @@ class WPCode_My_Library extends WPCode_Library {
 	}
 
 	/**
+	 * Refresh the library cache.
+	 * This method handles the common logic for refreshing the library cache.
+	 *
+	 * @return bool True if the cache was refreshed, false otherwise.
+	 */
+	public function refresh_library_cache() {
+		// Check rate limiting - only allow 1 refresh per minute.
+		$last_update = get_transient( 'wpcode_library_cache_last_update' );
+		if ( false !== $last_update ) {
+			$time_diff = time() - $last_update;
+			if ( $time_diff < 60 ) { // Less than 1 minute.
+				return false;
+			}
+		}
+
+		// Delete the cache.
+		$this->delete_cache();
+
+		// Set transient to track when the cache was last refreshed.
+		set_transient( 'wpcode_library_cache_last_update', time(), HOUR_IN_SECONDS );
+
+		return true;
+	}
+
+	/**
 	 * Save to the db for this library type.
 	 *
 	 * @param string $key The key to save the data under.
@@ -454,5 +504,175 @@ class WPCode_My_Library extends WPCode_Library {
 	 */
 	public function get_option_key( $key ) {
 		return 'wpcode_' . $key;
+	}
+
+	/**
+	 * Get all the snippets that were created from the cloud library, by cloud ID.
+	 * Results are cached in a transient.
+	 *
+	 * @return array
+	 */
+	public function get_used_library_snippets() {
+		if ( isset( $this->library_snippets ) ) {
+			return $this->library_snippets;
+		}
+
+		$snippets_from_library = get_transient( $this->used_snippets_transient_key );
+
+		if ( false === $snippets_from_library ) {
+			$snippets_from_library = array();
+
+			$args     = array(
+				'post_type'   => wpcode_get_post_type(),
+				'meta_query'  => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					array(
+						'key'     => $this->snippet_library_id_meta_key,
+						'compare' => 'EXISTS',
+					),
+				),
+				'fields'      => 'ids',
+				'post_status' => 'any',
+				'nopaging'    => true,
+			);
+			$snippets = get_posts( $args );
+
+			foreach ( $snippets as $snippet_id ) {
+				$snippets_from_library[ $this->get_snippet_library_id( $snippet_id ) ] = $snippet_id;
+			}
+
+			set_transient( $this->used_snippets_transient_key, $snippets_from_library );
+		}
+
+		$this->library_snippets = $snippets_from_library;
+
+		return $this->library_snippets;
+	}
+
+	/**
+	 * Check if a snippet has an update available by comparing with cached data.
+	 *
+	 * @param int    $snippet_id The snippet ID.
+	 * @param string $cloud_id The cloud ID.
+	 * @param bool   $is_cloud Whether this is a cloud snippet.
+	 *
+	 * @return bool|array False if no update, array with version info if update available.
+	 */
+	public function check_snippet_update( $snippet_id, $cloud_id, $is_cloud = true ) {
+		// Get current version from post meta.
+		$current_version = get_post_meta( $snippet_id, '_wpcode_snippet_version', true );
+
+		// Get latest version from cache.
+		// For cloud snippets, get from my_library cache.
+		$cached_data   = $this->get_data();
+		$cloud_snippet = null;
+
+		if ( ! empty( $cached_data['snippets'] ) ) {
+			foreach ( $cached_data['snippets'] as $snippet ) {
+				if ( $cloud_id === $snippet['cloud_id'] ) {
+					$cloud_snippet = $snippet;
+					break;
+				}
+			}
+		}
+
+		if ( ! $cloud_snippet || empty( $cloud_snippet['version'] ) ) {
+			return false;
+		}
+
+		$latest_version = $cloud_snippet['version'];
+
+		// If either version is empty, set it to 1.0.0.
+		if ( empty( $current_version ) ) {
+			$current_version = '1.0.0';
+		}
+
+		if ( empty( $latest_version ) ) {
+			$latest_version = '1.0.0';
+		}
+
+		// If latest version is greater than current version, update is available.
+		if ( version_compare( $latest_version, $current_version, '>' ) ) {
+			return array(
+				'current_version' => $current_version,
+				'latest_version'  => $latest_version,
+				'is_cloud'        => true,
+			);
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get the list of snippets that have updates available.
+	 * Checks on the fly using cached data.
+	 *
+	 * @return array
+	 */
+	public function get_snippets_with_updates() {
+		// Get all snippets with cloud IDs.
+		$cloud_snippets = $this->get_used_library_snippets();
+
+		$snippets_with_updates = array();
+
+		// Check cloud snippets.
+		foreach ( $cloud_snippets as $cloud_id => $snippet_id ) {
+			$update_info = $this->check_snippet_update( $snippet_id, $cloud_id );
+			if ( $update_info ) {
+				$snippets_with_updates[] = $snippet_id;
+			}
+		}
+
+		return $snippets_with_updates;
+	}
+
+	/**
+	 * Add cloud snippets to the list of snippets with updates.
+	 *
+	 * @param array $snippets_with_updates The list of snippets with updates.
+	 *
+	 * @return array
+	 */
+	public function add_cloud_snippets_with_updates( $snippets_with_updates ) {
+		// Get cloud snippets with updates.
+		$cloud_snippets_with_updates = $this->get_snippets_with_updates();
+
+		// Merge with existing snippets with updates.
+		return array_merge( $snippets_with_updates, $cloud_snippets_with_updates );
+	}
+
+	/**
+	 * Update a snippet from the cloud library.
+	 *
+	 * @param int    $snippet_id The ID of the snippet to update.
+	 * @param string $cloud_id The ID of the cloud snippet to fetch.
+	 *
+	 * @return array|false Array with success data or false on failure.
+	 */
+	public function update_snippet_from_library( $snippet_id, $cloud_id ) {
+		// Get snippet data from cloud library.
+		$cloud_snippet = $this->grab_snippet_from_api( $cloud_id );
+
+		if ( ! $cloud_snippet ) {
+			return false;
+		}
+
+		// Update snippet.
+		$cloud_snippet['id'] = $snippet_id;
+		$snippet             = wpcode_get_snippet( $cloud_snippet );
+		$result              = $snippet->save();
+
+		if ( ! $result ) {
+			return false;
+		}
+
+		// Update local version metadata.
+		if ( ! empty( $cloud_snippet['version'] ) ) {
+			update_post_meta( $snippet_id, '_wpcode_snippet_version', $cloud_snippet['version'] );
+		}
+
+		return array(
+			'success' => true,
+			'version' => ! empty( $cloud_snippet['version'] ) ? $cloud_snippet['version'] : '',
+		);
 	}
 }

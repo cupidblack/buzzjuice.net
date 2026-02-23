@@ -383,17 +383,10 @@ class WC_Subscriptions_Product {
 						}
 						break;
 				}
-			} elseif ( 1 === $billing_interval ) {
-				$subscription_string = sprintf(
-					// translators: 1$: recurring amount, 2$: subscription period (e.g. "month") (e.g. "$15 / month").
-					__( '%1$s / %2$s', 'woocommerce-subscriptions' ),
-					$price,
-					wcs_get_subscription_period_strings( $billing_interval, $billing_period )
-				);
 			} else {
 				$subscription_string = sprintf(
-					// translators: 1$: recurring amount, 2$: subscription period (e.g. "3 months") (e.g. "$15 every 2nd month").
-					__( '%1$s every %2$s', 'woocommerce-subscriptions' ),
+					// translators: 1$: recurring amount, 2$: subscription period (e.g. "month" or "3 months") (e.g. "$15 / month" or "$15 every 2nd month").
+					_n( '%1$s / %2$s', '%1$s every %2$s', $billing_interval, 'woocommerce-subscriptions' ),
 					$price,
 					wcs_get_subscription_period_strings( $billing_interval, $billing_period )
 				);
@@ -1291,6 +1284,8 @@ class WC_Subscriptions_Product {
 	/**
 	 * Check if the current session has an order awaiting payment for a subscription to a specific product line item.
 	 *
+	 * @deprecated 2.1 Use WCS_Limiter::order_awaiting_payment_for_product()
+	 *
 	 * @return bool
 	 **/
 	protected static function order_awaiting_payment_for_product( $product_id ) {
@@ -1336,6 +1331,7 @@ class WC_Subscriptions_Product {
 	/**
 	 * Returns the sign up fee (including tax) by filtering the products price used in
 	 * @see WC_Product::get_price_including_tax( $qty )
+	 * @deprecated 2.2.0
 	 *
 	 * @return string
 	 */
@@ -1353,6 +1349,7 @@ class WC_Subscriptions_Product {
 	/**
 	 * Returns the sign up fee (excluding tax) by filtering the products price used in
 	 * @see WC_Product::get_price_excluding_tax( $qty )
+	 * @deprecated 2.2.0
 	 *
 	 * @return string
 	 */

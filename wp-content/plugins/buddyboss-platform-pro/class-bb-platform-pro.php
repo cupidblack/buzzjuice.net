@@ -123,8 +123,8 @@ if ( ! class_exists( 'BB_Platform_Pro' ) ) {
 		 * @since 1.0.0
 		 */
 		private function setup_globals() {
-			$this->version        = '2.8.0';
-			$this->db_version     = 320;
+			$this->version        = '2.13.0';
+			$this->db_version     = 325;
 			$this->db_version_raw = (int) bp_get_option( '_bbp_pro_db_version' );
 
 			// root directory.
@@ -312,7 +312,7 @@ if ( ! class_exists( 'BB_Platform_Pro' ) ) {
 				'buddyboss-platform-pro/buddyboss-platform-pro.php' !== $file ||
 				(
 					function_exists( 'bbp_pro_is_license_valid' ) &&
-					! bbp_pro_is_license_valid()
+					bb_pro_should_lock_features()
 				)
 			) {
 				return $links;
@@ -337,13 +337,36 @@ if ( ! class_exists( 'BB_Platform_Pro' ) ) {
 				0 !== strpos( get_current_screen()->id, 'plugins' ) ||
 				(
 					function_exists( 'bbp_pro_is_license_valid' ) &&
-					! bbp_pro_is_license_valid()
+					bb_pro_should_lock_features()
 				)
 			) {
 				return;
 			}
-			// Check the transient to see if we've just updated the plugin.
-			include trailingslashit( BB_PLATFORM_PRO_PLUGIN_DIR ) . 'includes/bb-pro-update-buddyboss.php';
+			
+			// Output the modal HTML template.
+			// This is needed for the Release Notes link to work.
+			// Use output buffering and error handling to prevent breaking WordPress scripts.
+			$template_path = trailingslashit( BB_PLATFORM_PRO_PLUGIN_DIR ) . 'includes/bb-pro-update-buddyboss.php';
+			
+			if ( file_exists( $template_path ) ) {
+				// Use output buffering to catch any errors.
+				ob_start();
+				try {
+					// Suppress any errors from the template to prevent breaking the page.
+					@include $template_path;
+					$output = ob_get_clean();
+					
+					// Only output if we got valid HTML (not an error).
+					if ( ! empty( $output ) && false === strpos( $output, 'Fatal error' ) ) {
+						echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+					}
+				} catch ( Exception $e ) {
+					ob_end_clean();
+					// Silently fail to prevent breaking WordPress admin.
+				}
+			}
+			
+			// Clean up the update flag to prevent database bloat.
 			delete_option( '_bb_pro_is_update' );
 		}
 	}

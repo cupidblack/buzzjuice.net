@@ -502,7 +502,7 @@ if ( ! class_exists( '\BuddyBossTheme\BuddyBoss_Custom_Fonts_CPT' ) ) :
 				<script>
 					jQuery(document).ready(function(){
 						setTimeout(function(){
-							jQuery('.redux-group-tab-link-li .redux-group-tab-link-a[data-key="<?php echo sanitize_text_field( $_GET['tab'] ); ?>"]').trigger('click');
+							jQuery('.redux-group-tab-link-li .redux-group-tab-link-a[data-key="<?php echo esc_attr( sanitize_text_field( wp_unslash( $_GET['tab'] ) ) ); ?>"]').trigger('click');
 						},500);
 					});
 				</script>

@@ -160,6 +160,7 @@ if ( !class_exists( 'ContentViews_Elementor_Hooks' ) ) {
 			$where	 = '';
 			$data	 = [];
 			$limit	 = 'LIMIT 10';
+			$status	 = 'publish';
 
 			if ( 'any' === $post_type ) {
 				$searchable_post_types = get_post_types( [ 'exclude_from_search' => false ] );
@@ -171,13 +172,16 @@ if ( !class_exists( 'ContentViews_Elementor_Hooks' ) ) {
 			} elseif ( !empty( $post_type ) ) {
 				$post_types	 = explode( ',', $post_type );
 				$where		 .= " AND {$wpdb->posts}.post_type IN ('" . join( "', '", array_map( 'esc_sql', $post_types ) ) . "')";
+				if ( $post_type === 'attachment' ) {
+					$status = 'inherit';
+				}
 			}
 
 			if ( !empty( $search ) ) {
 				$where .= $wpdb->prepare( " AND {$wpdb->posts}.post_title LIKE %s", '%' . $wpdb->esc_like( $search ) . '%' );
 			}
 
-			$query	 = "select post_title,ID  from $wpdb->posts where post_status = 'publish' $where $limit";
+			$query	 = "select post_title,ID  from $wpdb->posts where post_status = '$status' $where $limit";
 			$results = $wpdb->get_results( $query );
 			if ( !empty( $results ) ) {
 				foreach ( $results as $row ) {
@@ -199,6 +203,7 @@ if ( !class_exists( 'ContentViews_Elementor_Hooks' ) ) {
 			$post_info	 = get_posts( [
 				'post_type'	 => $post_types,
 				'include'	 => $ids,
+				'post_status' => ['publish', 'inherit'],
 			] );
 			$response	 = wp_list_pluck( $post_info, 'post_title', 'ID' );
 

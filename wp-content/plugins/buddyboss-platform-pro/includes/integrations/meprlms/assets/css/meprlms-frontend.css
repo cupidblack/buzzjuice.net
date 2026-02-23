@@ -1301,6 +1301,16 @@ body[class*="mpcs-course"] .pagination li a:has(.mpcs-angle-right):hover i:befor
 	margin-right: auto;
 }
 
+.mpcs-classroom.buddyboss-theme .mpcs-inner-page-main .comment-respond img,
+.mpcs-classroom.buddyboss-theme .mpcs-main .comment-respond img {
+	vertical-align: middle;
+}
+
+.mpcs-classroom.buddyboss-theme .mpcs-inner-page-main .comment-respond .comment-reply-title:has(small:empty),
+.mpcs-classroom.buddyboss-theme .mpcs-main .comment-respond .comment-reply-title:has(small:empty) {
+	margin-bottom: 0;
+}
+
 .mpcs-classroom.buddyboss-theme .mpcs-sidebar-wrapper .mpcs-sidebar-menu,
 .mpcs-classroom.buddyboss-theme .mpcs-sidebar-wrapper .mpcs-sidebar-grades,
 .mpcs-classroom.buddyboss-theme .mpcs-sidebar-wrapper .mpcs-sidebar-resources {
@@ -1453,6 +1463,44 @@ body[class*="mpcs-course"] .pagination li a:has(.mpcs-angle-right):hover i:befor
 
 .mpcs-classroom #bookmark {
 	margin-bottom: 25px;
+}
+
+.mpcs-sidebar-wrapper a.tile.mepr-home .tile-icon i::before,
+.mpcs-sidebar-wrapper a.tile.mepr-home i.mpcs-share::before, .mpcs-sidebar-wrapper a.tile.mepr-gradebook .tile-icon i::before,
+.mpcs-sidebar-wrapper a.tile.mepr-gradebook i.mpcs-share::before, .mpcs-sidebar-wrapper a.tile.mepr-instructor .tile-icon i::before,
+.mpcs-sidebar-wrapper a.tile.mepr-instructor i.mpcs-share::before, .mpcs-sidebar-wrapper a.tile.mpcs-grades-menu .tile-icon i::before,
+.mpcs-sidebar-wrapper a.tile.mpcs-grades-menu i.mpcs-share::before, .mpcs-sidebar-wrapper a.tile.mepr-resources .tile-icon i::before,
+.mpcs-sidebar-wrapper a.tile.mepr-resources i.mpcs-share::before, .mpcs-sidebar-wrapper a.tile.mepr-certificate .tile-icon i::before,
+.mpcs-sidebar-wrapper a.tile.mepr-certificate i.mpcs-share::before {
+	font-family: bb-icons;
+	color: var(--mpcs-headings-color);
+	margin: 0;
+	font-size: 18px;
+}
+
+.mpcs-sidebar-wrapper a.tile.mepr-home .tile-icon i::before {
+	content: "\e86e";
+}
+
+.mpcs-sidebar-wrapper a.tile.mepr-gradebook .tile-icon i::before, .mpcs-sidebar-wrapper a.tile.mpcs-grades-menu .tile-icon i::before {
+	content: "\ee14";
+}
+
+.mpcs-sidebar-wrapper a.tile.mepr-instructor .tile-icon i::before {
+	content: "\ef52";
+}
+
+.mpcs-sidebar-wrapper a.tile.mepr-resources .tile-icon i::before {
+	content: "\eefe";
+}
+
+.mpcs-sidebar-wrapper a.tile.mepr-certificate .tile-icon i::before {
+	content: "\e975";
+}
+
+.mpcs-sidebar-wrapper a.tile.mepr-certificate i.mpcs-share::before {
+	content: "\ef15";
+	font-size: 16px;
 }
 
 .mpcs-main .mpcs-section {
@@ -1766,6 +1814,10 @@ table.mp-table tbody tr:not(:last-child) td {
 	font-weight: 200;
 	font-family: bb-icons;
 	color: var(--mpcs-success-color);
+}
+
+.mpcs-section .mpcs-lessons .mpcs-lesson-progress i.mpcs-circle-regular {
+	color: var(--mpcs-alternate-text-color);
 }
 
 .mpcs-section .mpcs-lessons .mpcs-lesson-link {
@@ -2171,6 +2223,32 @@ table.mp-table tbody tr:not(:last-child) td {
 	display: table;
 }
 
+.mpcs-resource-section i.mpcs-ccw:before,
+.mpcs-resource-section i.mpcs-chat:before,
+.mpcs-resource-section i.mpcs-download:before,
+.mpcs-resource-section i.mpcs-link:before {
+	font-family: bb-icons;
+	font-size: 18px;
+	margin: 0 0.2em 0 0;
+	color: var(--mpcs-headings-color);
+}
+
+.mpcs-resource-section i.mpcs-ccw:before {
+	content: "\ef50";
+}
+
+.mpcs-resource-section i.mpcs-chat:before {
+	content: "\ee31";
+}
+
+.mpcs-resource-section i.mpcs-download:before {
+	content: "\ee57";
+}
+
+.mpcs-resource-section i.mpcs-link:before {
+	content: "\eec8";
+}
+
 @media screen and (max-width: 840px) {
 	.mpcs-classroom.buddyboss-theme .mpcs-inner-page-main {
 		flex: auto;
@@ -2386,16 +2464,16 @@ table.mp-table tbody tr:not(:last-child) td {
 }
 
 .mpcs-quiz-question.mpcs-quiz-question-match-matrix .mpcs-quiz-question-match-matrix-option-answer select {
-	-webkit-appearance: auto;
-	-moz-appearance: auto;
-	appearance: auto;
 	font-size: 15px;
-	background-image: none;
+	appearance: none;
+	/* stylelint-disable function-url-quotes */
+	background-image: url('data:image/svg+xml,<svg width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.3535 1.35378L6.35354 6.35378C6.3071 6.40027 6.25196 6.43715 6.19126 6.46231C6.13056 6.48748 6.0655 6.50043 5.99979 6.50043C5.93408 6.50043 5.86902 6.48748 5.80832 6.46231C5.74762 6.43715 5.69248 6.40027 5.64604 6.35378L0.64604 1.35378C0.552219 1.25996 0.499512 1.13272 0.499512 1.00003C0.499512 0.867352 0.552219 0.740104 0.64604 0.646284C0.73986 0.552463 0.867108 0.499756 0.99979 0.499756C1.13247 0.499756 1.25972 0.552463 1.35354 0.646284L5.99979 5.29316L10.646 0.646284C10.6925 0.599829 10.7476 0.562978 10.8083 0.537837C10.869 0.512696 10.9341 0.499756 10.9998 0.499756C11.0655 0.499756 11.1305 0.512696 11.1912 0.537837C11.2519 0.562978 11.3071 0.599829 11.3535 0.646284C11.4 0.692739 11.4368 0.747889 11.462 0.808586C11.4871 0.869282 11.5001 0.934336 11.5001 1.00003C11.5001 1.06573 11.4871 1.13079 11.462 1.19148C11.4368 1.25218 11.4 1.30733 11.3535 1.35378Z" fill="%236D6D6E"/></svg>');
+	/* stylelint-enable */
 	background-color: var(--mpcs-content-background-color);
 	border: 1px solid var(--mpcs-content-border-color);
 	height: 41px;
 	border-radius: var(--mpcs-input-radius);
-	padding: 0 12px;
+	padding: 0 32px 0 12px;
 	color: var(--mpcs-body-text-color);
 }
 

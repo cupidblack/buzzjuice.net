@@ -696,6 +696,7 @@ abstract class THWCFE_Admin_Form {
 			if($sections && is_array($sections)){
 				foreach($sections as $sname => $section){
 					
+					$default_wc_fields = array('first_name', 'last_name', 'company', 'address_1', 'address_2','city', 'state', 'postcode', 'country', 'phone', 'email');
 					if($section && THWCFE_Utils_Section::is_valid_section($section)){
 						$title = $section->get_property('title');
 						$fields = THWCFE_Utils_Section::get_fields($section);
@@ -710,7 +711,11 @@ abstract class THWCFE_Admin_Form {
 									if ($show_name) {
 										$label .= ' (shipping-' . $name . ')';
 									}
-									echo '<option value="shipping-' . $name . '">' . $label . '</option>';
+									if ( !in_array( $name, $default_wc_fields ) ) {
+                                        echo '<option value="shipping-thwcfe-block-' . $name . '">' . $label . '</option>';
+                                    }else{
+                                        echo '<option value="shipping-' . $name . '">' . $label . '</option>';
+                                    }
 								}
 							}
 							echo '</optgroup>';
@@ -724,7 +729,11 @@ abstract class THWCFE_Admin_Form {
 										if ($show_name) {
 											$label .= ' (billing-' . $name . ')';
 										}
-										echo '<option value="billing-' . $name . '">' . $label . '</option>';
+										if ( !in_array( $name, $default_wc_fields ) ) {
+                                        	echo '<option value="billing-thwcfe-block-' . $name . '">' . $label . '</option>';
+                                        }else{
+                                            echo '<option value="billing-' . $name . '">' . $label . '</option>';
+                                        }
 									}
 								}
 								echo '</optgroup>';

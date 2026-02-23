@@ -13,6 +13,11 @@ namespace CloudLinux\Imunify\App;
  */
 class Debug {
 	/**
+	 * Transient key prefix for error throttling.
+	 */
+	const ERROR_THROTTLE_PREFIX = 'imunify_security_error_';
+
+	/**
 	 * Website url.
 	 *
 	 * @var string
@@ -73,7 +78,7 @@ class Debug {
 		E_USER_ERROR        => 'E_USER_ERROR',
 		E_USER_WARNING      => 'E_USER_WARNING',
 		E_USER_NOTICE       => 'E_USER_NOTICE',
-		E_STRICT            => 'E_STRICT',
+		// E_STRICT is deprecated as of PHP 8.4.0. It is added in the constructor conditionally.
 		E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
 		E_DEPRECATED        => 'E_DEPRECATED',
 		E_USER_DEPRECATED   => 'E_USER_DEPRECATED',
@@ -97,6 +102,11 @@ class Debug {
 		add_action( 'imunify_security_set_error', array( $this, 'error' ), 10, 5 );
 		add_action( 'imunify_security_set_error_handler', array( $this, 'setErrorHandler' ), 10, 0 );
 		add_action( 'imunify_security_restore_error_handler', array( $this, 'restoreErrorHandler' ), 10, 0 );
+
+		// E_STRICT is deprecated as of PHP 8.4.0.
+		if ( PHP_VERSION_ID < 80400 ) {
+			$this->codes[ E_STRICT ] = 'E_STRICT';
+		}
 	}
 
 	/**
@@ -356,7 +366,7 @@ class Debug {
 			return false;
 		}
 
-		$url     = 'https://' . $this->key() . '@im360.sentry.cloudlinux.com/api/' . $this->project_id() . '/store/';
+		$url     = 'https://im360.sentry.cloudlinux.com/api/' . $this->project_id() . '/store/';
 		$headers = array(
 			'Content-Type: application/json',
 			'X-Sentry-Auth: Sentry sentry_version=7,sentry_timestamp=' . time() . ',sentry_client=php-curl/1.0,sentry_key=' . $this->key(),
@@ -533,5 +543,38 @@ class Debug {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Handles errors while ensuring that the same error is not reported more than once per hour.
+	 *
+	 * @param string $message The error message.
+	 * @param string $errorCode The unique error identifier.
+	 * @param array  $context Additional context data.
+	 *
+	 * @return void
+	 *
+	 * @since 2.1.0
+	 */
+	public function sendThrottledError( $message, $errorCode, $context = array() ) {
+		$transientKey = self::ERROR_THROTTLE_PREFIX . $errorCode;
+
+		// Check if this error was already reported in the last hour.
+		if ( ! get_transient( $transientKey ) ) {
+
+			// Set transient to prevent this error from being reported again for an hour.
+			set_transient( $transientKey, true, HOUR_IN_SECONDS );
+
+			$this->error(
+				E_WARNING,
+				$message,
+				__FILE__,
+				__LINE__,
+				array(
+					'fingerprint' => array( $errorCode ),
+					'context'     => $context,
+				)
+			);
+		}
 	}
 }

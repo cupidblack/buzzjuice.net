@@ -6081,6 +6081,9 @@ body .widget-area:not(.widget-area-secondary) {
   box-shadow: -5px 0 13px -3px rgba(18, 43, 70, 0.1);
   pointer-events: none;
 }
+.site-header .site-header-container > .header-search-primary {
+  background-color: var(--bb-header-background);
+}
 .site-header i,
 .site-header .notification-dropdown i,
 .site-header .header-aside .notification-dropdown i,
@@ -11445,6 +11448,18 @@ body:not(.bb-page-loaded) .entry-content .is-type-video iframe {
 
 .wp-block-embed.is-type-video .wp-block-embed__wrapper > iframe {
   display: none;
+}
+.wp-block-embed.is-type-video.is-provider-spotify .wp-block-embed__wrapper {
+  height: 100%;
+  padding-top: 56.25%;
+}
+.wp-block-embed.is-type-video.is-provider-spotify .wp-block-embed__wrapper iframe {
+  display: block;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  right: 0;
 }
 
 .post-grid .first.product .post-inner-wrap {

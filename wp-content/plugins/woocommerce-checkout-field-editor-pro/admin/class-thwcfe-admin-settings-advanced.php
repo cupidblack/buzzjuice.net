@@ -213,6 +213,7 @@ class THWCFE_Admin_Settings_Advanced extends THWCFE_Admin_Settings{
 	public function get_all_custom_fields(){
 		$sections = $this->get_checkout_sections();	
 		$field_set = array();
+		$exclude_disabled = apply_filters('thwcfe_exclude_disabled_fields', false); // Default show all fields including disabled fields.
 		
 		if($sections && is_array($sections)){	
 			foreach($sections as $sname => $section){	
@@ -223,9 +224,10 @@ class THWCFE_Admin_Settings_Advanced extends THWCFE_Admin_Settings{
 						$custom_fields = array();
 
 						foreach($fields as $name => $field){
-							if($field && THWCFE_Utils_Field::is_valid_field($field) && THWCFE_Utils_Field::is_custom_field($field)){
+							/**	 show all fields including disabled fields by default **/
+							if($field && (!$exclude_disabled ? THWCFE_Utils_Field::is_valid_custom($field) : THWCFE_Utils_Field::is_custom_enabled($field))){ 
 								$label = $field->get_property('title');
-								$label = empty($label) ? $name : $label;
+								$label = empty($label) ? $name : $label.' ('. $name. ')';
 								$custom_fields[$name] = $label;
 							}
 						}
@@ -237,7 +239,30 @@ class THWCFE_Admin_Settings_Advanced extends THWCFE_Admin_Settings{
 				}
 			}
 		}
-		
+		  
+		$block_sections = THWCFE_Utils_Block::get_block_checkout_sections();
+    	if (is_array($block_sections)) {
+    	    foreach ($block_sections as $block_section) {
+				// Get the fieldset for the block section
+				// parameeter exclude_disabled: true to get only enabled custom fields, default is false
+    	        $block_fieldset = THWCFE_Utils_Section::get_fieldset($block_section, false, $exclude_disabled);
+			
+    	        if ($block_fieldset && is_array($block_fieldset)) {
+    	            $custom_fields = array();
+				
+    	            foreach ($block_fieldset as $name => $field) {
+    	                if (!empty($field['custom']) && $field['custom'] == 1) {
+							$label = isset($field['title']) ? $field['title'] . ' (' . $name . ')' : $name;
+    	                    $custom_fields[$name] = $label;
+    	                }
+    	            }
+				
+    	            if (!empty($custom_fields)) {
+    	                $field_set[$block_section->get_property('title') ?: 'Block Section'] = $custom_fields;
+    	            }
+    	        }
+    	    }
+    	}	
 		return $field_set;
    	}
 	

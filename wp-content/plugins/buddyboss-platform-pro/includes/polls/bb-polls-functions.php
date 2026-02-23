@@ -73,6 +73,29 @@ function bb_poll_check_dependency() {
 }
 
 /**
+ * Check whether activity polls are enabled.
+ *
+ * @since 2.6.00
+ *
+ * @param bool $retval true Activity polls always are enabled for admin.
+ *
+ * @return bool true if activity polls are enabled, otherwise false.
+ */
+function bb_is_enabled_activity_post_polls( $retval = true ) {
+
+	// Return false if platform pro has not valid license.
+	if ( bb_pro_should_lock_features() ) {
+		return false;
+	}
+
+	if ( true === $retval && bp_current_user_can( 'administrator' ) ) {
+		return true;
+	}
+
+	return (bool) bp_get_option( '_bb_enable_activity_post_polls', false );
+}
+
+/**
  * Check whether user can create polls for activity or not.
  *
  * @since 2.6.00
@@ -112,7 +135,7 @@ function bb_can_user_create_poll_activity( $args = array() ) {
 		) {
 			$retval = true;
 		}
-	} elseif ( bp_user_can( $r['user_id'], 'administrator' ) ) {
+	} elseif ( bp_user_can( $r['user_id'], 'administrator' ) && bb_is_enabled_activity_post_polls() ) {
 		$retval = true;
 	}
 

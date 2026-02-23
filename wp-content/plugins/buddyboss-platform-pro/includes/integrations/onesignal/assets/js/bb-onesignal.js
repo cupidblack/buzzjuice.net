@@ -141,21 +141,68 @@ var bb_player_id = '';
 						oneSignal_options.promptOptions.cancelButtonText = bb_onesignal_vars.cancelButtonText;
 					}
 
-					window.OneSignal.init( window._oneSignalInitOptions );
+					// Delay OneSignal initialization to prevent interference with video embeds in Safari
+					// Wait for videos/iframes to load first.
+					var initOneSignal = function () {
+						window.OneSignal.init( window._oneSignalInitOptions );
 
-					window.OneSignal.setExternalUserId( bb_onesignal_vars.prompt_user_id );
+						window.OneSignal.setExternalUserId( bb_onesignal_vars.prompt_user_id );
 
-					if (
-						parseInt( bb_onesignal_vars.auto_prompt_request_permission ) > 0 &&
-						(
-							'visit' === bb_onesignal_vars.auto_prompt_validate ||
+						if (
+							parseInt( bb_onesignal_vars.auto_prompt_request_permission ) > 0 &&
 							(
-								'login' === bb_onesignal_vars.auto_prompt_validate &&
-								('true' !== sessionStorage.getItem( 'ONESIGNAL_HTTP_PROMPT_SHOWN' ))
+								'visit' === bb_onesignal_vars.auto_prompt_validate ||
+								(
+									'login' === bb_onesignal_vars.auto_prompt_validate &&
+									(
+										'true' !== sessionStorage.getItem( 'ONESIGNAL_HTTP_PROMPT_SHOWN' )
+									)
+								)
 							)
-						)
-					) {
-						bp.OneSignal_FrontCommon.notificationPrompt();
+						) {
+							bp.OneSignal_FrontCommon.notificationPrompt();
+						}
+					};
+
+					// Check if browser is Safari (only Safari has the video embed interference issue)
+					var isSafari = 'Safari' === bp.OneSignal_FrontCommon.detectBrowser();
+
+					// Check if page has any video embeds or iframes that might be affected
+					// Use a comprehensive check to catch ALL video types and embeds, including custom ones
+					var hasVideoEmbeds = function () {
+						// Check for any video elements or iframes (catches ALL embeds, regardless of platform)
+						if ( document.querySelector( 'video, iframe, embed, object' ) ) {
+							return true;
+						}
+						// Check for common video/embed classes and containers (catches WordPress embeds, custom players, etc.)
+						if ( document.querySelector( '.wp-video, .wp-block-embed, [class*="video"], [class*="embed"], [class*="player"], [class*="iframe"]' ) ) {
+							return true;
+						}
+						return false;
+					};
+
+					// Only delay initialization in Safari to prevent service worker interference with video embeds
+					// Other browsers don't have this issue, so they can initialize normally
+					var initDelay = 1500;
+
+					// Check if we need to delay (only for Safari with video embeds)
+					if ( isSafari && hasVideoEmbeds() ) {
+						// Delay initialization for Safari on pages with videos/iframes - wait for load event and additional delay
+						// This prevents service worker from interfering with any iframe loading in Safari
+						if ( 'complete' === document.readyState ) {
+							setTimeout( initOneSignal, initDelay );
+						} else {
+							window.addEventListener( 'load', function () {
+								setTimeout( initOneSignal, initDelay );
+							} );
+						}
+					} else {
+						// Normal initialization for other browsers or Safari without videos
+						if ( 'complete' === document.readyState ) {
+							initOneSignal();
+						} else {
+							$( document ).ready( initOneSignal );
+						}
 					}
 
 				}

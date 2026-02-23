@@ -511,7 +511,7 @@ if ( !class_exists( 'PT_CV_Hooks' ) ) {
 						}
 					}
 
-					if ( $others ) {
+					if ( $others || $is_overlay ) {
 						$args[ 'overlay-wrap' ] = '<div class="' . PT_CV_PREFIX . ($is_overlay ? 'overlay-wrapper' : 'remain-wrapper') . '">' . implode( '', $others ) . '</div>';
 					}
 				}

@@ -1,5 +1,140 @@
-/*! elementor - v3.31.0 - 09-09-2025 */
 (self["webpackChunkelementorFrontend"] = self["webpackChunkelementorFrontend"] || []).push([["frontend-modules"],{
+
+/***/ "../app/modules/import-export-customization/assets/js/shared/registry/base.js":
+/*!************************************************************************************!*\
+  !*** ../app/modules/import-export-customization/assets/js/shared/registry/base.js ***!
+  \************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.BaseRegistry = void 0;
+__webpack_require__(/*! core-js/modules/esnext.iterator.constructor.js */ "../node_modules/core-js/modules/esnext.iterator.constructor.js");
+__webpack_require__(/*! core-js/modules/esnext.iterator.filter.js */ "../node_modules/core-js/modules/esnext.iterator.filter.js");
+__webpack_require__(/*! core-js/modules/esnext.iterator.for-each.js */ "../node_modules/core-js/modules/esnext.iterator.for-each.js");
+__webpack_require__(/*! core-js/modules/esnext.iterator.map.js */ "../node_modules/core-js/modules/esnext.iterator.map.js");
+class BaseRegistry {
+  constructor() {
+    this.sections = new Map();
+  }
+  register(section) {
+    if (!section.key || !section.title) {
+      throw new Error('Template type must have key and title');
+    }
+    const existingSection = this.get(section.key);
+    const formattedSection = existingSection || this.formatSection(section);
+    if (section.children) {
+      // If existing section has children, merge them with new children
+      if (formattedSection.children) {
+        const existingChildrenMap = new Map(formattedSection.children.map(child => [child.key, child]));
+
+        // Override existing children with new ones and add new children
+        section.children.forEach(childSection => {
+          const formattedChild = this.formatSection(childSection);
+          existingChildrenMap.set(childSection.key, formattedChild);
+        });
+        formattedSection.children = Array.from(existingChildrenMap.values());
+      } else {
+        formattedSection.children = section.children.map(childSection => this.formatSection(childSection));
+      }
+    }
+    this.sections.set(section.key, formattedSection);
+  }
+  formatSection({
+    children,
+    ...section
+  }) {
+    return {
+      key: section.key,
+      title: section.title,
+      description: section.description || '',
+      useParentDefault: section.useParentDefault !== false,
+      getInitialState: section.getInitialState || null,
+      component: section.component || null,
+      order: section.order || 10,
+      isAvailable: section.isAvailable || (() => true),
+      ...section
+    };
+  }
+  getAll() {
+    return Array.from(this.sections.values()).filter(type => type.isAvailable()).map(type => {
+      if (type.children) {
+        return {
+          ...type,
+          children: [...type.children].sort((a, b) => a.order - b.order)
+        };
+      }
+      return type;
+    }).sort((a, b) => a.order - b.order);
+  }
+  get(key) {
+    return this.sections.get(key);
+  }
+}
+exports.BaseRegistry = BaseRegistry;
+
+/***/ }),
+
+/***/ "../app/modules/import-export-customization/assets/js/shared/registry/customization-dialogs.js":
+/*!*****************************************************************************************************!*\
+  !*** ../app/modules/import-export-customization/assets/js/shared/registry/customization-dialogs.js ***!
+  \*****************************************************************************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.customizationDialogsRegistry = void 0;
+var _base = __webpack_require__(/*! ./base */ "../app/modules/import-export-customization/assets/js/shared/registry/base.js");
+const customizationDialogsRegistry = exports.customizationDialogsRegistry = new _base.BaseRegistry();
+
+/***/ }),
+
+/***/ "../app/modules/import-export-customization/assets/js/shared/utils/template-registry-helpers.js":
+/*!******************************************************************************************************!*\
+  !*** ../app/modules/import-export-customization/assets/js/shared/utils/template-registry-helpers.js ***!
+  \******************************************************************************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.createGetInitialState = createGetInitialState;
+function createGetInitialState(exportGroup, additionalProps = {}) {
+  return (data, parentInitialState) => {
+    let isEnabled = parentInitialState;
+    const isImport = data.hasOwnProperty('uploadedData');
+    if (isImport) {
+      isEnabled = false;
+      const templates = data.uploadedData.manifest.templates;
+      const exportGroups = elementorAppConfig?.['import-export-customization']?.exportGroups || {};
+      for (const templateId in templates) {
+        const template = templates[templateId];
+        const templateExportGroup = exportGroups[template.doc_type];
+        if (templateExportGroup === exportGroup) {
+          isEnabled = true;
+          break;
+        }
+      }
+    }
+    return {
+      enabled: isEnabled,
+      ...additionalProps
+    };
+  };
+}
+
+/***/ }),
 
 /***/ "../assets/dev/js/editor/utils/is-instanceof.js":
 /*!******************************************************!*\
@@ -271,8 +406,8 @@ class CarouselHandlerBase extends _baseSwiper.default {
   addClassToSwiperContainer(className) {
     this.getDefaultElements().$swiperContainer[0].classList.add(className);
   }
-  async onInit() {
-    super.onInit(...arguments);
+  async onInit(...args) {
+    super.onInit(...args);
     if (!this.elements.$swiperContainer.length || 2 > this.elements.$slides.length) {
       return;
     }
@@ -366,8 +501,7 @@ class CarouselHandlerBase extends _baseSwiper.default {
       this.swiper.slideToLoop(this.getEditSettings('activeItemIndex') - 1);
     }
   }
-  getSpaceBetween() {
-    let device = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+  getSpaceBetween(device = null) {
     const responsiveControlValue = elementorFrontend.utils.controls.getResponsiveControlValue(this.getElementSettings(), 'image_spacing_custom', 'size', device);
     return Number(responsiveControlValue) || 0;
   }
@@ -381,8 +515,7 @@ class CarouselHandlerBase extends _baseSwiper.default {
     this.swiper.params.spaceBetween = newSpaceBetween;
     this.swiper.update();
   }
-  getPaginationBullets() {
-    let type = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'array';
+  getPaginationBullets(type = 'array') {
     const paginationBullets = this.$element.find(this.getSettings('selectors').paginationBullet);
     return 'array' === type ? Array.from(paginationBullets) : paginationBullets;
   }
@@ -406,8 +539,7 @@ class CarouselHandlerBase extends _baseSwiper.default {
     transformValue = parseInt(transformValue[0].replace('px', ''));
     return !!transformValue ? transformValue : 0;
   }
-  a11ySetSlideAriaHidden() {
-    let status = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+  a11ySetSlideAriaHidden(status = '') {
     const currentIndex = 'initialisation' === status ? 0 : this.swiper?.activeIndex;
     if ('number' !== typeof currentIndex) {
       return;
@@ -743,8 +875,7 @@ class StretchedElement extends _base.default {
   isActive(settings) {
     return elementorFrontend.isEditMode() || settings.$element.hasClass(this.getStretchedClass());
   }
-  getStretchElementForConfig() {
-    let childSelector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+  getStretchElementForConfig(childSelector = null) {
     if (childSelector) {
       return this.$element.find(childSelector);
     }
@@ -775,12 +906,12 @@ class StretchedElement extends _base.default {
     }
     this.stretchElement.stretch();
   }
-  onInit() {
+  onInit(...args) {
     if (!this.isActive(this.getSettings())) {
       return;
     }
     this.initStretch();
-    super.onInit(...arguments);
+    super.onInit(...args);
     this.stretch();
   }
   onElementChange(propertyName) {
@@ -988,8 +1119,7 @@ class ArgsObject extends _instanceType.default {
    *
    * @throws {Error}
    */
-  requireArgument(property) {
-    let args = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.args;
+  requireArgument(property, args = this.args) {
     if (!Object.prototype.hasOwnProperty.call(args, property)) {
       throw Error(`${property} is required.`);
     }
@@ -1006,8 +1136,7 @@ class ArgsObject extends _instanceType.default {
    *
    * @throws {Error}
    */
-  requireArgumentType(property, type) {
-    let args = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.args;
+  requireArgumentType(property, type, args = this.args) {
     this.requireArgument(property, args);
     if (typeof args[property] !== type) {
       throw Error(`${property} invalid type: ${type}.`);
@@ -1025,8 +1154,7 @@ class ArgsObject extends _instanceType.default {
    *
    * @throws {Error}
    */
-  requireArgumentInstance(property, instance) {
-    let args = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.args;
+  requireArgumentInstance(property, instance, args = this.args) {
     this.requireArgument(property, args);
     if (!(args[property] instanceof instance) && !(0, _isInstanceof.default)(args[property], instance)) {
       throw Error(`${property} invalid instance.`);
@@ -1044,8 +1172,7 @@ class ArgsObject extends _instanceType.default {
    *
    * @throws {Error}
    */
-  requireArgumentConstructor(property, type) {
-    let args = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.args;
+  requireArgumentConstructor(property, type, args = this.args) {
     this.requireArgument(property, args);
 
     // Note: Converting the constructor to string in order to avoid equation issues
@@ -1063,7 +1190,7 @@ exports["default"] = ArgsObject;
 /*!***********************************************************************!*\
   !*** ../assets/dev/js/modules/imports/force-method-implementation.js ***!
   \***********************************************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
@@ -1072,13 +1199,10 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports["default"] = exports.ForceMethodImplementation = void 0;
-__webpack_require__(/*! core-js/modules/es.array.includes.js */ "../node_modules/core-js/modules/es.array.includes.js");
 // TODO: Wrong location used as `elementorModules.ForceMethodImplementation(); should be` `elementorUtils.forceMethodImplementation()`;
 
 class ForceMethodImplementation extends Error {
-  constructor() {
-    let info = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    let args = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  constructor(info = {}, args = {}) {
     super(`${info.isStatic ? 'static ' : ''}${info.fullName}() should be implemented, please provide '${info.functionName || info.fullName}' functionality.`, args);
 
     // Allow to pass custom properties to the error.
@@ -1433,8 +1557,7 @@ class Scroll {
 
     // Generating thresholds points along the animation height
     // More thresholds points = more trigger points of the callback
-    const buildThresholds = function () {
-      let sensitivityPercentage = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+    const buildThresholds = (sensitivityPercentage = 0) => {
       const thresholds = [];
       if (sensitivityPercentage > 0 && sensitivityPercentage <= 100) {
         const increment = 100 / sensitivityPercentage;
@@ -1473,8 +1596,7 @@ class Scroll {
    * @param {number}         offsetObj.start - Offset start value in percentages
    * @param {number}         offsetObj.end   - Offset end value in percentages
    */
-  static getElementViewportPercentage($element) {
-    let offsetObj = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  static getElementViewportPercentage($element, offsetObj = {}) {
     const elementOffset = $element[0].getBoundingClientRect(),
       offsetStart = offsetObj.start || 0,
       offsetEnd = offsetObj.end || 0,
@@ -1494,9 +1616,7 @@ class Scroll {
    * @param {number} offsetObj.end   - Offset end value in percentages
    * @param {number} limitPageHeight - Will limit the page height calculation
    */
-  static getPageScrollPercentage() {
-    let offsetObj = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    let limitPageHeight = arguments.length > 1 ? arguments[1] : undefined;
+  static getPageScrollPercentage(offsetObj = {}, limitPageHeight) {
     const offsetStart = offsetObj.start || 0,
       offsetEnd = offsetObj.end || 0,
       initialPageHeight = limitPageHeight || document.documentElement.scrollHeight - document.documentElement.clientHeight,
@@ -1562,6 +1682,8 @@ var _argsObject = _interopRequireDefault(__webpack_require__(/*! ./imports/args-
 var _masonry = _interopRequireDefault(__webpack_require__(/*! ./imports/utils/masonry */ "../assets/dev/js/modules/imports/utils/masonry.js"));
 var _scroll = _interopRequireDefault(__webpack_require__(/*! ./imports/utils/scroll */ "../assets/dev/js/modules/imports/utils/scroll.js"));
 var _forceMethodImplementation = _interopRequireDefault(__webpack_require__(/*! ./imports/force-method-implementation */ "../assets/dev/js/modules/imports/force-method-implementation.js"));
+var _templateRegistryHelpers = __webpack_require__(/*! ../../../../app/modules/import-export-customization/assets/js/shared/utils/template-registry-helpers */ "../app/modules/import-export-customization/assets/js/shared/utils/template-registry-helpers.js");
+var _customizationDialogs = __webpack_require__(/*! ../../../../app/modules/import-export-customization/assets/js/shared/registry/customization-dialogs */ "../app/modules/import-export-customization/assets/js/shared/registry/customization-dialogs.js");
 var _default = exports["default"] = window.elementorModules = {
   Module: _module.default,
   ViewModule: _viewModule.default,
@@ -1570,6 +1692,10 @@ var _default = exports["default"] = window.elementorModules = {
   utils: {
     Masonry: _masonry.default,
     Scroll: _scroll.default
+  },
+  importExport: {
+    createGetInitialState: _templateRegistryHelpers.createGetInitialState,
+    customizationDialogsRegistry: _customizationDialogs.customizationDialogsRegistry
   }
 };
 
@@ -1607,38 +1733,6 @@ var $TypeError = TypeError;
 module.exports = function (argument) {
   if (isCallable(argument)) return argument;
   throw new $TypeError(tryToString(argument) + ' is not a function');
-};
-
-
-/***/ }),
-
-/***/ "../node_modules/core-js/internals/add-to-unscopables.js":
-/*!***************************************************************!*\
-  !*** ../node_modules/core-js/internals/add-to-unscopables.js ***!
-  \***************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-var wellKnownSymbol = __webpack_require__(/*! ../internals/well-known-symbol */ "../node_modules/core-js/internals/well-known-symbol.js");
-var create = __webpack_require__(/*! ../internals/object-create */ "../node_modules/core-js/internals/object-create.js");
-var defineProperty = (__webpack_require__(/*! ../internals/object-define-property */ "../node_modules/core-js/internals/object-define-property.js").f);
-
-var UNSCOPABLES = wellKnownSymbol('unscopables');
-var ArrayPrototype = Array.prototype;
-
-// Array.prototype[@@unscopables]
-// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
-if (ArrayPrototype[UNSCOPABLES] === undefined) {
-  defineProperty(ArrayPrototype, UNSCOPABLES, {
-    configurable: true,
-    value: create(null)
-  });
-}
-
-// add a key to Array.prototype[@@unscopables]
-module.exports = function (key) {
-  ArrayPrototype[UNSCOPABLES][key] = true;
 };
 
 
@@ -2474,7 +2568,7 @@ module.exports = function (namespace, method) {
 "use strict";
 
 // `GetIteratorDirect(obj)` abstract operation
-// https://tc39.es/proposal-iterator-helpers/#sec-getiteratordirect
+// https://tc39.es/ecma262/#sec-getiteratordirect
 module.exports = function (obj) {
   return {
     iterator: obj,
@@ -3124,7 +3218,7 @@ var getMethod = __webpack_require__(/*! ../internals/get-method */ "../node_modu
 var IteratorPrototype = (__webpack_require__(/*! ../internals/iterators-core */ "../node_modules/core-js/internals/iterators-core.js").IteratorPrototype);
 var createIterResultObject = __webpack_require__(/*! ../internals/create-iter-result-object */ "../node_modules/core-js/internals/create-iter-result-object.js");
 var iteratorClose = __webpack_require__(/*! ../internals/iterator-close */ "../node_modules/core-js/internals/iterator-close.js");
-var iteratorCloseAll = __webpack_require__(/*! ./iterator-close-all */ "../node_modules/core-js/internals/iterator-close-all.js");
+var iteratorCloseAll = __webpack_require__(/*! ../internals/iterator-close-all */ "../node_modules/core-js/internals/iterator-close-all.js");
 
 var TO_STRING_TAG = wellKnownSymbol('toStringTag');
 var ITERATOR_HELPER = 'IteratorHelper';
@@ -3931,10 +4025,10 @@ var SHARED = '__core-js_shared__';
 var store = module.exports = globalThis[SHARED] || defineGlobalProperty(SHARED, {});
 
 (store.versions || (store.versions = [])).push({
-  version: '3.43.0',
+  version: '3.46.0',
   mode: IS_PURE ? 'pure' : 'global',
-  copyright: '© 2014-2025 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.43.0/LICENSE',
+  copyright: '© 2014-2025 Denis Pushkarev (zloirock.ru), 2025 CoreJS Company (core-js.io)',
+  license: 'https://github.com/zloirock/core-js/blob/v3.46.0/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
@@ -4305,39 +4399,6 @@ module.exports = function (name) {
 
 /***/ }),
 
-/***/ "../node_modules/core-js/modules/es.array.includes.js":
-/*!************************************************************!*\
-  !*** ../node_modules/core-js/modules/es.array.includes.js ***!
-  \************************************************************/
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-var $ = __webpack_require__(/*! ../internals/export */ "../node_modules/core-js/internals/export.js");
-var $includes = (__webpack_require__(/*! ../internals/array-includes */ "../node_modules/core-js/internals/array-includes.js").includes);
-var fails = __webpack_require__(/*! ../internals/fails */ "../node_modules/core-js/internals/fails.js");
-var addToUnscopables = __webpack_require__(/*! ../internals/add-to-unscopables */ "../node_modules/core-js/internals/add-to-unscopables.js");
-
-// FF99+ bug
-var BROKEN_ON_SPARSE = fails(function () {
-  // eslint-disable-next-line es/no-array-prototype-includes -- detection
-  return !Array(1).includes();
-});
-
-// `Array.prototype.includes` method
-// https://tc39.es/ecma262/#sec-array.prototype.includes
-$({ target: 'Array', proto: true, forced: BROKEN_ON_SPARSE }, {
-  includes: function includes(el /* , fromIndex = 0 */) {
-    return $includes(this, el, arguments.length > 1 ? arguments[1] : undefined);
-  }
-});
-
-// https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
-addToUnscopables('includes');
-
-
-/***/ }),
-
 /***/ "../node_modules/core-js/modules/es.array.push.js":
 /*!********************************************************!*\
   !*** ../node_modules/core-js/modules/es.array.push.js ***!
@@ -4615,6 +4676,61 @@ $({ target: 'Iterator', proto: true, real: true, forced: forEachWithoutClosingOn
 
 /***/ }),
 
+/***/ "../node_modules/core-js/modules/es.iterator.map.js":
+/*!**********************************************************!*\
+  !*** ../node_modules/core-js/modules/es.iterator.map.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+var $ = __webpack_require__(/*! ../internals/export */ "../node_modules/core-js/internals/export.js");
+var call = __webpack_require__(/*! ../internals/function-call */ "../node_modules/core-js/internals/function-call.js");
+var aCallable = __webpack_require__(/*! ../internals/a-callable */ "../node_modules/core-js/internals/a-callable.js");
+var anObject = __webpack_require__(/*! ../internals/an-object */ "../node_modules/core-js/internals/an-object.js");
+var getIteratorDirect = __webpack_require__(/*! ../internals/get-iterator-direct */ "../node_modules/core-js/internals/get-iterator-direct.js");
+var createIteratorProxy = __webpack_require__(/*! ../internals/iterator-create-proxy */ "../node_modules/core-js/internals/iterator-create-proxy.js");
+var callWithSafeIterationClosing = __webpack_require__(/*! ../internals/call-with-safe-iteration-closing */ "../node_modules/core-js/internals/call-with-safe-iteration-closing.js");
+var iteratorClose = __webpack_require__(/*! ../internals/iterator-close */ "../node_modules/core-js/internals/iterator-close.js");
+var iteratorHelperThrowsOnInvalidIterator = __webpack_require__(/*! ../internals/iterator-helper-throws-on-invalid-iterator */ "../node_modules/core-js/internals/iterator-helper-throws-on-invalid-iterator.js");
+var iteratorHelperWithoutClosingOnEarlyError = __webpack_require__(/*! ../internals/iterator-helper-without-closing-on-early-error */ "../node_modules/core-js/internals/iterator-helper-without-closing-on-early-error.js");
+var IS_PURE = __webpack_require__(/*! ../internals/is-pure */ "../node_modules/core-js/internals/is-pure.js");
+
+var MAP_WITHOUT_THROWING_ON_INVALID_ITERATOR = !IS_PURE && !iteratorHelperThrowsOnInvalidIterator('map', function () { /* empty */ });
+var mapWithoutClosingOnEarlyError = !IS_PURE && !MAP_WITHOUT_THROWING_ON_INVALID_ITERATOR
+  && iteratorHelperWithoutClosingOnEarlyError('map', TypeError);
+
+var FORCED = IS_PURE || MAP_WITHOUT_THROWING_ON_INVALID_ITERATOR || mapWithoutClosingOnEarlyError;
+
+var IteratorProxy = createIteratorProxy(function () {
+  var iterator = this.iterator;
+  var result = anObject(call(this.next, iterator));
+  var done = this.done = !!result.done;
+  if (!done) return callWithSafeIterationClosing(iterator, this.mapper, [result.value, this.counter++], true);
+});
+
+// `Iterator.prototype.map` method
+// https://tc39.es/ecma262/#sec-iterator.prototype.map
+$({ target: 'Iterator', proto: true, real: true, forced: FORCED }, {
+  map: function map(mapper) {
+    anObject(this);
+    try {
+      aCallable(mapper);
+    } catch (error) {
+      iteratorClose(this, 'throw', error);
+    }
+
+    if (mapWithoutClosingOnEarlyError) return call(mapWithoutClosingOnEarlyError, this, mapper);
+
+    return new IteratorProxy(getIteratorDirect(this), {
+      mapper: mapper
+    });
+  }
+});
+
+
+/***/ }),
+
 /***/ "../node_modules/core-js/modules/esnext.iterator.constructor.js":
 /*!**********************************************************************!*\
   !*** ../node_modules/core-js/modules/esnext.iterator.constructor.js ***!
@@ -4667,6 +4783,20 @@ __webpack_require__(/*! ../modules/es.iterator.find */ "../node_modules/core-js/
 
 // TODO: Remove from `core-js@4`
 __webpack_require__(/*! ../modules/es.iterator.for-each */ "../node_modules/core-js/modules/es.iterator.for-each.js");
+
+
+/***/ }),
+
+/***/ "../node_modules/core-js/modules/esnext.iterator.map.js":
+/*!**************************************************************!*\
+  !*** ../node_modules/core-js/modules/esnext.iterator.map.js ***!
+  \**************************************************************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+// TODO: Remove from `core-js@4`
+__webpack_require__(/*! ../modules/es.iterator.map */ "../node_modules/core-js/modules/es.iterator.map.js");
 
 
 /***/ })

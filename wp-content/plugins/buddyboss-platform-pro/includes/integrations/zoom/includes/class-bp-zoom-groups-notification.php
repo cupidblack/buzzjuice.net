@@ -58,7 +58,7 @@ class BP_Zoom_Groups_Notification extends BP_Core_Notification_Abstract {
 	 * @return mixed|void
 	 */
 	public function load() {
-		if ( ! bbp_pro_is_license_valid() || ! bp_is_active( 'groups' ) || ! bp_zoom_is_zoom_groups_enabled() ) {
+		if ( bb_pro_should_lock_features() || ! bp_is_active( 'groups' ) || ! bp_zoom_is_zoom_groups_enabled() ) {
 			return;
 		}
 

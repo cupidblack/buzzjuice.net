@@ -259,16 +259,6 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 					'value'   => $this->setting_option_values['course_prerequisite_enabled'] ?? '',
 					'default' => '',
 					'options' => [],
-					'rest'    => [
-						'show_in_rest' => LearnDash_REST_API::enabled(),
-						'rest_args'    => [
-							'schema' => [
-								'field_key' => 'prerequisite_enabled',
-								'type'      => 'boolean',
-								'default'   => false,
-							],
-						],
-					],
 				],
 				'course_prerequisite_compare' => [
 					'name'           => 'course_prerequisite_compare',
@@ -302,7 +292,7 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 						'rest_args'    => [
 							'schema' => [
 								'field_key'   => 'prerequisite_compare',
-								'description' => 'Prerequisite Compare Mode.',
+								'description' => __( 'Prerequisite Compare Mode. "ALL" means all prerequisites must be completed. "ANY" means at least one prerequisite must be completed. Requires "requirements_for_enrollment" to be set to "course_prerequisite_enabled".', 'learndash' ),
 								'default'     => 'ANY',
 								'type'        => 'string',
 								'enum'        => [
@@ -336,7 +326,11 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 						'rest_args'    => [
 							'schema' => [
 								'field_key'   => 'prerequisites',
-								'description' => 'Prerequisites.',
+								'description' => sprintf(
+									// Translators: placeholder: course label.
+									__( '%s prerequisites. Requires "requirements_for_enrollment" to be set to "course_prerequisite_enabled".', 'learndash' ),
+									learndash_get_custom_label( 'course' )
+								),
 								'default'     => [],
 								'type'        => 'array',
 								'items'       => [
@@ -392,9 +386,14 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 						'show_in_rest' => LearnDash_REST_API::enabled(),
 						'rest_args'    => [
 							'schema' => [
-								'field_key' => 'points_access',
-								'type'      => 'float',
-								'default'   => 0.0,
+								'default'     => 0.0,
+								'description' => sprintf(
+									// Translators: placeholder: %1$s: course label.
+									esc_html_x( 'Number of %1$s points required to gain access to this %1$s.', 'placeholder: course.', 'learndash' ),
+									learndash_get_custom_label_lower( 'course' )
+								),
+								'field_key'   => 'points_access',
+								'type'        => 'number',
 							],
 						],
 					],
@@ -459,7 +458,12 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 						'rest_args'    => [
 							'schema' => [
 								'field_key'   => 'requirements_for_enrollment',
-								'description' => 'Requirements for Enrollment.',
+								'description' => sprintf(
+									// Translators: placeholder: %1$s: courses plural label. %2$s: course singular label.
+									__( 'Requirements for Enrollment. Empty string means no restrictions and students have access without prerequisite restrictions. "course_prerequisite_enabled" means prerequisite %1$s must be completed first. "course_points_enabled" means a specific number of %2$s points are required for access.', 'learndash' ),
+									learndash_get_custom_label_lower( 'courses' ),
+									learndash_get_custom_label_lower( 'course' )
+								),
 								'default'     => '',
 								'type'        => 'string',
 								'enum'        => [
@@ -568,9 +572,10 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 						'show_in_rest' => LearnDash_REST_API::enabled(),
 						'rest_args'    => [
 							'schema' => [
-								'default'     => 0,
-								'description' => esc_html__( 'Start Date as a unix timestamp.', 'learndash' ),
-								'type'        => 'integer',
+								'default'     => '0',
+								'description' => esc_html__( "Start Date in RFC3339 format. IMPORTANT: LLMs must ALWAYS ask for the user's timezone if not explicitly provided - do not assume UTC. If the user does not specify a timezone, stop and ask them before proceeding. The user's timezone must be included with the date for accuracy (e.g., '2025-12-01T04:30:00-05:00' for EST). Setting this to '0' will clear the date.", 'learndash' ),
+								'example'     => '2025-01-15T14:30:00Z',
+								'type'        => 'string',
 							],
 						],
 					],
@@ -591,9 +596,10 @@ if ( ( class_exists( 'LearnDash_Settings_Metabox' ) ) && ( ! class_exists( 'Lear
 						'show_in_rest' => LearnDash_REST_API::enabled(),
 						'rest_args'    => [
 							'schema' => [
-								'default'     => 0,
-								'description' => esc_html__( 'End Date as a unix timestamp.', 'learndash' ),
-								'type'        => 'integer',
+								'default'     => '0',
+								'description' => esc_html__( "End Date in RFC3339 format. IMPORTANT: LLMs must ALWAYS ask for the user's timezone if not explicitly provided - do not assume UTC. If the user does not specify a timezone, stop and ask them before proceeding. The user's timezone must be included with the date for accuracy (e.g., '2025-12-01T04:30:00-05:00' for EST). Setting this to '0' will clear the date.", 'learndash' ),
+								'example'     => '2025-01-15T14:30:00Z',
+								'type'        => 'string',
 							],
 						],
 					],

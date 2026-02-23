@@ -368,7 +368,12 @@ class WPCode_Library {
 
 		$snippet = wpcode_get_snippet( $snippet_data );
 
-		$snippet->save();
+		$snippet_id = $snippet->save();
+
+		// Save the version information if available in the API response.
+		if ( ! empty( $snippet_data['version'] ) ) {
+			update_post_meta( $snippet_id, '_wpcode_snippet_version', $snippet_data['version'] );
+		}
 
 		delete_transient( $this->used_snippets_transient_key );
 
@@ -434,7 +439,6 @@ class WPCode_Library {
 		$this->library_snippets = $snippets_from_library;
 
 		return $this->library_snippets;
-
 	}
 
 	/**
@@ -738,5 +742,168 @@ class WPCode_Library {
 			'categories' => $categories,
 			'snippets'   => $snippets,
 		);
+	}
+
+	/**
+	 * Check if a snippet has an update available by comparing with cached data.
+	 *
+	 * @param int    $snippet_id The snippet ID.
+	 * @param string $library_id The library ID.
+	 *
+	 * @return bool|array False if no update, array with version info if update available.
+	 */
+	public function check_snippet_update( $snippet_id, $library_id ) {
+		// Get current version from post meta.
+		$current_version = get_post_meta( $snippet_id, '_wpcode_snippet_version', true );
+
+		// For library snippets, get from library cache.
+		$cached_data     = $this->get_data();
+		$library_snippet = null;
+		if ( ! empty( $cached_data['snippets'] ) ) {
+			foreach ( $cached_data['snippets'] as $snippet ) {
+				if ( isset( $snippet['library_id'] ) && absint( $snippet['library_id'] ) === absint( $library_id ) ) {
+					$library_snippet = $snippet;
+					break;
+				}
+			}
+		}
+
+		if ( ! $library_snippet || empty( $library_snippet['version'] ) ) {
+			return false;
+		}
+
+		$latest_version = $library_snippet['version'];
+
+		// If either version is empty, set it to 1.0.0.
+		if ( empty( $current_version ) ) {
+			$current_version = '1.0.0';
+		}
+
+		if ( empty( $latest_version ) ) {
+			$latest_version = '1.0.0';
+		}
+
+		// If latest version is greater than current version, update is available.
+		if ( version_compare( $latest_version, $current_version, '>' ) ) {
+			return array(
+				'current_version' => $current_version,
+				'latest_version'  => $latest_version,
+			);
+		}
+
+		return false;
+	}
+
+
+	/**
+	 * Update a snippet from the library.
+	 *
+	 * @param int $snippet_id The ID of the snippet to update.
+	 * @param int $library_id The ID of the library snippet to fetch.
+	 *
+	 * @return array|false Array with success data or false on failure.
+	 */
+	public function update_snippet_from_library( $snippet_id, $library_id ) {
+		// Get snippet data from library.
+		$library_snippet = $this->grab_snippet_from_api( $library_id );
+
+		if ( ! $library_snippet ) {
+			return false;
+		}
+
+		// Update snippet.
+		$library_snippet['id'] = $snippet_id;
+		$snippet               = wpcode_get_snippet( $library_snippet );
+		$result                = $snippet->save();
+
+		if ( ! $result ) {
+			return false;
+		}
+
+		// Update local version metadata.
+		if ( ! empty( $library_snippet['version'] ) ) {
+			update_post_meta( $snippet_id, '_wpcode_snippet_version', $library_snippet['version'] );
+		}
+
+		return array(
+			'success' => true,
+			'version' => ! empty( $library_snippet['version'] ) ? $library_snippet['version'] : '',
+		);
+	}
+
+	/**
+	 * Search snippets in the library by keyword.
+	 *
+	 * @param string $keyword The keyword to search for.
+	 *
+	 * @return array Array of matching snippets.
+	 */
+	public function search_snippets( $keyword ) {
+		$data         = $this->get_data();
+		$all_snippets = isset( $data['snippets'] ) ? $data['snippets'] : array();
+		$results      = array();
+
+		if ( empty( $all_snippets ) || ! is_array( $all_snippets ) ) {
+			return $results;
+		}
+
+		foreach ( $all_snippets as $snippet ) {
+			$found = false;
+
+			// Search in title.
+			if ( isset( $snippet['title'] ) && stripos( $snippet['title'], $keyword ) !== false ) {
+				$found = true;
+			}
+
+			// Search in description/note.
+			if ( ! $found && isset( $snippet['note'] ) && stripos( $snippet['note'], $keyword ) !== false ) {
+				$found = true;
+			}
+
+			// Search in tags.
+			if ( ! $found && isset( $snippet['tags'] ) && is_array( $snippet['tags'] ) ) {
+				foreach ( $snippet['tags'] as $tag ) {
+					if ( stripos( $tag, $keyword ) !== false ) {
+						$found = true;
+						break;
+					}
+				}
+			}
+
+			if ( $found ) {
+				$results[] = $snippet;
+			}
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Get the list of snippets that have updates available.
+	 * Checks on the fly using cached data.
+	 *
+	 * @return array
+	 */
+	public function get_snippets_with_updates() {
+		// Get all snippets with library IDs.
+		$library_snippets = $this->get_used_library_snippets();
+
+		$snippets_with_updates = array();
+
+		// Check library snippets.
+		foreach ( $library_snippets as $library_id => $snippet_id ) {
+			$update_info = $this->check_snippet_update( $snippet_id, $library_id );
+			if ( $update_info ) {
+				$snippets_with_updates[] = $snippet_id;
+			}
+		}
+
+		/**
+		 * Filter the list of snippets with updates.
+		 * This allows other classes to add their snippets with updates to the results.
+		 *
+		 * @param array $snippets_with_updates The list of snippets with updates.
+		 */
+		return apply_filters( 'wpcode_snippets_with_updates', $snippets_with_updates );
 	}
 }

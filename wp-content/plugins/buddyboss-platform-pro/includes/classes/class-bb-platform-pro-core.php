@@ -59,11 +59,6 @@ class BB_Platform_Pro_Core {
 		// Load Integrations.
 		$this->load_integrations();
 
-		// if in admin, include buddyboss updater.
-		if ( is_admin() ) {
-			$this->buddyboss_updater();
-		}
-
 		/**
 		 * Fires before the loading of individual integrations and after BuddyBoss Platform Pro Core.
 		 *
@@ -177,19 +172,6 @@ class BB_Platform_Pro_Core {
 		 * @since 2.4.50
 		 */
 		do_action( 'bb_platform_pro_core_reactions_included' );
-	}
-
-	/**
-	 * Include BuddyBoss Updater
-	 *
-	 * @since 1.0.0
-	 */
-	private function buddyboss_updater() {
-		global $pagenow;
-
-		if ( ! function_exists( 'buddyboss_updater_init' ) ) {
-			require_once bb_platform_pro()->plugin_dir . '/includes/lib/buddyboss-updater/buddyboss-updater.php';
-		}
 	}
 
 	/**

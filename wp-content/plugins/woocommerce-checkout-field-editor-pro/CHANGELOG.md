@@ -1,7 +1,19 @@
-=====================================================
-WORDPRESS - PHP SCRIPTS - TEMPLATES -  FLUTTER - MORE
---------------- https://weadown.com -----------------
-=====================================================
+#### 3.7.5.0
+
+FIX: Resolved issue where user-role–based conditions were not working in block checkout.
+FIX: Fixed radio button display rules in Block Checkout.
+FIX: Fixed issue where custom fields in the address section were not working with conditional rules in block checkout.
+FIX: Fixed Datepicker browser/server time mismatch issue in block checkout.
+FIX: Fixed handling of block user-meta–enabled fields in the User Profile page.
+FIX: Corrected react datepicker behavior where a disabled default date (disabled day/date) was still being selected in block checkout.
+
+IMPROVED: Added filter to support checkbox descriptions with HTML.
+IMPROVED: Added filter to translation support for the placeholder property in field preparation.
+IMPROVED: Improved datepicker behavior to start the week based on WordPress date settings in block checkout.
+IMPROVED: Added shipping-method–based display rules support in Block Checkout.
+IMPROVED: Added custom field support in PDF Invoice & Packing Slip integrations for block checkout.
+IMPROVED: Added compatibility with WooCommerce 10.4
+IMPROVED: Added compatibility with WordPress 6.9.
 
 #### 3.7.4.0
 IMPROVED: Added field-based conditional rules for additional sections and their fields in the block checkout.

@@ -721,9 +721,26 @@ class THWCFE_Admin_Settings_General extends THWCFE_Admin_Settings {
 	
    /*******************************************************************************
 	******** DISPLAY CUSTOM FIELDS & VALUES in ADMIN ORDER DETAILS PAGE - START ***
-	*******************************************************************************/	
+	*******************************************************************************/
+	
+	
+	public function get_all_custom_checkout_sections() { // used in woo_save_account_details & woo_edit_account_form
+		$sections = THWCFE_Utils::get_custom_sections();
+		$block_sections = THWCFE_Utils_Block::get_block_checkout_sections();
+		if($block_sections && is_array($block_sections)){
+			$exclude_sections = array( 'address', 'order'); // WooCommerce handles these sections.
+			foreach($block_sections as $sname => $section){
+				// Only add if not in exclude list
+				if(!in_array($sname, $exclude_sections)){
+					$sections[$sname] = $section;
+				}
+			}
+		}
+		return $sections;
+	}
+
 	public function woo_customer_meta_fields($fields){
-		$sections = $this->get_checkout_sections();
+		$sections = $this->get_all_custom_checkout_sections();
 		if($sections && is_array($sections)){
 			foreach($sections as $sname => $section) {
 				$fieldset = THWCFE_Utils_Section::get_fields($section);

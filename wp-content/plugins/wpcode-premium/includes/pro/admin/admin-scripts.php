@@ -57,9 +57,11 @@ function wpcode_admin_scripts_global_pro() {
 		apply_filters(
 			'wpcode_admin_global_js_data',
 			array(
-				'nonce'            => wp_create_nonce( 'wpcode_admin_global' ),
-				'post_id'          => get_the_ID(),
-				'locations_number' => wpcode_get_auto_insert_locations_with_number(),
+				'nonce'                   => wp_create_nonce( 'wpcode_admin_global' ),
+				'post_id'                 => get_the_ID(),
+				'locations_number'        => wpcode_get_auto_insert_locations_with_number(),
+				'library_refreshed_title' => __( 'Library Refreshed', 'insert-headers-and-footers' ),
+				'library_refreshed_text'  => __( 'The library has been successfully refreshed.', 'insert-headers-and-footers' ),
 			)
 		)
 	);
@@ -85,6 +87,9 @@ function wpcode_admin_js_data_pro( $data ) {
 	foreach ( $keys_to_remove as $key ) {
 		unset( $data[ $key ] );
 	}
+
+	$data['library_refreshed_title'] = __( 'Library Refreshed', 'wpcode-premium' );
+	$data['library_refreshed_text']  = __( 'The library has been successfully refreshed.', 'wpcode-premium' );
 
 	return $data;
 }

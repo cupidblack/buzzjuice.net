@@ -91,6 +91,7 @@ class THWCFE_Block_Integration implements IntegrationInterface {
 		if (apply_filters('thwcfe_translate_block_field_dynamic_strings', false)) {
 			$this->translate_block_field_dynamic_strings($all_sections);
 		}
+		$this->populate_user_meta_fields($all_sections);
 		$default_keys = ['contact', 'address', 'order'];
 		$additional_sections = array_diff_key($all_sections, array_flip($default_keys));
 
@@ -115,6 +116,17 @@ class THWCFE_Block_Integration implements IntegrationInterface {
             }
             
         }
+		$current_user_role = $this->get_current_user_role();
+
+		$description_html_for_checkbox = apply_filters(
+			'thwcfe_enable_html_for_block_field_labels',
+			[
+				'enableCbDesc'  => false,
+				'message' => '',
+				// 'message' => esc_html__( 'I agree to the terms and conditions',
+				'fieldIdCb' => '',
+			]
+		);
 
 		$data = [
 			'additionalSections' => $additional_sections,
@@ -122,8 +134,24 @@ class THWCFE_Block_Integration implements IntegrationInterface {
 			'customValidators' => $custom_validators,
 			'confirmValidators' => $confirm_validators,
 			'cartItemsCategoryData' => $cart_items_category_data,
+			'currentUserRole' => $current_user_role,
+			'descriptionHtmlForLabels' => $description_html_for_checkbox,
 		];
 		return $data;
+	}
+	/**
+	 * Returns the current user role.
+	 *
+	 * @return string
+	 */
+	public function get_current_user_role() {
+		if ( is_user_logged_in() ) {
+			$user = wp_get_current_user();
+			$roles = (array) $user->roles;
+			return ! empty( $roles ) ? $roles[0] : 'none';
+		}
+
+    	return 'guest'; // Not logged in
 	}
 
      /**
@@ -314,6 +342,40 @@ class THWCFE_Block_Integration implements IntegrationInterface {
 			$this->get_file_version( $absolutepath )
 		);
 	}
+
+	// Populate user meta fields section
+	public function populate_user_meta_fields(&$all_sections) {
+		$user_id = get_current_user_id();
+
+		// Populate user meta values for fields
+		if ($user_id && $all_sections) {
+			$exclude_sections = ['order', 'address']; // Skip unnecessary sections
+			$filtered_sections = array_diff_key($all_sections, array_flip($exclude_sections));// Remove sections listed in $exclude_sections from $all_sections
+
+			foreach ($filtered_sections as $section_name => $section) {
+				$fields = THWCFE_Utils_Section::get_fields($section);
+				if ($fields && is_array($fields)) {
+					foreach ($fields as $field_key => $field) {
+						if ($field_key == 'email'){
+							continue;
+						}
+						if (is_object($field) && $field->get_property('user_meta')) {
+							// Fetch user meta value
+							$user_value = get_user_meta($user_id, $field_key, true);
+							if ($user_value) {
+								$property_set = $field->get_property('property_set');
+								if (is_array($property_set)) {
+									$property_set['default'] = $user_value;
+									$field->set_property('property_set', $property_set);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 
    /* private function register_main_integration() {
 

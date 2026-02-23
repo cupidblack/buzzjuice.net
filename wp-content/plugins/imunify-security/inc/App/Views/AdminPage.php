@@ -115,6 +115,20 @@ class AdminPage extends View {
 						if (window.location.hash !== event.data.hash) {
 							window.location.hash = event.data.hash;
 						}
+					} else if (event?.data?.type === "imunify-session-expired") {
+						// Reload only the iframe to avoid navigating the parent to site homepage
+						if (window.__i360IframeReloadTs && Date.now() - window.__i360IframeReloadTs < 5000) {
+							return;
+						}
+						window.__i360IframeReloadTs = Date.now();
+						const iframe = document.getElementById("imunify-angular-iframe");
+						if (iframe) {
+							var baseSrc = iframe.src.split("#")[0];
+							iframe.src = window.location.hash ? (baseSrc + window.location.hash) : baseSrc;
+						} else {
+							// Fallback: reload the whole page if iframe not found
+							window.location.reload();
+						}
 					}
 				});
 				document.addEventListener("DOMContentLoaded", function() {
@@ -140,11 +154,17 @@ class AdminPage extends View {
 		$pluginUrl       = plugin_dir_url( IMUNIFY_SECURITY_FILE_PATH );
 		$uiAppAssetsPath = $pluginUrl . 'assets/ui-app/assets/';
 
-		$endpointUrl = admin_url( 'admin-ajax.php?action=' . AjaxHandler::AJAX_ACTION );
+		$endpointUrl = add_query_arg(
+			array(
+				'action'      => AjaxHandler::AJAX_ACTION,
+				'_ajax_nonce' => wp_create_nonce( AjaxHandler::AJAX_NONCE_NAME ),
+			),
+			admin_url( 'admin-ajax.php' )
+		);
 
 		$scanData  = $this->dataStore->getScanData();
 		$license   = is_null( $scanData ) ? array() : $scanData->getLicense();
-		$licenseId = isset( $license['license_type'] ) ? strtoupper( str_ireplace( 'imunify', '', $license['license_type'] ) ) : '360';
+		$licenseId = self::extractLicenseId( $license );
 
 		$locale      = get_user_locale();
 		$localeShort = substr( $locale, 0, 2 );
@@ -165,9 +185,10 @@ class AdminPage extends View {
 					<link href="<?php echo $uiAppAssetsPath; ?>static/fonts/fonts.css?v1" rel="stylesheet">
 	
 					<script type="text/javascript">
+						window.IS_WORDPRESS_PLUGIN = true;
 						window.I360_PATH_TO_STATIC = "<?php echo esc_url( $uiAppAssetsPath ); ?>";
-						window.clientAction = "<?php echo esc_url( $endpointUrl ); ?>";
-						window.adminAction = "<?php echo esc_url( $endpointUrl ); ?>";
+						window.clientAction = "<?php echo $endpointUrl; ?>";
+						window.adminAction = "<?php echo $endpointUrl; ?>";
 						window.i360userName = "<?php echo esc_js( $this->dataStore->getUsername() ); ?>";
 						window.IMUNIFY_PACKAGE = "<?php echo esc_js( $licenseId ); ?>";
 						window.MYIMUNIFY_DISABLED = true;
@@ -250,5 +271,26 @@ class AdminPage extends View {
 	 */
 	public function willBeRendered( $hook ) {
 		return 'toplevel_page_' . self::PAGE_SLUG === $hook && $this->dataStore->isDataAvailable();
+	}
+
+	/**
+	 * Extract license ID from license data.
+	 *
+	 * @since 2.0.2
+	 *
+	 * @param array|null $license License data array.
+	 * @return string License ID ('360' if contains '360', 'AV' otherwise, defaults to '360' if not found).
+	 */
+	public static function extractLicenseId( $license ) {
+		if ( ! is_array( $license ) || ! isset( $license['license_type'] ) ) {
+			return '360';
+		}
+
+		$processed = strtoupper( str_ireplace( 'imunify', '', $license['license_type'] ) );
+		if ( strpos( $processed, '360' ) !== false ) {
+			return '360';
+		}
+
+		return 'AV';
 	}
 }

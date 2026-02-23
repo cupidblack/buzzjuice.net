@@ -5257,7 +5257,7 @@ fieldset.bbp-form .bbp-submit-wrapper {
   color: inherit;
   font-size: 15px;
   letter-spacing: -0.24px;
-  margin-bottom: 5px;
+  margin-bottom: 0;
 }
 #bbpress-forums .bbp-reply-form fieldset.bbp-form-anonymous,
 .page .bbp-reply-form:not(.bb-modal) fieldset.bbp-form-anonymous {
@@ -5556,6 +5556,7 @@ body .bbp_topic_tags_wrapper .bb-select-container.select2-selection.select2-sele
 .elementor-location-popup #bbpress-forums .bbp-topic-form .bbp_topic_subscription_wrapper > label,
 #bbpress-forums .bb-modal.bbp-topic-form .bbp_topic_subscription_wrapper > label {
   display: block;
+  margin-bottom: 0;
 }
 .elementor-location-popup #bbpress-forums .bbp-topic-form .bbp_topic_form_forum_wrapper,
 #bbpress-forums .bb-modal.bbp-topic-form .bbp_topic_form_forum_wrapper {

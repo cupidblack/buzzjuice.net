@@ -442,6 +442,10 @@ class THWCFE_Utils_Section {
 		$title_html = '';
 		if($section->get_property('title')){
 			$title_type  = $section->get_property('title_type') ? $section->get_property('title_type') : 'label';
+			$checkout_type = $section->get_property( 'checkout_type' );
+			if ( $checkout_type === 'block' ) {
+				$title_type = 'h4';
+			}
 			$title_style = $section->get_property('title_color') ? 'style="color:'.$section->get_property('title_color').';"' : '';
 			$title = __($section->get_property('title'), 'woocommerce-checkout-field-editor-pro');
 			$repeat_rule_set = $section->get_property('repeat_rules');

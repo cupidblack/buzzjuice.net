@@ -124,6 +124,10 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		if ( isset( $_GET['snippet_id'] ) ) {
 			$this->load_snippet();
+			// Check if we need to sync the snippet.
+			if ( isset( $_GET['sync'] ) && 'true' === $_GET['sync'] && isset( $this->snippet ) ) {
+				$this->sync_snippet();
+			}
 			// If the post type does not match the page will act as an add new snippet page, the id will be ignored.
 		} elseif ( ! isset( $_GET['custom'] ) ) {
 			$this->show_library = apply_filters( 'wpcode_add_snippet_show_library', true );
@@ -455,7 +459,7 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 							<?php foreach ( $library_plugins as $slug => $plugin ) { ?>
 								<div class="wpcode-plugin-suggestion-plugin">
 									<div class="wpcode-plugin-suggestion-plugin-icon">
-										<img width="72" src="<?php echo esc_url( WPCODE_PLUGIN_URL . 'admin/images/' . $plugin['icon'] ); // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage?>" alt="<?php echo esc_attr( $plugin['name'] ); ?>"/>
+										<img width="72" src="<?php echo esc_url( WPCODE_PLUGIN_URL . 'admin/images/' . $plugin['icon'] ); // phpcs:ignore PluginCheck.CodeAnalysis.ImageFunctions.NonEnqueuedImage ?>" alt="<?php echo esc_attr( $plugin['name'] ); ?>"/>
 									</div>
 									<div class="wpcode-plugin-suggesion-plugin-text">
 										<h3><?php echo esc_html( $plugin['name'] ); ?></h3>
@@ -1034,11 +1038,11 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 			)
 		);
 		echo '</div>';
-		
+
 		if ( ! empty( $description ) ) {
 			echo '<p>' . esc_html( $description ) . '</p>';
 		}
-		
+
 		return ob_get_clean();
 	}
 
@@ -1230,6 +1234,30 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 		if ( isset( $this->snippet ) && $this->snippet->is_generated() ) {
 			echo $this->get_input_generator();
 		}
+
+		// Check if snippet has updates and add sync button if needed.
+		$update_info = $this->snippet_has_update();
+		$has_auth    = wpcode()->library_auth->has_auth() ? 1 : 0;
+		if ( $update_info ) {
+			$current_url     = add_query_arg(
+				array(
+					'page'       => 'wpcode-snippet-manager',
+					'snippet_id' => $this->snippet->get_id(),
+					'sync'       => 'true',
+				),
+				admin_url( 'admin.php' )
+			);
+			$current_version = isset( $update_info['current_version'] ) ? $update_info['current_version'] : '';
+			$latest_version  = isset( $update_info['latest_version'] ) ? $update_info['latest_version'] : '';
+			?>
+			<a href="<?php echo esc_url( $current_url ); ?>" data-has-auth="<?php echo $has_auth; ?>" data-current-version="<?php echo esc_attr( $current_version ); ?>" data-latest-version="<?php echo esc_attr( $latest_version ); ?>" class="wpcode-sync-button sync-snippet">
+				<?php esc_html_e( 'Update Available', 'insert-headers-and-footers' ); ?>
+			</a>
+			<?php
+		}
+
+		do_action( 'wpcode_header_buttons', $this->snippet );
+		$this->live_preview_button();
 		$this->update_button();
 	}
 
@@ -1242,6 +1270,69 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 		?>
 		<button class="wpcode-button" type="submit" value="publish" name="button"><?php echo esc_html( $this->publish_button_text ); ?></button>
 		<?php
+	}
+
+	/**
+	 * The Live Preview button for CSS and SCSS snippets.
+	 *
+	 * @return void
+	 */
+	public function live_preview_button() {
+		$is_new_snippet      = ! isset( $this->snippet_id );
+		$supported_types     = array( 'css', 'scss' );
+
+		// For existing snippets, only show for CSS and SCSS snippets.
+		if ( ! $is_new_snippet && ! in_array( $this->snippet->get_code_type(), $supported_types, true ) ) {
+			return;
+		}
+
+		// Determine current location and allowed site-wide locations for JS to validate before launching preview.
+		$location            = $is_new_snippet ? 'site_wide_header' : $this->snippet->get_location();
+		$supported_locations = array( 'site_wide_header', 'site_wide_footer', 'site_wide_body' );
+
+		// Build the live preview URL.
+		$preview_url = add_query_arg(
+			array(
+				'page'       => 'wpcode-live-preview',
+				'snippet_id' => $is_new_snippet ? 0 : $this->snippet_id,
+			),
+			admin_url( 'admin.php' )
+		);
+
+		// Store current CSS in transient before opening preview (only for existing snippets).
+		if ( ! $is_new_snippet ) {
+			$this->store_css_for_preview();
+		}
+		?>
+		<a href="<?php echo esc_url( $preview_url ); ?>" class="wpcode-button wpcode-button-secondary wpcode-live-preview-button" id="wpcode-live-preview-button" data-current-location="<?php echo esc_attr( $location ); ?>" data-allowed-locations="<?php echo esc_attr( implode( ',', $supported_locations ) ); ?>" data-is-new="<?php echo $is_new_snippet ? '1' : '0'; ?>" data-show-if-id="#wpcode_snippet_type" data-show-if-value="<?php echo esc_attr( implode( ',', $supported_types ) ); ?>">
+			<?php wpcode_icon( 'eye', 15, 10, "0 0 17 10" ); ?>
+			<?php esc_html_e( 'Live Preview', 'insert-headers-and-footers' ); ?>
+		</a>
+		<?php
+	}
+
+	/**
+	 * Store the current CSS/SCSS in a transient for preview.
+	 *
+	 * @return void
+	 */
+	private function store_css_for_preview() {
+		if ( ! isset( $this->snippet ) ) {
+			return;
+		}
+
+		$user_id   = get_current_user_id();
+		$code_type = $this->snippet->get_code_type();
+
+		// For SCSS, store in the source transient. The compiled CSS will be generated client-side.
+		if ( 'scss' === $code_type ) {
+			$transient_key = "wpcode_preview_scss_source_{$user_id}_{$this->snippet_id}";
+		} else {
+			$transient_key = "wpcode_preview_css_{$user_id}_{$this->snippet_id}";
+		}
+
+		// Store the current code for 1 hour.
+		set_transient( $transient_key, $this->snippet->get_code(), HOUR_IN_SECONDS );
 	}
 
 	/**
@@ -1379,7 +1470,7 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 			// If the snippet failed to change status display an error message.
 			$message_number = 3;
 			// If the current user is not allowed to change snippet status, display a different message.
-			if ( ! current_user_can( 'wpcode_activate_snippets' ) ) {
+			if ( ! current_user_can( 'wpcode_activate_snippets' ) ) { //phpcs:ignore
 				$message_number = 4;
 			}
 
@@ -1636,6 +1727,7 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 	 * @param string $type The value for the type input.
 	 * @param string $relation The value for the relation field.
 	 * @param string $value The value selected for this row.
+	 * @param array  $meta Optional, meta data for user or post meta.
 	 *
 	 * @return string
 	 */
@@ -1801,6 +1893,12 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 		$data['ai_url']           = wpcode_utm_url( 'https://wpcode.com/lite/', 'snippet-editor', 'ai', 'generate' );
 		$data['ai_improve_url']   = wpcode_utm_url( 'https://wpcode.com/lite/', 'snippet-editor', 'ai', 'improve' );
 		$data['ai_button']        = esc_html__( 'Upgrade to PRO', 'insert-headers-and-footers' );
+
+		// Live preview save prompt strings.
+		$data['live_preview_save_title']  = esc_html__( 'Save Snippet First', 'insert-headers-and-footers' );
+		$data['live_preview_save_text']   = esc_html__( 'Please save your CSS snippet first before using Live Preview. This will allow you to preview your changes in real-time.', 'insert-headers-and-footers' );
+		$data['live_preview_save_button'] = esc_html__( 'Save Snippet', 'insert-headers-and-footers' );
+		$data['cancel']                   = esc_html__( 'Cancel', 'insert-headers-and-footers' );
 
 		return $data;
 	}
@@ -2120,6 +2218,7 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 	 * @param string $label The label of the input.
 	 * @param string $placeholder The placeholder of the input.
 	 * @param string $clear_text The text of the clear button.
+	 * @param bool   $readonly If the input should be readonly.
 	 *
 	 * @return string
 	 */
@@ -2168,7 +2267,7 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 
 	/**
 	 * Markup for shortcode locations
-	 * 
+	 *
 	 * @return void
 	 */
 	public function get_shortcode_locations() {
@@ -2176,19 +2275,19 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 			'<button class="wpcode-button wpcode-button-secondary" id="wpcode-find-locations" type="button">
 				<span>%s</span>
 			</button>',
-			__('Find Where This Shortcode Is Used', 'insert-headers-and-footers')
+			__( 'Find Where This Shortcode Is Used', 'insert-headers-and-footers' )
 		);
-	
+
 		$help = $this->help_icon(
 			__( 'Click to search for any posts or pages where this shortcode is being used.', 'insert-headers-and-footers' ),
 			false
 		);
-	
-		$input = '<div id="wpcode-shortcode-locations-list" class="wpcode-shortcode-locations-list">';
+
+		$input  = '<div id="wpcode-shortcode-locations-list" class="wpcode-shortcode-locations-list">';
 		$input .= '<div class="wpcode-button-row">' . $button . $help . '</div>';
 		$input .= '<div id="wpcode-locations-list"></div>';
 		$input .= '</div>';
-	
+
 		$this->metabox_row(
 			__( 'Locations Used', 'insert-headers-and-footers' ),
 			$input,
@@ -2256,7 +2355,7 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 	/**
 	 * Get a styled radio input with an icon.
 	 *
-	 * @param string $icon Icon to use for label, @see get_wpcode_icon
+	 * @param string $icon Icon to use for label, @see get_wpcode_icon.
 	 * @param string $label The text of the label to display.
 	 * @param string $value The value of the radio input.
 	 * @param string $name The input name (for PHP).
@@ -2446,6 +2545,56 @@ class WPCode_Admin_Page_Snippet_Manager extends WPCode_Admin_Page {
 			</p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Sync the snippet with the library version.
+	 *
+	 * @return void
+	 */
+	protected function sync_snippet() {
+		if ( ! isset( $this->snippet ) || ! current_user_can( 'wpcode_edit_snippets' ) ) { //phpcs:ignore
+			return;
+		}
+
+		$snippet_id = $this->snippet->get_id();
+		$library_id = wpcode()->library->get_snippet_library_id( $snippet_id );
+
+		if ( empty( $library_id ) ) {
+			return;
+		}
+
+		$result = wpcode()->library->update_snippet_from_library( $snippet_id, $library_id );
+
+		if ( ! $result ) {
+			$this->set_error_message( __( 'Failed to update snippet from library.', 'insert-headers-and-footers' ) );
+			return;
+		}
+
+		// Reload the snippet to get the updated version.
+		$this->snippet = wpcode_get_snippet( $snippet_id );
+
+		$this->set_success_message( __( 'Snippet successfully updated from library.', 'insert-headers-and-footers' ) );
+	}
+
+	/**
+	 * Check if the current snippet has an update available.
+	 *
+	 * @return bool|array False if no update, array with version info if update available.
+	 */
+	private function snippet_has_update() {
+		if ( ! isset( $this->snippet ) ) {
+			return false;
+		}
+
+		$snippet_id = $this->snippet->get_id();
+		$library_id = wpcode()->library->get_snippet_library_id( $snippet_id );
+
+		if ( ! empty( $library_id ) ) {
+			return wpcode()->library->check_snippet_update( $snippet_id, $library_id );
+		}
+
+		return false;
 	}
 
 	/**

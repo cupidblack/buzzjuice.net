@@ -21,6 +21,64 @@ add_action( 'wp_ajax_wpcode_search_snippets', 'wpcode_ajax_search_snippets' );
 add_action( 'wp_ajax_wpcode_search_posts', 'wpcode_ajax_search_posts' );
 add_action( 'wp_ajax_wpcode_search_users', 'wpcode_ajax_search_users' );
 
+add_action( 'wp_ajax_wpcode_refresh_library_cache', 'wpcode_refresh_library_cache' );
+
+// Override the sync snippet function to handle cloud snippets with higher priority.
+add_action( 'wp_ajax_wpcode_sync_snippet', 'wpcode_sync_snippet_pro', 5 );
+add_action( 'wp_ajax_wpcode_refresh_license', 'wpcode_refresh_license' );
+
+
+/**
+ * AJAX handler for syncing a snippet from the cloud library - Pro version.
+ * This function overrides the one in the main plugin to handle cloud snippets.
+ * If the snippet is not a cloud snippet, it returns early to let the lite version handle it.
+ *
+ * @return void
+ */
+function wpcode_sync_snippet_pro() {
+
+	// Check nonce.
+	if ( ! check_ajax_referer( 'wpcode_admin', 'nonce', false ) ) {
+		wp_send_json_error( array( 'message' => __( 'Security check failed.', 'insert-headers-and-footers' ) ) );
+	}
+
+	// Check permissions.
+	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) { //phpcs:ignore
+		wp_send_json_error( array( 'message' => __( 'You do not have permission to edit snippets.', 'insert-headers-and-footers' ) ) );
+	}
+
+	$snippet_id = isset( $_POST['snippet_id'] ) ? absint( $_POST['snippet_id'] ) : 0;
+	$cloud_id   = isset( $_POST['cloud_id'] ) ? sanitize_text_field( wp_unslash( $_POST['cloud_id'] ) ) : false;
+
+	// If this is not a cloud snippet, return early to let the lite version handle it.
+	if ( empty( $cloud_id ) ) {
+		return;
+	}
+
+	if ( ! $snippet_id ) {
+		wp_send_json_error( array( 'message' => __( 'Invalid snippet ID.', 'insert-headers-and-footers' ) ) );
+	}
+
+	// Check if library is connected.
+	if ( ! wpcode()->library_auth->has_auth() ) {
+		wp_send_json_error( array( 'message' => __( 'You need to connect to the WPCode Library to sync cloud snippets.', 'insert-headers-and-footers' ) ) );
+	}
+
+	// Update snippet from cloud library.
+	$result = wpcode()->my_library->update_snippet_from_library( $snippet_id, $cloud_id );
+
+	if ( ! $result ) {
+		wp_send_json_error( array( 'message' => __( 'Failed to update snippet from cloud library.', 'insert-headers-and-footers' ) ) );
+	}
+
+	wp_send_json_success(
+		array(
+			'message' => __( 'Snippet successfully updated from cloud library.', 'insert-headers-and-footers' ),
+			'version' => ! empty( $result['version'] ) ? $result['version'] : '',
+		)
+	);
+}
+
 /**
  * Ajax handler to load a list of snippets.
  *
@@ -30,7 +88,7 @@ function wpcode_ajax_snippets_list() {
 
 	check_ajax_referer( 'wpcode_admin_global' );
 
-	if ( ! current_user_can( 'wpcode_activate_snippets' ) ) {
+	if ( ! current_user_can( 'wpcode_activate_snippets' ) ) { //phpcs:ignore
 		wp_send_json_error();
 	}
 
@@ -83,7 +141,7 @@ function wpcode_ajax_snippets_list() {
 function wpcode_ajax_selected_snippet() {
 	check_ajax_referer( 'wpcode_admin_global' );
 
-	if ( ! current_user_can( 'wpcode_activate_snippets' ) ) {
+	if ( ! current_user_can( 'wpcode_activate_snippets' ) ) { //phpcs:ignore
 		wp_send_json_error();
 	}
 
@@ -213,7 +271,7 @@ function wpcode_get_snippet_item_selected( $snippet, $location, $insert_number )
 function wpcode_load_revisions_compare() {
 	check_ajax_referer( 'wpcode_admin' );
 
-	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) {
+	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) { //phpcs:ignore
 		wp_send_json_error();
 	}
 
@@ -285,7 +343,7 @@ function wpcode_verify_license() {
 	check_ajax_referer( 'wpcode_admin' );
 
 	// Check for permissions.
-	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) {
+	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) { //phpcs:ignore
 		wp_send_json_error();
 	}
 
@@ -311,7 +369,7 @@ function wpcode_deactivate_license() {
 	check_ajax_referer( 'wpcode_admin' );
 
 	// Check for permissions.
-	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) {
+	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) { //phpcs:ignore
 		wp_send_json_error();
 	}
 
@@ -322,6 +380,11 @@ function wpcode_deactivate_license() {
 	wpcode()->license->deactivate_key( true, $force, $multisite );
 }
 
+/**
+ * Ajax endpoint for installing an addon.
+ *
+ * @return void
+ */
 function wpcode_install_addon() {
 	check_ajax_referer( 'wpcode_admin' );
 
@@ -371,7 +434,7 @@ function wpcode_install_addon() {
 function wpcode_ajax_search_snippets() {
 	check_ajax_referer( 'wpcode_admin' );
 
-	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) {
+	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) { //phpcs:ignore
 		wp_send_json_error();
 	}
 
@@ -410,7 +473,7 @@ function wpcode_ajax_search_snippets() {
 function wpcode_ajax_search_posts() {
 	check_ajax_referer( 'wpcode_admin' );
 
-	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) {
+	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) { //phpcs:ignore
 		wp_send_json_error();
 	}
 
@@ -456,7 +519,7 @@ function wpcode_ajax_search_posts() {
 function wpcode_ajax_search_users() {
 	check_ajax_referer( 'wpcode_admin' );
 
-	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) {
+	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) { //phpcs:ignore
 		wp_send_json_error();
 	}
 
@@ -484,4 +547,94 @@ function wpcode_ajax_search_users() {
 			'results' => $results,
 		)
 	);
+}
+
+/**
+ * AJAX handler for refreshing the library cache.
+ * This is a global version of the maybe_refresh_library_cache method in class-wpcode-admin-page-code-snippets-pro.php.
+ *
+ * @return void
+ */
+function wpcode_refresh_library_cache() {
+	// Check nonce.
+	if ( ! check_ajax_referer( 'wpcode_admin', 'nonce', false ) ) {
+		wp_send_json_error( array( 'message' => __( 'Security check failed.', 'insert-headers-and-footers' ) ) );
+	}
+
+	// Check permissions.
+	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) { //phpcs:ignore
+		wp_send_json_error( array( 'message' => __( 'You do not have permission to check for updates.', 'insert-headers-and-footers' ) ) );
+	}
+
+	// Check if the library is connected.
+	if ( ! wpcode()->library_auth->has_auth() ) {
+		wp_send_json_error( array( 'message' => __( 'You need to connect to the WPCode Library to check for updates to your private library.', 'insert-headers-and-footers' ) ) );
+	}
+
+	// Attempt to refresh the library cache.
+	$result = wpcode()->my_library->refresh_library_cache();
+
+	// If the cache was not refreshed due to rate limiting.
+	if ( ! $result ) {
+		wp_send_json_error(
+			array(
+				'message'          => __( 'Please wait before checking again. You can check for private library updates once per minute.', 'insert-headers-and-footers' ),
+				'recently_updated' => true,
+			)
+		);
+	}
+
+	wp_send_json_success( array( 'message' => __( 'Library cache refreshed successfully.', 'insert-headers-and-footers' ) ) );
+}
+/**
+ * AJAX handler for refreshing the license status.
+ *
+ * @return void
+ */
+function wpcode_refresh_license() {
+
+	// Run a security check.
+	check_ajax_referer( 'wpcode_admin' );
+
+	// Check for permissions.
+	if ( ! current_user_can( 'wpcode_edit_snippets' ) ) { //phpcs:ignore
+		wp_send_json_error();
+	}
+
+	// Get the multisite flag.
+	$multisite = isset( $_POST['multisite'] ) && boolval( $_POST['multisite'] );
+
+	// Get the license object.
+	$license = wpcode()->license;
+
+	// Get the license key.
+	$license_key = $license->get( $multisite );
+
+	// Check for license key.
+	if ( empty( $license_key ) ) {
+		wp_send_json_error( esc_html__( 'Please enter a license key.', 'wpcode-premium' ) );
+	}
+
+	// Validate the license key with force = true to refresh from server.
+	$result = $license->validate_key( $license_key, true, false, false, $multisite );
+
+	if ( $result ) {
+		// Get the updated license type.
+		$license_type = $license->type( $multisite );
+
+		wp_send_json_success(
+			array(
+				'msg'  => esc_html__( 'License key refreshed successfully!', 'wpcode-premium' ),
+				'type' => $license_type,
+			)
+		);
+	} elseif ( $license->is_expired() ) {
+		wp_send_json_error( esc_html__( 'Your license key has expired. Please renew your license.', 'wpcode-premium' ) );
+	} elseif ( $license->is_disabled() ) {
+		wp_send_json_error( esc_html__( 'Your license key has been disabled.', 'wpcode-premium' ) );
+	} elseif ( $license->is_invalid() ) {
+		wp_send_json_error( esc_html__( 'Your license key is invalid.', 'wpcode-premium' ) );
+	} else {
+		wp_send_json_error( esc_html__( 'There was an error refreshing your license. Please try again later.', 'wpcode-premium' ) );
+	}
 }

@@ -1,4 +1,3 @@
-/*! elementor - v3.31.0 - 09-09-2025 */
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -1553,39 +1552,39 @@ function addMixpanelTrackingChecklistSteps(name, action) {
   var documentMetaData = getDocumentMetaDataMixpanel();
   name = name.replace(/_/g, '');
   var eventName = "checklist_steps_".concat(action, "_").concat(name);
-  return elementor.editorEvents.dispatchEvent(eventName, _objectSpread({
-    location: elementor.editorEvents.config.locations.elementorEditor,
-    secondaryLocation: elementor.editorEvents.config.secondaryLocations.checklistSteps,
-    trigger: elementor.editorEvents.config.triggers.click,
-    element: elementor.editorEvents.config.elements[element]
+  return elementorCommon.eventsManager.dispatchEvent(eventName, _objectSpread({
+    location: elementorCommon.eventsManager.config.locations.elementorEditor,
+    secondaryLocation: elementorCommon.eventsManager.config.secondaryLocations.checklistSteps,
+    trigger: elementorCommon.eventsManager.config.triggers.click,
+    element: elementorCommon.eventsManager.config.elements[element]
   }, documentMetaData));
 }
 function addMixpanelTrackingChecklistHeader(name) {
   var documentMetaData = getDocumentMetaDataMixpanel();
-  return elementor.editorEvents.dispatchEvent(elementor.editorEvents.config.names.elementorEditor.checklist[name], _objectSpread({
-    location: elementor.editorEvents.config.locations.elementorEditor,
-    secondaryLocation: elementor.editorEvents.config.secondaryLocations.checklistHeader,
-    trigger: elementor.editorEvents.config.triggers.click,
-    element: elementor.editorEvents.config.elements.buttonIcon
+  return elementorCommon.eventsManager.dispatchEvent(elementorCommon.eventsManager.config.names.elementorEditor.checklist[name], _objectSpread({
+    location: elementorCommon.eventsManager.config.locations.elementorEditor,
+    secondaryLocation: elementorCommon.eventsManager.config.secondaryLocations.checklistHeader,
+    trigger: elementorCommon.eventsManager.config.triggers.click,
+    element: elementorCommon.eventsManager.config.elements.buttonIcon
   }, documentMetaData));
 }
 function addMixpanelTrackingChecklistTopBar(togglePopupState) {
   var documentMetaData = getDocumentMetaDataMixpanel();
   var name = !togglePopupState ? 'launchpadOn' : 'launchpadOff';
-  return elementor.editorEvents.dispatchEvent(elementor.editorEvents.config.names.topBar[name], _objectSpread({
-    location: elementor.editorEvents.config.locations.topBar,
-    secondaryLocation: elementor.editorEvents.config.secondaryLocations.launchpad,
-    trigger: elementor.editorEvents.config.triggers.toggleClick,
-    element: elementor.editorEvents.config.elements.buttonIcon
+  return elementorCommon.eventsManager.dispatchEvent(elementorCommon.eventsManager.config.names.topBar[name], _objectSpread({
+    location: elementorCommon.eventsManager.config.locations.topBar,
+    secondaryLocation: elementorCommon.eventsManager.config.secondaryLocations.launchpad,
+    trigger: elementorCommon.eventsManager.config.triggers.toggleClick,
+    element: elementorCommon.eventsManager.config.elements.buttonIcon
   }, documentMetaData));
 }
 function dispatchChecklistOpenEvent() {
   var documentMetaData = getDocumentMetaDataMixpanel();
-  return elementor.editorEvents.dispatchEvent(elementor.editorEvents.config.names.elementorEditor.checklist.checklistFirstPopup, _objectSpread({
-    location: elementor.editorEvents.config.locations.elementorEditor,
-    secondaryLocation: elementor.editorEvents.config.secondaryLocations.launchpad,
-    trigger: elementor.editorEvents.config.triggers.editorLoaded,
-    element: elementor.editorEvents.config.elements.launchpadChecklist
+  return elementorCommon.eventsManager.dispatchEvent(elementorCommon.eventsManager.config.names.elementorEditor.checklist.checklistFirstPopup, _objectSpread({
+    location: elementorCommon.eventsManager.config.locations.elementorEditor,
+    secondaryLocation: elementorCommon.eventsManager.config.secondaryLocations.launchpad,
+    trigger: elementorCommon.eventsManager.config.triggers.editorLoaded,
+    element: elementorCommon.eventsManager.config.elements.launchpadChecklist
   }, documentMetaData));
 }
 function getDocumentMetaDataMixpanel() {
@@ -2093,19 +2092,17 @@ function _regeneratorDefine(e, r, n, t) {
     i = 0;
   }
   module.exports = _regeneratorDefine = function regeneratorDefine(e, r, n, t) {
-    if (r) i ? i(e, r, {
+    function o(r, n) {
+      _regeneratorDefine(e, r, function (e) {
+        return this._invoke(r, n, e);
+      });
+    }
+    r ? i ? i(e, r, {
       value: n,
       enumerable: !t,
       configurable: !t,
       writable: !t
-    }) : e[r] = n;else {
-      var o = function o(r, n) {
-        _regeneratorDefine(e, r, function (e) {
-          return this._invoke(r, n, e);
-        });
-      };
-      o("next", 0), o("throw", 1), o("return", 2);
-    }
+    }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2));
   }, module.exports.__esModule = true, module.exports["default"] = module.exports, _regeneratorDefine(e, r, n, t);
 }
 module.exports = _regeneratorDefine, module.exports.__esModule = true, module.exports["default"] = module.exports;

@@ -292,7 +292,7 @@ window.bp = window.bp || {};
 								activity.poll.options = response.data.all_options;
 
 								var activityPollEntry = new bp.Views.ActivityPollEntry( response.data );
-								$( '#activity-' + activtyId + ' .bb-activity-poll_block' ).html( activityPollEntry.render().el );
+								$( '#activity-' + activtyId + ' .bb-activity-poll_block' ).replaceWith( activityPollEntry.render().el );
 
 								eventTarget.parents( '.activity-item' ).attr( 'data-bp-activity', JSON.stringify( activity ) );
 								eventTarget.parent().removeClass( 'is-invalid' );

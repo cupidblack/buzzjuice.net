@@ -84,7 +84,7 @@ wp-content/object-cache.php
 wp-content/backwpup-*
 wp-content/wflogs/
 wp-content/ai1wm-backups/
-
+shared/sso_sessions/
 # ----------------------------
 # WoWonder / QuickDate specifics
 # ----------------------------

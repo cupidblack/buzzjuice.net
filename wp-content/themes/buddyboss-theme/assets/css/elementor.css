@@ -925,6 +925,9 @@ body.bp-search .site-header.site-header--elementor {
 .site-header--elementor .course-toggle-view {
   display: none;
 }
+.site-header--elementor:before {
+  display: none;
+}
 .site-header--elementor.site-header--align-right .header-aside {
   -webkit-box-pack: end;
       -ms-flex-pack: end;

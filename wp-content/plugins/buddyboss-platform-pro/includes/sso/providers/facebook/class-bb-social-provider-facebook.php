@@ -268,6 +268,8 @@ class BB_Social_Provider_Facebook extends BB_SSO_Provider_OAuth {
 					if ( isset( $profile_picture['data']['is_silhouette'] ) && ! $profile_picture['data']['is_silhouette'] ) {
 						return $profile_picture['data']['url'];
 					}
+				} elseif ( ! empty( $profile_picture ) && filter_var( $profile_picture, FILTER_VALIDATE_URL ) ) {
+					return $profile_picture;
 				}
 
 				return '';

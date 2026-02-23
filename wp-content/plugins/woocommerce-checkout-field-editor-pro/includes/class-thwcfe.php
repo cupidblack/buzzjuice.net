@@ -171,6 +171,7 @@ class THWCFE {
 		$this->loader->add_action( 'admin_init', $plugin_admin, 'fb_collection_actions', 20 );
 		$this->loader->add_action( 'admin_init', $plugin_admin, 'landing_page' , 10 );
 		$this->loader->add_action( 'admin_init', $plugin_admin, 'redirect_to_landing_page', 10 );
+		$this->loader->add_action( 'admin_head', $plugin_admin, 'remove_welcome_page_menu');
 
 		$general_settings = new THWCFE_Admin_Settings_General();
 		$this->loader->add_action( 'after_setup_theme', $general_settings, 'define_admin_hooks' );

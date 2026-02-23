@@ -508,6 +508,10 @@ class THWCFE_Admin {
 		return true;
 	}
 
+	public function remove_welcome_page_menu() {
+		remove_submenu_page( 'index.php', 'thwcfe-welcome' );
+	}
+
 }
 
 endif;

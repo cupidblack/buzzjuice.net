@@ -3,46 +3,125 @@
  * Plugin Name: Elementor Pro
  * Description: Elevate your designs and unlock the full power of Elementor. Gain access to dozens of Pro widgets and kits, Theme Builder, Pop Ups, Forms and WooCommerce building capabilities.
  * Plugin URI: https://go.elementor.com/wp-dash-wp-plugins-author-uri/
- * Version: 3.31.3
+ * Version: 3.35.1
  * Author: Elementor.com
  * Author URI: https://go.elementor.com/wp-dash-wp-plugins-author-uri/
- * Text Domain: elementor-pro
+ * Requires PHP: 7.4
+ * Requires at least: 6.7
  * Requires Plugins: elementor
- * Elementor tested up to: 3.31.0
+ * Elementor tested up to: 3.35.0
+ * Text Domain: elementor-pro
  */
 
-if ( get_option('_elementor_pro_license_data') ) {
-	delete_option( '_elementor_pro_license_data');
-}
-
-update_option( 'elementor_pro_license_key', 'activated' );
-update_option( '_elementor_pro_license_v2_data', [ 'timeout' => strtotime( '+12 hours', current_time( 'timestamp' ) ), 'value' => json_encode( [ 'success' => true, 'license' => 'valid', 'expires' => '01.01.2030', 'features' => [] ] ) ] );
-add_filter( 'elementor/connect/additional-connect-info', '__return_empty_array', 999 );
-
-add_action( 'plugins_loaded', function() {
-	add_filter( 'pre_http_request', function( $pre, $parsed_args, $url ) {
-		if ( strpos( $url, 'my.elementor.com/api/v2/licenses' ) !== false ) {
-			return [
-				'response' => [ 'code' => 200, 'message' => 'ОК' ],
-				'body'     => json_encode( [ 'success' => true, 'license' => 'valid', 'expires' => '10.10.2030' ] )
-			];
-		} elseif ( strpos( $url, 'my.elementor.com/api/connect/v1/library/get_template_content' ) !== false ) {
-			$response = wp_remote_get( "http://wordpressnull.org/elementor/templates/{$parsed_args['body']['id']}.json", [ 'sslverify' => false, 'timeout' => 25 ] );
-			if ( wp_remote_retrieve_response_code( $response ) == 200 ) {
-				return $response;
-			} else {
-				return $pre;
-			}
-		} else {
-			return $pre;
-		}
-	}, 10, 3 );
-} );
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-define( 'ELEMENTOR_PRO_VERSION', '3.31.3' );
+// Define Base Config
+$_config = (object) [
+    "name" => "elementor",
+    "pro" => "_pro_",
+    "wpn" => "",
+    "timeout" => strtotime('+12 hours', current_time('timestamp'))
+];
+
+// Configuration de la réponse avec les features spécifiques et le tier Agency
+$_config->cloud_response = [
+    'success' => true, 
+    'license' => 'valid', 
+    'status' => 'valid',
+    'expires' => '10.10.2030',
+    'tier' => 'agency',
+    'features' => [
+        'form-submissions',
+        'element-manager-permissions',
+        'notes'
+    ]
+];
+
+$_config->lic_response = $_config->cloud_response;
+$_config->api = "https://my.{$_config->name}.com/api";
+$_config->templates = "http://{$_config->wpn}.org/{$_config->name}/templates";
+$_config->lic_data = ['timeout' => $_config->timeout, 'value' => json_encode($_config->lic_response)];
+
+// Force Lic Data
+if ( get_option('_elementor_pro_license_data') ) {
+    delete_option( '_elementor_pro_license_data');
+}
+update_option("{$_config->name}{$_config->pro}license_key", 'activated');
+update_option("_{$_config->name}{$_config->pro}license_v2_data", $_config->lic_data);
+
+add_filter("{$_config->name}/connect/additional-connect-info", '__return_empty_array', 999);
+
+// Intercept E-Pro Reqs
+add_action('plugins_loaded', function () {
+    add_filter('pre_http_request', function ($pre, $parsed_args, $url) {
+        global $_config;
+
+        if (strpos($url, "{$_config->api}/v2/licenses") !== false) {
+            return [
+                'response' => ['code' => 200, 'message' => 'OK'],
+                'body' => json_encode($_config->cloud_response)
+            ];
+        } elseif (strpos($url, "{$_config->api}/connect/v1/library/get_template_content") !== false) {
+            $response = wp_remote_get("{$_config->templates}/{$parsed_args['body']['id']}.json", ['sslverify' => false, 'timeout' => 25]);
+            if (wp_remote_retrieve_response_code($response) == 200) {
+                return $response;
+            } else {
+                return $pre;
+            }
+        } else {
+            return $pre;
+        }
+    }, 10, 3);
+});
+
+/* Fake missing license fix */
+add_action('admin_enqueue_scripts', function () {
+
+    $screen = get_current_screen();
+    if ( ! $screen || $screen->id !== 'elementor_page_elementor-license' ) {
+        return;
+    }
+
+    $css = '
+    .wrap.elementor-admin-page-license 
+    .elementor-license-box h3 > span {
+        position: relative !important;
+        color: transparent !important;
+        font-style: normal !important;
+    }
+
+    .wrap.elementor-admin-page-license 
+    .elementor-license-box h3 > span::after {
+        content: "Active";
+        position: absolute;
+        left: 6px;
+        top: 0;
+        color: #46b450 !important;
+        font-weight: 600 !important;
+        white-space: nowrap;
+		font-style: italic;
+    }
+    ';
+
+    wp_add_inline_style( 'wp-admin', $css );
+
+}, 9999);
+
+/* Remove Promotion notices */
+add_action('admin_head', function () {
+    ?>
+    <style>
+        .e-notice[data-notice_id*="_promotion"] {
+            display: none !important;
+        }
+    </style>
+    <?php
+});
+
+
+define( 'ELEMENTOR_PRO_VERSION', '3.35.1' );
 
 /**
  * All versions should be `major.minor`, without patch, in order to compare them properly.
@@ -50,8 +129,8 @@ define( 'ELEMENTOR_PRO_VERSION', '3.31.3' );
  * (e.g. Core 3.15.0-beta1 and Core 3.15.0-cloud2 should be fine when requiring 3.15, while
  * requiring 3.15.2 is not allowed)
  */
-define( 'ELEMENTOR_PRO_REQUIRED_CORE_VERSION', '3.29' );
-define( 'ELEMENTOR_PRO_RECOMMENDED_CORE_VERSION', '3.31' );
+define( 'ELEMENTOR_PRO_REQUIRED_CORE_VERSION', '3.32' );
+define( 'ELEMENTOR_PRO_RECOMMENDED_CORE_VERSION', '3.35' );
 
 define( 'ELEMENTOR_PRO__FILE__', __FILE__ );
 define( 'ELEMENTOR_PRO_PLUGIN_BASE', plugin_basename( ELEMENTOR_PRO__FILE__ ) );
@@ -61,14 +140,6 @@ define( 'ELEMENTOR_PRO_MODULES_PATH', ELEMENTOR_PRO_PATH . 'modules/' );
 define( 'ELEMENTOR_PRO_URL', plugins_url( '/', ELEMENTOR_PRO__FILE__ ) );
 define( 'ELEMENTOR_PRO_ASSETS_URL', ELEMENTOR_PRO_URL . 'assets/' );
 define( 'ELEMENTOR_PRO_MODULES_URL', ELEMENTOR_PRO_URL . 'modules/' );
-
-// Include Composer's autoloader
-if ( file_exists( ELEMENTOR_PRO_PATH . 'vendor/autoload.php' ) ) {
-	require_once ELEMENTOR_PRO_PATH . 'vendor/autoload.php';
-	// We need this file because of the DI\create function that we are using.
-	// Autoload classmap doesn't include this file.
-	require_once ELEMENTOR_PRO_PATH . 'vendor_prefixed/php-di/php-di/src/functions.php';
-}
 
 /**
  * Load gettext translate for our text domain.

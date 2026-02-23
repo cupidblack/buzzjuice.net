@@ -22,7 +22,7 @@ function bb_register_topics() {
 			! bp_is_active( 'groups' ) &&
 			! bp_is_active( 'activity' )
 		) ||
-		! bbp_pro_is_license_valid() ||
+		bb_pro_should_lock_features() ||
 		! function_exists( 'bb_topics_manager_instance' )
 	) {
 		return;

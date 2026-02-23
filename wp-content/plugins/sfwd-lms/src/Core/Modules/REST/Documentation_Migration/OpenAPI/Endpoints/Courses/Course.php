@@ -32,7 +32,7 @@ class Course extends LDLMS_V2_Endpoint {
 	 * @return array<string,array<string,mixed>|string>
 	 */
 	public function get_response_schema( string $path = '', string $method = '' ): array {
-		$route_path = '/' . trim( $this->get_namespace(), '/' ) . '/' . ltrim( $path, '/' );
+		$route_path = '/' . ltrim( $path, '/' );
 
 		if ( $this->determine_route_type( $route_path ) === 'singular' ) {
 			return [
@@ -75,14 +75,15 @@ class Course extends LDLMS_V2_Endpoint {
 		$summaries = [
 			'collection' => [
 				'GET'  => sprintf(
-					// translators: %s: plural courses label.
-					__( 'Get %s', 'learndash' ),
+					// translators: 1: plural courses label.
+					__( 'List %1$s: retrieve all %1$s with filtering and pagination', 'learndash' ),
 					learndash_get_custom_label_lower( 'courses' )
 				),
 				'POST' => sprintf(
-					// translators: %s: singular course label.
-					__( 'Create a new %s', 'learndash' ),
-					learndash_get_custom_label_lower( 'course' )
+					// translators: 1: singular course label, 2: plural lessons label.
+					__( 'Create %1$s container: requires %2$s to be functional', 'learndash' ),
+					learndash_get_custom_label_lower( 'course' ),
+					learndash_get_custom_label_lower( 'lessons' ),
 				),
 			],
 			'singular'   => [
@@ -136,16 +137,18 @@ class Course extends LDLMS_V2_Endpoint {
 		$descriptions = [
 			'collection' => [
 				'GET'  => sprintf(
-					// translators: %s: plural courses label.
-					__( 'Returns a list of %s. You can filter the results using query parameters such as per_page, page, search, and orderby.', 'learndash' ),
-					learndash_get_custom_label_lower( 'courses' )
+					// translators: 1: plural courses label, 2: singular course label.
+					__( 'Returns a paginated collection of %1$s. Supports filtering by author, category, tag, status, and search. Use per_page (max 100) and page for pagination. Does not include %2$s steps/content structure.', 'learndash' ),
+					learndash_get_custom_label_lower( 'courses' ),
+					learndash_get_custom_label_lower( 'course' )
 				),
 				'POST' => sprintf(
-					// translators: %s: singular course label.
-					__( 'Creates a new %1$s. Requires %2$s data in the request body including title, content, and other %3$s-specific fields.', 'learndash' ),
+					// translators: 1: singular course label, 2: plural lessons label, 3: plural topics label, 4: plural quizzes label.
+					__( 'Creates an empty %1$s with metadata (title, pricing, settings). Warning: A %1$s without %2$s/%3$s assigned via /sfwd-courses/{id}/steps is non-functional and cannot be taken by students. Always follow with: 1) Create %2$s/%3$s/%4$s, 2) Assign them using the /steps endpoint.', 'learndash' ),
 					learndash_get_custom_label_lower( 'course' ),
-					learndash_get_custom_label_lower( 'course' ),
-					learndash_get_custom_label_lower( 'course' )
+					learndash_get_custom_label_lower( 'lessons' ),
+					learndash_get_custom_label_lower( 'topics' ),
+					learndash_get_custom_label_lower( 'quizzes' )
 				),
 			],
 			'singular'   => [
@@ -184,5 +187,16 @@ class Course extends LDLMS_V2_Endpoint {
 			__( 'Performs operations on %s.', 'learndash' ),
 			learndash_get_custom_label_lower( 'courses' )
 		);
+	}
+
+	/**
+	 * Returns the tags for this endpoint.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return string[]
+	 */
+	protected function get_tags(): array {
+		return [ learndash_get_custom_label_lower( 'courses' ) ];
 	}
 }

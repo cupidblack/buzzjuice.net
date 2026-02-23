@@ -10,7 +10,7 @@
  * Plugin Name:       Content Views
  * Plugin URI:        http://wordpress.org/plugins/content-views-query-and-display-post-page/
  * Description:       Display your posts, pages, custom posts, media files in beautiful Grid, List, Slider, and other layouts easily. With a powerful shortcode feature for the Classic Editor & page builders, 16 blocks & 76+ patterns for the Block Editor, and 16 widgets for the Elementor page builder.
- * Version:           4.2
+ * Version:           4.3
  * Author:            Content Views
  * Author URI:        http://profiles.wordpress.org/pt-guy
  * Text Domain:       content-views-query-and-display-post-page
@@ -24,7 +24,7 @@ if ( !defined( 'ABSPATH' ) ) {
 }
 
 // Define Constant
-define( 'PT_CV_VERSION', '4.2' );
+define( 'PT_CV_VERSION', '4.3' );
 define( 'PT_CV_FILE', __FILE__ );
 define( 'PT_CV_PATH', plugin_dir_path( __FILE__ ) );
 define( 'PT_CV_URL', plugin_dir_url( __FILE__ ) );

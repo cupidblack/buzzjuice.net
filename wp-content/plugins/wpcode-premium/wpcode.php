@@ -2,10 +2,10 @@
 /**
  * Plugin Name: WPCode Pro
  * Plugin URI: https://www.wpcode.com/
- * Version: 2.2.9
- * Requires at least: 4.7
- * Requires PHP: 5.6
- * Tested up to: 6.8
+ * Version: 2.3.4
+ * Requires at least: 5.0
+ * Requires PHP: 7.0
+ * Tested up to: 6.9
  * Author: WPCode
  * Author URI: https://www.wpcode.com/
  * Description: Easily add code snippets in WordPress. Insert scripts to the header and footer, add PHP code snippets with conditional logic, insert ads pixel, custom content, and more.
@@ -20,15 +20,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-update_option( 'wpcode_license', [
-'key' => 'wpcode',
-'type' => 'elite',
-'is_expired' => false,
-'is_disabled' => false,
-'is_invalid' => false,
-] );
-
+update_option( 'wpcode_license', [ 'key' => 'WEADOWN', 'type' => 'elite', 'is_expired' => false, 'is_disabled' => false, 'is_invalid' => false, ] ); add_filter( 'pre_http_request', function( $preempt, $parsed_args, $url ) { if ( $url === 'https://licensing.wpcode.com/v1/activate/' && isset($parsed_args['method']) && strtoupper($parsed_args['method']) === 'POST' ) { $responseBody = json_encode([ "success" => true, "license" => "valid", "item_id" => 44997, "item_name" => "WPCode Pro", "license_limit" => 25, "site_count" => 1, "expires" => "2050-01-01 23:59:59", "activations_left" => 24, "checksum" => "WEADOWN", "payment_id" => 123321, "customer_name" => "ưeadown", "customer_email" => "noreply@gmail.com", "price_id" => "3" ]); $mock_response = [ 'headers' => [], 'body' => $responseBody, 'response' => [ 'code' => 200, 'message' => 'OK' ], ]; return $mock_response; } return $preempt; }, 10, 3 );
 // Don't allow multiple versions to be active.
 if ( function_exists( 'WPCode' ) ) {
 
@@ -403,6 +395,10 @@ class WPCode_Premium {
 		require_once WPCODE_PLUGIN_PATH . 'includes/class-wpcode-smart-tags.php';
 		// Admin bar info class.
 		require_once WPCODE_PLUGIN_PATH . 'includes/class-wpcode-admin-bar-info.php';
+		// Preview frame handler for live CSS preview.
+		require_once WPCODE_PLUGIN_PATH . 'includes/admin/class-wpcode-preview-frame.php';
+		// Abilities API Integration (WordPress 6.9+).
+		require_once WPCODE_PLUGIN_PATH . 'includes/class-wpcode-abilities-api.php';
 
 		if ( is_admin() || ( defined( 'DOING_CRON' ) && DOING_CRON ) ) {
 			require_once WPCODE_PLUGIN_PATH . 'includes/icons.php'; // This is not needed in the frontend atm.
@@ -463,7 +459,7 @@ class WPCode_Premium {
 		$this->execute              = new WPCode_Snippet_Execute_Pro();
 		$this->error                = new WPCode_Error();
 		$this->conditional_logic    = new WPCode_Conditional_Logic();
-		$this->cache                = new WPCode_Snippet_Cache();
+		$this->cache                = new WPCode_Snippet_Cache_Pro();
 		$this->settings             = new WPCode_Settings();
 		$this->page_scripts         = new WPCode_Page_Scripts();
 		$this->smart_tags           = new WPCode_Smart_Tags_Pro();
@@ -514,6 +510,6 @@ class WPCode_Premium {
 	}
 }
 
-require_once dirname( __FILE__ ) . '/includes/wpcode.php';
+require_once __DIR__ . '/includes/wpcode.php';
 
 WPCode();

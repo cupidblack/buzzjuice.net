@@ -1,6 +1,6 @@
-/*! content-views 02-2025 */
+/*! content-views 01-2026 */
 /*!
- * Bootstrap v3.4.2 (http://getbootstrap.com)
+ * Bootstrap Custom v3.4.2 (http://getbootstrap.com)
  * Copyright 2011-2019 Twitter, Inc.
  * Licensed under the MIT license
  * Customized (include only some components, prevent conflicts, fix issues)

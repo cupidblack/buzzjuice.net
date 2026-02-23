@@ -17539,6 +17539,9 @@ a.layout-grid-view {
 #buddypress .only-grid-view.button-wrap.member-button-wrap.footer-button-wrap button:focus {
   color: var(--bb-primary-color);
   opacity: 1;
+  background-color: transparent;
+  border: 0;
+  box-shadow: none;
 }
 #buddypress .only-grid-view.button-wrap.member-button-wrap.footer-button-wrap i {
   opacity: 0.7;
@@ -21647,11 +21650,14 @@ body #buddypress .bp-list.bp-list .bpgesWrapper .bp-generic-meta .generic-button
   }
 }
 @media (max-width: 544px) {
-  .subnav-search.groups-search {
+  .subnav-search.members-search, .subnav-search.groups-search {
     float: left;
     margin-top: -6px;
     width: 100%;
     margin-bottom: 20px;
+  }
+  .subnav-search.members-search .dir-search, .subnav-search.groups-search .dir-search {
+    width: 100%;
   }
 }
 .bb-single-bp-content {

@@ -38,6 +38,32 @@ class WPCode_Conditional_Device extends WPCode_Conditional_Type {
 	}
 
 	/**
+	 * Load evaluation-only options (without translations) for frontend use.
+	 * This method is called when translations are not yet loaded to avoid WP 6.7 notices.
+	 *
+	 * @return void
+	 */
+	public function load_evaluation_options() {
+		$this->options = array(
+			'device_type'  => array(
+				'callback' => array( $this, 'get_device_type' ),
+			),
+			'browser'      => array(
+				'callback' => array( $this, 'get_browser_type' ),
+			),
+			'os'           => array(
+				'callback' => array( $this, 'get_os_type' ),
+			),
+			'cookie_name'  => array(
+				'callback' => array( $this, 'get_cookie_names' ),
+			),
+			'cookie_value' => array(
+				'callback' => array( $this, 'get_cookie_values' ),
+			),
+		);
+	}
+
+	/**
 	 * Set the type options for the admin mainly.
 	 *
 	 * @return void

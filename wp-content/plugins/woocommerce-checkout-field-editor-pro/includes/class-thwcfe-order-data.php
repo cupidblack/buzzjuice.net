@@ -728,11 +728,12 @@ class THWCFE_Order_Data {
 
 	private function get_order_meta_fields($order, $section, $context, $args){
 		$fields = array();
+		$exclude_disabled = apply_filters('thwcfe_exclude_disabled_fields', false);
 
 		if($section){
 			$order_id   = THWCFE_Utils::get_order_id($order);
 			$cart_info  = THWCFE_Utils::get_order_summary($order);
-			$fields     = THWCFE_Utils_Section::get_fields($section, $cart_info, true);
+			$fields     = THWCFE_Utils_Section::get_fields($section, $cart_info, $exclude_disabled);
 			$dis_fields = $this->get_disabled_fields($order_id);
 			$fields     = $this->prepare_order_meta_fields($order_id, $fields, $dis_fields, $context, $args);
 		}
@@ -741,13 +742,22 @@ class THWCFE_Order_Data {
 
 	private function prepare_order_meta_fields($order_id, $fields, $dis_fields, $context, $args){
 		$final_fields = array();
+		$exclude_disabled = apply_filters('thwcfe_exclude_disabled_fields', false);
 
 		if(is_array($fields)){
 			$rfnames = THWCFE_Utils_Repeat::get_repeat_field_names($order_id);
 
 			foreach($fields as $name => $field){
 				//if( THWCFE_Utils_Field::is_custom_enabled($field) && !in_array($name, $dis_fields)){
-				if(THWCFE_Utils_Field::is_valid_field($field) && THWCFE_Utils_Field::is_enabled($field) && !in_array($name, $dis_fields)){
+				/**
+				 **** Filter flag aligned with old conditional logic ****
+				 **** Check for valid field or enabled field based on exclude_disabled flag ****
+				 */
+				$is_valid_field = $exclude_disabled						// Unchanged old conditional logic.
+					? THWCFE_Utils_Field::is_custom_enabled($field)
+					: THWCFE_Utils_Field::is_valid_custom($field);
+
+				if ( $is_valid_field && !in_array($name, $dis_fields) ) {
 					if($this->is_show_field($field, $context, $args)){
 						$final_fields[$name] = $field;
 						$repeat_fields = $this->prepare_order_meta_repeat_fields($order_id, $name, $field, $rfnames);
