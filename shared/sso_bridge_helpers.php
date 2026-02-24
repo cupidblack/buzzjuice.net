@@ -129,3 +129,21 @@ if (!function_exists('bz_fetch_remote_location')) {
         return false;
     }
 }
+
+
+
+if (!function_exists('bz_validate_stateless_sso')) {
+    function bz_validate_stateless_sso($token, $secret) {
+        $parts = explode('.', $token, 2);
+        if (count($parts) !== 2 || !$secret) return false;
+        $json = base64_decode(strtr($parts[0], '-_', '+/'));
+        $sig  = base64_decode(strtr($parts[1], '-_', '+/'));
+        if ($json === false || $sig === false) return false;
+        $calc = hash_hmac('sha256', $json, $secret, true);
+        if (!hash_equals($calc, $sig)) return false;
+        $payload = json_decode($json, true);
+        if (!$payload || !is_array($payload)) return false;
+        if (isset($payload['exp']) && time() > intval($payload['exp'])) return false;
+        return $payload;
+    }
+}

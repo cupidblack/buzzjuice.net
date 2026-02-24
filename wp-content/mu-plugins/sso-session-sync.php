@@ -103,16 +103,23 @@ add_action('init', function() use ($__buzz_sso_secret) {
     }
 
     $user = wp_get_current_user();
+    
     if (!$user || !$user->ID) {
-        status_header(500);
-        echo wp_json_encode(['status'=>500,'error'=>'Invalid WP session']);
+        status_header(401); // 401 is more appropriate than 500
+        echo wp_json_encode([
+            'status' => 401,
+            'error'  => 'Invalid WP session'
+        ]);
         exit;
     }
-
+    
+    $wo_user_id = get_user_meta($user->ID, 'wo_user_id', true);
+    
     $payload = [
-        'wp_user_id'    => (int)$user->ID,
-        'wp_user_login' => (string)$user->user_login,
-        'wp_user_email' => (string)$user->user_email,
+        'wp_user_id'    => (int) $user->ID,
+        'wp_user_login' => (string) $user->user_login,
+        'wp_user_email' => (string) $user->user_email,
+        'wo_user_id'    => (string) $wo_user_id, // ✅ correct
     ];
 
     $token = bz_build_one_time_token($payload, $__buzz_sso_secret);
