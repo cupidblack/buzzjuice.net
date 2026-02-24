@@ -1,12 +1,16 @@
 <?php
 /*
- * BuzzJuice SSO (stateless, unified MU-plugin)
- * - Stateless: signs/verifies all tokens; no PHP sessions, no shadow files
- * - WP login: issues short-lived HMAC token for SSO
- * - WP logout: immediately expires SSO token & chains orchestrator logout
+ * BuzzJuice Enterprise Stateless SSO Authority (WordPress Root)
+ * WordPress ↔ WoWonder ↔ QuickDate
+ * Fully Stateless HMAC SSO
  */
 
-// --- Config ---
+if (!defined('ABSPATH')) exit;
+
+/* =========================================================
+   CONFIG
+========================================================= */
+
 if (!defined('BUZZ_SSO_COOKIE'))    define('BUZZ_SSO_COOKIE', 'buzz_sso');
 if (!defined('BUZZ_SSO_TTL'))       define('BUZZ_SSO_TTL', 900); // 15 minutes
 if (!defined('BUZZ_COOKIE_DOMAIN')) define('BUZZ_COOKIE_DOMAIN', '.buzzjuice.net');
@@ -15,16 +19,35 @@ if (!defined('BUZZ_DEBUG_LOG'))     define('BUZZ_DEBUG_LOG', __DIR__ . '/wp_debu
 
 $__buzz_sso_secret = getenv('BUZZ_SSO_SECRET') ?: (defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : null);
 
-// --- Utility: HMAC Token ---
+/* =========================================================
+   UTILITIES
+========================================================= */
+
+function bz_debug_log($msg, $extra = []) {
+    if (!BUZZ_SSO_DEBUG) return;
+    $ts = gmdate('Y-m-d H:i:s');
+    @file_put_contents(BUZZ_DEBUG_LOG, "[$ts] $msg: " . json_encode($extra) . PHP_EOL, FILE_APPEND);
+}
+
 function bz_build_one_time_token(array $payload, $secret, $ttl = BUZZ_SSO_TTL) {
     $now = time();
     $payload['iat'] = $now;
     $payload['exp'] = $now + $ttl;
-    $json = function_exists('wp_json_encode') ? wp_json_encode($payload) : json_encode($payload);
-    $sig  = hash_hmac('sha256', $json, $secret, true);
-    return rtrim(strtr(base64_encode($json), '+/', '-_'), '=') . '.' .
-           rtrim(strtr(base64_encode($sig),  '+/', '-_'), '=');
+
+    // Optional: replay protection ready with a unique jti
+    if (empty($payload['jti'])) {
+        $payload['jti'] = bin2hex(random_bytes(16));
+    }
+
+    $json = function_exists('wp_json_encode')
+        ? wp_json_encode($payload)
+        : json_encode($payload);
+
+    $sig = hash_hmac('sha256', $json, $secret, true);
+    return rtrim(strtr(base64_encode($json), '+/', '-_'), '=') . '.' 
+         . rtrim(strtr(base64_encode($sig), '+/', '-_'), '=');
 }
+
 function bz_validate_token($token, $secret) {
     $parts = explode('.', $token, 2);
     if (count($parts) !== 2) return false;
@@ -32,81 +55,172 @@ function bz_validate_token($token, $secret) {
     $sig  = base64_decode(strtr($parts[1], '-_', '+/'));
     $calc = hash_hmac('sha256', $json, $secret, true);
     if (!hash_equals($calc, $sig)) return false;
-    $payload = @json_decode($json, true);
-    if (!$payload || time() > $payload['exp']) return false;
+    $payload = json_decode($json, true);
+    if (!$payload || empty($payload['exp']) || time() > $payload['exp']) return false;
     return $payload;
 }
 
-function bz_debug_log($msg, $extra = []) {
-    if (!BUZZ_SSO_DEBUG) return;
-    $ts = gmdate('Y-m-d H:i:s');
-    @file_put_contents(BUZZ_DEBUG_LOG, "[$ts] $msg: " . json_encode($extra) . PHP_EOL, FILE_APPEND);
-}
 function bz_expire_buzz_cookie() {
     $expiry = time() - 3600;
-    $domain = BUZZ_COOKIE_DOMAIN;
     if (PHP_VERSION_ID >= 70300) {
         setcookie(BUZZ_SSO_COOKIE, '', [
-            'expires' => $expiry,
-            'path' => '/',
-            'domain' => $domain,
-            'secure' => true,
+            'expires'  => $expiry,
+            'path'     => '/',
+            'domain'   => BUZZ_COOKIE_DOMAIN,
+            'secure'   => true,
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
     } else {
-        setcookie(BUZZ_SSO_COOKIE, '', $expiry, '/', $domain, true, true);
+        setcookie(BUZZ_SSO_COOKIE, '', $expiry, '/', BUZZ_COOKIE_DOMAIN, true, true);
     }
     unset($_COOKIE[BUZZ_SSO_COOKIE]);
 }
 
-// --- SSO login handoff on WP login ---
-add_action('wp_login', function($login, $user) use ($__buzz_sso_secret) {
-    if (!$__buzz_sso_secret) return;
+/* =========================================================
+   TOKEN ENDPOINT FOR SSO BRIDGES
+   https://buzzjuice.net/?sso_action=get_token
+========================================================= */
+
+add_action('init', function() use ($__buzz_sso_secret) {
+    if (empty($_GET['sso_action']) || $_GET['sso_action'] !== 'get_token') {
+        return;
+    }
+
+    nocache_headers();
+    header('Content-Type: application/json; charset=utf-8');
+
+    if (!is_user_logged_in()) {
+        status_header(401);
+        echo wp_json_encode(['status'=>401,'error'=>'User not logged in']);
+        exit;
+    }
+
+    if (!$__buzz_sso_secret) {
+        status_header(500);
+        echo wp_json_encode(['status'=>500,'error'=>'SSO secret not configured']);
+        exit;
+    }
+
+    $user = wp_get_current_user();
+    if (!$user || !$user->ID) {
+        status_header(500);
+        echo wp_json_encode(['status'=>500,'error'=>'Invalid WP session']);
+        exit;
+    }
 
     $payload = [
         'wp_user_id'    => (int)$user->ID,
         'wp_user_login' => (string)$user->user_login,
         'wp_user_email' => (string)$user->user_email,
     ];
+
     $token = bz_build_one_time_token($payload, $__buzz_sso_secret);
 
-    // Set SSO cookie for bridges (optional; bridges should also accept token param)
-    setcookie(BUZZ_SSO_COOKIE, $token, [
-        'expires'  => time() + BUZZ_SSO_TTL,
-        'path'     => '/',
-        'domain'   => BUZZ_COOKIE_DOMAIN,
-        'secure'   => true,
-        'httponly' => true,
-        'samesite' => 'Lax',
+    bz_debug_log('Bridge token issued', [
+        'wp_user_id'=>$user->ID,
+        'ip'=>$_SERVER['REMOTE_ADDR'] ?? 'CLI'
     ]);
-    // Redirect to sso-landing.php orchestrator
+
+    status_header(200);
+    echo wp_json_encode(['status'=>200,'token'=>$token]);
+    exit;
+});
+
+/* =========================================================
+   LOGIN (SSO Cookie + Orchestrator Handoff)
+========================================================= */
+
+add_action('wp_login', function($login, $user) use ($__buzz_sso_secret) {
+    if (!$__buzz_sso_secret) return;
+    // Avoid interfering with REST/AJAX/Admin flows
+    if (defined('DOING_AJAX') && DOING_AJAX) return;
+    if (defined('REST_REQUEST') && REST_REQUEST) return;
+    if (is_admin()) return;
+    if (in_array('administrator', (array)$user->roles, true)) return;
+
+    $payload = [
+        'wp_user_id'    => (int)$user->ID,
+        'wp_user_login' => (string)$user->user_login,
+        'wp_user_email' => (string)$user->user_email,
+    ];
+
+    $token = bz_build_one_time_token($payload, $__buzz_sso_secret);
+
+    if (PHP_VERSION_ID >= 70300) {
+        setcookie(BUZZ_SSO_COOKIE, $token, [
+            'expires'  => time() + BUZZ_SSO_TTL,
+            'path'     => '/',
+            'domain'   => BUZZ_COOKIE_DOMAIN,
+            'secure'   => true,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+    } else {
+        setcookie(BUZZ_SSO_COOKIE, $token, time()+BUZZ_SSO_TTL, '/', BUZZ_COOKIE_DOMAIN, true, true);
+    }
+
     $redirect_to = !empty($_REQUEST['redirect_to']) && is_string($_REQUEST['redirect_to'])
         ? esc_url_raw(wp_unslash($_REQUEST['redirect_to']))
         : '/';
-    $sso_url = site_url('/sso-landing.php?token=' . rawurlencode($token) . '&redirect_to=' . rawurlencode($redirect_to));
-    bz_debug_log('wp_login SSO', ['redirect'=>$sso_url]);
+
+    // Prevent redirect loops
+    $blocked = [
+        'sso-landing.php',
+        'ww-sso-bridge.php',
+        'qd-sso-bridge.php',
+        '/shared/sso-logout.php'
+    ];
+    foreach ($blocked as $b) {
+        if (strpos($redirect_to, $b) !== false) {
+            $redirect_to = '/';
+            break;
+        }
+    }
+
+    $sso_url = site_url('/sso-landing.php?token=' . rawurlencode($token) .
+                        '&redirect_to=' . rawurlencode($redirect_to));
+
+    bz_debug_log('WP login SSO redirect', ['to'=>$sso_url]);
     wp_safe_redirect($sso_url);
     exit;
 }, 10, 2);
 
-// --- Expire SSO cookie & orchestrate logout on WP logout ---
+/* =========================================================
+   LOGOUT HANDOFF
+========================================================= */
+
 add_action('wp_logout', function() {
     bz_expire_buzz_cookie();
-    // Chain to orchestrator
     wp_safe_redirect('https://buzzjuice.net/shared/sso-logout.php?from_wp=1&logged_out=1');
     exit;
 }, 10);
 
-// --- Token-based orchestrator logout ---
-add_action('login_init', function() use ($__buzz_sso_secret) {
-    if (empty($_GET['action']) || $_GET['action'] !== 'logout' || empty($_GET['sso_one_time'])) return;
-    $payload = bz_validate_token($_GET['sso_one_time'], $__buzz_sso_secret);
-    if (!$payload) return;
-    bz_expire_buzz_cookie();
-    wp_safe_redirect('https://buzzjuice.net/shared/sso-logout.php?from_wp=1&logged_out=1');
-    exit;
-}, 1);
+/* =========================================================
+   HARDENED last_url COOKIE SANITIZE
+========================================================= */
+
+add_action('init', function() {
+    if (empty($_COOKIE['last_url'])) return;
+    $last  = wp_unslash($_COOKIE['last_url']);
+    $probe = strtolower((string)$last);
+    $markers = [
+        'ww-sso-bridge.php',
+        'qd-sso-bridge.php',
+        'sso_action=do_login',
+        'sso_client_log',
+        'from_wp=1',
+        '/shared/sso-logout.php'
+    ];
+    foreach ($markers as $m) {
+        if (strpos($probe, $m) !== false) {
+            @setcookie('last_url', '', time()-3600, '/');
+            unset($_COOKIE['last_url']);
+            bz_debug_log('Removed suspicious last_url cookie', ['original'=>$last]);
+            return;
+        }
+    }
+}, 5);
 
 // --- BuddyBoss login redirect compatibility (unchanged) ---
 add_action('plugins_loaded', function() {
@@ -145,21 +259,5 @@ add_action('check_admin_referer', function($action, $result){
         exit;
     }
 }, 10, 2);
-
-// --- Sanitize last_url cookie (unchanged) ---
-add_action('init', function() {
-    if (empty($_COOKIE['last_url'])) return;
-    $last = wp_unslash($_COOKIE['last_url']);
-    $probe = strtolower((string)$last);
-    $sso_markers = ['ww-sso-bridge.php','qd-sso-bridge.php','sso_action=do_login','sso_client_log','from_wp=1','/shared/sso-logout.php'];
-    foreach ($sso_markers as $m) {
-        if (strpos($probe, $m) !== false) {
-            @setcookie('last_url', '', time()-3600, '/');
-            unset($_COOKIE['last_url']);
-            bz_debug_log('bz_sanitize_last_url_cookie: removed suspicious last_url cookie', ['original'=>$last]);
-            return;
-        }
-    }
-}, 5);
 
 ?>
