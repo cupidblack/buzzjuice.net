@@ -758,7 +758,7 @@ bz_bridge_log('After mapping/registration - canonical session snapshot', [
 
 // -- 4. BUILD SSO TOKEN FOR BRIDGE/JS CLIENT (NOT FOR TRUST, FOR FORM SIMPLICITY)
 $sso_username = $_SESSION['wp_user_login'];
-$sso_password = '12345';
+$sso_token = $_COOKIE[BUZZ_SSO_COOKIE] ?? null;
 
 // -- 5. ROBUST LAST_URL DERIVATION/NORMALIZATION (PRESERVED FROM ALL SOURCES BUT GUARDS AGAINST EXTERNAL/UNSAFE/RECURSION)
 $site_base = rtrim($wo['config']['site_url'], '/');
@@ -813,7 +813,7 @@ if (!empty($_GET['redirect_to'])) {
 
 bz_bridge_log('SSO session prepared', [
     'sso_username'    => $sso_username,
-    'sso_password_len'=> strlen($sso_password),
+    'sso_password_len'=> strlen($sso_token),
     'ajax_url'        => $ajax_url,
     'last_url'        => $last_url
 ]);
@@ -864,15 +864,17 @@ function Wo_SSO_Login() {
         'session'      => $_SESSION ?? []
     ]);
 
-    // 2. Password/token validation
-    if (!is_string($password) || strncmp($password, 'WPSSO.v1.', 9) !== 0 || !$BUZZ_SSO_SECRET) {
-        bz_bridge_log('Wo_SSO_Login: invalid token format or missing secret', ['username'=>$username]);
-        send_json_response(['errors'=>['Invalid SSO token or misconfigured secret']]);
+    // 2. JWT token validation (stateless SSO)
+    // Accept JWT as 'sso_token' in POST, fallback to buzz_sso cookie.
+    $token = $_POST['sso_token'] ?? $_COOKIE[BUZZ_SSO_COOKIE] ?? '';
+    if (!is_string($token) || !$BUZZ_SSO_SECRET) {
+        bz_bridge_log('Wo_SSO_Login: missing or invalid JWT token or SSO secret', ['username' => $username]);
+        send_json_response(['errors' => ['Invalid SSO token or misconfigured secret']]);
     }
-    $claims = bz_parse_sso_password_token($password, $BUZZ_SSO_SECRET);
+    $claims = bz_validate_jwt($token, $BUZZ_SSO_SECRET);
     if (!$claims) {
-        bz_bridge_log('Wo_SSO_Login: token parse/verify failed');
-        send_json_response(['errors'=>['Invalid or expired SSO token']]);
+        bz_bridge_log('Wo_SSO_Login: JWT token validation failed', ['username' => $username]);
+        send_json_response(['errors' => ['Invalid or expired SSO token']]);
     }
 
     // 3. Prefer canonical session values if set
@@ -1071,7 +1073,7 @@ function Wo_SSO_Login() {
 
 bz_bridge_log('Rendering bridge page', [
     'sso_username'    => $sso_username,
-    'sso_password_len'=> strlen($sso_password),
+    'sso_password_len'=> strlen($sso_token),
     'last_url'        => $last_url
 ]);
 ?>
@@ -1101,7 +1103,7 @@ body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2re
           'ajax_url' => $ajax_url,
           'post' => [
               'username' => $sso_username,
-              'password' => '(sso-token:len='.strlen($sso_password).')',
+              'password' => '(sso-token:len='.strlen($sso_token).')',
               'last_url' => $last_url,
               'remember_device' => 'on'
           ],
@@ -1114,7 +1116,7 @@ body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2re
   (function(){
     var ajaxUrl    = <?php echo json_encode($ajax_url); ?>;
     var ssoUser    = <?php echo json_encode($sso_username); ?>;
-    var ssoPwd     = <?php echo json_encode($sso_password); ?>;
+    var ssoPwd     = <?php echo json_encode($sso_token); ?>;
     var lastUrl    = <?php echo json_encode($last_url); ?>;
     var beaconUrl  = <?php echo json_encode((isset($_SERVER['PHP_SELF'])?$_SERVER['PHP_SELF']:'/ww-sso-bridge.php') . '?sso_client_log=1'); ?>;
     var statusEl   = document.getElementById('status');
