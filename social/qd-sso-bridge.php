@@ -95,7 +95,7 @@ function qd_jwt_parse($jwt) {
 }
 
 // NOTE: This is for stateless endpoint SSO tokens, not QuickDate password tokens.
-function qd_jwt_verify($jwt, $secret, $aud = 'quickdate') {
+function qd_jwt_verify($jwt, $secret, $aud = 'buzznet') {
     $parse = qd_jwt_parse($jwt);
     if (!$parse) return ['ok' => false, 'error' => 'jwt_parse_failed'];
     list($header, $payload, $sig, $signing_input) = $parse;
@@ -158,13 +158,14 @@ function qd_parse_sso_password_token($token, $secret) {
 $last_url = $_REQUEST['last_url'] ?? '/';
 $BUZZ_SSO_SECRET = defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : (getenv('BUZZ_SSO_SECRET') ?: null);
 
+// 1. Try to acquire local token from request or cookie
 $sso_token = $_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? null);
 $sso_payload = null;
 
-// 1. Local token available? Validate it.
+// Validate RFC JWT if present (expect audience "wowonder" for WP stateless SSO tokens)
 if (!empty($sso_token)) {
     if (substr_count($sso_token, '.') === 2) {
-        $jwt_result = qd_jwt_verify($sso_token, $BUZZ_SSO_SECRET, 'quickdate');
+        $jwt_result = qd_jwt_verify($sso_token, $BUZZ_SSO_SECRET, 'buzznet'); // *** CRITICAL: "buzznet" not "quickdate"
         if ($jwt_result && !empty($jwt_result['ok']) && $jwt_result['ok']) {
             $sso_payload = $jwt_result['payload'];
         } else {
@@ -174,13 +175,14 @@ if (!empty($sso_token)) {
             ]);
         }
     } else {
+        // Fallback: legacy token format
         $legacy = qd_parse_sso_password_token($sso_token, $BUZZ_SSO_SECRET);
         if ($legacy) $sso_payload = $legacy;
         else qd_bridge_log('Legacy SSO token validation failed', ['token' => $sso_token]);
     }
 }
 
-// 2. If not, actively fetch from WordPress SSO endpoint (stateless; same as WoWonder).
+// 2. If not, try to fetch SSO payload from WordPress stateless endpoint
 if (empty($sso_payload)) {
     qd_bridge_log('No valid local SSO token; attempting fetch from WP stateless endpoint', [
         'request_uri' => $_SERVER['REQUEST_URI'] ?? null,
@@ -188,14 +190,14 @@ if (empty($sso_payload)) {
         'session_id'  => session_id(),
         'remote_addr' => $_SERVER['REMOTE_ADDR'] ?? null,
     ]);
-    $result = bz_fetch_wp_stateless_payload(null, $BUZZ_SSO_SECRET);
+    $result = bz_fetch_wp_stateless_payload(null, $BUZZ_SSO_SECRET); // The stateless endpoint always returns "wowonder" (not "quickdate") audience tokens
     qd_bridge_log('WP stateless endpoint response', [
         'has_payload' => is_array($result) && !empty($result['payload']),
         'type'        => gettype($result),
     ]);
     if (is_array($result) && !empty($result['payload'])) {
         $sso_payload = $result['payload'];
-        // You may want to set the cookie here for next time:
+        // Set cookie for browser to have it available next time
         if (function_exists('qd_issue_buzz_sso_cookie')) {
             qd_issue_buzz_sso_cookie([
                 'wp_user_id'    => $sso_payload['wp_user_id'] ?? null,
@@ -207,7 +209,7 @@ if (empty($sso_payload)) {
     }
 }
 
-// 3. If STILL missing, send to WP login
+// 3. If STILL not available, redirect to WP login
 if (empty($sso_payload)) {
     qd_bridge_log('Unable to acquire SSO payload - redirecting to WP login', ['last_url' => $last_url]);
     $redirect_to = 'https://buzzjuice.net/social/qd-sso-bridge.php?last_url=' . urlencode($last_url);
@@ -251,7 +253,7 @@ function qd_issue_buzz_sso_cookie(array $payload) {
     $payload['iat'] = $payload['iat'] ?? $now;
     $payload['exp'] = $payload['exp'] ?? $exp;
     $payload['iss'] = $payload['iss'] ?? 'buzzjuice.net';
-    $payload['aud'] = $payload['aud'] ?? 'quickdate';
+    $payload['aud'] = $payload['aud'] ?? 'buzznet';
     $payload['jti'] = $payload['jti'] ?? bin2hex(random_bytes(16)); // replay protection
 
     if (!empty($payload['refresh_token'])) {

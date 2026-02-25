@@ -58,7 +58,7 @@ function bz_validate_jwt($jwt, $secret) {
     if (!empty($payload['nbf']) && $now < $payload['nbf']) return false;
     if (!empty($payload['exp']) && $now > $payload['exp']) return false;
     if (($payload['iss'] ?? '') !== 'buzzjuice.net') return false;
-    if (($payload['aud'] ?? '') !== 'wowonder') return false;
+    if (($payload['aud'] ?? '') !== 'buzznet') return false;
     if (empty($payload['jti'])) return false;
     // You may want to check more claims here as needed
     return $payload;
