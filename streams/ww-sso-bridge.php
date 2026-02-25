@@ -981,16 +981,136 @@ function Wo_SSO_Login() {
         $wo['user'] = ['user_id' => (int)$accepted_user_id, 'id' => (int)$accepted_user_id];
     }
 
-    // 6. Sync only trusted (WP-origin) fields into profile
-    $trusted_update = [];
-    if (!empty($_SESSION['wp_user_id']))    $trusted_update['wp_user_id'] = (int)$_SESSION['wp_user_id'];
-    if (!empty($_SESSION['wp_user_email'])) $trusted_update['email']      = (string)$_SESSION['wp_user_email'];
-    if (!empty($_SESSION['wp_user_login'])) $trusted_update['username']   = (string)$_SESSION['wp_user_login'];
-    if (!empty($trusted_update) && function_exists('Wo_UpdateUserData')) {
-        try { Wo_UpdateUserData($accepted_user_id, $trusted_update); } catch (Throwable $e) {
-            bz_bridge_log('Wo_SSO_Login: profile sync exception', ['ex'=>$e->getMessage()]);
+    // ----------------------------------------------------------------------------
+    // 6. FULL WORDPRESS → WOWONDER PROFILE METADATA SYNC POST-LOGIN
+    //    - Source of truth: WordPress (via JWT/session)
+    //    - Schema: shared/buzz_metadata.json (public_open_fields, private_secure_fields)
+    //    - Only existing WoWonder columns updated (bz_column_exists)
+    //    - Logs every action/skipped field/error with robust error control
+    // POST-SSO METADATA SYNC: WordPress → WoWonder (always after Wo_CreateLoginSession())
+    // ---------------------------------------------------------------------------
+    try {
+        // 1. Resolve WoWonder user ID (from session or WordPress linkage)
+        $ww_user_id = null;
+        if (!empty($_SESSION['wo_user_id'])) {
+            $ww_user_id = (int)$_SESSION['wo_user_id'];
+        } elseif (!empty($_SESSION['wp_user_id'])) {
+            // Use meta bridge if available
+            if (function_exists('get_user_meta')) {
+                $ww_user_id = (int)get_user_meta($_SESSION['wp_user_id'], 'wo_user_id', true);
+            }
         }
+        if (!$ww_user_id || $ww_user_id < 1) {
+            bz_bridge_log('SSO metadata sync ABORT: No wo_user_id found', [
+                'wp_user_id' => $_SESSION['wp_user_id'] ?? null
+            ]);
+            return;
+        }
+    
+        // 2. Gather all user fields to sync, from buzz_metadata.json (helper preferred)
+        $meta_fields = [];
+        if (function_exists('get_user_field_metadata')) {
+            $meta_def = get_user_field_metadata();
+            $public_fields = $meta_def['public_open_fields'] ?? [];
+            $private_fields = $meta_def['private_secure_fields'] ?? [];
+            $meta_fields = array_unique(array_merge($public_fields, $private_fields));
+        } else {
+            $meta_json_file = dirname(__DIR__).'/shared/buzz_metadata.json';
+            if (is_file($meta_json_file)) {
+                $meta_json = json_decode(@file_get_contents($meta_json_file), true);
+                $meta_fields = array_unique(array_merge(
+                    $meta_json['public_open_fields'] ?? [],
+                    $meta_json['private_secure_fields'] ?? []
+                ));
+            }
+        }
+        if (empty($meta_fields)) {
+            bz_bridge_log('SSO metadata sync ABORT: No fields loaded from buzz_metadata.json');
+            return;
+        }
+    
+        // 3. Obtain WordPress-as-truth values from SSO session
+        $sync_data = [];
+        foreach ($meta_fields as $k) {
+            if (!array_key_exists($k, $_SESSION)) continue;
+            $val = $_SESSION[$k];
+            if ($val === '' || $val === null) continue;
+            $sync_data[$k] = is_string($val) ? trim($val) : $val;
+        }
+        // Always sync core identity if present
+        foreach (['wp_user_id','wp_user_login','wp_user_email'] as $ck) {
+            if (!empty($_SESSION[$ck])) $sync_data[$ck] = $_SESSION[$ck];
+        }
+        if (empty($sync_data)) {
+            bz_bridge_log('SSO metadata sync: No non-empty values in session for mapped fields', ['ww_user_id'=>$ww_user_id]);
+            return;
+        }
+    
+        // 4. Ensure fields exist in WoWonder user table
+        $final_data = [];
+        if (function_exists('bz_column_exists')) {
+            foreach ($sync_data as $k => $v) {
+                if (bz_column_exists(T_USERS, $k)) {
+                    $final_data[$k] = $v;
+                } else {
+                    bz_bridge_log('SSO metadata sync: Skipped field not in WoWonder', ['field'=>$k]);
+                }
+            }
+        } else {
+            $final_data = $sync_data;
+            bz_bridge_log('SSO metadata sync: bz_column_exists unavailable, skipping column checks');
+        }
+        if (empty($final_data)) {
+            bz_bridge_log('SSO metadata sync: No valid fields after WoWonder check', [
+                'wp_user_id'=>$_SESSION['wp_user_id'] ?? null, 'ww_user_id'=>$ww_user_id
+            ]);
+            return;
+        }
+    
+        // 5. Update WoWonder profile
+        if (function_exists('Wo_UpdateUserData')) {
+            try {
+                $result = Wo_UpdateUserData($ww_user_id, $final_data);
+                bz_bridge_log('SSO metadata sync: WoWonder update complete', [
+                    'ww_user_id' => $ww_user_id,
+                    'fields'     => array_keys($final_data),
+                    'result'     => $result
+                ]);
+            } catch (Throwable $e) {
+                bz_bridge_log('SSO metadata sync: WoWonder update ERROR', [
+                    'ww_user_id' => $ww_user_id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
+        } else {
+            bz_bridge_log('SSO metadata sync: Wo_UpdateUserData unavailable, skipped Wo update', ['ww_user_id' => $ww_user_id]);
+        }
+    
+        // 6. Mirror to WP usermeta (bi-directional consistency, if desired)
+        if (!empty($_SESSION['wp_user_id']) && function_exists('bz_set_wp_usermeta')) {
+            foreach ($final_data as $meta_key => $meta_value) {
+                try {
+                    bz_set_wp_usermeta($_SESSION['wp_user_id'], $meta_key, $meta_value);
+                } catch (Throwable $ex) {
+                    bz_bridge_log('SSO metadata sync: Failed wp_usermeta update', [
+                        'wp_user_id' => $_SESSION['wp_user_id'],
+                        'meta_key'   => $meta_key,
+                        'err'        => $ex->getMessage()
+                    ]);
+                }
+            }
+        }
+    
+    } catch (Throwable $ex) {
+        bz_bridge_log('SSO metadata sync: Fatal uncaught exception', [
+            'error'      => $ex->getMessage(),
+            'trace'      => $ex->getTraceAsString()
+        ]);
     }
+
+
+
+
 
     // 7. Remember-me device cookie
     if (!empty($_POST['remember_device']) && $_POST['remember_device'] == 'on' && !empty($wo['config']['remember_device']) && $wo['config']['remember_device'] == 1) {
