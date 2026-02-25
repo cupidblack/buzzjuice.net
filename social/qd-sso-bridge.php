@@ -65,20 +65,35 @@ function qd_is_debug() {
     return (bool)((isset($_GET['sso_debug']) && $_GET['sso_debug'] === '1') || (defined('BUZZ_SSO_DEBUG') && BUZZ_SSO_DEBUG));
 }
 
-// --- Base64url helpers (RFC 7515/7519) ---
-if (!function_exists('qd_b64url_decode')) {
-    function qd_b64url_decode($input) {
-        $remainder = strlen($input) % 4;
-        if ($remainder) {
-            $addlen = 4 - $remainder;
-            $input .= str_repeat('=', $addlen);
-        }
-        return base64_decode(strtr($input, '-_', '+/'));
+
+
+
+// --- Base64 URL-safe encode/decode (RFC 7515/7519) ---
+if (!function_exists('qd_b64url_encode')) {
+    /**
+     * Base64 URL-safe encode.
+     *
+     * @param string $data Raw data to encode.
+     * @return string URL-safe base64 string.
+     */
+    function qd_b64url_encode(string $data): string {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 }
-if (!function_exists('qd_b64url_encode')) {
-    function qd_b64url_encode($input) {
-        return rtrim(strtr(base64_encode($input), '+/', '-_'), '=');
+
+if (!function_exists('qd_b64url_decode')) {
+    /**
+     * Base64 URL-safe decode.
+     *
+     * @param string $data URL-safe base64 string to decode.
+     * @return string Decoded raw data.
+     */
+    function qd_b64url_decode(string $data): string {
+        $remainder = strlen($data) % 4;
+        if ($remainder) {
+            $data .= str_repeat('=', 4 - $remainder);
+        }
+        return base64_decode(strtr($data, '-_', '+/'));
     }
 }
 
@@ -162,7 +177,7 @@ $BUZZ_SSO_SECRET = defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : (getenv('BUZZ_
 $sso_token = $_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? null);
 $sso_payload = null;
 
-// Validate RFC JWT if present (expect audience "wowonder" for WP stateless SSO tokens)
+// Validate RFC JWT if present (expect audience "buzznet" for WP stateless SSO tokens)
 if (!empty($sso_token)) {
     if (substr_count($sso_token, '.') === 2) {
         $jwt_result = qd_jwt_verify($sso_token, $BUZZ_SSO_SECRET, 'buzznet'); // *** CRITICAL: "buzznet" not "quickdate"
@@ -190,7 +205,7 @@ if (empty($sso_payload)) {
         'session_id'  => session_id(),
         'remote_addr' => $_SERVER['REMOTE_ADDR'] ?? null,
     ]);
-    $result = bz_fetch_wp_stateless_payload(null, $BUZZ_SSO_SECRET); // The stateless endpoint always returns "wowonder" (not "quickdate") audience tokens
+    $result = bz_fetch_wp_stateless_payload(null, $BUZZ_SSO_SECRET); // The stateless endpoint always returns "buzznet" (not "quickdate") audience tokens
     qd_bridge_log('WP stateless endpoint response', [
         'has_payload' => is_array($result) && !empty($result['payload']),
         'type'        => gettype($result),
@@ -1352,7 +1367,7 @@ function qd_build_sso_password_token($qd_user_id, $wp_user_id, $wp_user_login, $
     }
     $json = json_encode($claims);
     $sig  = hash_hmac('sha256', $json, (string)$secret, true);
-    return 'WPSSO.v1.' . _qd_b64url_encode($json) . '.' . _qd_b64url_encode($sig);
+    return 'WPSSO.v1.' . qd_b64url_encode($json) . '.' . qd_b64url_encode($sig);
 }
 $sso_username = $_SESSION['wp_user_login'];
 $sso_password = qd_build_sso_password_token(
