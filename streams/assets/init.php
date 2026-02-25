@@ -8,7 +8,22 @@ if (!function_exists("mysqli_connect")) {
     exit("MySQLi is required to run the application, please contact your hosting to enable php mysqli.");
 }
 date_default_timezone_set('UTC');
-session_start();
+
+function bz_safe_session_start() {
+    try {
+        if (session_status() !== PHP_SESSION_ACTIVE) @session_start();
+    } catch (Throwable $e) {
+        ini_set('session.gc_probability', 100);
+        @session_destroy();
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+        }
+        @session_start();
+    }
+}
+bz_safe_session_start();
+
 @ini_set('gd.jpeg_ignore_warning', 1);
 require_once('assets/libraries/DB/vendor/joshcam/mysqli-database-class/MySQL-Maria.php');
 require_once('includes/cache.php');

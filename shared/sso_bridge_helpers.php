@@ -147,3 +147,50 @@ if (!function_exists('bz_validate_stateless_sso')) {
         return $payload;
     }
 }
+
+
+
+
+// -----------------------------
+// Fetch stateless payload from WP
+// -----------------------------
+function bz_fetch_wp_stateless_payload($sso_token, $secret) {
+    $endpoint = 'https://buzzjuice.net/?sso_action=get_token';
+    if (!empty($sso_token)) {
+        $endpoint .= '&sso_token=' . urlencode($sso_token);
+    }
+    $ch = curl_init($endpoint);
+    $options = [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+        CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+    ];
+    if (!empty($_SERVER['HTTP_COOKIE'])) {
+        $options[CURLOPT_COOKIE] = $_SERVER['HTTP_COOKIE'];
+    }
+    curl_setopt_array($ch, $options);
+    $result = curl_exec($ch);
+    $err    = curl_errno($ch) ? ('cURL: ' . curl_error($ch)) : false;
+    curl_close($ch);
+    if (!$result || $err) {
+        return false;
+    }
+    $json = json_decode($result, true);
+    if (!is_array($json) || empty($json['access_token'])) {
+        return false;
+    }
+    $payload = bz_validate_jwt($json['access_token'], $secret);
+    if (!$payload) {
+        return false;
+    }
+    if (empty($payload['jti']) || bz_is_jti_used($payload['jti'])) {
+        return false;
+    }
+    bz_mark_jti_used($payload['jti']);
+    return [
+        'payload'       => $payload,
+        'refresh_token' => $json['refresh_token'] ?? null
+    ];
+}

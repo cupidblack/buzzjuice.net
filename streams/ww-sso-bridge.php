@@ -12,7 +12,9 @@
 require_once __DIR__ . '/assets/init.php';
 require_once __DIR__ . '/../shared/db_helpers.php';
 require_once __DIR__ . '/../shared/sso_bridge_helpers.php';
-
+if (!function_exists('bz_fetch_wp_stateless_payload')) {
+    exit('SSO helper not loaded.');
+}
 // -----------------------------
 // Config
 // -----------------------------
@@ -101,36 +103,14 @@ function bz_bridge_fail_gracefully($msg, $context = []) {
     exit;
 }
 
+
 // -----------------------------
 // Fetch stateless payload from WP
 // -----------------------------
-function bz_fetch_wp_stateless_payload($sso_token, $secret) {
-    $endpoint = 'https://buzzjuice.net/?sso_action=get_token&sso_token=' . urlencode($sso_token);
-    $ch = curl_init($endpoint);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 10,
-        CURLOPT_SSL_VERIFYPEER => true,
-        CURLOPT_SSL_VERIFYHOST => 2,
-        CURLOPT_HTTPHEADER     => ['Accept: application/json'],
-    ]);
-    $result = curl_exec($ch);
-    $err = curl_errno($ch) ? ('cURL: ' . curl_error($ch)) : false;
-    curl_close($ch);
-    if (!$result || $err) return false;
-    $json = json_decode($result, true);
-    if (!is_array($json) || empty($json['access_token'])) return false;
-    $payload = bz_validate_jwt($json['access_token'], $secret);
-    if (!$payload) return false;
-    if (bz_is_jti_used($payload['jti'])) return false;
-    bz_mark_jti_used($payload['jti']);
-    return [
-        'payload'       => $payload,
-        'refresh_token' => $json['refresh_token'] ?? null
-    ];
-}
-
-
+// Define both variables before using them
+$sso_token = $_REQUEST['sso_token'] ?? ($_COOKIE['buzz_sso'] ?? null);
+$secret = getenv('BUZZ_SSO_SECRET') ?: (defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : null);
+$payload = bz_fetch_wp_stateless_payload($sso_token, $secret);
 
 
 
