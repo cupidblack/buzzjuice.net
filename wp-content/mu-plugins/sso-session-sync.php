@@ -29,24 +29,32 @@ function bz_debug_log($msg, $extra = []) {
     @file_put_contents(BUZZ_DEBUG_LOG, "[$ts] $msg: " . json_encode($extra) . PHP_EOL, FILE_APPEND);
 }
 
-function bz_build_one_time_token(array $payload, $secret, $ttl = BUZZ_SSO_TTL) {
-    $now = time();
-    $payload['iat'] = $now;
-    $payload['exp'] = $now + $ttl;
-
-    // Optional: replay protection ready with a unique jti
-    if (empty($payload['jti'])) {
-        $payload['jti'] = bin2hex(random_bytes(16));
+// JWT issuer for WoWonder (RFC 7519)
+if (!function_exists('bz_build_one_time_jwt')) {
+    function bz_build_one_time_jwt(array $payload, string $secret, int $ttl = BUZZ_SSO_TTL) {
+        $now = time();
+        $payload['iat'] = $now;
+        $payload['exp'] = $now + $ttl;
+        $payload['iss'] = 'buzzjuice.net';
+        $payload['aud'] = 'wowonder';
+        if (empty($payload['jti'])) $payload['jti'] = bin2hex(random_bytes(16));
+        $header = ['alg'=>'HS256','typ'=>'JWT'];
+        $segments = [
+            rtrim(strtr(base64_encode(json_encode($header)), '+/', '-_'), '='),
+            rtrim(strtr(base64_encode(json_encode($payload)), '+/', '-_'), '=')
+        ];
+        $signing_input = implode('.', $segments);
+        $signature = hash_hmac('sha256', $signing_input, $secret, true);
+        $segments[] = rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
+        return implode('.', $segments);
     }
-
-    $json = function_exists('wp_json_encode')
-        ? wp_json_encode($payload)
-        : json_encode($payload);
-
-    $sig = hash_hmac('sha256', $json, $secret, true);
-    return rtrim(strtr(base64_encode($json), '+/', '-_'), '=') . '.' 
-         . rtrim(strtr(base64_encode($sig), '+/', '-_'), '=');
 }
+
+
+
+
+
+
 
 function bz_validate_token($token, $secret) {
     $parts = explode('.', $token, 2);
@@ -122,7 +130,7 @@ add_action('init', function() use ($__buzz_sso_secret) {
         'wo_user_id'    => (string) $wo_user_id, // ✅ correct
     ];
 
-    $token = bz_build_one_time_token($payload, $__buzz_sso_secret);
+    $token = bz_build_one_time_jwt($payload, $__buzz_sso_secret);
 
     bz_debug_log('Bridge token issued', [
         'wp_user_id'=>$user->ID,
@@ -152,7 +160,7 @@ add_action('wp_login', function($login, $user) use ($__buzz_sso_secret) {
         'wp_user_email' => (string)$user->user_email,
     ];
 
-    $token = bz_build_one_time_token($payload, $__buzz_sso_secret);
+    $token = bz_build_one_time_jwt($payload, $__buzz_sso_secret);
 
     if (PHP_VERSION_ID >= 70300) {
         setcookie(BUZZ_SSO_COOKIE, $token, [
