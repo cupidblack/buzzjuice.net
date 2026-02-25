@@ -14,6 +14,8 @@ if (file_exists(__DIR__ . '/../shared/wwqd_bridge.php')) {
     require_once __DIR__ . '/requests/wp_user_bridge.php';
 }
 
+require_once __DIR__ . '/../shared/sso_bridge_helpers.php';
+
 // Auxiliary controllers if needed
 if (file_exists(__DIR__ . '/controllers/aj.php')) {
     require_once __DIR__ . '/controllers/aj.php';
@@ -152,52 +154,67 @@ function qd_parse_sso_password_token($token, $secret) {
 }
 
 // --- NEW: Accept SSO token from GET/POST, verify, and extract user info ---
+// --- WoWonder-style: SSO Token Acquisition and Validation ---
+$last_url = $_REQUEST['last_url'] ?? '/';
+$BUZZ_SSO_SECRET = defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : (getenv('BUZZ_SSO_SECRET') ?: null);
+
 $sso_token = $_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? null);
 $sso_payload = null;
 
-// If no token, try to actively acquire via stateless endpoint (mirroring WoWonder)
-if (empty($sso_token)) {
-    qd_bridge_log('No SSO token found locally. Attempting active WP stateless fetch.', [
-        'request_uri' => $_SERVER['REQUEST_URI'] ?? null,
-        'cookies'  => array_keys($_COOKIE),
-        'session_id' => session_id(),
-    ]);
-    // Use the helper as designed (sends HTTP_COOKIE to WP!):
-    $secret = defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : (getenv('BUZZ_SSO_SECRET') ?: null);
-    $payload_result = bz_fetch_wp_stateless_payload(null, $secret); // note: sends null token to endpoint
-
-    if (is_array($payload_result) && !empty($payload_result['payload'])) {
-        $sso_payload = $payload_result['payload'];
-        qd_bridge_log('Active WP token acquisition succeeded.', [
-            'wp_user_id' => $sso_payload['wp_user_id'] ?? null,
-        ]);
+// 1. Local token available? Validate it.
+if (!empty($sso_token)) {
+    if (substr_count($sso_token, '.') === 2) {
+        $jwt_result = qd_jwt_verify($sso_token, $BUZZ_SSO_SECRET, 'quickdate');
+        if ($jwt_result && !empty($jwt_result['ok']) && $jwt_result['ok']) {
+            $sso_payload = $jwt_result['payload'];
+        } else {
+            qd_bridge_log('SSO JWT validation failed', [
+                'token' => $sso_token,
+                'result' => $jwt_result,
+            ]);
+        }
+    } else {
+        $legacy = qd_parse_sso_password_token($sso_token, $BUZZ_SSO_SECRET);
+        if ($legacy) $sso_payload = $legacy;
+        else qd_bridge_log('Legacy SSO token validation failed', ['token' => $sso_token]);
     }
 }
 
-// If we *do* have a token (from request/cookie), validate it here (as usual)
-if (empty($sso_payload) && !empty($sso_token)) {
-    // Validate token here (JWT structure, signature, exp, etc)
-    // ... your existing RFC JWT or legacy handler ...
-    // Set $sso_payload if valid
-    // Pseudocode:
-    // $jwt_result = qd_jwt_verify or qd_parse_sso_password_token...
-    // if valid: $sso_payload = $jwt_result['payload'] or $jwt_result;
+// 2. If not, actively fetch from WordPress SSO endpoint (stateless; same as WoWonder).
+if (empty($sso_payload)) {
+    qd_bridge_log('No valid local SSO token; attempting fetch from WP stateless endpoint', [
+        'request_uri' => $_SERVER['REQUEST_URI'] ?? null,
+        'cookies'     => array_keys($_COOKIE),
+        'session_id'  => session_id(),
+        'remote_addr' => $_SERVER['REMOTE_ADDR'] ?? null,
+    ]);
+    $result = bz_fetch_wp_stateless_payload(null, $BUZZ_SSO_SECRET);
+    qd_bridge_log('WP stateless endpoint response', [
+        'has_payload' => is_array($result) && !empty($result['payload']),
+        'type'        => gettype($result),
+    ]);
+    if (is_array($result) && !empty($result['payload'])) {
+        $sso_payload = $result['payload'];
+        // You may want to set the cookie here for next time:
+        if (function_exists('qd_issue_buzz_sso_cookie')) {
+            qd_issue_buzz_sso_cookie([
+                'wp_user_id'    => $sso_payload['wp_user_id'] ?? null,
+                'wp_user_login' => $sso_payload['wp_user_login'] ?? null,
+                'wp_user_email' => $sso_payload['wp_user_email'] ?? null,
+                'qd_user_id'    => $sso_payload['qd_user_id'] ?? null,
+            ]);
+        }
+    }
 }
 
-// If still no payload, redirect to WP login
+// 3. If STILL missing, send to WP login
 if (empty($sso_payload)) {
-    qd_bridge_log('SSO acquisition failed. Redirecting to WP login.', [
-        'last_url' => $last_url ?? '/',
-    ]);
-    $redirect_target = !empty($last_url) ? $last_url : '/';
-    $wp_login = 'https://buzzjuice.net/wp-login.php?redirect_to='
-        . urlencode('https://buzzjuice.net/social/qd-sso-bridge.php?last_url='
-        . urlencode($redirect_target));
+    qd_bridge_log('Unable to acquire SSO payload - redirecting to WP login', ['last_url' => $last_url]);
+    $redirect_to = 'https://buzzjuice.net/social/qd-sso-bridge.php?last_url=' . urlencode($last_url);
+    $wp_login = 'https://buzzjuice.net/wp-login.php?redirect_to=' . urlencode($redirect_to);
     header("Location: $wp_login");
     exit;
 }
-
-// ... continue with SSO logic using $sso_payload ...
 
 // At this point, $sso_payload contains a validated user payload.
 // (Next, QD logic can proceed to find/auto-register user & handle login.)
