@@ -36,7 +36,7 @@ if (!function_exists('bz_build_one_time_jwt')) {
         $payload['iat'] = $now;
         $payload['exp'] = $now + $ttl;
         $payload['iss'] = 'buzzjuice.net';
-        $payload['aud'] = 'buzznet';
+        $payload['aud'] = 'buzznet'; // *** CRITICAL: Set to 'buzznet' for all consumers
         if (empty($payload['jti'])) $payload['jti'] = bin2hex(random_bytes(16));
         $header = ['alg'=>'HS256','typ'=>'JWT'];
         $segments = [

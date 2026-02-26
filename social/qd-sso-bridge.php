@@ -109,7 +109,7 @@ function qd_jwt_parse($jwt) {
     return [$header, $payload, $sig, $h.'.'.$p];
 }
 
-// NOTE: This is for stateless endpoint SSO tokens, not QuickDate password tokens.
+// NOTE: This is for stateless endpoint SSO tokens, not QuickDate sso_token tokens.
 function qd_jwt_verify($jwt, $secret, $aud = 'buzznet') {
     $parse = qd_jwt_parse($jwt);
     if (!$parse) return ['ok' => false, 'error' => 'jwt_parse_failed'];
@@ -150,7 +150,7 @@ function qd_jwt_verify($jwt, $secret, $aud = 'buzznet') {
     return ['ok' => true, 'header' => $header, 'payload' => $payload];
 }
 
-// --- Legacy/non-RFC password token (from WP, still supported as fallback) ---
+// --- Legacy/non-RFC sso_token token (from WP, still supported as fallback) ---
 function qd_parse_sso_password_token($token, $secret) {
     if (!$token || !$secret) return false;
     if (strpos($token, 'WPSSO.v1.') !== 0) return false;
@@ -180,20 +180,29 @@ $sso_payload = null;
 // Validate RFC JWT if present (expect audience "buzznet" for WP stateless SSO tokens)
 if (!empty($sso_token)) {
     if (substr_count($sso_token, '.') === 2) {
-        $jwt_result = qd_jwt_verify($sso_token, $BUZZ_SSO_SECRET, 'buzznet'); // *** CRITICAL: "buzznet" not "quickdate"
-        if ($jwt_result && !empty($jwt_result['ok']) && $jwt_result['ok']) {
-            $sso_payload = $jwt_result['payload'];
-        } else {
-            qd_bridge_log('SSO JWT validation failed', [
-                'token' => $sso_token,
-                'result' => $jwt_result,
-            ]);
+        $res = qd_jwt_verify($sso_token, $BUZZ_SSO_SECRET, 'buzznet');
+        if (!$res['ok']) {
+            // If error is 'replay_detected', trigger UI reload/request for a fresh SSO token
+            qd_bridge_log('JWT validation failed in QD_SSO_Login', ['token'=>$sso_token,'result'=>$res]);
+            http_response_code(401);
+            echo json_encode(['status'=>401,'errors'=>['SSO error: '.$res['error']]]);
+            exit;
         }
+        $claims = $res['payload'];
     } else {
-        // Fallback: legacy token format
-        $legacy = qd_parse_sso_password_token($sso_token, $BUZZ_SSO_SECRET);
-        if ($legacy) $sso_payload = $legacy;
-        else qd_bridge_log('Legacy SSO token validation failed', ['token' => $sso_token]);
+        // legacy fallback if absolutely needed
+        $claims = qd_parse_sso_password_token($sso_token, $BUZZ_SSO_SECRET);
+        if (!$claims) {
+            qd_bridge_log('Legacy SSO token validation failed', ['token'=>$sso_token]);
+            http_response_code(401);
+            echo json_encode(['status'=>401,'errors'=>['Invalid or expired SSO token']]);
+            exit;
+        } else {
+            // Fallback: legacy token format
+            $legacy = qd_parse_sso_password_token($sso_token, $BUZZ_SSO_SECRET);
+            if ($legacy) $sso_payload = $legacy;
+            else qd_bridge_log('Legacy SSO token validation failed', ['token' => $sso_token]);
+        }
     }
 }
 
@@ -910,12 +919,12 @@ if (!function_exists('qd_register_user')) {
         $wp_full = (function_exists('wp_get_full_user_data') && $conn && $wp_user_id) ? wp_get_full_user_data($conn, $wp_user_id) : [];
         $avatar = $wp_full['xprofile']['avatar'] ?? $wp_full['meta']['avatar'] ?? ($GLOBALS['config']->userDefaultAvatar ?? '');
 
-        $password = bin2hex(random_bytes(8));
+        $sso_token = bin2hex(random_bytes(8));
         if ($conn && $wp_user_id) {
             $res = @mysqli_query($conn, "SELECT user_pass FROM wp_users WHERE ID='" . intval($wp_user_id) . "' LIMIT 1");
             if ($res && mysqli_num_rows($res) > 0) {
                 $row = mysqli_fetch_assoc($res);
-                if (!empty($row['user_pass'])) $password = $row['user_pass'];
+                if (!empty($row['user_pass'])) $sso_token = $row['user_pass'];
             }
         }
 
@@ -1370,7 +1379,7 @@ function qd_build_sso_password_token($qd_user_id, $wp_user_id, $wp_user_login, $
     return 'WPSSO.v1.' . qd_b64url_encode($json) . '.' . qd_b64url_encode($sig);
 }
 $sso_username = $_SESSION['wp_user_login'];
-$sso_password = qd_build_sso_password_token(
+$sso_token = qd_build_sso_password_token(
     $_SESSION['qd_user_id'],
     $_SESSION['wp_user_id'],
     $_SESSION['wp_user_login'],
@@ -1412,7 +1421,7 @@ $ajax_url = (isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : '/qd-sso-bridg
 
 qd_bridge_log('SSO client payload prepared', [
     'sso_username'     => $sso_username,
-    'sso_password_len' => strlen($sso_password),
+    'sso_token_len' => strlen($sso_token),
     'ajax_url'         => $ajax_url,
     'last_url'         => $last_url
 ]);
@@ -1458,12 +1467,12 @@ function QD_SSO_Login() {
     header('Content-Type: application/json; charset=utf-8');
 
     $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
+    $sso_token = $_POST['sso_token'] ?? '';
     $last_url = $_POST['last_url'] ?? '/';
 
     qd_bridge_log('QD_SSO_Login called', [
         'post_username' => $username,
-        'pw_len'        => strlen($password),
+        'pw_len'        => strlen($sso_token),
         'last_url'      => $last_url
     ]);
 
@@ -1473,10 +1482,10 @@ function QD_SSO_Login() {
         echo json_encode(['status'=>500,'errors'=>['SSO server misconfigured.']]); exit;
     }
 
-    $claims = qd_parse_sso_password_token($password, $BUZZ_SSO_SECRET);
+    $claims = qd_parse_sso_password_token($sso_token, $BUZZ_SSO_SECRET);
     if (!$claims) {
         qd_bridge_log('QD_SSO_Login: invalid/expired SSO password token', [
-            'token_preview' => substr($password,0,36)
+            'token_preview' => substr($sso_token,0,36)
         ]);
         http_response_code(401);
         echo json_encode(['status'=>401,'errors'=>['Invalid or expired login token.']]); exit;
@@ -1726,7 +1735,7 @@ function QD_SSO_Login() {
 
 qd_bridge_log('Rendering QD SSO bridge page', [
     'sso_username'       => $sso_username,
-    'sso_token_len'      => strlen($sso_password), // Use token, NOT password
+    'sso_token_len'      => strlen($sso_token), // Use token, NOT password
     'last_url'           => $last_url,
     'final_qd_user_id'   => $final_qd_user_id,
     'php_session_id'     => session_id(),
@@ -1781,7 +1790,7 @@ a.fallback-link{display:inline-block;margin-top:2em;color:#fff;text-decoration:u
     var ajaxUrl = <?php echo json_encode($ajax_url); ?>;
     var payload = {
       username: <?php echo json_encode($sso_username); ?>,
-      token: <?php echo json_encode($sso_password); ?>,
+      token: <?php echo json_encode($sso_token); ?>,
       remember_device: 'on',
       last_url: <?php echo json_encode($last_url); ?>,
       nonce: <?php echo json_encode($client_nonce); ?>
@@ -1868,7 +1877,7 @@ a.fallback-link{display:inline-block;margin-top:2em;color:#fff;text-decoration:u
       xhr.onerror = function(){ beacon('bridge:error', {http: xhr.status, attempt: attempts}); statusEl && (statusEl.className='status err', statusEl.textContent='Network or server error.'); showFallback(); if (attempts < maxRetries) setTimeout(doAjax, 1000);}
       xhr.ontimeout = function(){ beacon('bridge:timeout', {attempt: attempts}); statusEl && (statusEl.className='status err', statusEl.textContent='Request timed out.'); showFallback(); if (attempts < maxRetries) setTimeout(doAjax, 1000);}
       var body = 'username=' + encodeURIComponent(payload.username)
-               + '&password=' + encodeURIComponent(payload.token)
+               + '&sso_token=' + encodeURIComponent(payload.token)
                + '&remember_device=on'
                + '&last_url=' + encodeURIComponent(payload.last_url)
                + '&nonce=' + encodeURIComponent(payload.nonce);
