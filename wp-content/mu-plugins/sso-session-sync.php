@@ -122,12 +122,15 @@ add_action('init', function() use ($__buzz_sso_secret) {
     }
     
     $wo_user_id = get_user_meta($user->ID, 'wo_user_id', true);
+    $qd_user_id = get_user_meta($user->ID, 'qd_user_id', true);
     
     $payload = [
         'wp_user_id'    => (int) $user->ID,
         'wp_user_login' => (string) $user->user_login,
         'wp_user_email' => (string) $user->user_email,
-        'wo_user_id'    => (string) $wo_user_id, // ✅ correct
+        'wo_user_id'    => (string) $wo_user_id,
+        'qd_user_id'    => (string) $qd_user_id,
+        
     ];
 
     $token = bz_build_one_time_jwt($payload, $__buzz_sso_secret);
