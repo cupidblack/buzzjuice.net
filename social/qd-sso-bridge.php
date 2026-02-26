@@ -1481,6 +1481,45 @@ function QD_SSO_Login() {
         http_response_code(500);
         echo json_encode(['status'=>500,'errors'=>['SSO server misconfigured.']]); exit;
     }
+    
+    
+    
+    
+    // Enforce audience
+    $result = qd_jwt_verify($sso_token, $BUZZ_SSO_SECRET, 'buzznet');
+    if (!$result['ok']) {
+        qd_bridge_log('JWT validation failed in QD_SSO_Login', ['token'=>$sso_token, 'result'=>$result]);
+        http_response_code(401);
+        echo json_encode(['status'=>401,'errors'=>['Token invalid or replayed']]);
+        exit;
+    }
+
+    // --- Single-use: enforce token never reused (30 min window for jti cache/cleanup)
+    $jti = $result['payload']['jti'];
+    $jti_dir = sys_get_temp_dir() . '/buzz_qd_jti_db';
+    if (!is_dir($jti_dir)) @mkdir($jti_dir, 0700, true);
+    $jti_file = $jti_dir . '/' . sha1($jti);
+    if (file_exists($jti_file)) {
+        qd_bridge_log('Replay detected in QD_SSO_Login', [
+            'jti' => $jti,
+            'token' => $sso_token,
+            'php_session_id'=>session_id(),
+        ]);
+        http_response_code(403);
+        echo json_encode(['status'=>403,'errors'=>['Token replay detected. Please login again from main site.']]);
+        exit;
+    }
+    @file_put_contents($jti_file, time(), LOCK_EX);
+
+    // JTI file cleanup: expire after 30m
+    if (mt_rand(1,8) === 3) { // ~12% chance
+        foreach (glob($jti_dir.'/*') as $f) {
+            if (is_file($f) && filemtime($f) < (time()-1800)) @unlink($f);
+        }
+    }
+    
+    
+    
 
     $claims = qd_parse_sso_password_token($sso_token, $BUZZ_SSO_SECRET);
     if (!$claims) {
@@ -1877,7 +1916,7 @@ a.fallback-link{display:inline-block;margin-top:2em;color:#fff;text-decoration:u
       xhr.onerror = function(){ beacon('bridge:error', {http: xhr.status, attempt: attempts}); statusEl && (statusEl.className='status err', statusEl.textContent='Network or server error.'); showFallback(); if (attempts < maxRetries) setTimeout(doAjax, 1000);}
       xhr.ontimeout = function(){ beacon('bridge:timeout', {attempt: attempts}); statusEl && (statusEl.className='status err', statusEl.textContent='Request timed out.'); showFallback(); if (attempts < maxRetries) setTimeout(doAjax, 1000);}
       var body = 'username=' + encodeURIComponent(payload.username)
-               + '&sso_token=' + encodeURIComponent(payload.token)
+               + '&sso_token=' + encodeURIComponent(payload.sso_token)
                + '&remember_device=on'
                + '&last_url=' + encodeURIComponent(payload.last_url)
                + '&nonce=' + encodeURIComponent(payload.nonce);
