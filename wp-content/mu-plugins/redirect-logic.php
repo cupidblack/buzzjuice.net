@@ -132,3 +132,36 @@ function bbj_mu_redirect_logged_in_users() {
     wp_safe_redirect( $redirect_to );
     exit;
 }
+
+
+
+
+// --- BuddyBoss login redirect compatibility (unchanged) ---
+/*
+add_action('plugins_loaded', function() {
+    if (function_exists('bb_login_redirect')) {
+        remove_filter('bp_login_redirect', 'bb_login_redirect', PHP_INT_MAX);
+        remove_filter('login_redirect', 'bb_login_redirect', PHP_INT_MAX);
+        add_filter('bp_login_redirect', 'bluecrown_bb_login_redirect', PHP_INT_MAX, 3);
+        add_filter('login_redirect', 'bluecrown_bb_login_redirect', PHP_INT_MAX, 3);
+    }
+});
+function bluecrown_bb_login_redirect($redirect_to, $request, $user) {
+    if ($user && is_object($user) && is_a($user, 'WP_User')) {
+        if (in_array('administrator', (array)$user->roles, true)) {
+            return $redirect_to;
+        }
+        if (function_exists('bb_redirect_after_action')) {
+            $redirect_to = bb_redirect_after_action($redirect_to, $user->ID, 'login');
+        }
+    }
+    if (!empty($_REQUEST['redirect_to']) && is_string($_REQUEST['redirect_to'])) {
+        $redirect_to = esc_url_raw(wp_unslash($_REQUEST['redirect_to']));
+    } else {
+        if (function_exists('bb_redirect_after_action')) {
+            $redirect_to = bb_redirect_after_action($redirect_to, null, 'login');
+        }
+    }
+    return $redirect_to;
+}
+*/
