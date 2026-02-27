@@ -2,7 +2,7 @@
 /*
  * BuzzJuice Enterprise Stateless SSO Authority
  * Platforms: WoWonder ('aud: streams'), QuickDate ('aud: social')
- * WordPress is the sovereign source of truth.
+ * WordPress = source of truth
  * Cookie: JWT, 20-min, auto-refresh, bridge endpoint: minute-locked HMAC.
  */
 
@@ -17,44 +17,12 @@ if (!defined('BUZZ_DEBUG_LOG'))      define('BUZZ_DEBUG_LOG', __DIR__ . '/wp_deb
 
 $__buzz_sso_secret = getenv('BUZZ_SSO_SECRET') ?: (defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : null);
 
-// ======== DEBUG LOG ========
-function bz_debug_log($msg, $extra = []) {
-    if (!BUZZ_SSO_DEBUG) return;
-    $ts = gmdate('Y-m-d H:i:s');
-    @file_put_contents(BUZZ_DEBUG_LOG, "[$ts] $msg: " . json_encode($extra) . PHP_EOL, FILE_APPEND);
-}
+// ======== SHARED SSO HELPERS ========
+require_once dirname(__DIR__, 2) . '/shared/sso_bridge_helpers.php';
 
-// ======== JWT HELPERS ========
-function bz_jwt_encode($payload, $secret, $aud, $ttl) {
-    $now = time();
-    $payload['iat'] = $now;
-    $payload['exp'] = $now + $ttl;
-    $payload['iss'] = 'buzzjuice.net';
-    $payload['aud'] = $aud;
-    $payload['jti'] = bin2hex(random_bytes(16));
-    $header = ['alg'=>'HS256','typ'=>'JWT'];
-    $segments = [
-        rtrim(strtr(base64_encode(json_encode($header)), '+/', '-_'), '='),
-        rtrim(strtr(base64_encode(json_encode($payload)), '+/', '-_'), '=')
-    ];
-    $sig = hash_hmac('sha256', implode('.', $segments), $secret, true);
-    $segments[] = rtrim(strtr(base64_encode($sig), '+/', '-_'), '=');
-    return implode('.', $segments);
-}
-function bz_jwt_validate($token, $secret, $aud = 'buzznet') {
-    $parts = explode('.', $token);
-    if (count($parts) !== 3) return false;
-    list($h,$p,$s) = $parts;
-    $payload = json_decode(base64_decode(strtr($p,'-_','+/')), true);
-    $sig     = base64_decode(strtr($s,'-_','+/'));
-    $expected = hash_hmac('sha256', "$h.$p", $secret, true);
-    if (!hash_equals($expected, $sig)) return false;
-    if (!$payload || time() > $payload['exp']) return false;
-    if ($aud && $payload['aud'] !== $aud) return false;
-    return $payload;
-}
-function bz_expire_cookie() {
-    setcookie(BUZZ_SSO_COOKIE,'',time()-3600,'/',BUZZ_COOKIE_DOMAIN,true,true);
+// ======== COOKIE EXPIRE WRAPPER ========
+function sso_expire_cookie() {
+    setcookie(BUZZ_SSO_COOKIE, '', time()-3600, '/', BUZZ_COOKIE_DOMAIN, true, true);
     unset($_COOKIE[BUZZ_SSO_COOKIE]);
 }
 
@@ -92,7 +60,7 @@ add_action('init', function() use ($__buzz_sso_secret) {
         'qd_user_id'    => (string)get_user_meta($user->ID,'qd_user_id',true)
     ];
 
-    $token = bz_jwt_encode($payload,$__buzz_sso_secret,$aud,BUZZ_SSO_TTL);
+    $token = bz_sso_jwt_encode($payload, $__buzz_sso_secret, $aud, BUZZ_SSO_TTL);
 
     echo wp_json_encode([
         'status'  => 200,
@@ -117,9 +85,9 @@ add_action('wp_login', function($login, $user) use ($__buzz_sso_secret) {
         'qd_user_id'    => (string)get_user_meta($user->ID,'qd_user_id',true)
     ];
 
-    $token_wp      = bz_jwt_encode($payload,$__buzz_sso_secret,'buzznet',BUZZ_SSO_TTL);
-    $token_streams = bz_jwt_encode($payload,$__buzz_sso_secret,'streams',BUZZ_SSO_TTL);
-    $token_social  = bz_jwt_encode($payload,$__buzz_sso_secret,'social', BUZZ_SSO_TTL);
+    $token_wp      = bz_sso_jwt_encode($payload,$__buzz_sso_secret,'buzznet',BUZZ_SSO_TTL);
+    $token_streams = bz_sso_jwt_encode($payload,$__buzz_sso_secret,'streams',BUZZ_SSO_TTL);
+    $token_social  = bz_sso_jwt_encode($payload,$__buzz_sso_secret,'social', BUZZ_SSO_TTL);
 
     setcookie(BUZZ_SSO_COOKIE, $token_wp, [
         'expires'  => time()+BUZZ_SSO_TTL,
@@ -162,7 +130,7 @@ add_action('wp_login', function($login, $user) use ($__buzz_sso_secret) {
         if (strpos($redirect_to, $b) !== false) { $redirect_to='/'; break; }
     }
     $sso_url = site_url('/sso-landing.php?token='.rawurlencode($token_wp).'&redirect_to='.rawurlencode($redirect_to));
-    bz_debug_log('WP login SSO redirect (after background auth)', ['to'=>$sso_url]);
+    bz_sso_bridge_log('WP login SSO redirect (after background auth)', ['to'=>$sso_url], BUZZ_DEBUG_LOG);
     wp_safe_redirect($sso_url);
     exit;
 }, 10, 2);
@@ -170,7 +138,7 @@ add_action('wp_login', function($login, $user) use ($__buzz_sso_secret) {
 // ======== AUTO-REFRESH (THROTTLED) ========
 add_action('init', function() use ($__buzz_sso_secret) {
     if (!$__buzz_sso_secret || !is_user_logged_in() || empty($_COOKIE[BUZZ_SSO_COOKIE])) return;
-    $payload = bz_jwt_validate($_COOKIE[BUZZ_SSO_COOKIE], $__buzz_sso_secret, 'buzznet');
+    $payload = bz_sso_jwt_validate($_COOKIE[BUZZ_SSO_COOKIE], $__buzz_sso_secret, 'buzznet');
     if (!$payload) return;
     $now = time();
     if (($payload['exp'] - $now) > 300) return;
@@ -178,7 +146,7 @@ add_action('init', function() use ($__buzz_sso_secret) {
     if (get_transient($lock_key)) return;
     set_transient($lock_key, 1, 300); // throttle 5min
     unset($payload['iat'],$payload['exp'],$payload['jti']);
-    $new_token = bz_jwt_encode($payload, $__buzz_sso_secret, 'buzznet', BUZZ_SSO_TTL);
+    $new_token = bz_sso_jwt_encode($payload, $__buzz_sso_secret, 'buzznet', BUZZ_SSO_TTL);
     setcookie(BUZZ_SSO_COOKIE,$new_token,[
         'expires'=>$now+BUZZ_SSO_TTL,
         'path'=>'/',
@@ -193,7 +161,7 @@ add_action('init', function() use ($__buzz_sso_secret) {
 // LOGOUT HANDOFF
 // ======================================================================
 add_action('wp_logout', function() {
-    bz_expire_cookie();
+    sso_expire_cookie();
     wp_safe_redirect('https://buzzjuice.net/shared/sso-logout.php?from_wp=1&logged_out=1');
     exit;
 },10);
@@ -222,7 +190,7 @@ add_action('init', function() {
         if (strpos($probe, $m) !== false) {
             @setcookie('last_url', '', time()-3600, '/');
             unset($_COOKIE['last_url']);
-            bz_debug_log('Removed suspicious last_url cookie', ['original'=>$last]);
+            bz_sso_bridge_log('Removed suspicious last_url cookie', ['original'=>$last], BUZZ_DEBUG_LOG);
             return;
         }
     }

@@ -1,7 +1,22 @@
 <?php
-// Minimal SSO bridge helpers: host normalization, bridge URL detection, loop counter, and logging.
-// Place next to ww-sso-bridge.php (e.g. streams/sso_bridge_helpers.php)
+/**
+ * BuzzJuice Unified SSO Bridge Helpers (WordPress / WoWonder / QuickDate)
+ *
+ * - Host normalization & bridge detection
+ * - Bridge loop counter (cookie-based)
+ * - Base64URL encode/decode for JWT transport (RFC 7519)
+ * - JWT encode & validate (HS256 stateless SSO)
+ * - JTI replay prevention (file-based, pluggable directory)
+ * - Logging helper
+ * - Remote location fetch (cURL > get_headers > fallback)
+ * - Stateless WP payload fetch & validate (JTI-protected optional)
+ *
+ * For use in: WordPress sso-session-sync.php, streams/ww-sso-bridge.php, social/qd-sso-bridge.php
+ */
 
+// ---------------------
+// Host/Bridge Utilities
+// ---------------------
 if (!function_exists('bz_normalize_host')) {
     function bz_normalize_host($host) {
         if (!$host) return '';
@@ -15,7 +30,6 @@ if (!function_exists('bz_is_bridge_url')) {
     function bz_is_bridge_url($candidate, $site_base = null) {
         if (empty($candidate) || !is_string($candidate)) return false;
         $candidate = trim($candidate);
-        // Normalize protocol-relative and path-only
         if (strpos($candidate, '//') === 0) $candidate = 'http:' . $candidate;
         if (strpos($candidate, '/') === 0 && $site_base) $candidate = rtrim($site_base, '/') . $candidate;
         $full = strtolower($candidate);
@@ -38,159 +52,185 @@ if (!function_exists('bz_is_bridge_url')) {
     }
 }
 
+// ---------------------
+// Bridge Loop Counter
+// ---------------------
 if (!function_exists('bz_bridge_loop_count')) {
-    // bump=true will increment and persist a 5-minute cookie; clear=true will remove cookie.
     function bz_bridge_loop_count($bump = false, $clear = false) {
         $name = 'bz_bridge_loop';
         if ($clear) {
             @setcookie($name, '', time() - 3600, '/');
-            if (isset($_COOKIE[$name])) unset($_COOKIE[$name]);
+            unset($_COOKIE[$name]);
             return 0;
         }
         $cnt = isset($_COOKIE[$name]) ? intval($_COOKIE[$name]) : 0;
         if ($bump) $cnt++;
-        // persist for short time
         @setcookie($name, (string)$cnt, time() + 300, '/');
         $_COOKIE[$name] = (string)$cnt;
         return $cnt;
     }
 }
 
-if (!function_exists('bz_bridge_log')) {
-    function bz_bridge_log($msg, $ctx = []) {
-        $log = defined('BUZZ_SSO_BRIDGE_LOG') ? BUZZ_SSO_BRIDGE_LOG : (sys_get_temp_dir() . '/ww_sso_bridge.log');
+// ---------------------
+// Logging Helper
+// ---------------------
+if (!function_exists('bz_sso_bridge_log')) {
+    function bz_sso_bridge_log($msg, $ctx = [], $log_file = null) {
+        $file = $log_file ?: (sys_get_temp_dir() . '/ww_sso_bridge.log');
         $line = '[' . gmdate('Y-m-d H:i:s') . '] ' . $msg . ' | ' . json_encode($ctx, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) . PHP_EOL;
-        @file_put_contents($log, $line, FILE_APPEND);
+        @file_put_contents($file, $line, FILE_APPEND);
     }
 }
 
-/**
- * Fetch remote Location header for a URL (robust).
- *
- * Returns the redirect target (string) if found, or false on error.
- * Tries:
- *  - cURL (preferred)
- *  - get_headers()
- *  - file_get_contents() + $http_response_header parsing (last resort)
- */
+// ---------------------
+// Base64URL Encode/Decode (RFC 7519/JWT)
+// ---------------------
+if (!function_exists('bz_sso_b64url_encode')) {
+    function bz_sso_b64url_encode($data) {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+}
+if (!function_exists('bz_sso_b64url_decode')) {
+    function bz_sso_b64url_decode($data) {
+        $remainder = strlen($data) % 4;
+        if ($remainder) $data .= str_repeat('=', 4 - $remainder);
+        return base64_decode(strtr($data, '-_', '+/'));
+    }
+}
+
+// ---------------------
+// JWT Encode/Validate (HS256, RFC 7519)
+// ---------------------
+if (!function_exists('bz_sso_jwt_encode')) {
+    function bz_sso_jwt_encode($payload, $secret, $aud = 'buzznet', $ttl = 1200) {
+        $now = time();
+        $payload['iat'] = $now;
+        $payload['exp'] = $now + $ttl;
+        $payload['iss'] = 'buzzjuice.net';
+        $payload['aud'] = $aud;
+        $payload['jti'] = bin2hex(random_bytes(16));
+        $header = ['alg'=>'HS256','typ'=>'JWT'];
+        $segments = [
+            bz_sso_b64url_encode(json_encode($header)),
+            bz_sso_b64url_encode(json_encode($payload))
+        ];
+        $sig = hash_hmac('sha256', implode('.', $segments), $secret, true);
+        $segments[] = bz_sso_b64url_encode($sig);
+        return implode('.', $segments);
+    }
+}
+if (!function_exists('bz_sso_jwt_validate')) {
+    function bz_sso_jwt_validate($jwt, $secret, $aud = 'buzznet') {
+        $parts = explode('.', $jwt);
+        if (count($parts) !== 3) return false;
+        list($h, $p, $s) = $parts;
+        $payload = json_decode(bz_sso_b64url_decode($p), true);
+        $sig     = bz_sso_b64url_decode($s);
+        $expected = hash_hmac('sha256', "$h.$p", $secret, true);
+        if (!hash_equals($expected, $sig)) return false;
+        if (!$payload || !isset($payload['exp']) || time() > $payload['exp']) return false;
+        if ($aud && (!isset($payload['aud']) || $payload['aud'] !== $aud)) return false;
+        return $payload;
+    }
+}
+
+// ---------------------
+// JTI Replay Store Helpers (file-based, per-platform directory)
+// ---------------------
+if (!function_exists('bz_sso_is_jti_used')) {
+    function bz_sso_is_jti_used($store_dir, $jti) {
+        return $jti && file_exists($store_dir . '/' . sha1($jti));
+    }
+}
+if (!function_exists('bz_sso_mark_jti_used')) {
+    function bz_sso_mark_jti_used($store_dir, $jti) {
+        @file_put_contents($store_dir . '/' . sha1($jti), time(), LOCK_EX);
+    }
+}
+if (!function_exists('bz_sso_cleanup_jti_store')) {
+    function bz_sso_cleanup_jti_store($store_dir, $ttl = 1800) {
+        $expire = time() - $ttl;
+        foreach (glob($store_dir . '/*') ?: [] as $file) {
+            if (filemtime($file) < $expire) @unlink($file);
+        }
+    }
+}
+
+// ---------------------
+// Robust Location Header Fetch (remote)
+// ---------------------
 if (!function_exists('bz_fetch_remote_location')) {
     function bz_fetch_remote_location(string $url, int $timeout = 5) {
-        // Try cURL first
+        // cURL preferred
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_NOBODY, true); // we only need headers
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false); // do not follow; capture redirect target
+            curl_setopt($ch, CURLOPT_NOBODY, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
             curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
             curl_setopt($ch, CURLOPT_HEADER, true);
             $header = curl_exec($ch);
-            if ($header === false) {
-                curl_close($ch);
-                return false;
-            }
-            $redirect = false;
-            $lines = preg_split("/\r\n|\n|\r/", $header);
-            foreach ($lines as $line) {
-                if (stripos($line, 'Location:') === 0) {
-                    $redirect = trim(substr($line, strlen('Location:')));
+            curl_close($ch);
+            if ($header !== false) {
+                foreach (preg_split("/\r\n|\n|\r/", $header) as $line) {
+                    if (stripos($line, 'Location:') === 0) return trim(substr($line, 9));
                 }
             }
-            curl_close($ch);
-            return $redirect ?: false;
         }
-
-        // Next: get_headers
+        // get_headers fallback
         if (function_exists('get_headers')) {
             $headers = @get_headers($url, 1);
-            if ($headers !== false) {
-                if (isset($headers['Location'])) {
-                    $loc = $headers['Location'];
-                    if (is_array($loc)) {
-                        return end($loc);
-                    }
-                    return $loc;
-                }
+            if ($headers !== false && isset($headers['Location'])) {
+                return is_array($headers['Location']) ? end($headers['Location']) : $headers['Location'];
             }
         }
-
-        // Last resort: file_get_contents() and $http_response_header parsing
-        $context = stream_context_create(['http'=>['method'=>'GET','timeout'=>$timeout,'ignore_errors'=>true]]);
-        @file_get_contents($url, false, $context);
+        // last resort
+        @file_get_contents($url, false, stream_context_create(['http'=>['method'=>'GET','timeout'=>$timeout,'ignore_errors'=>true]]));
         if (!empty($http_response_header) && is_array($http_response_header)) {
-            $loc = false;
             foreach ($http_response_header as $h) {
-                if (stripos($h, 'Location:') === 0) {
-                    $loc = trim(substr($h, strlen('Location:')));
-                }
+                if (stripos($h, 'Location:') === 0) return trim(substr($h, 9));
             }
-            return $loc ?: false;
         }
         return false;
     }
 }
 
+// ---------------------
+// Universal: Fetch/validate stateless WP JWT payload (for bridges/clients)
+// $endpoint: WP endpoint (?sso_action=get_token), $sso_token: JWT, $secret: SSO secret, $jti_store_dir: directory for JTI replay protection
+// Returns array['payload'], optional ['refresh_token'] on success, or false
+// ---------------------
+if (!function_exists('bz_sso_fetch_wp_stateless_payload')) {
+    function bz_sso_fetch_wp_stateless_payload($endpoint, $sso_token, $secret, $jti_store_dir = null) {
+        $q = parse_url($endpoint, PHP_URL_QUERY);
+        $url = $endpoint . ($q ? '&' : '?') . 'sso_token=' . urlencode($sso_token);
 
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 8,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+        ]);
+        if (!empty($_SERVER['HTTP_COOKIE'])) curl_setopt($ch, CURLOPT_COOKIE, $_SERVER['HTTP_COOKIE']);
+        $result = curl_exec($ch);
+        $err    = curl_errno($ch) ? ('cURL: ' . curl_error($ch)) : false;
+        curl_close($ch);
+        if (!$result || $err) return false;
 
-if (!function_exists('bz_validate_stateless_sso')) {
-    function bz_validate_stateless_sso($token, $secret) {
-        $parts = explode('.', $token, 2);
-        if (count($parts) !== 2 || !$secret) return false;
-        $json = base64_decode(strtr($parts[0], '-_', '+/'));
-        $sig  = base64_decode(strtr($parts[1], '-_', '+/'));
-        if ($json === false || $sig === false) return false;
-        $calc = hash_hmac('sha256', $json, $secret, true);
-        if (!hash_equals($calc, $sig)) return false;
-        $payload = json_decode($json, true);
-        if (!$payload || !is_array($payload)) return false;
-        if (isset($payload['exp']) && time() > intval($payload['exp'])) return false;
-        return $payload;
-    }
-}
+        $json = json_decode($result, true);
+        if (!is_array($json) || empty($json['token'])) return false;
 
+        $payload = bz_sso_jwt_validate($json['token'], $secret);
+        if (!$payload) return false;
 
+        if ($jti_store_dir) {
+            if (empty($payload['jti']) || bz_sso_is_jti_used($jti_store_dir, $payload['jti'])) return false;
+            bz_sso_mark_jti_used($jti_store_dir, $payload['jti']);
+        }
 
-
-// -----------------------------
-// Fetch stateless payload from WP
-// -----------------------------
-function bz_fetch_wp_stateless_payload($sso_token, $secret) {
-    $endpoint = 'https://buzzjuice.net/?sso_action=get_token';
-    if (!empty($sso_token)) {
-        $endpoint .= '&sso_token=' . urlencode($sso_token);
+        return ['payload' => $payload, 'refresh_token' => $json['refresh_token'] ?? null];
     }
-    $ch = curl_init($endpoint);
-    $options = [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 10,
-        CURLOPT_SSL_VERIFYPEER => true,
-        CURLOPT_SSL_VERIFYHOST => 2,
-        CURLOPT_HTTPHEADER     => ['Accept: application/json'],
-    ];
-    if (!empty($_SERVER['HTTP_COOKIE'])) {
-        $options[CURLOPT_COOKIE] = $_SERVER['HTTP_COOKIE'];
-    }
-    curl_setopt_array($ch, $options);
-    $result = curl_exec($ch);
-    $err    = curl_errno($ch) ? ('cURL: ' . curl_error($ch)) : false;
-    curl_close($ch);
-    if (!$result || $err) {
-        return false;
-    }
-    $json = json_decode($result, true);
-    if (!is_array($json) || empty($json['access_token'])) {
-        return false;
-    }
-    $payload = bz_validate_jwt($json['access_token'], $secret);
-    if (!$payload) {
-        return false;
-    }
-    if (empty($payload['jti']) || bz_is_jti_used($payload['jti'])) {
-        return false;
-    }
-    bz_mark_jti_used($payload['jti']);
-    return [
-        'payload'       => $payload,
-        'refresh_token' => $json['refresh_token'] ?? null
-    ];
 }
