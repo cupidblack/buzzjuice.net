@@ -10,14 +10,18 @@
  */
 
 require_once __DIR__ . '/assets/init.php';
-require_once __DIR__ . '/../shared/db_helpers.php';
+
+
+
+if (file_exists(__DIR__ . '/../shared/wwqd_bridge.php')) require_once __DIR__ . '/../shared/wwqd_bridge.php';
 require_once __DIR__ . '/../shared/sso_bridge_helpers.php';
 if (!function_exists('bz_fetch_wp_stateless_payload')) {
     exit('SSO helper not loaded.');
 }
-// -----------------------------
-// Config
-// -----------------------------
+
+// ======================================================
+// START: CONFIGURATIONS + LOGGING + graceful failure
+// ======================================================
 if (!defined('BUZZ_SSO_COOKIE'))        define('BUZZ_SSO_COOKIE', 'buzz_sso');
 if (!defined('BUZZ_COOKIE_DOMAIN'))     define('BUZZ_COOKIE_DOMAIN', '.buzzjuice.net');
 if (!defined('BUZZ_SSO_DEBUG'))         define('BUZZ_SSO_DEBUG', false);
@@ -29,254 +33,68 @@ $BUZZ_SSO_SECRET = defined('BUZZ_SSO_SECRET')
     ? BUZZ_SSO_SECRET
     : (getenv('BUZZ_SSO_SECRET') ?: null);
 
-// -----------------------------
-// Hardened base64url decode (never null)
-// -----------------------------
-function bz_b64url_decode_safe($str) {
-    if ($str === null || $str === '') return '';
-    $s = strtr($str, '-_', '+/');
-    $pad = strlen($s) % 4;
-    if ($pad) $s .= str_repeat('=', 4 - $pad);
-    $out = base64_decode($s, true);
-    return $out === false ? '' : $out;
-}
-
-// -----------------------------
-// RFC 7519 JWT validation
-// -----------------------------
-function bz_validate_jwt($jwt, $secret) {
-    $parts = explode('.', $jwt);
-    if (count($parts) !== 3) return false;
-    list($h, $p, $s) = $parts;
-    $header  = json_decode(bz_b64url_decode_safe($h), true);
-    $payload = json_decode(bz_b64url_decode_safe($p), true);
-    if (!$header || !$payload || ($header['alg'] ?? '') !== 'HS256') return false;
-    $expected_sig = hash_hmac('sha256', "$h.$p", $secret, true);
-    $actual_sig  = bz_b64url_decode_safe($s);
-    if (!hash_equals($expected_sig, $actual_sig)) return false;
-    $now = time();
-    if (!empty($payload['nbf']) && $now < $payload['nbf']) return false;
-    if (!empty($payload['exp']) && $now > $payload['exp']) return false;
-    if (($payload['iss'] ?? '') !== 'buzzjuice.net') return false;
-    if (($payload['aud'] ?? '') !== 'buzznet') return false;
-    if (empty($payload['jti'])) return false;
-    // You may want to check more claims here as needed
-    return $payload;
-}
-
-// -----------------------------
-// Replay protection: JTI store (30 min)
-// -----------------------------
-define('BUZZ_JTI_STORE', __DIR__ . '/sso_jti_store');
-if (!is_dir(BUZZ_JTI_STORE)) @mkdir(BUZZ_JTI_STORE, 0755, true);
-
-function bz_is_jti_used($jti) {
-    return $jti && file_exists(BUZZ_JTI_STORE . '/' . sha1($jti));
-}
-function bz_mark_jti_used($jti) {
-    @file_put_contents(BUZZ_JTI_STORE . '/' . sha1($jti), time(), LOCK_EX);
-}
-function bz_cleanup_jti_store() {
-    $expire = time() - 1800; // 30 min
-    foreach (glob(BUZZ_JTI_STORE . '/*') ?: [] as $file) if (filemtime($file) < $expire) @unlink($file);
-}
-if (mt_rand(1, 35) === 9) bz_cleanup_jti_store();
-
-// -----------------------------
-// Logging + graceful failure
-// -----------------------------
-function bz_bridge_fail_gracefully($msg, $context = []) {
-    if (function_exists('bz_bridge_log')) {
-        bz_bridge_log("SSO FAIL: $msg", $context);
-    } else {
-        error_log("[bz_bridge] $msg | " . json_encode($context));
-    }
-    http_response_code(200);
-    header('Content-Type: text/html; charset=UTF-8');
-    echo '<!doctype html><html><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">';
-    echo '<title>Single sign-on</title><style>body{font-family:sans-serif;max-width:650px;margin:40px auto;}</style></head><body>';
-    echo '<h2>Single sign-on — WoWonder Bridge</h2>';
-    echo '<p>We were unable to complete the cross-site sign in.</p>';
-    if (!empty($msg)) echo '<p><b>Reason:</b> ' . htmlspecialchars($msg, ENT_QUOTES | ENT_SUBSTITUTE) . '</p>';
-    echo '<p><a href="/">Continue to the site</a></p>';
-    echo '</body></html>';
-    exit;
-}
+// Get SSO token from request or cookie
+$sso_token = $_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? '');
 
 
-// -----------------------------
-// Fetch stateless payload from WP
-// -----------------------------
-// Define both variables before using them
-$sso_token = $_REQUEST['sso_token'] ?? ($_COOKIE['buzz_sso'] ?? null);
-$secret = getenv('BUZZ_SSO_SECRET') ?: (defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : null);
-$payload = bz_fetch_wp_stateless_payload($sso_token, $secret);
-
-
-
-// -------------------------------------------------------
-// LOGGING, DEBUG, CLIENT DEBUG BEACON, LOOP PROTECTION
-// -------------------------------------------------------
-
-function bz_is_debug() {
-    return (
-        (isset($_GET['sso_debug']) && $_GET['sso_debug'] === '1') ||
-        (defined('BUZZ_SSO_DEBUG') && BUZZ_SSO_DEBUG === true)
-    );
-}
-
-function bz_bridge_log($msg, $ctx = []) {
-    $data = [
-        'ts'  => gmdate('Y-m-d H:i:s'),
-        'ip'  => $_SERVER['REMOTE_ADDR'] ?? null,
-        'uri' => $_SERVER['REQUEST_URI'] ?? null,
-        'ua'  => $_SERVER['HTTP_USER_AGENT'] ?? null,
-    ];
-    if (!empty($ctx)) $data['ctx'] = $ctx;
-    $line = '['.$data['ts'].'] '.$msg.' | '.json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE).PHP_EOL;
-    @file_put_contents(BUZZ_SSO_BRIDGE_LOG, $line, FILE_APPEND | LOCK_EX);
-}
-
-function bz_debug_page($title, $blocks = []) {
-    if (!bz_is_debug()) return;
-    header('Content-Type: text/html; charset=utf-8');
-    echo "<!doctype html><meta charset='utf-8'><title>SSO Bridge Debug</title>";
-    echo "<style>body{font-family:system-ui;background:#0b1020;color:#e9eef7;padding:24px}
-            .blk{background:#131a33;margin:16px 0;padding:12px;border-radius:10px}
-            pre{white-space:pre-wrap}
-        </style>";
-    echo "<h2>SSO Bridge Debug — ".htmlspecialchars($title, ENT_QUOTES)."</h2>";
-    $default = [
-        'REQUEST' => $_REQUEST ?? [],
-        'SERVER'  => [
-            'HTTP_HOST'   => $_SERVER['HTTP_HOST'] ?? null,
-            'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
-            'REMOTE_ADDR' => $_SERVER['REMOTE_ADDR'] ?? null
-        ]
-    ];
-    $blocks = array_merge($blocks, $default);
-    foreach ($blocks as $k => $v) {
-        echo "<div class='blk'><strong>".htmlspecialchars($k)."</strong><pre>", htmlspecialchars(print_r($v, true)), "</pre></div>";
-    }
-    exit;
-}
-
-// -------------------
-// CLIENT DEBUG BEACON
-// -------------------
-if (!empty($_GET['sso_client_log']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $raw = file_get_contents('php://input');
-    @file_put_contents(
-        BUZZ_SSO_BRIDGE_LOG,
-        '[' . gmdate('Y-m-d H:i:s') . '] CLIENT ' . substr($raw, 0, 2000) . PHP_EOL,
-        FILE_APPEND | LOCK_EX
-    );
-    http_response_code(204);
-    exit;
-}
-
-// -------------------
-// LOOP PROTECTION
-// -------------------
-$loop_count = function_exists('bz_bridge_loop_count')
-    ? bz_bridge_loop_count(true)
-    : 0;
-
-if ($loop_count > 4) {
-    bz_bridge_log('Bridge loop suspected — forcing fallback', [
-        'loop_count' => $loop_count
-    ]);
-    if (function_exists('bz_bridge_loop_count')) bz_bridge_loop_count(false, true);
-    $forced_last_url_fallback = true;
+// --- DEBUG: log the raw cookie payload ---
+if (!empty($_COOKIE[BUZZ_SSO_COOKIE])) {
+    error_log('[WoWonder SSO DEBUG] BUZZ_SSO_COOKIE payload: ' . $_COOKIE[BUZZ_SSO_COOKIE]);
 } else {
-    $forced_last_url_fallback = false;
+    error_log('[WoWonder SSO DEBUG] BUZZ_SSO_COOKIE not set.');
 }
 
 // -------------------------------------------------------
-// END: no legacy HMAC/token helpers below this point!
+// LOGGING, DEBUG, CLIENT DEBUG BEACON, LOOP PROTECTION + SESSION VISIBILITY
 // -------------------------------------------------------
+if (!function_exists('bz_bridge_log')) {
 
+    function bz_bridge_log($msg, $ctx = []) {
 
+        $ts = gmdate('Y-m-d H:i:s');
 
+        $data = [
+            'ts'              => $ts,
+            'ip'              => $_SERVER['REMOTE_ADDR'] ?? null,
+            'uri'             => $_SERVER['REQUEST_URI'] ?? null,
+            'ua'              => $_SERVER['HTTP_USER_AGENT'] ?? null,
+            'php_session_id'  => function_exists('session_id') ? session_id() : null,
+            'session_name'    => function_exists('session_name') ? session_name() : null,
+            'buzz_sso_len'    => isset($_COOKIE[BUZZ_SSO_COOKIE]) ? strlen($_COOKIE[BUZZ_SSO_COOKIE]) : 0,
+        ];
 
+        // Extended debug data (only if debug enabled)
+        if (function_exists('bz_is_debug') && bz_is_debug()) {
 
-// -------------------------------------------------------------
-// SHADOW SESSION & FILE-BASED RECONCILIATION HELPERS REMOVED
-// -------------------------------------------------------------
-// All functions attempting to read/write/parity-check shadow session
-// files or reconcile WoWonder/PHP/WordPress cookies/sessions
-// have been deprecated as of the migration to stateless SSO.
-//
-// The bridge is now stateless. The *only* trusted source of identity
-// is an RFC 7519 JWT, validated on this server, and issued by
-// the WordPress stateless SSO endpoint (`sso-session-sync.php`).
-//
-// USER MAPPING WORKFLOW, MODERN REPLACEMENT:
-//   1. Accept JWT (`sso_token`) from client (cookie, GET, or POST param)
-//   2. Validate JWT signature, claims, exp, nbf, iss, aud, jti (replay)
-//   3. Map JWT claims (WP user id/email/login) to a WoWonder user (DB lookup)
-//   4. If no matching WoWonder account is found, optionally auto-register
-//   5. Start a *fresh* and normal WoWonder session for that user only
-//   6. Optionally push metadata to the user profile (name, avatar, etc.)
-//   7. Do NOT persist or trust any legacy shadow/cookie/session/file
-//   8. Redirect to the app using standard WoWonder routing/redirect rules
-// -------------------------------------------------------------
+            $data['cookies'] = $_COOKIE ?? [];
+            $data['session'] = $_SESSION ?? [];
 
+            $data['server'] = [
+                'HTTP_HOST'   => $_SERVER['HTTP_HOST'] ?? null,
+                'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
+                'HTTPS'       => $_SERVER['HTTPS'] ?? null,
+            ];
 
+            $data['sess_cookie_params'] =
+                function_exists('session_get_cookie_params')
+                ? session_get_cookie_params()
+                : null;
+        }
 
+        if (!empty($ctx)) {
+            $data['ctx'] = $ctx;
+        }
 
+        $line = '[' . $ts . '] ' . $msg . ' | ' .
+            json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) .
+            PHP_EOL;
 
-// -------------------------------------------------------
-// FAIL-SAFE LOGOUT REDIRECT (stateless, JWT-SSO only)
-// -------------------------------------------------------
-function bz_clear_session_and_redirect($reason = 'unknown') {
-    global $wo;
-
-    $ua = strtolower($_SERVER['HTTP_USER_AGENT'] ?? '');
-    if (preg_match('/bot|crawl|spider|slurp|mediapartners/i', $ua)) {
-        bz_bridge_log('Skipping redirect for bot', ['reason' => $reason, 'ua' => $ua]);
-        return;
+        @file_put_contents(
+            BUZZ_SSO_BRIDGE_LOG,
+            $line,
+            FILE_APPEND | LOCK_EX
+        );
     }
-
-    if (session_status() !== PHP_SESSION_NONE) {
-        $_SESSION = [];
-        @session_unset();
-        @session_destroy();
-    }
-
-    // Expire SSO and session cookies
-    if (PHP_VERSION_ID >= 70300) {
-        setcookie(BUZZ_SSO_COOKIE, '', [
-            'expires'  => time() - 3600,
-            'path'     => '/',
-            'domain'   => BUZZ_COOKIE_DOMAIN,
-            'secure'   => true,
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ]);
-    } else {
-        setcookie(BUZZ_SSO_COOKIE, '', time() - 3600, '/', BUZZ_COOKIE_DOMAIN, true, true);
-    }
-    setcookie(session_name(), '', time() - 3600, '/', BUZZ_COOKIE_DOMAIN);
-    $target = rtrim($wo['config']['site_url'] ?? '', '/') . '/../wp-login.php';
-    bz_bridge_log('Clearing session and redirecting', [
-        'reason' => $reason,
-        'target' => $target,
-        'sid'    => function_exists('session_id') ? session_id() : null
-    ]);
-    header('Location: ' . $target);
-    exit;
-}
-
-// -------------------------------------------------------
-// BOOTSTRAP CHECKS — REQUIRE Wo CONFIG AND SQL
-// -------------------------------------------------------
-global $wo, $sqlConnect;
-if (empty($wo['config']['site_url']) || empty($sqlConnect)) {
-    bz_bridge_log('Bootstrap incomplete - missing $wo or $sqlConnect');
-    bz_debug_page('Bootstrap incomplete', ['$wo' => $wo ?? null, '$sqlConnect' => (bool)$sqlConnect]);
-    header('Location: /');
-    exit;
 }
 
 // -------------------------------------------------------
@@ -314,6 +132,100 @@ if (session_status() === PHP_SESSION_NONE) {
         bz_bridge_log('Session not started (bridge): benign request, no buzz_sso and not an SSO action');
     }
 }
+
+// -------------------------------------------------------
+// BOOTSTRAP CHECKS — REQUIRE Wo CONFIG AND SQL
+// -------------------------------------------------------
+global $wo, $sqlConnect;
+if (empty($wo['config']['site_url']) || empty($sqlConnect)) {
+    bz_bridge_log('Bootstrap incomplete - missing $wo or $sqlConnect');
+    bz_debug_page('Bootstrap incomplete', ['$wo' => $wo ?? null, '$sqlConnect' => (bool)$sqlConnect]);
+    header('Location: /');
+    exit;
+}
+
+// -------------------
+// CLIENT DEBUG BEACON
+// -------------------
+if (!empty($_GET['sso_client_log']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $raw = file_get_contents('php://input');
+    @file_put_contents(
+        BUZZ_SSO_BRIDGE_LOG,
+        '[' . gmdate('Y-m-d H:i:s') . '] CLIENT ' . substr($raw, 0, 2000) . PHP_EOL,
+        FILE_APPEND | LOCK_EX
+    );
+    http_response_code(204);
+    exit;
+}
+
+// -------------------
+// LOOP PROTECTION
+// -------------------
+$loop_count = function_exists('bz_bridge_loop_count')
+    ? bz_bridge_loop_count(true)
+    : 0;
+
+if ($loop_count > 5) {
+    bz_bridge_log('Bridge loop suspected — forcing fallback', [
+        'loop_count' => $loop_count
+    ]);
+    if (function_exists('bz_bridge_loop_count')) bz_bridge_loop_count(false, true);
+    $forced_last_url_fallback = true;
+} else {
+    $forced_last_url_fallback = false;
+}
+
+// -----------------------------
+// ***** Replay protection: JTI store (30 min) ***** TODO
+// -----------------------------
+define('BUZZ_JTI_STORE', __DIR__ . '/sso_jti_store');
+if (!is_dir(BUZZ_JTI_STORE)) @mkdir(BUZZ_JTI_STORE, 0755, true);
+
+function bz_is_jti_used($jti) {
+    return $jti && file_exists(BUZZ_JTI_STORE . '/' . sha1($jti));
+}
+function bz_mark_jti_used($jti) {
+    @file_put_contents(BUZZ_JTI_STORE . '/' . sha1($jti), time(), LOCK_EX);
+}
+function bz_cleanup_jti_store() {
+    $expire = time() - 3600; // 30 min
+    foreach (glob(BUZZ_JTI_STORE . '/*') ?: [] as $file) if (filemtime($file) < $expire) @unlink($file);
+}
+if (mt_rand(1, 35) === 9) bz_cleanup_jti_store();
+
+// -------------------------------------------------------------
+// SHADOW SESSION & FILE-BASED RECONCILIATION HELPERS REMOVED
+// -------------------------------------------------------------
+// All functions attempting to read/write/parity-check shadow session
+// files or reconcile WoWonder/PHP/WordPress cookies/sessions
+// have been deprecated as of the migration to stateless SSO.
+//
+// The bridge is now stateless. The *only* trusted source of identity
+// is an RFC 7519 JWT, validated on this server, and issued by
+// the WordPress stateless SSO endpoint (`sso-session-sync.php`).
+//
+// USER MAPPING WORKFLOW, MODERN REPLACEMENT:
+//   1. Accept JWT (`sso_token`) from client (cookie, GET, or POST param)
+//   2. Validate JWT signature, claims, exp, nbf, iss, aud, jti (replay)
+//   3. Map JWT claims (WP user id/email/login) to a WoWonder user (DB lookup)
+//   4. If no matching WoWonder account is found, optionally auto-register
+//   5. Start a *fresh* and normal WoWonder session for that user only
+//   6. Optionally push metadata to the user profile (name, avatar, etc.)
+//   7. Do NOT persist or trust any legacy shadow/cookie/session/file
+//   8. Redirect to the app using standard WoWonder routing/redirect rules
+// -------------------------------------------------------------
+
+// ===================================================================================================
+// END: CONFIGURATIONS + LOGGING + graceful failure (no legacy HMAC/token helpers below this point!)
+// ===================================================================================================
+
+
+
+
+
+// =============================================
+// START: ENDPOINTS + PAYLOAD + DATA MAPPING
+// =============================================
 
 // -------------------------------------------------------
 // LIGHTWEIGHT "CHECK" ENDPOINT (validates logged-in/JWT/redirect)
@@ -361,9 +273,105 @@ if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'check') {
     exit;
 }
 
+// ------------------------------------------
+// Remote Synced WordPress Login Endpoint
+// ------------------------------------------
+if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'remote_login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $token = $_POST['sso_token'] ?? '';
+    $signature = $_SERVER['HTTP_X_BUZZJUICE_SIGNATURE'] ?? '';
+    $expected_signature = hash_hmac('sha256', $token, $BUZZ_SSO_SECRET);
+
+    // Only allow if signed correctly by WP (add IP allowlist or referer if desired)
+    if (!hash_equals($signature, $expected_signature)) {
+        bz_bridge_fail_gracefully('Remote SSO login — signature mismatch');
+    }
+
+    $payload = bz_validate_jwt($token, $BUZZ_SSO_SECRET);
+    if (!$payload) bz_bridge_fail_gracefully('Remote SSO login — JWT invalid/expired');
+
+    // Map/create WoWonder user
+    $wo_user_id = bz_find_wo_user_any($payload['wp_user_id'], $payload['wp_user_email'], $payload['wp_user_login']);
+    if (!$wo_user_id && BUZZ_SSO_AUTO_REGISTER) {
+        $wo_user_id = bz_register_wo_user($payload['wp_user_id'], $payload['wp_user_login'], $payload['wp_user_email']);
+    }
+    if (!$wo_user_id) {
+        bz_bridge_fail_gracefully('Remote SSO login — Unable to map/register user');
+    }
+
+    // Set session fields
+    $_SESSION['wo_user_id']    = $wo_user_id;
+    $_SESSION['wp_user_id']    = $payload['wp_user_id'];
+    $_SESSION['wp_user_login'] = $payload['wp_user_login'];
+    $_SESSION['wp_user_email'] = $payload['wp_user_email'];
+    $_SESSION['qd_user_id']    = $payload['qd_user_id'];
+
+    // Issue BUZZ_SSO_COOKIE
+    setcookie(BUZZ_SSO_COOKIE, $token, time()+BUZZ_SSO_TTL, '/', BUZZ_COOKIE_DOMAIN, true, true);
+    send_json_response(['status'=>200, 'logged_in'=>true, 'wo_user_id'=>$wo_user_id]);
+
+    
+}
+
+// ------------------------------------------
+// QuickDate Social Fetch Endpoint
+// ------------------------------------------
+if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'get_payload_for_social' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $signature = $_SERVER['HTTP_X_BUZZJUICE_SIGNATURE'] ?? '';
+    $expected_signature = hash_hmac('sha256', 'get_payload_for_social', $BUZZ_SSO_SECRET); // QD secret if needed
+
+    if (!hash_equals($signature, $expected_signature)) {
+        bz_bridge_fail_gracefully('QuickDate SSO payload fetch — signature mismatch');
+    }
+
+    $wo_user_id = $_SESSION['wo_user_id'] ?? 0;
+    if (!$wo_user_id) send_json_response(['status'=>403, 'error'=>'No WoWonder session']);
+
+    $user_payload = [
+        'wo_user_id'    => $wo_user_id,
+        'wp_user_id'    => $_SESSION['wp_user_id'] ?? null,
+        'wp_user_login' => $_SESSION['wp_user_login'] ?? null,
+        'wp_user_email' => $_SESSION['wp_user_email'] ?? null,
+        'qd_user_id'    => $_SESSION['qd_user_id'] ?? null,
+    ];
+    send_json_response(['status'=>200, 'payload'=>$user_payload]);
+}
 
 
 
+
+
+
+// --------------------------------------
+// Fetch stateless payload Orchestrator
+// --------------------------------------
+// Try Login from BuzzSSO Cookie
+$payload = null;
+if (!empty($sso_token) && $BUZZ_SSO_SECRET) {
+    $payload = bz_validate_jwt($sso_token, $BUZZ_SSO_SECRET);
+}
+// Try Login from WordPress Endpoint
+if (!$payload) {
+    $payload_arr = bz_fetch_wp_stateless_payload($_COOKIE[BUZZ_SSO_COOKIE] ?? null, $BUZZ_SSO_SECRET);
+    if (isset($payload_arr['payload'])) $payload = $payload_arr['payload'];
+}
+// Try Login from QuickDate Endpoint
+if (!$payload) {
+    $qd_url = 'https://buzzjuice.net/social/qd-sso-bridge.php?sso_action=get_payload_for_streams';
+    $signature = hash_hmac('sha256', 'get_payload_for_streams', $BUZZ_SSO_SECRET);
+    $ch = curl_init($qd_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-Buzzjuice-Signature: ' . $signature]);
+    $result = curl_exec($ch);
+    curl_close($ch);
+    $resp = json_decode($result, true);
+    if (isset($resp['payload'])) $payload = $resp['payload'];
+}
+// Redirect to WordPress Login
+if (!$payload) {
+    bz_redirect_to_wp_login('No valid SSO payload from BUZZ_SSO_COOKIE, WP endpoint or QD endpoint');
+}
 
 // -------------------------------------------------------
 // SSO JWT CLAIM EXTRACTION & REQUIRED CLAIMS VALIDATION
@@ -371,15 +379,6 @@ if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'check') {
 
 $payload = null;
 $site_base = rtrim($wo['config']['site_url'] ?? '', '/');
-
-// Centralized, loggable WordPress login redirect
-function bz_redirect_to_wp_login($reason = 'unknown') {
-    global $site_base;
-    $go_pro_target = $site_base . '/ww-sso-bridge.php?redirect_to=go-pro';
-    bz_bridge_log('Redirecting to WP login', ['reason' => $reason, 'wp_login_url' => $go_pro_target]);
-    header('Location: https://buzzjuice.net/wp-login.php?redirect_to=' . rawurlencode($go_pro_target));
-    exit;
-}
 
 // 1. Is the buzz_sso JWT cookie present and secret configured?
 if (!empty($_COOKIE[BUZZ_SSO_COOKIE]) && $BUZZ_SSO_SECRET) {
@@ -439,9 +438,14 @@ bz_bridge_log('Canonical pre-mapping values', [
 
 
 
-// --------------------------------------------------
+
+
+
+
+
+// ========================================================
 // WoWonder <-> WordPress Mapping & Registration Helpers
-// --------------------------------------------------
+// ========================================================
 
 function bz_safe_username_from_login($login, $email = '') {
     $u = preg_replace('~[^a-z0-9_.-]~i', '', (string)$login);
@@ -703,7 +707,8 @@ if ($canonical['wo_user_id']) {
     }
 }
 if (!$final_wo_user_id) {
-    bz_bridge_log('Unable to determine wo_user_id after mapping/registration', ['canonical'=>$canonical,'session'=>$_SESSION ?? []]);
+    bz_bridge_log('Unable to determine wo_user_id after mapping/registration', [
+        'canonical'=>$canonical,'session'=>$_SESSION ?? []]);
     bz_redirect_to_wp_login('Unable to determine WoWonder account');
 }
 

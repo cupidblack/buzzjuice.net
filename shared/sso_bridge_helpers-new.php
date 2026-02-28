@@ -82,57 +82,8 @@ if (!function_exists('bz_sso_bridge_log')) {
     }
 }
 
-// ---------------------
-// Base64URL Encode/Decode (RFC 7519/JWT)
-// ---------------------
-if (!function_exists('bz_sso_b64url_encode')) {
-    function bz_sso_b64url_encode($data) {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
-    }
-}
-if (!function_exists('bz_sso_b64url_decode')) {
-    function bz_sso_b64url_decode($data) {
-        $remainder = strlen($data) % 4;
-        if ($remainder) $data .= str_repeat('=', 4 - $remainder);
-        return base64_decode(strtr($data, '-_', '+/'));
-    }
-}
 
-// ---------------------
-// JWT Encode/Validate (HS256, RFC 7519)
-// ---------------------
-if (!function_exists('bz_sso_jwt_encode')) {
-    function bz_sso_jwt_encode($payload, $secret, $aud = 'buzznet', $ttl = 1200) {
-        $now = time();
-        $payload['iat'] = $now;
-        $payload['exp'] = $now + $ttl;
-        $payload['iss'] = 'buzzjuice.net';
-        $payload['aud'] = $aud;
-        $payload['jti'] = bin2hex(random_bytes(16));
-        $header = ['alg'=>'HS256','typ'=>'JWT'];
-        $segments = [
-            bz_sso_b64url_encode(json_encode($header)),
-            bz_sso_b64url_encode(json_encode($payload))
-        ];
-        $sig = hash_hmac('sha256', implode('.', $segments), $secret, true);
-        $segments[] = bz_sso_b64url_encode($sig);
-        return implode('.', $segments);
-    }
-}
-if (!function_exists('bz_sso_jwt_validate')) {
-    function bz_sso_jwt_validate($jwt, $secret, $aud = 'buzznet') {
-        $parts = explode('.', $jwt);
-        if (count($parts) !== 3) return false;
-        list($h, $p, $s) = $parts;
-        $payload = json_decode(bz_sso_b64url_decode($p), true);
-        $sig     = bz_sso_b64url_decode($s);
-        $expected = hash_hmac('sha256', "$h.$p", $secret, true);
-        if (!hash_equals($expected, $sig)) return false;
-        if (!$payload || !isset($payload['exp']) || time() > $payload['exp']) return false;
-        if ($aud && (!isset($payload['aud']) || $payload['aud'] !== $aud)) return false;
-        return $payload;
-    }
-}
+
 
 // ---------------------
 // JTI Replay Store Helpers (file-based, per-platform directory)

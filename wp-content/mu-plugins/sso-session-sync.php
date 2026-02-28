@@ -137,8 +137,8 @@ add_action('wp_login', function($login, $user) use ($__buzz_sso_secret) {
     bz_sso_set_cookie($token_wp, BUZZ_SSO_TTL);
 
     $bridges = [
-        'streams' => home_url('/streams/ww-sso-bridge.php'),
-        'social'  => home_url('/social/qd-sso-bridge.php')
+        'streams' => home_url('/streams/ww-sso-bridge.php?sso_action=remote_login'),
+        'social'  => home_url('/social/qd-sso-bridge.php?sso_action=remote_login')
     ];
     foreach ($bridges as $aud => $url) {
         $t   = ($aud==='streams') ? $token_streams : $token_social;

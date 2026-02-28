@@ -56,6 +56,13 @@ if (!function_exists('bz_bridge_loop_count')) {
     }
 }
 
+function bz_is_debug() {
+    return (
+        (isset($_GET['sso_debug']) && $_GET['sso_debug'] === '1') ||
+        (defined('BUZZ_SSO_DEBUG') && BUZZ_SSO_DEBUG === true)
+    );
+}
+
 if (!function_exists('bz_bridge_log')) {
     function bz_bridge_log($msg, $ctx = []) {
         $log = defined('BUZZ_SSO_BRIDGE_LOG') ? BUZZ_SSO_BRIDGE_LOG : (sys_get_temp_dir() . '/ww_sso_bridge.log');
@@ -132,6 +139,95 @@ if (!function_exists('bz_fetch_remote_location')) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+// -----------------------------
+// Unified Logging + Graceful Failure
+// -----------------------------
+
+function bz_debug_page($title, $blocks = []) {
+    if (!bz_is_debug()) return;
+    header('Content-Type: text/html; charset=utf-8');
+    echo "<!doctype html><meta charset='utf-8'><title>SSO Bridge Debug</title>";
+    echo "<style>body{font-family:system-ui;background:#0b1020;color:#e9eef7;padding:24px}
+            .blk{background:#131a33;margin:16px 0;padding:12px;border-radius:10px}
+            pre{white-space:pre-wrap}
+        </style>";
+    echo "<h2>SSO Bridge Debug — ".htmlspecialchars($title, ENT_QUOTES)."</h2>";
+    $default = [
+        'REQUEST' => $_REQUEST ?? [],
+        'SERVER'  => [
+            'HTTP_HOST'   => $_SERVER['HTTP_HOST'] ?? null,
+            'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
+            'REMOTE_ADDR' => $_SERVER['REMOTE_ADDR'] ?? null
+        ]
+    ];
+    $blocks = array_merge($blocks, $default);
+    foreach ($blocks as $k => $v) {
+        echo "<div class='blk'><strong>".htmlspecialchars($k)."</strong><pre>", htmlspecialchars(print_r($v, true)), "</pre></div>";
+    }
+    exit;
+}
+
+
+if (!function_exists('bz_bridge_fail_gracefully')) {
+    function bz_bridge_fail_gracefully($msg = '', $context = [], $bridge_name = 'Single Sign-on') {
+        // ---- Logging ----
+        $log_message = "SSO FAIL: " . $msg;
+        if (function_exists('bz_bridge_log')) {
+            bz_bridge_log($log_message, $context);
+        } else {
+            error_log('[bz_bridge] ' . $log_message . ' | ' . json_encode($context));
+        }
+        // ---- Safe Output ----
+        http_response_code(200);
+        header('Content-Type: text/html; charset=UTF-8');
+        $safe_reason = htmlspecialchars($msg, ENT_QUOTES | ENT_SUBSTITUTE);
+        echo '<!doctype html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="robots" content="noindex,nofollow">
+            <title>' . htmlspecialchars($bridge_name, ENT_QUOTES | ENT_SUBSTITUTE) . '</title>
+            <style>
+                body {
+                    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+                    background: #fff;
+                    color: #111;
+                    padding: 28px;
+                    max-width: 720px;
+                    margin: 40px auto;
+                }
+                a { color: #0073aa; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+            </style>
+        </head>
+        <body>
+            <h2>' . htmlspecialchars($bridge_name, ENT_QUOTES | ENT_SUBSTITUTE) . ' — helper</h2>
+            <p>We were unable to complete the cross-site sign-in.</p>';
+        if (!empty($safe_reason)) {
+            echo '<p><strong>Reason:</strong> ' . $safe_reason . '</p>';
+        }
+        echo '<p><a href="/">Return to the site</a></p>
+        </body>
+        </html>';
+        exit;
+    }
+}
+
+
+
+
+
 if (!function_exists('bz_validate_stateless_sso')) {
     function bz_validate_stateless_sso($token, $secret) {
         $parts = explode('.', $token, 2);
@@ -147,6 +243,107 @@ if (!function_exists('bz_validate_stateless_sso')) {
         return $payload;
     }
 }
+
+
+
+// -----------------------------
+// Hardened base64url decode (never null)
+// -----------------------------
+// ---------------------
+// Base64URL Encode/Decode (RFC 7519/JWT)
+// ---------------------
+if (!function_exists('bz_sso_b64url_encode')) {
+    function bz_sso_b64url_encode($data) {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+}
+if (!function_exists('bz_sso_b64url_decode')) {
+    function bz_sso_b64url_decode($str) {
+        if ($str === null || $str === '') return '';
+        $s = strtr($str, '-_', '+/');
+        $pad = strlen($s) % 4;
+        if ($pad) $s .= str_repeat('=', 4 - $pad);
+        $out = base64_decode($s, true);
+        return $out === false ? '' : $out;
+    }
+}
+// --- JWT HELPERS ---
+// ---------------------
+// JWT Encode/Validate (HS256, RFC 7519)
+// ---------------------
+if (!function_exists('bz_sso_jwt_encode')) {
+    function bz_sso_jwt_encode($payload, $secret, $aud = 'buzznet', $ttl = 1200) {
+        $now = time();
+        $payload['iat'] = $now;
+        $payload['exp'] = $now + $ttl;
+        $payload['iss'] = 'buzzjuice.net';
+        $payload['aud'] = $aud;
+        $payload['jti'] = bin2hex(random_bytes(16));
+        $header = ['alg'=>'HS256','typ'=>'JWT'];
+        $segments = [
+            bz_sso_b64url_encode(json_encode($header)),
+            bz_sso_b64url_encode(json_encode($payload))
+        ];
+        $sig = hash_hmac('sha256', implode('.', $segments), $secret, true);
+        $segments[] = bz_sso_b64url_encode($sig);
+        return implode('.', $segments);
+    }
+}
+if (!function_exists('bz_sso_jwt_validate')) {
+    function bz_sso_jwt_validate($jwt, $secret, $aud = 'buzznet') {
+        $parts = explode('.', $jwt);
+        if (count($parts) !== 3) return false;
+        list($h, $p, $s) = $parts;
+        $payload = json_decode(bz_sso_b64url_decode($p), true);
+        $sig     = bz_sso_b64url_decode($s);
+        $expected = hash_hmac('sha256', "$h.$p", $secret, true);
+        if (!hash_equals($expected, $sig)) return false;
+        if (!$payload || !isset($payload['exp']) || time() > $payload['exp']) return false;
+        if ($aud && (!isset($payload['aud']) || $payload['aud'] !== $aud)) return false;
+        return $payload;
+    }
+}
+
+// -----------------------------
+// RFC 7519 JWT validation
+// -----------------------------
+function bz_validate_jwt($jwt, $BUZZ_SSO_SECRET) {
+    $parts = explode('.', $jwt);
+    if (count($parts) !== 3) return false;
+    list($h, $p, $s) = $parts;
+    $header  = json_decode(bz_sso_b64url_decode($h), true);
+    $payload = json_decode(bz_sso_b64url_decode($p), true);
+    if (!$header || !$payload || ($header['alg'] ?? '') !== 'HS256') return false;
+    $expected_sig = hash_hmac('sha256', "$h.$p", $BUZZ_SSO_SECRET, true);
+    $actual_sig  = bz_sso_b64url_decode($s);
+    if (!hash_equals($expected_sig, $actual_sig)) return false;
+    $now = time();
+    if (!empty($payload['nbf']) && $now < $payload['nbf']) return false;
+    if (!empty($payload['exp']) && $now > $payload['exp']) return false;
+    if (($payload['iss'] ?? '') !== 'buzzjuice.net') return false;
+    if (($payload['aud'] ?? '') !== 'buzznet') return false;
+    if (empty($payload['jti'])) return false;
+    // You may want to check more claims here as needed
+    return $payload;
+}
+
+
+
+
+// Centralized, loggable WordPress login redirect
+function bz_redirect_to_wp_login($reason = 'unknown') {
+    global $site_base;
+    $go_pro_target = $site_base . '/ww-sso-bridge.php?redirect_to=go-pro';
+    bz_bridge_log('Redirecting to WP login', ['reason' => $reason, 'wp_login_url' => $go_pro_target]);
+    header('Location: https://buzzjuice.net/wp-login.php?redirect_to=' . rawurlencode($go_pro_target));
+    exit;
+}
+
+
+
+
+
+
 
 
 
