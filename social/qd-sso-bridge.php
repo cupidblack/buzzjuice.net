@@ -5,10 +5,6 @@
  * refresh-token fallback, and clear separation from legacy PHP/session bridging.
  */
 
-
-
-
-
 require_once __DIR__ . '/bootstrap.php';
 //if (file_exists(__DIR__ . '/controllers/aj.php')) require_once __DIR__ . '/controllers/aj.php';
 //if (file_exists(__DIR__ . '/requests/ajax/useractions.php')) require_once __DIR__ . '/requests/ajax/useractions.php';
@@ -36,13 +32,13 @@ $BUZZ_SSO_SECRET = defined('BUZZ_SSO_SECRET')
 // Get SSO token from request or cookie
 $sso_token = $_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? '');
 $sso_action = $_REQUEST['sso_action'] ?? '';
-
 // --- DEBUG: log the raw cookie payload ---
-if (!empty($_COOKIE[BUZZ_SSO_COOKIE])) {
+/* if (!empty($_COOKIE[BUZZ_SSO_COOKIE])) {
     error_log('[QuickDate SSSO DEBUG] BUZZ_SSO_COOKIE payload: ' . $_COOKIE[BUZZ_SSO_COOKIE]);
 } else {
     error_log('[QuickDate SSO DEBUG] BUZZ_SSO_COOKIE not set.');
 }
+*/
 
 // -------------------------------------------------------
 // LOGGING, DEBUG, CLIENT DEBUG BEACON, LOOP PROTECTION + SESSION VISIBILITY
@@ -267,8 +263,6 @@ normalize_sso_session();
 
 
 
-
-
 // =============================================
 // START: ENDPOINTS + PAYLOAD + DATA MAPPING
 // =============================================
@@ -295,15 +289,11 @@ if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'remote_login
     }
     if (!$qd_user_id) bz_bridge_fail_gracefully('Remote SSO login — Unable to map/register user');
 
-    
-    
-    
     $_SESSION['qd_user_id']    = $qd_user_id;
     $_SESSION['wp_user_id']    = $payload['wp_user_id'];
     $_SESSION['wp_user_login'] = $payload['wp_user_login'];
     $_SESSION['wp_user_email'] = $payload['wp_user_email'];
     $_SESSION['wo_user_id']    = $payload['wo_user_id'];
-
     
     setcookie(BUZZ_SSO_COOKIE, $token, time()+BUZZ_SSO_TTL, '/', BUZZ_COOKIE_DOMAIN, true, true);
 
@@ -340,39 +330,73 @@ if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'get_payload_
 }
 
 // --------------------------------------
-// Fetch stateless payload Orchestrator
+// Stateless SSO Orchestration (QuickDate)
 // --------------------------------------
-// Try Login from BuzzSSO Cookie
-$payload = null;
-if (!empty($sso_token) && $BUZZ_SSO_SECRET) {
-    $payload = bz_validate_jwt($sso_token, $BUZZ_SSO_SECRET);
+// Loop protection (helps block infinite SSO relay between QD & WP)
+if (!isset($_SESSION)) session_start();
+$_SESSION['qd_sso_attempts'] = ($_SESSION['qd_sso_attempts'] ?? 0) + 1;
+if ($_SESSION['qd_sso_attempts'] > 3) {
+    bz_bridge_log('SSO loop protection triggered', ['attempts' => $_SESSION['qd_sso_attempts']]);
+    unset($_SESSION['qd_sso_attempts']);
+    bz_redirect_to_wp_login('/');
+    exit;
 }
-// ---------------------------------------------
-// Try Login from WordPress Endpoint
-// ---------------------------------------------
+
+$sso_token = $_COOKIE[BUZZ_SSO_COOKIE] ?? null;
+$payload = null;
+
+// 1. Try BUZZ_SSO_COOKIE first
+if (!empty($sso_token) && $BUZZ_SSO_SECRET) {
+    try {
+        $payload = bz_validate_jwt($sso_token, $BUZZ_SSO_SECRET);
+        if ($payload) {
+            bz_bridge_log('Valid JWT from BUZZ_SSO_COOKIE', ['exp'=>$payload['exp']??null]);
+            // If expiring within 5 minutes, force silent refresh from WP
+            if (!empty($payload['exp']) && ($payload['exp'] - time()) < 300) {
+                bz_bridge_log('JWT nearing expiry; refreshing from WP endpoint', []);
+                $payload = null;
+            }
+        }
+    } catch (Throwable $e) {
+        qd_bridge_log('Exception during JWT validation', ['ex' => $e->getMessage()]);
+        $payload = null;
+    }
+} else {
+    bz_bridge_log('No BUZZ_SSO_COOKIE present or missing secret', [
+        'cookie_present' => !empty($sso_token),
+        'BUZZ_SSO_SECRET' => (bool)$BUZZ_SSO_SECRET
+    ]);
+}
+
+// 2. Try Login from WordPress Endpoint
 if (!$payload) {
+    bz_bridge_log('Attempting WordPress endpoint fetch');
     $payload_arr = bz_fetch_wp_stateless_payload($sso_token ?? null, $BUZZ_SSO_SECRET);
-    // If WP explicitly says "not logged in" → redirect to WP login
+
+    // If WP explicitly says "not logged in" → redirect immediately to WP
     if (
         isset($payload_arr['status']) &&
         (int)$payload_arr['status'] === 401
     ) {
-        // Preserve deep link
         $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/social/';
         $redirect_target = 'https://buzzjuice.net' . $requested;
         bz_bridge_log('WP endpoint returned 401. Redirecting to WP login.', [
             'redirect_to' => $redirect_target
         ]);
+        unset($_SESSION['qd_sso_attempts']);
         bz_redirect_to_wp_login($redirect_target);
         exit;
     }
-    // If valid payload received → use it
+    // If WP returned payload → use it
     if (!empty($payload_arr['payload'])) {
         $payload = $payload_arr['payload'];
+        bz_bridge_log('Payload obtained from WP endpoint');
     }
 }
-// Try Login from WoWonder Endpoint
+
+// 3. Try Login from WoWonder, only if WP didn't say 401 explicitly
 if (!$payload) {
+    bz_bridge_log('Attempting WoWonder endpoint fallback');
     $ww_url = 'https://buzzjuice.net/streams/ww-sso-bridge.php?sso_action=get_payload_for_social';
     $signature = hash_hmac('sha256', 'get_payload_for_social', $BUZZ_SSO_SECRET);
     $ch = curl_init($ww_url);
@@ -381,46 +405,34 @@ if (!$payload) {
     curl_setopt($ch, CURLOPT_TIMEOUT, 5);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-Buzzjuice-Signature: ' . $signature]);
     $result = curl_exec($ch);
+    $error  = curl_error($ch);
     curl_close($ch);
-    $resp = json_decode($result, true);
-    if (isset($resp['payload'])) $payload = $resp['payload'];
+    if (!$error && $result) {
+        $resp = json_decode($result, true);
+        if (!empty($resp['payload'])) {
+            $payload = $resp['payload'];
+            bz_bridge_log('Payload obtained from WoWonder endpoint');
+        }
+    } else {
+        bz_bridge_log('WoWonder fetch error', ['error'=>$error]);
+    }
 }
-// Redirect to WordPress Login
+
+// Final: If all fail, redirect to WordPress login
 if (!$payload) {
-    bz_redirect_to_wp_login('No valid SSO payload from BUZZ_SSO_COOKIE, WP endpoint, or WoWonder endpoint');
+    bz_bridge_log('No valid SSO payload from BUZZ_SSO_COOKIE, WP endpoint, or WoWonder endpoint.');
+    unset($_SESSION['qd_sso_attempts']);
+    $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/social/';
+    $redirect_target = 'https://buzzjuice.net' . $requested;
+    bz_redirect_to_wp_login($redirect_target);
+    exit;
+} else {
+    unset($_SESSION['qd_sso_attempts']); // reset loop counter on success
 }
-
-
 
 // -------------------------------------------------------
 // SSO JWT CLAIM EXTRACTION & REQUIRED CLAIMS VALIDATION
 // -------------------------------------------------------
-
-$payload = null;
-$site_base = rtrim($site_base ?? '', '/');
-
-// 1. Is the buzz_sso JWT cookie present and secret configured?
-if (!empty($_COOKIE[BUZZ_SSO_COOKIE]) && $BUZZ_SSO_SECRET) {
-    try {
-        $payload = bz_validate_jwt($_COOKIE[BUZZ_SSO_COOKIE], $BUZZ_SSO_SECRET);
-    } catch (Throwable $e) {
-        qd_bridge_log('Exception during JWT validation', ['ex' => $e->getMessage()]);
-        $payload = false;
-    }
-} else {
-    qd_bridge_log('No JWT/buzz_sso cookie present or missing secret', [
-        'cookie_present' => !empty($_COOKIE[BUZZ_SSO_COOKIE]),
-        'BUZZ_SSO_SECRET' => (bool)$BUZZ_SSO_SECRET
-    ]);
-    bz_redirect_to_wp_login('Missing JWT SSO token or secret');
-}
-
-if (!$payload) {
-    qd_bridge_log('JWT SSO payload invalid/expired');
-    bz_redirect_to_wp_login('JWT SSO payload invalid or expired');
-}
-
-// 2. Extract claims (use legacy keys as fallback for backwards compatibility)
 $claim_wp_user_id    = (int)($payload['wp_user_id'] ?? 0);
 $claim_wp_user_login = (string)($payload['wp_user_login'] ?? $payload['login'] ?? '');
 $claim_wp_user_email = (string)($payload['wp_user_email'] ?? $payload['email'] ?? '');
@@ -434,13 +446,16 @@ $original_claims = [
 ];
 qd_bridge_log('JWT SSO claims extracted', array_merge($original_claims, ['raw_payload' => $payload]));
 
-// 3. Required claims guard
+// Required claims guard
 if (!$claim_wp_user_id || !$claim_wp_user_login || !$claim_wp_user_email) {
     qd_bridge_log('Missing required claims (JWT incomplete)', $original_claims);
-    bz_redirect_to_wp_login('JWT missing required claims');
+    $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/social/';
+    $redirect_target = 'https://buzzjuice.net' . $requested;
+    bz_redirect_to_wp_login($redirect_target);
+    exit;
 }
 
-// 4. Canonicalization: prefer already set session fields for UI only (do NOT trust for SSO)
+// Canonicalization: prefer already set session fields for UI only (do NOT trust for SSO)
 $cookie_payload = [
     'wp_user_id'    => $_SESSION['wp_user_id']    ?? $claim_wp_user_id,
     'wp_user_login' => $_SESSION['wp_user_login'] ?? $claim_wp_user_login,
@@ -452,13 +467,6 @@ qd_bridge_log('Canonical pre-mapping values', [
     'canonical' => $cookie_payload,
     'session'   => $_SESSION ?? [],
 ]);
-
-
-
-
-
-
-
 
 
 
@@ -491,8 +499,6 @@ function qd_find_user_by_login_email($login, $email) {
     return 0;
 }
 /* ----- END LEGACY/DEPRECATED BLOCK: SESSION BOOTSTRAP ----- */
-
-
 
 
 /**
@@ -699,8 +705,6 @@ if (!function_exists('qd_persist_wp_usermeta')) {
         return false;
     }
 }
-
-
 
 
 
@@ -912,7 +916,6 @@ if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'do_login' && $_SERVE
     QD_SSO_Login();
     exit;
 }
-
 //END QuickDate 'social/qd-sso-bridge.php' UPDATED PART 5 - FINAL
 
 
@@ -1079,15 +1082,6 @@ function QD_SSO_Login() {
 
     // Post-login WP→QD sync logic as previously implemented
 
-
-
-
-
-
-
-
-
-
     // ----------------------------
     // SYNC: Update QuickDate user with WordPress metadata AFTER successful login
     // - Use shared/wwqd_bridge.php functions when available:
@@ -1191,13 +1185,6 @@ function QD_SSO_Login() {
 
 
 
-
-
-
-
-
-
-
     // Hardened redirect
     $default_url = (isset($config->uri) ? rtrim($config->uri, '/') : '') . '/find-matches';
     $url = $default_url;
@@ -1225,8 +1212,6 @@ function QD_SSO_Login() {
     echo json_encode(['status'=>200,'location'=>$url]);
     exit;
 }
-
-
 
 
 
@@ -1267,11 +1252,12 @@ qd_bridge_log('Rendering QD SSO bridge page', [
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2rem;background:#0b1020;color:#e9eef7}
-.card{max-width:560px;margin:10vh auto;padding:1.5rem 1.75rem;background:#131a33;border-radius:10px;box-shadow:0 4px 32px #0008}
-.title{font-size:1.45rem;font-weight:700;margin-bottom:.5em}
-.status{font-size:1.05rem;margin-top:1em}
-.status.ok{color:#6f6}.status.err{color:#e88}
-.dbg{font-size:.9em;margin-top:2em;word-break:break-all}
+.card{max-width:560px;margin:10vh auto;padding:1.5rem 1.75rem;background:#131a33;border-radius:14px}
+.title{font-size:1.25rem;margin:0 0 .5rem}
+.status{margin-top:1rem;padding:.75rem 1rem;border-radius:10px;background:#0e1530}
+.ok{background:#10351f}
+.err{background:#3a1414}
+.dbg pre{background:#0e1530;padding:.75rem;border-radius:8px;overflow:auto}
 </style>
 </head>
 <body>
@@ -1279,26 +1265,23 @@ body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2re
     <div class="title">Signing you in…</div>
     <div id="status" class="status">Preparing secure session…</div>
     <?php if (bz_is_debug()): ?>
-      <div class="dbg"><pre><?php 
-        echo htmlspecialchars(print_r([
-          'ajax_url'=>$ajax_url,
-          'post'=>[
+      <div class="dbg"><pre><?php echo htmlspecialchars(print_r([
+          'ajax_url' => $ajax_url,
+          'post' => [
             'token'=>'(token:len='.strlen($sso_token).')',
             'last_url'=>$last_url,
             'remember_device'=>'on'
           ],
-          'session_keys'=>array_keys($_SESSION),
-          'cookie_keys'=>array_keys($_COOKIE)
-        ], true)); 
-      ?></pre></div>
+          'session_keys' => array_keys($_SESSION),
+          'cookie_keys' => array_keys($_COOKIE)
+      ], true)); ?></pre></div>
     <?php endif; ?>
     <noscript>
       <div class="status err">
         JavaScript is required for secure sign-in. Please enable JavaScript.
       </div>
     </noscript>
-  </div>
-
+  </div> 
   <script nonce="<?php echo htmlspecialchars($nonce, ENT_QUOTES, 'UTF-8'); ?>">
   (function(){
     if (window.__qd_sso_executed) return;
@@ -1316,6 +1299,9 @@ body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2re
     ?>;
     var statusEl = document.getElementById('status');
 
+    // Prevent bridge infinite loops
+    if (lastUrl && lastUrl.indexOf('qd-sso-bridge.php') !== -1) lastUrl = undefined;
+
     function beacon(msg, extra){
       try{
         var dataObj = {msg:msg,extra:extra||{},when:Date.now()};
@@ -1328,6 +1314,10 @@ body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2re
 
     statusEl && (statusEl.textContent = 'Contacting server…');
     beacon('bridge:init', {ajaxUrl: ajaxUrl, last: payload.last_url});
+
+    function clearLoopCookie() {
+      try { document.cookie = 'bz_bridge_loop=;path=/;Max-Age=0'; } catch(e) {}
+    }
 
     var xhr = new XMLHttpRequest();
     xhr.open('POST', ajaxUrl, true);

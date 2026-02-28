@@ -8,10 +8,8 @@
  * - Robust error handling, replay protection, log discipline.
  * - Extensible for refresh token rotation.
  */
-
+ 
 require_once __DIR__ . '/assets/init.php';
-
-
 
 if (file_exists(__DIR__ . '/../shared/wwqd_bridge.php')) require_once __DIR__ . '/../shared/wwqd_bridge.php';
 require_once __DIR__ . '/../shared/sso_bridge_helpers.php';
@@ -35,14 +33,13 @@ $BUZZ_SSO_SECRET = defined('BUZZ_SSO_SECRET')
 
 // Get SSO token from request or cookie
 $sso_token = $_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? '');
-
-
 // --- DEBUG: log the raw cookie payload ---
-if (!empty($_COOKIE[BUZZ_SSO_COOKIE])) {
+/* if (!empty($_COOKIE[BUZZ_SSO_COOKIE])) {
     error_log('[WoWonder SSO DEBUG] BUZZ_SSO_COOKIE payload: ' . $_COOKIE[BUZZ_SSO_COOKIE]);
 } else {
     error_log('[WoWonder SSO DEBUG] BUZZ_SSO_COOKIE not set.');
 }
+*/
 
 // -------------------------------------------------------
 // LOGGING, DEBUG, CLIENT DEBUG BEACON, LOOP PROTECTION + SESSION VISIBILITY
@@ -221,8 +218,6 @@ if (mt_rand(1, 35) === 9) bz_cleanup_jti_store();
 
 
 
-
-
 // =============================================
 // START: ENDPOINTS + PAYLOAD + DATA MAPPING
 // =============================================
@@ -338,70 +333,129 @@ if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'get_payload_
 
 
 
-
-
-
 // --------------------------------------
-// Fetch stateless payload Orchestrator
+// Stateless SSO Orchestration (WordPress → WoWonder)
 // --------------------------------------
-// Try Login from BuzzSSO Cookie
+
+// Start session if not started
+if (!isset($_SESSION)) session_start();
+
+// Loop protection (prevents infinite SSO relay)
+$_SESSION['ww_sso_attempts'] = ($_SESSION['ww_sso_attempts'] ?? 0) + 1;
+if ($_SESSION['ww_sso_attempts'] > 3) {
+    bz_bridge_log('SSO loop protection triggered', ['attempts' => $_SESSION['ww_sso_attempts']]);
+    unset($_SESSION['ww_sso_attempts']);
+    bz_redirect_to_wp_login('/');
+    exit;
+}
+
+// Get token and initialize
+$sso_token = $_COOKIE[BUZZ_SSO_COOKIE] ?? null;
 $payload = null;
+$site_base = rtrim($wo['config']['site_url'] ?? '', '/');
+
+// -------------------------------------------------------
+// 1️⃣ COOKIE FIRST (Fast Path)
+// -------------------------------------------------------
 if (!empty($sso_token) && $BUZZ_SSO_SECRET) {
-    $payload = bz_validate_jwt($sso_token, $BUZZ_SSO_SECRET);
+    try {
+        $payload = bz_validate_jwt($sso_token, $BUZZ_SSO_SECRET);
+        if ($payload) {
+            bz_bridge_log('Valid JWT from BUZZ_SSO_COOKIE', ['exp' => $payload['exp'] ?? null]);
+
+            // Force silent refresh if expiring within 5 minutes
+            if (!empty($payload['exp']) && ($payload['exp'] - time()) < 300) {
+                bz_bridge_log('JWT nearing expiry; forcing WP refresh', []);
+                $payload = null;
+            }
+        }
+    } catch (Throwable $e) {
+        bz_bridge_log('Exception during JWT validation', ['ex' => $e->getMessage()]);
+        $payload = null;
+    }
+} else {
+    bz_bridge_log('No BUZZ_SSO_COOKIE present or missing secret', [
+        'cookie_present' => !empty($sso_token),
+        'BUZZ_SSO_SECRET' => (bool)$BUZZ_SSO_SECRET
+    ]);
 }
-// Try Login from WordPress Endpoint
+
+// -------------------------------------------------------
+// 2️⃣ WORDPRESS AUTHORITY ENDPOINT
+// -------------------------------------------------------
 if (!$payload) {
-    $payload_arr = bz_fetch_wp_stateless_payload($_COOKIE[BUZZ_SSO_COOKIE] ?? null, $BUZZ_SSO_SECRET);
-    if (isset($payload_arr['payload'])) $payload = $payload_arr['payload'];
+
+    bz_bridge_log('Fetching payload from WordPress sso-session-sync');
+
+    $wp_response = bz_fetch_wp_stateless_payload($sso_token ?? null, $BUZZ_SSO_SECRET);
+
+    // 🚨 HARD STOP: WP says "User not logged in" → redirect immediately
+    if (isset($wp_response['status']) && (int)$wp_response['status'] === 401) {
+        $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/streams/';
+        $redirect_target = $site_base . $requested;
+        bz_bridge_log('WP endpoint returned 401. Redirecting to WP login.', ['redirect_to' => $redirect_target]);
+        unset($_SESSION['ww_sso_attempts']);
+        bz_redirect_to_wp_login($redirect_target);
+        exit;
+    }
+
+    // ✅ Valid payload returned
+    if (!empty($wp_response['payload'])) {
+        $payload = $wp_response['payload'];
+        bz_bridge_log('Payload obtained from WP endpoint');
+    }
+    // ⚠️ WP unreachable → WoWonder fallback allowed
 }
-// Try Login from QuickDate Endpoint
+
+// -------------------------------------------------------
+// 3️⃣ WoWonder Fallback (Only if WP did NOT 401)
+// -------------------------------------------------------
 if (!$payload) {
-    $qd_url = 'https://buzzjuice.net/social/qd-sso-bridge.php?sso_action=get_payload_for_streams';
-    $signature = hash_hmac('sha256', 'get_payload_for_streams', $BUZZ_SSO_SECRET);
-    $ch = curl_init($qd_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-Buzzjuice-Signature: ' . $signature]);
+    bz_bridge_log('Attempting WoWonder endpoint fallback');
+
+    $ww_url = $site_base . '/streams/ww-sso-bridge.php?sso_action=get_payload_for_social';
+    $signature = hash_hmac('sha256', 'get_payload_for_social', $BUZZ_SSO_SECRET);
+
+    $ch = curl_init($ww_url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_TIMEOUT        => 5,
+        CURLOPT_HTTPHEADER     => ['X-Buzzjuice-Signature: ' . $signature]
+    ]);
+
     $result = curl_exec($ch);
+    $error  = curl_error($ch);
     curl_close($ch);
-    $resp = json_decode($result, true);
-    if (isset($resp['payload'])) $payload = $resp['payload'];
+
+    if (!$error && $result) {
+        $resp = json_decode($result, true);
+        if (!empty($resp['payload'])) {
+            $payload = $resp['payload'];
+            bz_bridge_log('Payload obtained from WoWonder endpoint');
+        }
+    } else {
+        bz_bridge_log('WoWonder fetch error', ['error'=>$error]);
+    }
 }
-// Redirect to WordPress Login
+
+// -------------------------------------------------------
+// 4️⃣ FINAL FAILURE → REDIRECT TO WP LOGIN
+// -------------------------------------------------------
 if (!$payload) {
-    bz_redirect_to_wp_login('No valid SSO payload from BUZZ_SSO_COOKIE, WP endpoint or QD endpoint');
+    bz_bridge_log('No valid SSO payload from BUZZ_SSO_COOKIE, WP endpoint, or WoWonder endpoint.');
+    unset($_SESSION['ww_sso_attempts']);
+    $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/streams/';
+    $redirect_target = $site_base . $requested;
+    bz_redirect_to_wp_login($redirect_target);
+    exit;
+} else {
+    unset($_SESSION['ww_sso_attempts']); // reset loop counter on success
 }
 
 // -------------------------------------------------------
 // SSO JWT CLAIM EXTRACTION & REQUIRED CLAIMS VALIDATION
 // -------------------------------------------------------
-
-$payload = null;
-$site_base = rtrim($wo['config']['site_url'] ?? '', '/');
-
-// 1. Is the buzz_sso JWT cookie present and secret configured?
-if (!empty($_COOKIE[BUZZ_SSO_COOKIE]) && $BUZZ_SSO_SECRET) {
-    try {
-        $payload = bz_validate_jwt($_COOKIE[BUZZ_SSO_COOKIE], $BUZZ_SSO_SECRET);
-    } catch (Throwable $e) {
-        bz_bridge_log('Exception during JWT validation', ['ex' => $e->getMessage()]);
-        $payload = false;
-    }
-} else {
-    bz_bridge_log('No JWT/buzz_sso cookie present or missing secret', [
-        'cookie_present' => !empty($_COOKIE[BUZZ_SSO_COOKIE]),
-        'BUZZ_SSO_SECRET' => (bool)$BUZZ_SSO_SECRET
-    ]);
-    bz_redirect_to_wp_login('Missing JWT SSO token or secret');
-}
-
-if (!$payload) {
-    bz_bridge_log('JWT SSO payload invalid/expired');
-    bz_redirect_to_wp_login('JWT SSO payload invalid or expired');
-}
-
-// 2. Extract claims (use legacy keys as fallback for backwards compatibility)
 $claim_wp_user_id    = (int)($payload['wp_user_id'] ?? 0);
 $claim_wp_user_login = (string)($payload['wp_user_login'] ?? $payload['login'] ?? '');
 $claim_wp_user_email = (string)($payload['wp_user_email'] ?? $payload['email'] ?? '');
@@ -415,13 +469,18 @@ $original_claims = [
 ];
 bz_bridge_log('JWT SSO claims extracted', array_merge($original_claims, ['raw_payload' => $payload]));
 
-// 3. Required claims guard
+// Required claims guard
 if (!$claim_wp_user_id || !$claim_wp_user_login || !$claim_wp_user_email) {
     bz_bridge_log('Missing required claims (JWT incomplete)', $original_claims);
-    bz_redirect_to_wp_login('JWT missing required claims');
+    $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/streams/';
+    $redirect_target = $site_base . $requested;
+    bz_redirect_to_wp_login($redirect_target);
+    exit;
 }
 
-// 4. Canonicalization: prefer already set session fields for UI only (do NOT trust for SSO)
+// -------------------------------------------------------
+// CANONICALIZATION (UI only — do NOT trust for identity)
+// -------------------------------------------------------
 $canonical = [
     'wp_user_id'    => $_SESSION['wp_user_id']    ?? $claim_wp_user_id,
     'wp_user_login' => $_SESSION['wp_user_login'] ?? $claim_wp_user_login,
@@ -433,13 +492,6 @@ bz_bridge_log('Canonical pre-mapping values', [
     'canonical' => $canonical,
     'session'   => $_SESSION ?? [],
 ]);
-
-
-
-
-
-
-
 
 
 
@@ -637,8 +689,6 @@ function bz_register_wo_user($wp_user_id, $login, $email) {
 
 
 
-
-
 // --------------------------------------------------
 // WO USER MAPPING & AUTO-REGISTRATION LOGIC
 // --------------------------------------------------
@@ -819,8 +869,6 @@ if (!empty($_GET['redirect_to'])) {
     ]);
     // The redirect is handed off to the JS bridge/client
 }
-
-
 
 
 
@@ -1095,8 +1143,6 @@ function Wo_SSO_Login() {
 
 
 
-
-
     // 7. Remember-me device cookie
     if (!empty($_POST['remember_device']) && $_POST['remember_device'] == 'on' && !empty($wo['config']['remember_device']) && $wo['config']['remember_device'] == 1) {
         setcookie('user_id', $session_token, time() + (10*365*24*60*60), '/', BUZZ_COOKIE_DOMAIN, true, true);
@@ -1171,8 +1217,6 @@ function Wo_SSO_Login() {
     ]);
     send_json_response(['status'=>200, 'location'=>$location]);
 }
-
-
 
 
 

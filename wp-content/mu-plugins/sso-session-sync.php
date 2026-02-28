@@ -115,6 +115,8 @@ add_action('init', function() use ($__buzz_sso_secret) {
     exit;
 });
 
+
+/*
 // ---------------------------------------------------
 // WP login: Issue SSO JWT for all platforms, background propagate
 // ---------------------------------------------------
@@ -170,6 +172,8 @@ add_action('wp_login', function($login, $user) use ($__buzz_sso_secret) {
     wp_safe_redirect($sso_url);
     exit;
 }, 10, 2);
+*/
+
 
 // ---------------------------------------------------
 // BUZZ_SSO_COOKIE Auto-refresh (activity/throttled)
