@@ -312,54 +312,19 @@ bz_bridge_log('Canonical pre-mapping values', [
 // ===========================================================================
 // START: LEGACY SESSION BOOTSTRAP & SHADOW RECONCILIATION — DEPRECATED
 // ===========================================================================
-// -------------------------------------------------------------
-// LEGACY QuickDate shadow/session reconciliation helpers — OBSOLETE
-//
-// The following functions — previously critical for cross-app session parity, shadow file cleanup,
-// shadow serialization, and direct PHP session rehydration — are now fully deprecated.
-//   - qd_cleanup_shadow_mismatches()
-//   - qd_write_canonical_shadow_file()
-//   - qd_attempt_session_reconciliation_if_required()
-//   - qd_find_wp_shadow_payload()
-//   - qd_unlink_local_session_file_if_exists()
-//
-// As outlined in the latest requirements (see pasted.txt) and in strict parity with the modernized
-// WoWonder SSO bridge, the QuickDate SSO bridge is now strictly stateless and JWT-based:
-//
-// - SSO trust derives ONLY from a validated RFC 7519 JWT (with full claim/signature checks) issued
-//   by the WordPress stateless endpoint (see wp-content/mu-plugins/sso-session-sync.php).
-// - All session or shadow persistence, reconciliation, or session adoption logic is forbidden.
-// - Replay protection is via the jti claim, not via session id or file/lock mirroring.
-// - QD user mapping and metadata sync should be done via explicit code and validated API, not via
-//   external file/session bridging.
-// - If cross-app state is ever needed in future, use a purpose-built *stateless* API and protocol.
-// - These helpers are retained as historic documentation only: DO NOT REVIVE OR CALL THEM IN SSO CODE.
-//
-// For security, debugging, and auditability, all JWT validation, replay checks, and user
-// synchronization must be performed through the stateless flow, with robust error handling and logs.
-//
-//                       --- END LEGACY HELPERS, OBSOLETE ---
-// -------------------------------------------------------------
-/* ----------------------------- End added helpers ----------------------------- */
-
-//START QuickDate 'social/qd-sso-bridge.php' CODE - PART 3
-
-// The following patterns are fully obsolete under stateless JWT SSO (as detailed in pasted.txt):
-//   - SessionStart(), session_start(), or double-bootstrapping to sync SSO identity
-//   - qd_attempt_session_reconciliation_if_required() or shadow/adoption logic
-//   - Defensive sync via $_SESSION timestamps or rolling anti-drift logic
-//   - Hydrating SSO-related $_SESSION values from buzz_sso_serialized or cookies
-//   - Any attempt to treat $_SESSION as authoritative for SSO identity/mapping
-//
-// Modern SSO is:
-//   1. Identity and mapping established *exclusively* from a validated JWT in buzz_sso cookie (or parameter).
-//   2. JWT is validated with qd_sso_verify_token() or equivalent, including iss/aud/exp/nbf/jti/etc.
-//   3. Application may locally set $_SESSION values for *UI/UX/misc* — NEVER for SSO trust or login state.
-//   4. Only for explicit logout should you clear buzz_sso and associated session keys, never destroy PHPSESSID.
-//
-// Leave all of the block below as a **documentation-only** developer warning. All SSO trust/mapping
-// logic must be *stateless* per request going forward.
-//
+// - Legacy QuickDate session/shadow functions are fully deprecated:
+//     qd_cleanup_shadow_mismatches(), qd_write_canonical_shadow_file(),
+//     qd_attempt_session_reconciliation_if_required(), qd_find_wp_shadow_payload(),
+//     qd_unlink_local_session_file_if_exists()
+// - Modern SSO is strictly stateless and JWT-based (RFC 7519):
+//     • Trust derives ONLY from validated JWT issued by WordPress.
+//     • No session persistence, reconciliation, or adoption logic allowed.
+//     • Replay protection via JWT jti claim, not session files.
+//     • User mapping and metadata sync via explicit code/API only.
+// - $_SESSION may be used only for UI/UX; NEVER for SSO trust or login state.
+// - Only clear buzz_sso and session keys on explicit logout; do NOT destroy PHPSESSID.
+// - These helpers are retained for historical reference; DO NOT REINSTATE.
+// ===========================================================================
 /* ----- BEGIN LEGACY/DEPRECATED BLOCK: SESSION BOOTSTRAP ----- */
 /*static $qd_session_bootstrapped = false;
 if (!$qd_session_bootstrapped) {
