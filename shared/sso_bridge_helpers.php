@@ -355,7 +355,7 @@ function bz_redirect_to_wp_login($target_url = null, $platform = '') {
 
     $fallback = [
         'streams' => $site_root . '/streams/',
-        'social'  => $site_root . '/social/find-matches',
+        'social'  => $site_root . '/social/',
         'root'    => $site_root . '/',
     ];
 

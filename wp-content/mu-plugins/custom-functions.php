@@ -180,4 +180,6 @@ add_action('wp_enqueue_scripts', 'cc_enqueue_chapter_assets');
 //add_filter( 'bz_ld_activity_table_found_indicates_complete', '__return_false' );
 
 
+// Disable WordPress Administration Email verification Screen
+add_filter( 'admin_email_check_interval', '__return_false' );
 

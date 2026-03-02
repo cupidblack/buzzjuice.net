@@ -68,7 +68,7 @@ if (empty($site_url) || empty($conn)) {
     $request_uri = $_SERVER['REQUEST_URI'] ?? '/social';
     $full_deeplink = $site_root . $request_uri;
 
-    $bridge_url = $site_root . '/social/qd-sso-bridge.php?sso_action=do_login&redirect_to=' . rawurlencode($full_deeplink);
+    $bridge_url = $site_root . '/social/qd-sso-bridge.php?sso_action=do_login&last_urlo=' . rawurlencode($full_deeplink);
 
 // -------------------------------------------------------
 // SESSION: SSR/LOGIN ONLY (STATLESS SSO - JWT IS AUTHORITY)
@@ -193,9 +193,26 @@ if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'get_payload_
 // =============================================
 // Try Login from BuzzSSO Cookie
 $payload = null;
+
+if (empty($sso_token)) {
+    // Preserve deep link
+    $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/social/';
+    $redirect_target = 'https://buzzjuice.net' . $requested;
+    bz_bridge_log('No SSO token. Redirecting to WP login.', [
+        'redirect_to' => $redirect_target
+    ]);
+    bz_redirect_to_wp_login($bridge_url, 'social');
+    exit;
+}
+
 if (!empty($sso_token) && $BUZZ_SSO_SECRET) {
     $payload = bz_validate_jwt($sso_token, $BUZZ_SSO_SECRET);
 }
+    if (!empty($payload)) {
+        bz_bridge_log('bz_validate_jwt successful!', [
+            'payload' => $payload
+        ]);
+    }
 // ---------------------------------------------
 // Try Login from WordPress Endpoint
 // ---------------------------------------------
@@ -218,6 +235,13 @@ if (!$payload) {
     // If valid payload received → use it
     if (!empty($payload_arr['payload'])) {
         $payload = $payload_arr['payload'];
+
+            if (!empty($payload)) {
+                bz_bridge_log('WP endpoint successful!', [
+                    'redirect_to' => $payload
+                ]);
+            }
+        
     }
 }
 
@@ -848,14 +872,11 @@ bz_bridge_log('SSO client payload prepared', [
     'last_url'         => $last_url
 ]);
 
-/*if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'do_login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+/* if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'do_login') {
     QD_SSO_Login();
     exit;
-}
-*/
-
+} */
 QD_SSO_Login();
-
 /**
  * Helper: get QuickDate table columns (cached) - used to filter wp meta keys sent to QuickDate.
  */
@@ -878,11 +899,10 @@ if (!function_exists('qd_get_columns')) {
 //START QuickDate 'social/qd-sso-bridge.php' CODE - PART 6
 function QD_SSO_Login() {
     global $BUZZ_SSO_SECRET, $config, $sso_token;
-    header('Content-Type: application/json; charset=utf-8');
 
     // Use only POSTed sso_token (SSO token) — stateless, JWT-validated
     //$sso_token = isset($_POST['sso_token']) ? (string)$_POST['sso_token'] : '';
-    $last_url = isset($_POST['last_url']) ? (string)$_POST['last_url'] : '/';
+    $last_url = $_GET['last_url'] ?? $_POST['last_url'] ?? '/';
 
     bz_bridge_log('QD_SSO_Login called', ['pw_len'=>strlen($sso_token)]);
 
@@ -1138,14 +1158,16 @@ function QD_SSO_Login() {
     } catch (Throwable $e) {
         bz_bridge_log('Exception during QuickDate sync', ['ex'=>$e->getMessage()]);
     }
+    
+    
 
     // ==================================================
     // Decide redirect URL (DEEP LINK PRESERVATION)
     //===================================================
     // Decide redirect URL
-    $url = (isset($config->uri) ? rtrim($config->uri,'/') : '') . '/steps';
+    $url = (isset($config->uri) ? rtrim($config->uri,'/') : '') . '/find-matches';
     if (!empty($accepted_user['start_up']) && $accepted_user['start_up'] == 3 && !empty($accepted_user['verified'])) {
-        $url = (isset($config->uri) ? rtrim($config->uri,'/') : '') . '/find-matches';
+        $url = (isset($config->uri) ? rtrim($config->uri,'/') : '') . '/steps';
     }
     if (!empty($last_url) && $last_url !== '//' ) {
         // Only accept relative or same-site last_url
@@ -1159,12 +1181,27 @@ function QD_SSO_Login() {
 
     bz_bridge_log('QD_SSO_Login success', ['user_id'=>$accepted_user['id'],'matches'=>$accepted_matches,'redirect'=>$url,'session_id'=>session_id()]);
 
-    http_response_code(200);
-    echo json_encode(['status'=>200,'location'=>$url]);
+    // Detect AJAX request
+    $is_ajax = (
+        !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+        strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+    );
+    
+    // If AJAX → return JSON
+    if ($is_ajax) {
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(200);
+        echo json_encode([
+            'status'   => 200,
+            'location' => $url
+        ]);
+        exit;
+    }
+    
+    // Otherwise → normal browser redirect
+    header('Location: ' . $url, true, 302);
     exit;
 }
-
-
 
 
 

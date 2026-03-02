@@ -117,17 +117,6 @@ add_action('init', function() use ($__buzz_sso_secret) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 // ---------------------------------------------------
 // WP login: Issue SSO JWT for all platforms, background propagate
 // ---------------------------------------------------
@@ -157,17 +146,6 @@ add_action('wp_login', function($user_login, $user) use ($__buzz_sso_secret) {
 add_action('wp_logout', function() {
     setcookie(BUZZ_SSO_COOKIE, '', time() - 3600, '/', '.buzzjuice.net' /* BUZZ_COOKIE_DOMAIN */);
 });
-
-
-
-
-
-
-
-
-
-
-
 
 
 
