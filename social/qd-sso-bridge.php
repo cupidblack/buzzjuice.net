@@ -848,15 +848,32 @@ bz_bridge_log('SSO client payload prepared', [
     'last_url'         => $last_url
 ]);
 
-if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'do_login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+/*if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'do_login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     QD_SSO_Login();
     exit;
 }
+*/
 
-// `qd_get_columns` helper unchanged.
+QD_SSO_Login();
 
-//QD_SSO_Login();
-
+/**
+ * Helper: get QuickDate table columns (cached) - used to filter wp meta keys sent to QuickDate.
+ */
+if (!function_exists('qd_get_columns')) {
+    function qd_get_columns($conn, $table) {
+        static $cache = [];
+        $key = $table;
+        if (isset($cache[$key])) return $cache[$key];
+        $cols = [];
+        if (!$conn) return $cols;
+        $res = $conn->query("SHOW COLUMNS FROM `{$table}`");
+        if ($res) {
+            while ($r = $res->fetch_assoc()) $cols[] = $r['Field'];
+        }
+        $cache[$key] = $cols;
+        return $cols;
+    }
+}
 
 //START QuickDate 'social/qd-sso-bridge.php' CODE - PART 6
 function QD_SSO_Login() {
@@ -967,22 +984,23 @@ function QD_SSO_Login() {
                 ];
             }, $candidates)
         ]);
+        // Do not rotate PHPSESSID. Clear QD session to be safe.
         if (session_status() !== PHP_SESSION_NONE) {
             $_SESSION = [];
             @session_unset();
+            // keep PHPSESSID cookie as-is (WordPress owns it)
         }
         echo json_encode(['status'=>401,'errors'=>['No matching QuickDate account for SSO.']]);
         exit;
     }
 
     // Start session, set canonical fields (NO session_regenerate_id, do not rotate PHPSESSID)
-    if (session_status() !== PHP_SESSION_ACTIVE) {
+    if (session_status() !== PHP_SESSION_ACTIVE) SessionStart();
         if (!session_start()) {
             bz_bridge_log('Session start failed on login');
             echo json_encode(['status'=>500,'errors'=>['Session initialization failed']]);
             exit;
         }
-    }
 
     $_SESSION['qd_user_id']    = (int)$accepted_user['id'];
     $_SESSION['user_id']       = $accepted_user['web_token'] ?? (int)$accepted_user['id'];
@@ -991,11 +1009,12 @@ function QD_SSO_Login() {
     $_SESSION['wp_user_email'] = $exp_email;
     if (!isset($_SESSION['wp_user_login'])) $_SESSION['wp_user_login'] = $exp_login;
 
-    // Set QuickDate runtime login (side-effects as per app needs)
+    // Set QuickDate runtime login (side-effects as per app needs)     // Trigger QuickDate's SetLoginWithSession if available to complete framework login actions
     if (function_exists('LoadEndPointResource')) {
         $usersRes = LoadEndPointResource('users');
         if ($usersRes && method_exists($usersRes, 'SetLoginWithSession') && !empty($exp_email)) {
-            try {
+        // This should set JWT, user session records, etc.
+        try {
                 $usersRes->SetLoginWithSession($exp_email);
                 bz_bridge_log('SetLoginWithSession invoked', ['email'=>$exp_email]);
             } catch (Throwable $e) {
@@ -1005,10 +1024,18 @@ function QD_SSO_Login() {
     }
 
     // ------------- Post-login: WordPress→QuickDate profile/meta sync -------------
+    // ----------------------------
+    // SYNC: Update QuickDate user with WordPress metadata AFTER successful login
+    // - Use shared/wwqd_bridge.php functions when available:
+    //     - wp_get_full_user_data (returns ['meta'=>..., 'xprofile'=>...])
+    //     - sync_user_to_quickdate($wp_email, $usermeta, $xprofile) -- builds qd payload and calls qd_update_user
+    // - This will overwrite QuickDate fields (present in the payload) with WordPress values.
+    // ----------------------------
     try {
         bz_bridge_log('Preparing to sync WordPress metadata into QuickDate', ['wp_user_id'=>$exp_wp,'wp_email'=>$exp_email]);
+ 
         $did_sync = false;
-
+        // Prefer the shared helper sync_user_to_quickdate if present
         if (!empty($exp_email) && !empty($exp_wp) && function_exists('sync_user_to_quickdate') && function_exists('wp_get_full_user_data')) {
             $wp_conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
             if ($wp_conn) {
@@ -1016,6 +1043,8 @@ function QD_SSO_Login() {
                 if ($wp_full && is_array($wp_full)) {
                     $usermeta = $wp_full['meta'] ?? [];
                     $xprofile = $wp_full['xprofile'] ?? [];
+                    // sync_user_to_quickdate will prefer xprofile values and then usermeta;
+                    // it calls qd_update_user which filters by QuickDate columns.
                     $ok = sync_user_to_quickdate($exp_email, $usermeta, $xprofile);
                     bz_bridge_log('sync_user_to_quickdate result', [
                         'email' => $exp_email, 'wp_user_id' => $exp_wp, 'ok'=>(bool)$ok
@@ -1028,7 +1057,9 @@ function QD_SSO_Login() {
                 bz_bridge_log('WP DB connection not available for sync', []);
             }
         } elseif (!empty($exp_email) && function_exists('get_user_field_metadata') && function_exists('wp_get_full_user_data') && function_exists('qd_update_user')) {
-            $wp_conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
+             // Fallback: replicate behavior using lower-level helpers (in case sync_user_to_quickdate is not available)
+
+        $wp_conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
             $wp_full = $wp_conn ? wp_get_full_user_data($wp_conn, $exp_wp) : null;
             if ($wp_full && is_array($wp_full)) {
                 $metadata = get_user_field_metadata();
@@ -1036,6 +1067,7 @@ function QD_SSO_Login() {
                 $private_fields = $metadata['private_secure_fields'] ?? [];
                 $qd_candidate = [];
 
+                // Prefer xprofile values for public fields
                 foreach ($public_fields as $qd_key => $map) {
                     if (isset($wp_full['xprofile'][$qd_key]) && $wp_full['xprofile'][$qd_key] !== '') {
                         $qd_candidate[$qd_key] = $wp_full['xprofile'][$qd_key];
@@ -1043,11 +1075,15 @@ function QD_SSO_Login() {
                         $qd_candidate[$qd_key] = $wp_full['meta'][$qd_key];
                     }
                 }
+                
+                // Private fields from usermeta if not already set
                 foreach ($private_fields as $qd_key => $map) {
                     if (!isset($qd_candidate[$qd_key]) && isset($wp_full['meta'][$qd_key]) && $wp_full['meta'][$qd_key] !== '') {
                         $qd_candidate[$qd_key] = $wp_full['meta'][$qd_key];
                     }
                 }
+
+                // Always include certain canonical fields if available
                 if (!isset($qd_candidate['username']) && !empty($wp_full['user_login'])) $qd_candidate['username'] = $wp_full['user_login'];
                 if (!isset($qd_candidate['email']) && !empty($wp_full['user_email'])) $qd_candidate['email'] = $wp_full['user_email'];
                 if (!isset($qd_candidate['first_name']) && !empty($wp_full['meta']['first_name'])) $qd_candidate['first_name'] = $wp_full['meta']['first_name'];
@@ -1056,17 +1092,17 @@ function QD_SSO_Login() {
                     $avatar = $wp_full['xprofile']['avatar'] ?? $wp_full['meta']['avatar'] ?? '';
                     if ($avatar) $qd_candidate['avatar'] = $avatar;
                 }
-                static $qd_cols_cache = null;
-                if ($qd_cols_cache === null && $qd_conn = get_qd_db_conn()) {
-                    $qd_cols_cache = qd_get_columns($qd_conn, 'users');
-                }
-                $qd_cols = $qd_cols_cache ?? [];
+
+                // Filter to QuickDate user table columns
+                $qd_conn = get_qd_db_conn();
+                $qd_cols = qd_get_columns($qd_conn, 'users');
                 $qd_update = [];
                 foreach ($qd_candidate as $k => $v) {
                     if (in_array($k, $qd_cols, true)) {
                         $qd_update[$k] = $v;
                     }
                 }
+
                 if (!empty($qd_update)) {
                     $ok = qd_update_user($exp_email, $qd_update);
                     bz_bridge_log('qd_update_user (fallback) result', [
@@ -1094,13 +1130,10 @@ function QD_SSO_Login() {
                     'get_user_field_metadata'=>function_exists('get_user_field_metadata'),
                     'wp_get_full_user_data'=>function_exists('wp_get_full_user_data'),
                     'qd_update_user'=>function_exists('qd_update_user')
-                ]
-            ]);
+                ]]);
         }
         if (!$did_sync) {
-            bz_bridge_log('Post-login QuickDate sync did not run or reported failure', [
-                'wp_user_id'=>$exp_wp,'email'=>$exp_email
-            ]);
+            bz_bridge_log('Post-login QuickDate sync did not run or reported failure', ['wp_user_id'=>$exp_wp,'email'=>$exp_email]);
         }
     } catch (Throwable $e) {
         bz_bridge_log('Exception during QuickDate sync', ['ex'=>$e->getMessage()]);
@@ -1109,37 +1142,23 @@ function QD_SSO_Login() {
     // ==================================================
     // Decide redirect URL (DEEP LINK PRESERVATION)
     //===================================================
-    $site_base = isset($config->uri) ? rtrim($config->uri,'/') : 'https://buzzjuice.net/social';
-    $url = $site_base . '/find-matches';
-    
-    // If user should see 'steps', override
+    // Decide redirect URL
+    $url = (isset($config->uri) ? rtrim($config->uri,'/') : '') . '/steps';
     if (!empty($accepted_user['start_up']) && $accepted_user['start_up'] == 3 && !empty($accepted_user['verified'])) {
-        $url = $site_base . '/steps';
+        $url = (isset($config->uri) ? rtrim($config->uri,'/') : '') . '/find-matches';
     }
-    
-    // Deep-link: if a valid last_url is present
-    if (!empty($last_url) && $last_url !== '//') {
-        // Accept only absolute URLs under this platform root, or relative paths
-        if (preg_match('#^https?://#i', $last_url)) {
-            if (strpos($last_url, $site_base) === 0) {
-                $url = $last_url;
-            }
-        } else {
-            // Handle relative path
-            $url = $site_base . (strpos($last_url, '/') === 0 ? $last_url : '/' . ltrim($last_url, '/'));
+    if (!empty($last_url) && $last_url !== '//' ) {
+        // Only accept relative or same-site last_url
+        $site_base = isset($config->uri) ? rtrim($config->uri,'/') : '';
+        if ($last_url && (!$site_base || strpos($last_url, $site_base) === 0)) {
+            $url = $last_url;
+        } elseif ($last_url === '/') {
+            // keep default
         }
     }
-    
-    // Final guard: never redirect to bridge files!
-    if (
-        stripos($url, 'qd-sso-bridge.php') !== false ||
-        stripos($url, 'ww-sso-bridge.php') !== false
-    ) {
-        $url = $site_base . '/find-matches';
-    }
-    
+
     bz_bridge_log('QD_SSO_Login success', ['user_id'=>$accepted_user['id'],'matches'=>$accepted_matches,'redirect'=>$url,'session_id'=>session_id()]);
-    
+
     http_response_code(200);
     echo json_encode(['status'=>200,'location'=>$url]);
     exit;

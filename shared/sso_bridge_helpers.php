@@ -78,15 +78,18 @@ if (!function_exists('bz_bridge_log')) {
 // -----------------------------
 // ***** Replay protection: JTI store (30 min) ***** TODO
 // -----------------------------
+define('BUZZ_SSO_JTI_STORE', __DIR__ . '/sso_jti_store');
+if (!is_dir(BUZZ_SSO_JTI_STORE)) @mkdir(BUZZ_SSO_JTI_STORE, 0755, true);
+
 function bz_is_jti_used($jti) {
-    return $jti && file_exists(BUZZ_JTI_STORE . '/' . sha1($jti));
+    return $jti && file_exists(BUZZ_SSO_JTI_STORE . '/' . sha1($jti));
 }
 function bz_mark_jti_used($jti) {
-    @file_put_contents(BUZZ_JTI_STORE . '/' . sha1($jti), time(), LOCK_EX);
+    @file_put_contents(BUZZ_SSO_JTI_STORE . '/' . sha1($jti), time(), LOCK_EX);
 }
 function bz_cleanup_jti_store() {
     $expire = time() - 3600; // 30 min
-    foreach (glob(BUZZ_JTI_STORE . '/*') ?: [] as $file) if (filemtime($file) < $expire) @unlink($file);
+    foreach (glob(BUZZ_SSO_JTI_STORE . '/*') ?: [] as $file) if (filemtime($file) < $expire) @unlink($file);
 }
 
 
@@ -432,10 +435,10 @@ function bz_fetch_wp_stateless_payload($sso_token, $secret) {
         return false;
     }
     $json = json_decode($result, true);
-    if (!is_array($json) || empty($json['access_token'])) {
+    if (!is_array($json) || empty($json['token'])) {
         return false;
     }
-    $payload = bz_validate_jwt($json['access_token'], $secret);
+    $payload = bz_validate_jwt($json['token'], $secret);
     if (!$payload) {
         return false;
     }
@@ -445,6 +448,6 @@ function bz_fetch_wp_stateless_payload($sso_token, $secret) {
     bz_mark_jti_used($payload['jti']);
     return [
         'payload'       => $payload,
-        'refresh_token' => $json['refresh_token'] ?? null
+        'token' => $json['token'] ?? null
     ];
 }

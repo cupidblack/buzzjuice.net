@@ -131,58 +131,32 @@ add_action('init', function() use ($__buzz_sso_secret) {
 // ---------------------------------------------------
 // WP login: Issue SSO JWT for all platforms, background propagate
 // ---------------------------------------------------
-add_action('wp_login', function($login, $user) use ($__buzz_sso_secret) {
+add_action('wp_login', function($user_login, $user) use ($__buzz_sso_secret) {
     if (!$__buzz_sso_secret) return;
-    if ((defined('DOING_AJAX') && DOING_AJAX) || (defined('REST_REQUEST') && REST_REQUEST) || is_admin()) return;
-    if (in_array('administrator', (array)$user->roles, true)) return;
-
     $payload = [
         'wp_user_id'    => (int)$user->ID,
         'wp_user_login' => (string)$user->user_login,
         'wp_user_email' => (string)$user->user_email,
         'wo_user_id'    => (string)get_user_meta($user->ID, 'wo_user_id', true),
-        'qd_user_id'    => (string)get_user_meta($user->ID, 'qd_user_id', true)
+        'qd_user_id'    => (string)get_user_meta($user->ID, 'qd_user_id', true),
+        'jti'           => bin2hex(random_bytes(16)),
+        'iat'           => time(),
+        'exp'           => time() + BUZZ_SSO_TTL
     ];
-    $token_streams = bz_sso_jwt_encode($payload, $__buzz_sso_secret, 'streams', BUZZ_SSO_TTL);
-    $token_social  = bz_sso_jwt_encode($payload, $__buzz_sso_secret, 'social', BUZZ_SSO_TTL);
-    $token_wp      = bz_sso_jwt_encode($payload, $__buzz_sso_secret, 'buzznet', BUZZ_SSO_TTL);
-
-    bz_sso_set_cookie($token_wp, BUZZ_SSO_TTL);
-
-    $bridges = [
-        'streams' => home_url('/streams/ww-sso-bridge.php?sso_action=remote_login'),
-        'social'  => home_url('/social/qd-sso-bridge.php?sso_action=remote_login')
-    ];
-    foreach ($bridges as $aud => $url) {
-        $t   = ($aud==='streams') ? $token_streams : $token_social;
-        $body = [
-            'sso_action' => 'do_login',
-            'sso_token'  => $t
-        ];
-        $sig  = hash_hmac('sha256', http_build_query($body), $__buzz_sso_secret);
-        wp_remote_post($url, [
-            'method'    => 'POST',
-            'timeout'   => 2,
-            'blocking'  => false,
-            'sslverify' => true,
-            'headers'   => [
-                'User-Agent'            => 'BuzzJuiceWP-SSO/1.0',
-                'X-Buzzjuice-Signature' => $sig
-            ],
-            'body' => $body
-        ]);
-    }
-
-    $redirect_to = !empty($_REQUEST['redirect_to']) && is_string($_REQUEST['redirect_to'])
-        ? esc_url_raw(wp_unslash($_REQUEST['redirect_to'])) : '/';
-    foreach (['sso-landing.php','ww-sso-bridge.php','qd-sso-bridge.php','/shared/sso-logout.php'] as $b) {
-        if (strpos($redirect_to, $b) !== false) { $redirect_to='/'; break; }
-    }
-    $sso_url = site_url('/sso-landing.php?token='.rawurlencode($token_wp).'&redirect_to='.rawurlencode($redirect_to));
-    bz_debug_log('WP login SSO redirect (after background auth)', ['to'=>$sso_url]);
-    wp_safe_redirect($sso_url);
-    exit;
+    $token = bz_sso_jwt_encode($payload, $__buzz_sso_secret, 'buzznet', BUZZ_SSO_TTL);
+    setcookie(BUZZ_SSO_COOKIE, $token, [
+        'expires'  => $payload['exp'],
+        'path'     => '/',
+        'domain'   => BUZZ_COOKIE_DOMAIN,
+        'secure'   => true,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
 }, 10, 2);
+
+add_action('wp_logout', function() {
+    setcookie(BUZZ_SSO_COOKIE, '', time() - 3600, '/', '.buzzjuice.net' /* BUZZ_COOKIE_DOMAIN */);
+});
 
 
 
