@@ -33,7 +33,6 @@ $BUZZ_SSO_SECRET = defined('BUZZ_SSO_SECRET')
 
 // Get SSO token from request or cookie
 $sso_token = $_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? '');
-// --- DEBUG: log the raw cookie payload ---
 /* if (!empty($_COOKIE[BUZZ_SSO_COOKIE])) {
     error_log('[WoWonder SSO DEBUG] BUZZ_SSO_COOKIE payload: ' . $_COOKIE[BUZZ_SSO_COOKIE]);
 } else {
@@ -42,57 +41,21 @@ $sso_token = $_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? '');
 */
 
 // -------------------------------------------------------
+// BOOTSTRAP CHECKS — REQUIRE Wo CONFIG AND SQL
+// -------------------------------------------------------
+global $wo, $sqlConnect;
+if (empty($wo['config']['site_url']) || empty($sqlConnect)) {
+    bz_bridge_log('Bootstrap incomplete - missing $wo or $sqlConnect');
+    bz_debug_page('Bootstrap incomplete', ['$wo' => $wo ?? null, '$sqlConnect' => (bool)$sqlConnect]);
+    header('Location: /');
+    exit;
+}
+
+// -------------------------------------------------------
 // LOGGING, DEBUG, CLIENT DEBUG BEACON, LOOP PROTECTION + SESSION VISIBILITY
 // -------------------------------------------------------
-if (!function_exists('bz_bridge_log')) {
 
-    function bz_bridge_log($msg, $ctx = []) {
 
-        $ts = gmdate('Y-m-d H:i:s');
-
-        $data = [
-            'ts'              => $ts,
-            'ip'              => $_SERVER['REMOTE_ADDR'] ?? null,
-            'uri'             => $_SERVER['REQUEST_URI'] ?? null,
-            'ua'              => $_SERVER['HTTP_USER_AGENT'] ?? null,
-            'php_session_id'  => function_exists('session_id') ? session_id() : null,
-            'session_name'    => function_exists('session_name') ? session_name() : null,
-            'buzz_sso_len'    => isset($_COOKIE[BUZZ_SSO_COOKIE]) ? strlen($_COOKIE[BUZZ_SSO_COOKIE]) : 0,
-        ];
-
-        // Extended debug data (only if debug enabled)
-        if (function_exists('bz_is_debug') && bz_is_debug()) {
-
-            $data['cookies'] = $_COOKIE ?? [];
-            $data['session'] = $_SESSION ?? [];
-
-            $data['server'] = [
-                'HTTP_HOST'   => $_SERVER['HTTP_HOST'] ?? null,
-                'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
-                'HTTPS'       => $_SERVER['HTTPS'] ?? null,
-            ];
-
-            $data['sess_cookie_params'] =
-                function_exists('session_get_cookie_params')
-                ? session_get_cookie_params()
-                : null;
-        }
-
-        if (!empty($ctx)) {
-            $data['ctx'] = $ctx;
-        }
-
-        $line = '[' . $ts . '] ' . $msg . ' | ' .
-            json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) .
-            PHP_EOL;
-
-        @file_put_contents(
-            BUZZ_SSO_BRIDGE_LOG,
-            $line,
-            FILE_APPEND | LOCK_EX
-        );
-    }
-}
 
 // -------------------------------------------------------
 // SESSION: SSR/LOGIN ONLY (STATLESS SSO - JWT IS AUTHORITY)
@@ -128,17 +91,6 @@ if (session_status() === PHP_SESSION_NONE) {
     } else {
         bz_bridge_log('Session not started (bridge): benign request, no buzz_sso and not an SSO action');
     }
-}
-
-// -------------------------------------------------------
-// BOOTSTRAP CHECKS — REQUIRE Wo CONFIG AND SQL
-// -------------------------------------------------------
-global $wo, $sqlConnect;
-if (empty($wo['config']['site_url']) || empty($sqlConnect)) {
-    bz_bridge_log('Bootstrap incomplete - missing $wo or $sqlConnect');
-    bz_debug_page('Bootstrap incomplete', ['$wo' => $wo ?? null, '$sqlConnect' => (bool)$sqlConnect]);
-    header('Location: /');
-    exit;
 }
 
 // -------------------
@@ -177,17 +129,6 @@ if ($loop_count > 5) {
 // -----------------------------
 define('BUZZ_JTI_STORE', __DIR__ . '/sso_jti_store');
 if (!is_dir(BUZZ_JTI_STORE)) @mkdir(BUZZ_JTI_STORE, 0755, true);
-
-function bz_is_jti_used($jti) {
-    return $jti && file_exists(BUZZ_JTI_STORE . '/' . sha1($jti));
-}
-function bz_mark_jti_used($jti) {
-    @file_put_contents(BUZZ_JTI_STORE . '/' . sha1($jti), time(), LOCK_EX);
-}
-function bz_cleanup_jti_store() {
-    $expire = time() - 3600; // 30 min
-    foreach (glob(BUZZ_JTI_STORE . '/*') ?: [] as $file) if (filemtime($file) < $expire) @unlink($file);
-}
 if (mt_rand(1, 35) === 9) bz_cleanup_jti_store();
 
 // -------------------------------------------------------------
@@ -334,164 +275,59 @@ if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'get_payload_
 
 
 // --------------------------------------
-// Stateless SSO Orchestration (WordPress → WoWonder)
+// WoWonder Stateless SSO Orchestration (WordPress → WoWonder)
 // --------------------------------------
 
-// Start session if not started
-if (!isset($_SESSION)) session_start();
-
-// Loop protection (prevents infinite SSO relay)
-$_SESSION['ww_sso_attempts'] = ($_SESSION['ww_sso_attempts'] ?? 0) + 1;
-if ($_SESSION['ww_sso_attempts'] > 3) {
-    bz_bridge_log('SSO loop protection triggered', ['attempts' => $_SESSION['ww_sso_attempts']]);
-    unset($_SESSION['ww_sso_attempts']);
-    bz_redirect_to_wp_login('/');
-    exit;
-}
-
-// Get token and initialize
-$sso_token = $_COOKIE[BUZZ_SSO_COOKIE] ?? null;
+// --------------------------------------
+// Fetch stateless payload Orchestrator
+// --------------------------------------
+// Try Login from BuzzSSO Cookie
 $payload = null;
-$site_base = rtrim($wo['config']['site_url'] ?? '', '/');
-
-// -------------------------------------------------------
-// 1️⃣ COOKIE FIRST (Fast Path)
-// -------------------------------------------------------
 if (!empty($sso_token) && $BUZZ_SSO_SECRET) {
-    try {
-        $payload = bz_validate_jwt($sso_token, $BUZZ_SSO_SECRET);
-        if ($payload) {
-            bz_bridge_log('Valid JWT from BUZZ_SSO_COOKIE', ['exp' => $payload['exp'] ?? null]);
-
-            // Force silent refresh if expiring within 5 minutes
-            if (!empty($payload['exp']) && ($payload['exp'] - time()) < 300) {
-                bz_bridge_log('JWT nearing expiry; forcing WP refresh', []);
-                $payload = null;
-            }
-        }
-    } catch (Throwable $e) {
-        bz_bridge_log('Exception during JWT validation', ['ex' => $e->getMessage()]);
-        $payload = null;
-    }
-} else {
-    bz_bridge_log('No BUZZ_SSO_COOKIE present or missing secret', [
-        'cookie_present' => !empty($sso_token),
-        'BUZZ_SSO_SECRET' => (bool)$BUZZ_SSO_SECRET
-    ]);
+    $payload = bz_validate_jwt($sso_token, $BUZZ_SSO_SECRET);
 }
-
-// -------------------------------------------------------
-// 2️⃣ WORDPRESS AUTHORITY ENDPOINT
-// -------------------------------------------------------
+// ---------------------------------------------
+// Try Login from WordPress Endpoint
+// ---------------------------------------------
 if (!$payload) {
-
-    bz_bridge_log('Fetching payload from WordPress sso-session-sync');
-
-    $wp_response = bz_fetch_wp_stateless_payload($sso_token ?? null, $BUZZ_SSO_SECRET);
-
-    // 🚨 HARD STOP: WP says "User not logged in" → redirect immediately
-    if (isset($wp_response['status']) && (int)$wp_response['status'] === 401) {
-        $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/streams/';
-        $redirect_target = $site_base . $requested;
-        bz_bridge_log('WP endpoint returned 401. Redirecting to WP login.', ['redirect_to' => $redirect_target]);
-        unset($_SESSION['ww_sso_attempts']);
+    $payload_arr = bz_fetch_wp_stateless_payload($sso_token ?? null, $BUZZ_SSO_SECRET);
+    // If WP explicitly says "not logged in" → redirect to WP login
+    if (
+        isset($payload_arr['status']) &&
+        (int)$payload_arr['status'] === 401
+    ) {
+        // Preserve deep link
+        $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/social/';
+        $redirect_target = 'https://buzzjuice.net' . $requested;
+        bz_bridge_log('WP endpoint returned 401. Redirecting to WP login.', [
+            'redirect_to' => $redirect_target
+        ]);
         bz_redirect_to_wp_login($redirect_target);
         exit;
     }
-
-    // ✅ Valid payload returned
-    if (!empty($wp_response['payload'])) {
-        $payload = $wp_response['payload'];
-        bz_bridge_log('Payload obtained from WP endpoint');
+    // If valid payload received → use it
+    if (!empty($payload_arr['payload'])) {
+        $payload = $payload_arr['payload'];
     }
-    // ⚠️ WP unreachable → WoWonder fallback allowed
 }
-
-// -------------------------------------------------------
-// 3️⃣ WoWonder Fallback (Only if WP did NOT 401)
-// -------------------------------------------------------
+// Try Login from WoWonder Endpoint
 if (!$payload) {
-    bz_bridge_log('Attempting WoWonder endpoint fallback');
-
-    $ww_url = $site_base . '/streams/ww-sso-bridge.php?sso_action=get_payload_for_social';
+    $ww_url = 'https://buzzjuice.net/streams/ww-sso-bridge.php?sso_action=get_payload_for_social';
     $signature = hash_hmac('sha256', 'get_payload_for_social', $BUZZ_SSO_SECRET);
-
     $ch = curl_init($ww_url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST           => true,
-        CURLOPT_TIMEOUT        => 5,
-        CURLOPT_HTTPHEADER     => ['X-Buzzjuice-Signature: ' . $signature]
-    ]);
-
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['X-Buzzjuice-Signature: ' . $signature]);
     $result = curl_exec($ch);
-    $error  = curl_error($ch);
     curl_close($ch);
-
-    if (!$error && $result) {
-        $resp = json_decode($result, true);
-        if (!empty($resp['payload'])) {
-            $payload = $resp['payload'];
-            bz_bridge_log('Payload obtained from WoWonder endpoint');
-        }
-    } else {
-        bz_bridge_log('WoWonder fetch error', ['error'=>$error]);
-    }
+    $resp = json_decode($result, true);
+    if (isset($resp['payload'])) $payload = $resp['payload'];
 }
-
-// -------------------------------------------------------
-// 4️⃣ FINAL FAILURE → REDIRECT TO WP LOGIN
-// -------------------------------------------------------
+// Redirect to WordPress Login
 if (!$payload) {
-    bz_bridge_log('No valid SSO payload from BUZZ_SSO_COOKIE, WP endpoint, or WoWonder endpoint.');
-    unset($_SESSION['ww_sso_attempts']);
-    $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/streams/';
-    $redirect_target = $site_base . $requested;
-    bz_redirect_to_wp_login($redirect_target);
-    exit;
-} else {
-    unset($_SESSION['ww_sso_attempts']); // reset loop counter on success
+    bz_redirect_to_wp_login('No valid SSO payload from BUZZ_SSO_COOKIE, WP endpoint, or WoWonder endpoint');
 }
-
-// -------------------------------------------------------
-// SSO JWT CLAIM EXTRACTION & REQUIRED CLAIMS VALIDATION
-// -------------------------------------------------------
-$claim_wp_user_id    = (int)($payload['wp_user_id'] ?? 0);
-$claim_wp_user_login = (string)($payload['wp_user_login'] ?? $payload['login'] ?? '');
-$claim_wp_user_email = (string)($payload['wp_user_email'] ?? $payload['email'] ?? '');
-$claim_wo_user_id    = (int)($payload['wo_user_id'] ?? 0);
-
-$original_claims = [
-    'claim_wp_user_id'    => $claim_wp_user_id,
-    'claim_wp_user_login' => $claim_wp_user_login,
-    'claim_wp_user_email' => $claim_wp_user_email,
-    'claim_wo_user_id'    => $claim_wo_user_id
-];
-bz_bridge_log('JWT SSO claims extracted', array_merge($original_claims, ['raw_payload' => $payload]));
-
-// Required claims guard
-if (!$claim_wp_user_id || !$claim_wp_user_login || !$claim_wp_user_email) {
-    bz_bridge_log('Missing required claims (JWT incomplete)', $original_claims);
-    $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/streams/';
-    $redirect_target = $site_base . $requested;
-    bz_redirect_to_wp_login($redirect_target);
-    exit;
-}
-
-// -------------------------------------------------------
-// CANONICALIZATION (UI only — do NOT trust for identity)
-// -------------------------------------------------------
-$canonical = [
-    'wp_user_id'    => $_SESSION['wp_user_id']    ?? $claim_wp_user_id,
-    'wp_user_login' => $_SESSION['wp_user_login'] ?? $claim_wp_user_login,
-    'wp_user_email' => $_SESSION['wp_user_email'] ?? $claim_wp_user_email,
-    'wo_user_id'    => $_SESSION['wo_user_id']    ?? $claim_wo_user_id,
-];
-
-bz_bridge_log('Canonical pre-mapping values', [
-    'canonical' => $canonical,
-    'session'   => $_SESSION ?? [],
-]);
 
 
 
@@ -796,53 +632,78 @@ $sso_username = $_SESSION['wp_user_login'];
 $sso_token = $_COOKIE[BUZZ_SSO_COOKIE] ?? null;
 
 // -- 5. ROBUST LAST_URL DERIVATION/NORMALIZATION (PRESERVED FROM ALL SOURCES BUT GUARDS AGAINST EXTERNAL/UNSAFE/RECURSION)
+// SINGLE-PASS SAFE LAST_URL DERIVATION
 $site_base = rtrim($wo['config']['site_url'], '/');
 $last_url = '';
-if (!empty($_GET['last_url'])) {
-    $last_url = (string)$_GET['last_url'];
-} elseif (!empty($_POST['last_url'])) {
-    $last_url = (string)$_POST['last_url'];
-} elseif (!empty($_COOKIE['last_url'])) {
-    $last_url = (string)$_COOKIE['last_url'];
-} elseif (!empty($_SERVER['HTTP_REFERER'])) {
-    $last_url = trim((string)$_SERVER['HTTP_REFERER']);
-} else {
-    $req_uri = $_SERVER['REQUEST_URI'] ?? '/';
-    $bridge_path = parse_url($_SERVER['PHP_SELF'] ?? $req_uri, PHP_URL_PATH);
-    if ($req_uri && $bridge_path && $req_uri !== $bridge_path && strpos($req_uri, basename(__FILE__)) === false) {
-        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'] ?? parse_url($site_base, PHP_URL_HOST);
-        $candidate = rtrim($scheme . '://' . $host, '/') . $req_uri;
-        $ok = false;
-        if ($site_base && strpos($candidate, $site_base) === 0) $ok = true;
-        if (!$ok) {
-            $path_only = parse_url($candidate, PHP_URL_PATH) ?: '/';
-            if (strpos($path_only, '/streams') === 0) $ok = true;
+
+// Helper function: sanitize paths
+function bz_sanitize_path($url) {
+    return preg_replace('/[^\w\-\/:.@]/u', '', (string)$url);
+}
+
+// 1. Determine candidate URL
+$candidate = null;
+
+// Priority 1: redirect_to overrides everything
+if (!empty($_GET['redirect_to'])) {
+    $candidate = bz_sanitize_path($_GET['redirect_to']);
+    // Never allow bridge self-reference
+    if (strpos($candidate, 'ww-sso-bridge.php') !== false) $candidate = '/';
+    // Ensure leading slash
+    if ($candidate && $candidate[0] !== '/') $candidate = '/' . ltrim($candidate, '/');
+}
+
+// Priority 2: GET/POST/COOKIE last_url
+if (!$candidate) {
+    foreach (['GET' => $_GET, 'POST' => $_POST, 'COOKIE' => $_COOKIE] as $src_name => $src) {
+        if (!empty($src['last_url'])) {
+            $candidate = bz_sanitize_path($src['last_url']);
+            break;
         }
-        if ($ok) $last_url = $candidate;
     }
 }
-// If relative, make absolute; else fallback to site base. Only allow local/same-site.
-if ($last_url) {
-    if (strpos($last_url, 'http://') !== 0 && strpos($last_url, 'https://') !== 0) {
-        $last_url = (strpos($last_url, '/') === 0)
-            ? $site_base . $last_url
-            : $site_base . '/' . ltrim($last_url, '/');
-    }
-    if ($site_base && strpos($last_url, $site_base) !== 0) $last_url = '';
+
+// Priority 3: HTTP_REFERER fallback
+if (!$candidate && !empty($_SERVER['HTTP_REFERER'])) {
+    $candidate = bz_sanitize_path($_SERVER['HTTP_REFERER']);
 }
-if (!$last_url) $last_url = $site_base . '/';
+
+// Priority 4: fallback to site base
+if (!$candidate) {
+    $candidate = '/';
+}
+
+// 2. Normalize to absolute URL
+if (strpos($candidate, 'http://') !== 0 && strpos($candidate, 'https://') !== 0) {
+    $last_url = (strpos($candidate, '/') === 0)
+        ? $site_base . $candidate
+        : $site_base . '/' . ltrim($candidate, '/');
+} else {
+    $last_url = $candidate;
+}
+
+// 3. Enforce same-site constraint
+$parsed_site = parse_url($site_base, PHP_URL_HOST);
+$parsed_last = parse_url($last_url, PHP_URL_HOST);
+if ($parsed_last && strcasecmp($parsed_last, $parsed_site) !== 0) {
+    bz_bridge_log('last_url rejected: outside site', ['last_url' => $last_url, 'site_base' => $site_base]);
+    $last_url = $site_base . '/';
+}
+
+// 4. Prevent bridge/self-reference
 if (!empty($last_url) && function_exists('bz_is_bridge_url') && bz_is_bridge_url($last_url, $site_base)) {
     bz_bridge_log('last_url rejected: bridge/self-reference detected', ['last_url' => $last_url, 'site_base' => $site_base]);
-    $last_url = rtrim($site_base, '/') . '/';
+    $last_url = $site_base . '/';
 }
-if (!empty($forced_last_url_fallback)) $last_url = rtrim($site_base, '/') . '/';
+
+// 5. Forced fallback override
+if (!empty($forced_last_url_fallback)) $last_url = $site_base . '/';
 
 // -- 6. AJAX URL FOR CLIENT POST
 $ajax_url_base = ($_SERVER['PHP_SELF'] ?? '/ww-sso-bridge.php') . '?sso_action=do_login';
 $ajax_url = $ajax_url_base;
 if (!empty($_GET['redirect_to'])) {
-    $rt = preg_replace('/[^\w\-\/:.@]/u', '', (string)$_GET['redirect_to']);
+    $rt = bz_sanitize_path($_GET['redirect_to']);
     if ($rt !== '') $ajax_url .= '&redirect_to=' . rawurlencode($rt);
 }
 
@@ -856,7 +717,7 @@ bz_bridge_log('SSO session prepared', [
 // -- 7. CLIENT HANDLES DEFERRED REDIRECT
 if (!empty($_GET['redirect_to'])) {
     $raw_requested = (string)$_GET['redirect_to'];
-    $requested = preg_replace('/[^\w\-\/:.\@]/u', '', $raw_requested);
+    $requested = bz_sanitize_path($raw_requested);
     $ajax_preview = $ajax_url ?? '(not set)';
     bz_bridge_log('redirect_to present; deferring to HTML/JS client', [
         'raw'              => $raw_requested,
@@ -1148,74 +1009,165 @@ function Wo_SSO_Login() {
         setcookie('user_id', $session_token, time() + (10*365*24*60*60), '/', BUZZ_COOKIE_DOMAIN, true, true);
     }
 
-    // 8. Decide redirect
+    // ------------------------------
+    // Wo_SSO_Login() — JSON redirect resolution
+    // Priority:
+    //  1) $_REQUEST['redirect_to'] override (highest priority, sanitized + mapped)
+    //  2) new auto-registered users -> start-up
+    //  3) membership override -> go-pro (if membership enabled and user is not pro)
+    //  4) posted_last_url (validated same-site)
+    //  5) last_url or fallback
+    // ------------------------------
     $site_base = rtrim($wo['config']['site_url'] ?? '', '/');
-    $location = $site_base . '/?cache=' . time();
+    
+    // Default fallback location
+    $data = [
+        'status'   => 200,
+        'location' => $site_base . '/?cache=' . time(),
+    ];
+    
+    // Helper: resolve a safe redirect_to token or path to an absolute location on this site
     $resolve_redirect_to = function($token) use ($site_base) {
         $token_raw = (string)$token;
         $token_safe = preg_replace('/[^\w\-\/:.\@]/u', '', $token_raw);
         if ($token_safe === '') return '';
+    
+        // Known mapping
         $map = [
             'go-pro'   => 'index.php?link1=go-pro',
             'start-up' => 'index.php?link1=start-up',
             'home'     => '/',
         ];
+    
         if (isset($map[$token_safe])) {
-            return function_exists('Wo_SeoLink')
-                ? Wo_SeoLink($map[$token_safe])
-                : rtrim($site_base, '/') . '/' . ltrim($map[$token_safe], '/');
+            $internal = $map[$token_safe];
+            if (function_exists('Wo_SeoLink')) {
+                return Wo_SeoLink($internal);
+            } else {
+                return (strpos($internal, '/') === 0)
+                    ? rtrim($site_base, '/') . $internal
+                    : rtrim($site_base, '/') . '/' . ltrim($internal, '/');
+            }
         }
+    
+        // Absolute URL — allow only same-site host
         if (preg_match('#^https?://#i', $token_safe)) {
             $parts = @parse_url($token_safe);
             $site_host = parse_url($site_base, PHP_URL_HOST);
-            if (!empty($parts['host']) && $site_host && strcasecmp($parts['host'], $site_host) === 0) return $token_safe;
+            if (!empty($parts['host']) && strcasecmp($parts['host'], $site_host) === 0) {
+                return $token_safe;
+            }
             return '';
         }
-        if (strpos($token_safe, '/') === 0) return $site_base . $token_safe;
-        return $site_base . '/' . ltrim($token_safe, '/');
+    
+        // Treat as path or short path under site root
+        if (strpos($token_safe, '/') === 0) {
+            $candidate = rtrim($site_base, '/') . $token_safe;
+        } else {
+            $candidate = rtrim($site_base, '/') . '/' . ltrim($token_safe, '/');
+        }
+        if (strpos($candidate, $site_base) === 0) {
+            return $candidate;
+        }
+        return '';
     };
-
-    // redirect_to param (override)
+    
+    // ------------------------------
+    // 1) REQUEST redirect_to override (highest priority)
+    // ------------------------------
     if (!empty($_REQUEST['redirect_to'])) {
-        $resolved = $resolve_redirect_to($_REQUEST['redirect_to']);
-        if ($resolved) $location = $resolved;
-        bz_bridge_log('Wo_SSO_Login: redirect_to override', ['redirect_to'=>$_REQUEST['redirect_to'], 'resolved'=>$location]);
-    } elseif (!empty($_SESSION['wo_auto_registered'])) {
-        $location = function_exists('Wo_SeoLink')
-            ? Wo_SeoLink('index.php?link1=start-up')
-            : $site_base . '/index.php?link1=start-up';
+        $candidate = (string)$_REQUEST['redirect_to'];
+        // Never allow the bridge file as redirect
+        if (strpos($candidate, 'ww-sso-bridge.php') !== false) {
+            $candidate = '/';
+        }
+        if ($candidate[0] !== '/') $candidate = '/' . ltrim($candidate, '/');
+        $location = rtrim($site_base, '/') . $candidate;
+    
+        // Log and return immediately for JSON
+        bz_bridge_log('Wo_SSO_Login: redirect_to override applied', [
+            'redirect_to' => $_REQUEST['redirect_to'],
+            'resolved' => $location
+        ]);
+        echo json_encode(['status' => 200, 'location' => $location]);
+        exit;
+    }
+    
+    // 2) New auto-registered user -> start-up
+    if (!empty($_SESSION['wo_auto_registered'])) {
+        $start_up = function_exists('Wo_SeoLink') ? Wo_SeoLink('index.php?link1=start-up') : rtrim($site_base, '/') . '/index.php?link1=start-up';
+        $data['location'] = $start_up;
         unset($_SESSION['wo_auto_registered']);
-        bz_bridge_log('Wo_SSO_Login: new auto-registered user, redirecting to start-up', ['location'=>$location]);
-    } elseif (!empty($posted_last_url)) {
-        $candidate_raw = $posted_last_url;
-        if ($candidate_raw && strpos($candidate_raw, '//') !== 0) {
-            $candidate_abs = (strpos($candidate_raw, '/') === 0) ? $site_base . $candidate_raw : $candidate_raw;
+        bz_bridge_log('Wo_SSO_Login: new auto-registered user; redirecting to start-up', ['redirect' => $data['location']]);
+        echo json_encode($data); exit;
+    }
+    
+    // 3) Membership override -> go-pro (if membership enabled & user is not pro)
+    $user_is_pro = null;
+    if (!empty($wo['config']['membership_system']) && (int)$wo['config']['membership_system'] === 1) {
+        $user_is_pro = isset($wo['user']['is_pro']) ? (int)$wo['user']['is_pro'] : null;
+        if ($user_is_pro === null) {
+            $safe_q2 = @mysqli_query($sqlConnect, "SELECT is_pro FROM {$tbl} WHERE user_id=" . (int)$accepted_user_id . " LIMIT 1");
+            if ($safe_q2 && $r2 = mysqli_fetch_assoc($safe_q2)) {
+                $user_is_pro = (int)($r2['is_pro'] ?? 0);
+            } else {
+                $user_is_pro = 0;
+            }
+        }
+        if ($user_is_pro === 0) {
+            $data['location'] = function_exists('Wo_SeoLink') ? Wo_SeoLink('index.php?link1=go-pro') : rtrim($site_base, '/') . '/index.php?link1=go-pro';
+            bz_bridge_log('Wo_SSO_Login: membership go-pro override applied', ['user_id' => $accepted_user_id, 'redirect' => $data['location']]);
+            echo json_encode($data); exit;
+        }
+    }
+    
+    // 4) posted_last_url (if provided and valid)
+    if (!empty($posted_last_url)) {
+        $candidate_raw = trim((string)$posted_last_url);
+    
+        if (strpos($candidate_raw, '//') === 0) {
+            bz_bridge_log('posted_last_url rejected: protocol-relative URL', ['posted' => $candidate_raw]);
+        } else {
+            if (strpos($candidate_raw, '/') === 0) {
+                $candidate_abs = rtrim($site_base, '/') . $candidate_raw;
+            } else {
+                $candidate_abs = $candidate_raw;
+            }
+    
             $scheme = @parse_url($candidate_abs, PHP_URL_SCHEME);
             $site_host = bz_normalize_host(parse_url($site_base, PHP_URL_HOST) ?: '');
             $candidate_host = bz_normalize_host(parse_url($candidate_abs, PHP_URL_HOST) ?: '');
-            $is_bridge_ref = function_exists('bz_is_bridge_url') && bz_is_bridge_url($candidate_abs, $site_base);
-            if (in_array($scheme, ['http','https'], true) && $candidate_host === $site_host && !$is_bridge_ref) {
-                $location = $candidate_abs;
-                bz_bridge_log('Wo_SSO_Login: posted_last_url accepted', ['posted'=>$candidate_raw, 'final'=>$location]);
+            $is_bridge_ref = bz_is_bridge_url($candidate_abs, $site_base);
+    
+            if ($candidate_abs && in_array($scheme, ['http','https'], true) && $candidate_host === $site_host && !$is_bridge_ref) {
+                $data['location'] = $candidate_abs;
+                bz_bridge_log('Wo_SSO_Login: using posted_last_url as redirect', ['posted_last_url' => $candidate_raw, 'final' => $data['location']]);
+                if (function_exists('bz_bridge_loop_count')) bz_bridge_loop_count(false, true);
+                echo json_encode($data); exit;
             } else {
-                bz_bridge_log('Wo_SSO_Login: posted_last_url rejected as unsafe', ['posted'=>$candidate_raw]);
+                bz_bridge_log('Wo_SSO_Login: posted_last_url rejected', [
+                    'posted' => $candidate_raw,
+                    'candidate' => $candidate_abs,
+                    'candidate_host' => $candidate_host,
+                    'site_host' => $site_host,
+                    'is_bridge_ref' => $is_bridge_ref
+                ]);
             }
         }
-    } elseif (!empty($last_url) && strpos($last_url, $site_base) === 0) {
-        $location = $last_url;
     }
-    // Last guard: prevent self-redirects
-    if (function_exists('bz_is_bridge_url') && bz_is_bridge_url($location, $site_base)) {
-        bz_bridge_log('Wo_SSO_Login: bridge self-redirect fallback', ['chosen'=>$location]);
-        $location = $site_base . '/';
+    
+    // 5) last_url fallback or default
+    $data['location'] = !empty($last_url) && strpos($last_url, $site_base) === 0 ? $last_url : ($site_base . '/?cache=' . time());
+    
+    // Final safety: never return the bridge itself as redirect
+    if (function_exists('bz_is_bridge_url') && !empty($data['location']) && bz_is_bridge_url($data['location'], $site_base)) {
+        bz_bridge_log('Final redirect would go to bridge; replacing with site base to avoid loop', ['chosen' => $data['location']]);
+        $data['location'] = rtrim($site_base, '/') . '/';
         if (function_exists('bz_bridge_loop_count')) bz_bridge_loop_count(false, true);
     }
-
-    bz_bridge_log('Wo_SSO_Login: completed, redirect', [
-        'user_id'=>$accepted_user_id,
-        'redirect'=>$location
-    ]);
-    send_json_response(['status'=>200, 'location'=>$location]);
+    
+    bz_bridge_log('Wo_SSO_Login: final redirect chosen', ['final' => $data['location']]);
+    echo json_encode($data); exit;
 }
 
 
