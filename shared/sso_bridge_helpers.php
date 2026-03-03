@@ -78,7 +78,7 @@ if (!function_exists('bz_bridge_log')) {
 // -----------------------------
 // ***** Replay protection: JTI store (30 min) ***** TODO
 // -----------------------------
-define('BUZZ_SSO_JTI_STORE', __DIR__ . '/sso_jti_store');
+define('BUZZ_SSO_JTI_STORE', __DIR__ . '/.bz_sso_jti_store');
 if (!is_dir(BUZZ_SSO_JTI_STORE)) @mkdir(BUZZ_SSO_JTI_STORE, 0755, true);
 
 function bz_is_jti_used($jti) {

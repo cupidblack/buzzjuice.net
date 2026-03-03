@@ -27,24 +27,24 @@ if (!defined('BUZZ_SSO_BRIDGE_LOG'))    define('BUZZ_SSO_BRIDGE_LOG', __DIR__ . 
 if (!defined('BUZZ_SSO_AUTO_REGISTER')) define('BUZZ_SSO_AUTO_REGISTER', true);
 if (!defined('BUZZ_SSO_TTL'))           define('BUZZ_SSO_TTL', 900);
 
-$BUZZ_SSO_SECRET = defined('BUZZ_SSO_SECRET')
-    ? BUZZ_SSO_SECRET
-    : (getenv('BUZZ_SSO_SECRET') ?: null);
-
-// Get SSO token from request or cookie
-$sso_token = $_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? '');
-/* if (!empty($_COOKIE[BUZZ_SSO_COOKIE])) {
-    error_log('[WoWonder SSO DEBUG] BUZZ_SSO_COOKIE payload: ' . $_COOKIE[BUZZ_SSO_COOKIE]);
+// Get secret/SSO token from config request or cookie
+$BUZZ_SSO_SECRET = defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : (getenv('BUZZ_SSO_SECRET') ?: null);
+$sso_token  = $_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? '');
+if (!empty($sso_token)) {
+    error_log('[BuzzStreams SSO DEBUG] BUZZ_SSO_COOKIE payload: ' . $sso_token);
 } else {
-    error_log('[WoWonder SSO DEBUG] BUZZ_SSO_COOKIE not set.');
+    error_log('[BuzzStreams SSO DEBUG] BUZZ_SSO_COOKIE not set.');
 }
-*/
+$sso_action = $_REQUEST['sso_action'] ?? '';
 
 // -------------------------------------------------------
 // BOOTSTRAP CHECKS — REQUIRE Wo CONFIG AND SQL
 // -------------------------------------------------------
 global $wo, $sqlConnect;
-if (empty($wo['config']['site_url']) || empty($sqlConnect)) {
+
+$site_url = defined('SITE_URL') ? rtrim(SITE_URL,'/') : (isset($wo['config']['site_url']) ? rtrim($wo['config']['site_url']) : '');
+
+if (empty($site_url) || empty($sqlConnect)) {
     bz_bridge_log('Bootstrap incomplete - missing $wo or $sqlConnect');
     bz_debug_page('Bootstrap incomplete', ['$wo' => $wo ?? null, '$sqlConnect' => (bool)$sqlConnect]);
     header('Location: /');
@@ -55,6 +55,13 @@ if (empty($wo['config']['site_url']) || empty($sqlConnect)) {
 // LOGGING, DEBUG, CLIENT DEBUG BEACON, LOOP PROTECTION + SESSION VISIBILITY
 // -------------------------------------------------------
 
+    $site_root = 'https://buzzjuice.net';
+
+    // Build the full current request including query string
+    $request_uri = $_SERVER['REQUEST_URI'] ?? '/streams';
+    $full_deeplink = $site_root . $request_uri;
+
+    $bridge_url = $site_root . '/streams/ww-sso-bridge.php?sso_action=do_login&last_urlo=' . rawurlencode($full_deeplink);
 
 
 // -------------------------------------------------------
@@ -132,6 +139,9 @@ if (!is_dir(BUZZ_JTI_STORE)) @mkdir(BUZZ_JTI_STORE, 0755, true);
 if (mt_rand(1, 35) === 9) bz_cleanup_jti_store();
 
 // -------------------------------------------------------------
+
+/* ----- START LEGACY SESSION BOOTSTRAP & SHADOW RECONCILIATION — DEPRECATED BLOCK ----- */
+// -------------------------------------------------------------
 // SHADOW SESSION & FILE-BASED RECONCILIATION HELPERS REMOVED
 // -------------------------------------------------------------
 // All functions attempting to read/write/parity-check shadow session
@@ -152,6 +162,7 @@ if (mt_rand(1, 35) === 9) bz_cleanup_jti_store();
 //   7. Do NOT persist or trust any legacy shadow/cookie/session/file
 //   8. Redirect to the app using standard WoWonder routing/redirect rules
 // -------------------------------------------------------------
+/* ----- END LEGACY SESSION BOOTSTRAP & SHADOW RECONCILIATION — DEPRECATED BLOCK ----- */
 
 // ===================================================================================================
 // END: CONFIGURATIONS + LOGGING + graceful failure (no legacy HMAC/token helpers below this point!)
@@ -166,7 +177,7 @@ if (mt_rand(1, 35) === 9) bz_cleanup_jti_store();
 // -------------------------------------------------------
 // LIGHTWEIGHT "CHECK" ENDPOINT (validates logged-in/JWT/redirect)
 // -------------------------------------------------------
-if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'check') {
+/*if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'check') {
     header('Content-Type: application/json; charset=utf-8');
 
     $is_logged_in = !empty($wo['loggedin']) || !empty($_SESSION['wo_user_id']);
@@ -208,6 +219,7 @@ if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'check') {
     echo json_encode(['logged_in' => false, 'wp_login' => $wp_login]);
     exit;
 }
+*/
 
 // ------------------------------------------
 // Remote Synced WordPress Login Endpoint
@@ -244,12 +256,10 @@ if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'remote_login
     // Issue BUZZ_SSO_COOKIE
     setcookie(BUZZ_SSO_COOKIE, $token, time()+BUZZ_SSO_TTL, '/', BUZZ_COOKIE_DOMAIN, true, true);
     send_json_response(['status'=>200, 'logged_in'=>true, 'wo_user_id'=>$wo_user_id]);
-
-    
 }
 
 // ------------------------------------------
-// QuickDate Social Fetch Endpoint
+// BuzzSocial Secure Payload Fetch Endpoint
 // ------------------------------------------
 if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'get_payload_for_social' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $signature = $_SERVER['HTTP_X_BUZZJUICE_SIGNATURE'] ?? '';
@@ -272,20 +282,32 @@ if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'get_payload_
     send_json_response(['status'=>200, 'payload'=>$user_payload]);
 }
 
-
-
-// --------------------------------------
-// WoWonder Stateless SSO Orchestration (WordPress → WoWonder)
-// --------------------------------------
-
-// --------------------------------------
-// Fetch stateless payload Orchestrator
-// --------------------------------------
+// =============================================================================
+// WoWonder Fetch Stateless SSO Payload Orchestration (WordPress → WoWonder)
+// =============================================================================
 // Try Login from BuzzSSO Cookie
 $payload = null;
+
+if (empty($sso_token)) {
+    // Preserve deep link
+    $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/streams/';
+    $redirect_target = 'https://buzzjuice.net' . $requested;
+    bz_bridge_log('No SSO token. Redirecting to WP login.', [
+        'redirect_to' => $redirect_target
+    ]);
+    bz_redirect_to_wp_login($bridge_url, 'streams');
+    exit;
+}
+
 if (!empty($sso_token) && $BUZZ_SSO_SECRET) {
     $payload = bz_validate_jwt($sso_token, $BUZZ_SSO_SECRET);
 }
+    if (!empty($payload)) {
+        bz_bridge_log('bz_validate_jwt successful!', [
+            'payload' => $payload
+        ]);
+    }
+
 // ---------------------------------------------
 // Try Login from WordPress Endpoint
 // ---------------------------------------------
@@ -297,7 +319,7 @@ if (!$payload) {
         (int)$payload_arr['status'] === 401
     ) {
         // Preserve deep link
-        $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/social/';
+        $requested = $_GET['redirect_to'] ?? $_SERVER['REQUEST_URI'] ?? '/streams/';
         $redirect_target = 'https://buzzjuice.net' . $requested;
         bz_bridge_log('WP endpoint returned 401. Redirecting to WP login.', [
             'redirect_to' => $redirect_target
@@ -308,13 +330,22 @@ if (!$payload) {
     // If valid payload received → use it
     if (!empty($payload_arr['payload'])) {
         $payload = $payload_arr['payload'];
+        
+            if (!empty($payload)) {
+                bz_bridge_log('WP endpoint successful!', [
+                    'redirect_to' => $payload
+                ]);
+            }
+            
     }
 }
-// Try Login from WoWonder Endpoint
+// ---------------------------------------------
+// Try Login from BuzzSocial Endpoint
+// ---------------------------------------------
 if (!$payload) {
-    $ww_url = 'https://buzzjuice.net/streams/ww-sso-bridge.php?sso_action=get_payload_for_social';
-    $signature = hash_hmac('sha256', 'get_payload_for_social', $BUZZ_SSO_SECRET);
-    $ch = curl_init($ww_url);
+    $qd_url = 'https://buzzjuice.net/social/qd-sso-bridge.php?sso_action=get_payload_for_streams';
+    $signature = hash_hmac('sha256', 'get_payload_for_streams', $BUZZ_SSO_SECRET);
+    $ch = curl_init($qd_url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 5);
@@ -326,8 +357,66 @@ if (!$payload) {
 }
 // Redirect to WordPress Login
 if (!$payload) {
-    bz_redirect_to_wp_login('No valid SSO payload from BUZZ_SSO_COOKIE, WP endpoint, or WoWonder endpoint');
+    bz_bridge_log('No BuzzSocial JWT/buzz_sso cookie present or missing secret', [
+        'cookie_present' => !empty($sso_token),
+        'BUZZ_SSO_SECRET' => (bool)$BUZZ_SSO_SECRET
+    ]);
+    bz_redirect_to_wp_login($bridge_url, 'streams');
 }
+
+// =========================================================
+// SSO JWT CLAIM EXTRACTION & REQUIRED CLAIMS VALIDATION
+// =========================================================
+// Extract claims (raw)
+$claim_wp_user_id    = isset($payload['wp_user_id'])    ? (int)$payload['wp_user_id'] : 0;
+$claim_wp_user_login = isset($payload['wp_user_login']) ? (string)$payload['wp_user_login'] : (isset($payload['login']) ? (string)$payload['login'] : '');
+$claim_wp_user_email = isset($payload['wp_user_email']) ? (string)$payload['wp_user_email'] : (isset($payload['email']) ? (string)$payload['email'] : '');
+$claim_wo_user_id    = isset($payload['wo_user_id'])    ? (int)$payload['wo_user_id'] : 0;
+
+$original_claims = [
+    'claim_wp_user_id'=>$claim_wp_user_id,
+    'claim_wp_user_login'=>$claim_wp_user_login,
+    'claim_wp_user_email'=>$claim_wp_user_email,
+    'claim_wo_user_id'=>$claim_wo_user_id
+];
+
+bz_bridge_log('buzz_sso claims extracted', array_merge($original_claims, ['raw_payload'=>$payload]));
+
+// -----------------------------
+// Ensure canonical shadow exists & cleanup mismatches BEFORE mapping/registration.
+// This implements the suggestion: if WoWonder shadow id differs from WP shadow id, remove it and create WP canonical shadow.
+
+try {
+    // First remove mismatched shadow files that refer to same wp_user_id
+    bz_cleanup_shadow_mismatches($payload);
+    // Then create the canonical shadow file (sess_shadow_shadow_{wp_sid}) so all apps can pick it up
+    bz_write_canonical_shadow_file($payload);
+} catch (Throwable $e) {
+    bz_bridge_log('Error during canonical shadow reconciliation', ['ex'=>$e->getMessage()]);
+}
+// -----------------------------
+
+// -----------------------------
+// Required claims guard
+// -----------------------------
+if (!$claim_wp_user_id || !$claim_wp_user_login || !$claim_wp_user_email) {
+    bz_bridge_log('Missing required claims (cookie incomplete)', $original_claims);
+    $go_pro_target = $site_base . '/ww-sso-bridge.php?redirect_to=go-pro';
+    header('Location: ' . 'https://buzzjuice.net/wp-login.php?redirect_to=' . rawurlencode($go_pro_target));
+    exit;
+}
+
+// -----------------------------
+// Canonicalization: prefer server session values (if present) to avoid accidental overwrite.
+// - wp_user_login must remain immutable if already present in session
+// - wo_user_id can be set only if session had none (0/null) and we compute one here (or was in payload)
+$canonical = [];
+$canonical['wp_user_id']    = isset($_SESSION['wp_user_id']) ? (int)$_SESSION['wp_user_id'] : $claim_wp_user_id;
+$canonical['wp_user_login'] = isset($_SESSION['wp_user_login']) ? (string)$_SESSION['wp_user_login'] : $claim_wp_user_login;
+$canonical['wp_user_email'] = isset($_SESSION['wp_user_email']) ? (string)$_SESSION['wp_user_email'] : $claim_wp_user_email;
+$canonical['wo_user_id']    = isset($_SESSION['wo_user_id']) ? (int)$_SESSION['wo_user_id'] : $claim_wo_user_id;
+
+bz_bridge_log('Canonical pre-mapping values', ['canonical'=>$canonical,'session'=>$_SESSION ?? []]);
 
 
 
@@ -629,7 +718,6 @@ bz_bridge_log('After mapping/registration - canonical session snapshot', [
 
 // -- 4. BUILD SSO TOKEN FOR BRIDGE/JS CLIENT (NOT FOR TRUST, FOR FORM SIMPLICITY)
 $sso_username = $_SESSION['wp_user_login'];
-$sso_token = $_COOKIE[BUZZ_SSO_COOKIE] ?? null;
 
 // -- 5. ROBUST LAST_URL DERIVATION/NORMALIZATION (PRESERVED FROM ALL SOURCES BUT GUARDS AGAINST EXTERNAL/UNSAFE/RECURSION)
 // SINGLE-PASS SAFE LAST_URL DERIVATION
@@ -735,7 +823,8 @@ if (!empty($_GET['redirect_to'])) {
 
 // -----------------------------
 // Wo_SSO_Login endpoint (POST)
-if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'do_login' && $_SERVER['REQUEST_METHOD'] === 'POST') { Wo_SSO_Login(); exit; }
+// if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'do_login' && $_SERVER['REQUEST_METHOD'] === 'POST') { Wo_SSO_Login(); exit; }
+Wo_SSO_Login();
 
 function send_json_response($data) {
     header('Content-Type: application/json; charset=utf-8');
@@ -885,16 +974,16 @@ function Wo_SSO_Login() {
     // ---------------------------------------------------------------------------
     try {
         // 1. Resolve WoWonder user ID (from session or WordPress linkage)
-        $ww_user_id = null;
+        $wo_user_id = null;
         if (!empty($_SESSION['wo_user_id'])) {
-            $ww_user_id = (int)$_SESSION['wo_user_id'];
+            $wo_user_id = (int)$_SESSION['wo_user_id'];
         } elseif (!empty($_SESSION['wp_user_id'])) {
             // Use meta bridge if available
             if (function_exists('get_user_meta')) {
-                $ww_user_id = (int)get_user_meta($_SESSION['wp_user_id'], 'wo_user_id', true);
+                $wo_user_id = (int)get_user_meta($_SESSION['wp_user_id'], 'wo_user_id', true);
             }
         }
-        if (!$ww_user_id || $ww_user_id < 1) {
+        if (!$wo_user_id || $wo_user_id < 1) {
             bz_bridge_log('SSO metadata sync ABORT: No wo_user_id found', [
                 'wp_user_id' => $_SESSION['wp_user_id'] ?? null
             ]);
@@ -936,7 +1025,7 @@ function Wo_SSO_Login() {
             if (!empty($_SESSION[$ck])) $sync_data[$ck] = $_SESSION[$ck];
         }
         if (empty($sync_data)) {
-            bz_bridge_log('SSO metadata sync: No non-empty values in session for mapped fields', ['ww_user_id'=>$ww_user_id]);
+            bz_bridge_log('SSO metadata sync: No non-empty values in session for mapped fields', ['wo_user_id'=>$wo_user_id]);
             return;
         }
     
@@ -956,7 +1045,7 @@ function Wo_SSO_Login() {
         }
         if (empty($final_data)) {
             bz_bridge_log('SSO metadata sync: No valid fields after WoWonder check', [
-                'wp_user_id'=>$_SESSION['wp_user_id'] ?? null, 'ww_user_id'=>$ww_user_id
+                'wp_user_id'=>$_SESSION['wp_user_id'] ?? null, 'wo_user_id'=>$wo_user_id
             ]);
             return;
         }
@@ -964,20 +1053,20 @@ function Wo_SSO_Login() {
         // 5. Update WoWonder profile
         if (function_exists('Wo_UpdateUserData')) {
             try {
-                $result = Wo_UpdateUserData($ww_user_id, $final_data);
+                $result = Wo_UpdateUserData($wo_user_id, $final_data);
                 bz_bridge_log('SSO metadata sync: WoWonder update complete', [
-                    'ww_user_id' => $ww_user_id,
+                    'wo_user_id' => $wo_user_id,
                     'fields'     => array_keys($final_data),
                     'result'     => $result
                 ]);
             } catch (Throwable $e) {
                 bz_bridge_log('SSO metadata sync: WoWonder update ERROR', [
-                    'ww_user_id' => $ww_user_id,
+                    'wo_user_id' => $wo_user_id,
                     'error'      => $e->getMessage(),
                 ]);
             }
         } else {
-            bz_bridge_log('SSO metadata sync: Wo_UpdateUserData unavailable, skipped Wo update', ['ww_user_id' => $ww_user_id]);
+            bz_bridge_log('SSO metadata sync: Wo_UpdateUserData unavailable, skipped Wo update', ['wo_user_id' => $wo_user_id]);
         }
     
         // 6. Mirror to WP usermeta (bi-directional consistency, if desired)

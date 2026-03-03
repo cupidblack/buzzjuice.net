@@ -930,12 +930,12 @@ if (!empty($wo['story']['parent_id'])) {
          <?php } }
          }
           ?>
-         <?php if ($wo['story']['shared_from'] && is_array($wo['story']['shared_from'])): ?>
-         <span class="user-popover" data-type="<?php echo $wo['story']['shared_from']['type']; ?>" data-id="<?php echo $wo['story']['shared_from']['id']; ?>">
-            <span><?php echo $wo['lang']['shared']; ?></span> 
-            <a href="<?php echo $wo['story']['shared_from']['url']; ?>" class="pointer no_decor" data-ajax="?link1=timeline&u=<?php echo $wo['story']['shared_from']['username']; ?>"><b><?php echo $wo['story']['shared_from']['name']; ?></b></a>
-            <?php if($wo['story']['shared_from']['verified'] == 1) { ?>
-            <span class="verified-color">
+            <?php if (is_array($wo['story']['shared_from'])): ?>
+               <span class="user-popover" data-type="<?php echo isset($wo['story']['shared_from']['type']) ? htmlspecialchars($wo['story']['shared_from']['type']) : ''; ?>" data-id="<?php echo isset($wo['story']['shared_from']['id']) ? htmlspecialchars($wo['story']['shared_from']['id']) : ''; ?>">
+                  <span><?php echo $wo['lang']['shared']; ?></span> 
+                  <a href="<?php echo isset($wo['story']['shared_from']['url']) ? htmlspecialchars($wo['story']['shared_from']['url']) : '#'; ?>" class="pointer no_decor" data-ajax="?link1=timeline&u=<?php echo isset($wo['story']['shared_from']['username']) ? htmlspecialchars($wo['story']['shared_from']['username']) : ''; ?>"><b><?php echo isset($wo['story']['shared_from']['name']) ? htmlspecialchars($wo['story']['shared_from']['name']) : ''; ?></b></a>
+                  <?php if(isset($wo['story']['shared_from']['verified']) && $wo['story']['shared_from']['verified'] == 1) { ?>
+                     <span class="verified-color">
                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="feather feather-check-circle" title="<?php echo ($wo['story']['page_id'] > 0 ? $wo['lang']['verified_page'] : $wo['lang']['verified_user']);?>" data-toggle="tooltip">
                   <path d="M23,12L20.56,9.22L20.9,5.54L17.29,4.72L15.4,1.54L12,3L8.6,1.54L6.71,4.72L3.1,5.53L3.44,9.21L1,12L3.44,14.78L3.1,18.47L6.71,19.29L8.6,22.47L12,21L15.4,22.46L17.29,19.28L20.9,18.46L20.56,14.78L23,12M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z" />
                </svg>
@@ -948,7 +948,7 @@ if (!empty($wo['story']['parent_id'])) {
                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-credit-card" data-toggle="tooltip" title="<?php echo $wo['lang']['monetized'];?>"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
             </span>
          <?php } ?>
-         <?php if ($wo['story']['shared_from'] && is_array($wo['story']['shared_from'])): ?>
+         <?php if (is_array($wo['story']['shared_from'])): ?>
          <span>  
          <a href="<?php echo $wo['story']['post_url']; ?>" class="pointer"><span style="color: #666;"><?php echo strtolower($wo['lang']['post']); ?></span></a>
          </span>
