@@ -401,8 +401,7 @@ try {
 // -----------------------------
 if (!$claim_wp_user_id || !$claim_wp_user_login || !$claim_wp_user_email) {
     bz_bridge_log('Missing required claims (cookie incomplete)', $original_claims);
-    $go_pro_target = $site_base . '/ww-sso-bridge.php?redirect_to=go-pro';
-    header('Location: ' . 'https://buzzjuice.net/wp-login.php?redirect_to=' . rawurlencode($go_pro_target));
+    bz_redirect_to_wp_login($bridge_url, 'streams');
     exit;
 }
 
@@ -797,7 +796,7 @@ if (!empty($_GET['redirect_to'])) {
 
 bz_bridge_log('SSO session prepared', [
     'sso_username'    => $sso_username,
-    'sso_password_len'=> strlen($sso_token),
+    'sso_token_len'=> strlen($sso_token),
     'ajax_url'        => $ajax_url,
     'last_url'        => $last_url
 ]);
@@ -828,22 +827,30 @@ Wo_SSO_Login();
 
 function send_json_response($data) {
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($data);
+    if ($is_ajax) {
+        echo json_encode($data);
+    } else {
+        header('Location: ' . $data['location']); // or to a fallback you construct in the error case
+    }
     exit;
 }
 
 function Wo_SSO_Login() {
-    global $wo, $sqlConnect, $BUZZ_SSO_SECRET, $last_url;
+    global $wo, $sqlConnect, $BUZZ_SSO_SECRET, $last_url, $sso_token;
     $errors = [];
+    
+    $is_ajax = (
+        !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+        strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+    );
 
     // 1. Basic POST parsing 
     $username        = isset($_POST['username']) ? Wo_Secure($_POST['username']) : '';
-    $password        = isset($_POST['password']) ? trim($_POST['password']) : '';
     $posted_last_url = isset($_POST['last_url']) ? trim((string)$_POST['last_url']) : '';
 
     bz_bridge_log('Wo_SSO_Login: credentials received', [
         'username'     => $username,
-        'password_len' => is_string($password) ? strlen($password) : 0,
+        'sso_token_len' => is_string($sso_token) ? strlen($sso_token) : 0,
         'session'      => $_SESSION ?? []
     ]);
 
@@ -1178,7 +1185,11 @@ function Wo_SSO_Login() {
             'redirect_to' => $_REQUEST['redirect_to'],
             'resolved' => $location
         ]);
-        echo json_encode(['status' => 200, 'location' => $location]);
+        if ($is_ajax) {
+            echo json_encode(['status' => 200, 'location' => $location]);
+        } else {
+            header('Location: ' . $location); // <-- $location is a string
+        }
         exit;
     }
     
@@ -1188,7 +1199,12 @@ function Wo_SSO_Login() {
         $data['location'] = $start_up;
         unset($_SESSION['wo_auto_registered']);
         bz_bridge_log('Wo_SSO_Login: new auto-registered user; redirecting to start-up', ['redirect' => $data['location']]);
-        echo json_encode($data); exit;
+        if ($is_ajax) {
+        echo json_encode($data);
+        } else {
+            header('Location: ' . $data['location']);
+        }
+        exit;
     }
     
     // 3) Membership override -> go-pro (if membership enabled & user is not pro)
@@ -1206,7 +1222,12 @@ function Wo_SSO_Login() {
         if ($user_is_pro === 0) {
             $data['location'] = function_exists('Wo_SeoLink') ? Wo_SeoLink('index.php?link1=go-pro') : rtrim($site_base, '/') . '/index.php?link1=go-pro';
             bz_bridge_log('Wo_SSO_Login: membership go-pro override applied', ['user_id' => $accepted_user_id, 'redirect' => $data['location']]);
-            echo json_encode($data); exit;
+            if ($is_ajax) {
+                echo json_encode($data);
+            } else {
+                header('Location: ' . $data['location']);
+            }
+            exit;
         }
     }
     
@@ -1232,7 +1253,12 @@ function Wo_SSO_Login() {
                 $data['location'] = $candidate_abs;
                 bz_bridge_log('Wo_SSO_Login: using posted_last_url as redirect', ['posted_last_url' => $candidate_raw, 'final' => $data['location']]);
                 if (function_exists('bz_bridge_loop_count')) bz_bridge_loop_count(false, true);
-                echo json_encode($data); exit;
+                if ($is_ajax) {
+                    echo json_encode($data); // or echo json_encode([...]);
+                } else {
+                    header('Location: ' . $data['location']); // or to a fallback you construct in the error case
+                }
+                exit;
             } else {
                 bz_bridge_log('Wo_SSO_Login: posted_last_url rejected', [
                     'posted' => $candidate_raw,
@@ -1256,14 +1282,19 @@ function Wo_SSO_Login() {
     }
     
     bz_bridge_log('Wo_SSO_Login: final redirect chosen', ['final' => $data['location']]);
-    echo json_encode($data); exit;
+    if ($is_ajax) {
+    echo json_encode($data); // or echo json_encode([...]);
+    } else {
+        header('Location: ' . $data['location']); // or to a fallback you construct in the error case
+    }
+    exit;
 }
 
 
 
 bz_bridge_log('Rendering bridge page', [
     'sso_username'    => $sso_username,
-    'sso_password_len'=> strlen($sso_token),
+    'sso_token_len'=> strlen($sso_token),
     'last_url'        => $last_url
 ]);
 ?>
@@ -1293,7 +1324,7 @@ body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2re
           'ajax_url' => $ajax_url,
           'post' => [
               'username' => $sso_username,
-              'password' => '(sso-token:len='.strlen($sso_token).')',
+              'sso_token' => '(sso-token:len='.strlen($sso_token).')',
               'last_url' => $last_url,
               'remember_device' => 'on'
           ],
@@ -1354,7 +1385,7 @@ body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2re
     // encode only valid params
     var formParams = [];
     formParams.push('username=' + encodeURIComponent(ssoUser));
-    formParams.push('password=' + encodeURIComponent(ssoPwd));
+    formParams.push('sso_token=' + encodeURIComponent(ssoPwd));
     formParams.push('remember_device=on');
     if (typeof lastUrl === 'string') formParams.push('last_url=' + encodeURIComponent(lastUrl));
     xhr.send(formParams.join('&'));
