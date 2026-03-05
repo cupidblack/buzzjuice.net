@@ -263,9 +263,19 @@ if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'get_payload_
 // ==============================================================================
 // 1. Define the bridge path and query parameters
 $bridge_path = 'qd-sso-bridge.php';
-$query_params = ['sso_action' => 'do_login',];
+
 $bridge_base = rtrim($base_social_url ?? '', '/');
-$bridge_url = $bridge_base . '/' . $bridge_path . '?' . http_build_query($query_params);
+
+$bridge_url = $bridge_base . '/' . $bridge_path;
+
+if (!empty($last_url)) {
+    $bridge_url .= '?last_url=' . urlencode($last_url);
+}
+
+// preserve last_url parameter for POST-login destination (optional)
+if (!empty($last_url)) {
+    $bridge_url .= '?last_url=' . urlencode($last_url);
+}
 
 // 4. Debug log (optional)
 if (defined('BUZZ_SSO_DEBUG') && BUZZ_SSO_DEBUG) {
@@ -617,8 +627,13 @@ if (!function_exists('qd_get_columns')) {
 
 //START QuickDate 'social/qd-sso-bridge.php' CODE - PART 6
 function QD_SSO_Login() {
-    global $BUZZ_SSO_SECRET, $sso_token, $config, $canonical;
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        header("Location: /social/qd-sso-bridge.php", true, 302);
+        exit;
+    }
+
     header('Content-Type: application/json; charset=utf-8');
+    global $BUZZ_SSO_SECRET, $sso_token, $config, $canonical;
 
     $username = isset($_POST['username']) ? (string)$_POST['username'] : '';
     $last_url = isset($_POST['last_url']) ? (string)$_POST['last_url'] : '/';
@@ -856,23 +871,16 @@ function QD_SSO_Login() {
 // QD SSO Bridge HTML: stateless, production-grade, debug/diagnostic friendly
 // -----------------------------------------------------------------------------
 
-// Security headers for production browser-layer defense
-header("Content-Security-Policy: default-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';");
-header("Referrer-Policy: no-referrer");
-header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-header("Pragma: no-cache");
-header("Expires: 0");
-header("X-Frame-Options: DENY");
-
+/* Render bridge page */
 bz_bridge_log('Rendering QD SSO bridge page', [
-    'sso_username'      => $sso_username,
-    'sso_token_len'  => strlen($sso_token),
-    'last_url'          => $last_url,
-    'final_qd_user_id'  => isset($final_qd_user_id) ? $final_qd_user_id : null,
-    'php_session_id'    => session_id(),
-    'shadow_session_present' => isset($_COOKIE['PHPSESSID']),
-    'session_keys'      => array_keys($_SESSION),
-    'cookie_keys'       => array_keys($_COOKIE),
+    'sso_username'=>$sso_username,
+    'sso_token_len'=>strlen($sso_token),
+    'last_url'=>$last_url,
+    'final_qd_user_id'=>$final_qd_user_id,
+    'php_session_id'=>session_id(),
+    'shadow_session_id'=> (isset($_COOKIE['PHPSESSID']) ? 'shadow_'.$_COOKIE['PHPSESSID'] : null),
+    'session_vars'=> $_SESSION,
+    'cookies'=> $_COOKIE
 ]);
 ?>
 <!DOCTYPE html>
@@ -893,27 +901,23 @@ body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2re
 </head>
 <body>
   <div class="card">
-    <div class="title">Signing you in…</div>
+    <div class="title">Loading BuzzSocial…</div>
     <div id="status" class="status">Preparing secure session…</div>
     <?php if (bz_is_debug()): ?>
       <div class="dbg"><pre><?php echo htmlspecialchars(print_r([
           'ajax_url'=>$ajax_url,
-          'post'=>['sso_token'=>'(sso-token)','last_url'=>$last_url,'remember_device'=>'on'],
-          'session_keys'=>array_keys($_SESSION),
-          'cookie_keys'=>array_keys($_COOKIE)
+          'post'=>['username'=>$sso_username,'sso_token'=>'($sso-token)','last_url'=>$last_url,'remember_device'=>'on'],
+          'session'=>$_SESSION,
+          'cookies'=>$_COOKIE
       ], true)); ?></pre></div>
     <?php endif; ?>
-    <noscript>
-      <div class="status err">
-        JavaScript is required for secure sign-in. Please enable JavaScript.
-      </div>
-    </noscript>
   </div>
 
   <script>
   (function(){
     var ajaxUrl = <?php echo json_encode($ajax_url); ?>;
     var payload = {
+      username: <?php echo json_encode($sso_username); ?>,
       sso_token: <?php echo json_encode($sso_token); ?>,
       remember_device: 'on',
       last_url: <?php echo json_encode($last_url); ?>
@@ -933,7 +937,7 @@ body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2re
     }
 
     statusEl && (statusEl.textContent = 'Contacting server…');
-    beacon('bridge:init', {ajaxUrl: ajaxUrl, last: payload.last_url});
+    beacon('bridge:init', {ajaxUrl: ajaxUrl, u: payload.username, last: payload.last_url});
 
     var xhr = new XMLHttpRequest();
     xhr.open('POST', ajaxUrl, true);
@@ -944,36 +948,36 @@ body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2re
       if (xhr.readyState === 4) {
         var ok=false, locationUrl=null, errors=null, res=null;
         try { res = JSON.parse(xhr.responseText); } catch(e) {
-          beacon('bridge:parse_error', {http: xhr.status});
+          // Parsing failed: log and attempt a safe fallback.
+          beacon('bridge:parse_error', {http: xhr.status, text: xhr.responseText});
         }
         if (res) { ok = !!(res.status===200 || res.status===600) && !!res.location; locationUrl = res.location; errors = res.errors || null; }
-        beacon('bridge:response', {status: res && res.status, http: xhr.status});
+        beacon('bridge:response', {status: res && res.status, location: locationUrl, errors: errors, http: xhr.status});
         if (ok) {
-          statusEl && (statusEl.className='status ok', statusEl.textContent='Welcome back! Redirecting…');
-          payload.sso_token = null; delete payload.sso_token;
+          statusEl && (statusEl.className='status ok', statusEl.textContent='Connected! Redirecting...…');
           setTimeout(function(){ window.location.href = locationUrl; }, 400);
         } else {
+          // If parse failed and response looks like HTML redirect (server-side redirect), fall back to last_url
           var body = xhr.responseText || '';
           var looksLikeHtml = body.indexOf('<!DOCTYPE') !== -1 || body.indexOf('<html') !== -1;
-          if (!res && looksLikeHtml && payload.last_url && payload.last_url.charAt(0) === '/') {
-            beacon('bridge:fallback_html_redirect', {http: xhr.status});
+          if (!res && looksLikeHtml && payload.last_url) {
+            beacon('bridge:fallback_html_redirect', {http: xhr.status, fallback: payload.last_url});
             window.location.href = payload.last_url;
             return;
           }
           statusEl && (statusEl.className='status err', statusEl.textContent=(errors && errors.join ? errors.join(', ') : 'Unexpected response.'));
-          beacon('bridge:failed', {http: xhr.status});
+          beacon('bridge:failed', {http: xhr.status, response: xhr.responseText});
         }
       }
     };
     xhr.onerror = function(){ beacon('bridge:error', {http: xhr.status}); statusEl && (statusEl.className='status err', statusEl.textContent='Network or server error.'); };
     xhr.ontimeout = function(){ beacon('bridge:timeout', {}); statusEl && (statusEl.className='status err', statusEl.textContent='Request timed out.'); };
 
-    var body = 'sso_token=' + encodeURIComponent(payload.sso_token)
+    var body = 'username=' + encodeURIComponent(payload.username)
+             + '&sso_token=' + encodeURIComponent(payload.sso_token)
              + '&remember_device=on'
              + '&last_url=' + encodeURIComponent(payload.last_url);
     xhr.send(body);
-    // Memory hygiene: wipe sso_token after use
-    payload.sso_token = null; delete payload.sso_token;
   })();
   </script>
 </body>
