@@ -214,41 +214,7 @@ function qd_clear_and_logout($reason='unknown') {
 // START: ENDPOINTS + PAYLOAD + DATA MAPPING
 // =============================================
 // ------------------------------------------
-// Remote Synced WordPress Login Endpoint
-// ------------------------------------------
-if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'remote_login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $token = $_POST['sso_token'] ?? '';
-    $signature = $_SERVER['HTTP_X_BUZZJUICE_SIGNATURE'] ?? '';
-    $expected_signature = hash_hmac('sha256', $token, $BUZZ_SSO_SECRET);
-    
-    if (!hash_equals($signature, $expected_signature)) {
-        bz_bridge_fail_gracefully('Remote SSO login — signature mismatch');
-    }
-
-    $payload = bz_validate_jwt($token, $BUZZ_SSO_SECRET); // stateless - uses WP as truth source
-    if (!$payload) bz_bridge_fail_gracefully('Remote SSO login — JWT invalid/expired');
-
-    // Find or register QuickDate user based on WP identity claims
-    $qd_user_id = qd_find_user_by_login_email($payload['wp_user_login'], $payload['wp_user_email']);
-    if (!$qd_user_id && BUZZ_SSO_AUTO_REGISTER) {
-        $qd_user_id = qd_register_user($payload['wp_user_login'], $payload['wp_user_email'], $payload['wp_user_id']);
-    }
-    if (!$qd_user_id) bz_bridge_fail_gracefully('Remote SSO login — Unable to map/register user');
-
-    $_SESSION['qd_user_id']    = $qd_user_id;
-    $_SESSION['wp_user_id']    = $payload['wp_user_id'];
-    $_SESSION['wp_user_login'] = $payload['wp_user_login'];
-    $_SESSION['wp_user_email'] = $payload['wp_user_email'];
-    $_SESSION['wo_user_id']    = $payload['wo_user_id'];
-
-    setcookie(BUZZ_SSO_COOKIE, $token, time()+BUZZ_SSO_TTL, '/', BUZZ_COOKIE_DOMAIN, true, true);
-
-    header('Content-Type: application/json');
-    echo json_encode(['status'=>200, 'logged_in'=>true, 'qd_user_id'=>$qd_user_id]);
-}
-
-// ------------------------------------------
-// WoWonder Secure Payload Fetch Endpoint 
+// Fetch Secure Payload From BuzzStreams Endpoint
 // ------------------------------------------
 if (!empty($_REQUEST['sso_action']) && $_REQUEST['sso_action'] === 'get_payload_for_streams' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $signature = $_SERVER['HTTP_X_BUZZJUICE_SIGNATURE'] ?? '';
@@ -362,10 +328,10 @@ if (!$payload) {
 // SSO JWT CLAIM EXTRACTION & REQUIRED CLAIMS VALIDATION
 // =========================================================
 // 2. Extract claims (use legacy keys as fallback for backwards compatibility)
-$claim_wp_user_id    = (int)($payload['wp_user_id'] ?? 0);
-$claim_wp_user_login = (string)($payload['wp_user_login'] ?? $payload['login'] ?? '');
-$claim_wp_user_email = (string)($payload['wp_user_email'] ?? $payload['email'] ?? '');
-$claim_qd_user_id    = (int)($payload['qd_user_id'] ?? 0);
+$claim_wp_user_id    = isset($payload['wp_user_id'])    ? (int)$payload['wp_user_id'] : 0;
+$claim_wp_user_login = isset($payload['wp_user_login']) ? (string)$payload['wp_user_login'] : '';
+$claim_wp_user_email = isset($payload['wp_user_email']) ? (string)$payload['wp_user_email'] : '';
+$claim_qd_user_id    = isset($payload['qd_user_id'])    ? (int)$payload['qd_user_id'] : 0;
 
 $original_claims = [
     'claim_wp_user_id'    => $claim_wp_user_id,
@@ -384,10 +350,10 @@ if (!$claim_wp_user_id || !$claim_wp_user_login || !$claim_wp_user_email) {
 
 // 4. Canonicalization: prefer already set session fields for UI only (do NOT trust for SSO)
 $cookie_payload = [
-    'wp_user_id'    => $_SESSION['wp_user_id']    ?? $claim_wp_user_id,
-    'wp_user_login' => $_SESSION['wp_user_login'] ?? $claim_wp_user_login,
-    'wp_user_email' => $_SESSION['wp_user_email'] ?? $claim_wp_user_email,
-    'qd_user_id'    => $_SESSION['qd_user_id']    ?? $claim_qd_user_id,
+    'wp_user_id'    => $claim_wp_user_id,
+    'wp_user_login' => $claim_wp_user_login,
+    'wp_user_email' => $claim_wp_user_email,
+    'qd_user_id'    => $claim_qd_user_id,
 ];
 
 bz_bridge_log('Canonical pre-mapping values', [

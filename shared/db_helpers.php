@@ -15,6 +15,7 @@ if (!defined('DB_HELPERS_ENV_LOADED')) {
 
 // BUZZJUICE SINGLE SIGN ON
 if (!defined('BUZZ_SSO_SECRET')) define('BUZZ_SSO_SECRET', getenv('BUZZ_SSO_SECRET'));
+if (!defined('WP_BASE_SITE_URL')) define('WP_BASE_SITE_URL', getenv('WP_BASE_SITE_URL'));
 
 // WORDPRESS DB
 if (!defined('WP_DB_HOST')) define('WP_DB_HOST', getenv('WORDPRESS_DB_HOST'));

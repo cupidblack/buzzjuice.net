@@ -2,78 +2,6 @@
 // Minimal SSO bridge helpers: host normalization, bridge URL detection, loop counter, and logging.
 // Place next to ww-sso-bridge.php (e.g. streams/sso_bridge_helpers.php)
 
-// =============================================
-// START: DEBUG + LOGGING
-// =============================================
-function bz_is_debug() {
-    return (bool)((isset($_GET['sso_debug']) && $_GET['sso_debug'] === '1') || (defined('BUZZ_SSO_DEBUG') && BUZZ_SSO_DEBUG));
-}
-
-function bz_debug_page($title, $blocks = []) {
-    if (!bz_is_debug()) return;
-    header('Content-Type: text/html; charset=utf-8');
-    echo "<!doctype html><meta charset='utf-8'><title>SSO Bridge Debug</title>";
-    echo "<style>body{font-family:system-ui;background:#0b1020;color:#e9eef7;padding:24px}
-            .blk{background:#131a33;margin:16px 0;padding:12px;border-radius:10px}
-            pre{white-space:pre-wrap}
-        </style>";
-    echo "<h2>SSO Bridge Debug — ".htmlspecialchars($title, ENT_QUOTES)."</h2>";
-    $default = [
-        'REQUEST' => $_REQUEST ?? [],
-        'SERVER'  => [
-            'HTTP_HOST'   => $_SERVER['HTTP_HOST'] ?? null,
-            'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
-            'REMOTE_ADDR' => $_SERVER['REMOTE_ADDR'] ?? null
-        ]
-    ];
-    $blocks = array_merge($blocks, $default);
-    foreach ($blocks as $k => $v) {
-        echo "<div class='blk'><strong>".htmlspecialchars($k)."</strong><pre>", htmlspecialchars(print_r($v, true)), "</pre></div>";
-    }
-    exit;
-}
-
-if (!function_exists('bz_bridge_log')) {
-    function bz_bridge_log($msg, $ctx = []) {
-        $ts = gmdate('Y-m-d H:i:s');
-        $data = [
-            'ts'              => $ts,
-            'ip'              => $_SERVER['REMOTE_ADDR'] ?? null,
-            'uri'             => $_SERVER['REQUEST_URI'] ?? null,
-            'ua'              => $_SERVER['HTTP_USER_AGENT'] ?? null,
-            'php_session_id'  => function_exists('session_id') ? session_id() : null,
-            'session_name'    => function_exists('session_name') ? session_name() : null,
-            'buzz_sso_len'    => isset($_COOKIE[BUZZ_SSO_COOKIE]) ? strlen($_COOKIE[BUZZ_SSO_COOKIE]) : 0,
-        ];
-        // Extended debug data (only if debug enabled)
-        if (function_exists('bz_is_debug') && bz_is_debug()) {
-            $data['cookies'] = $_COOKIE ?? [];
-            $data['session'] = $_SESSION ?? [];
-            $data['server'] = [
-                'HTTP_HOST'   => $_SERVER['HTTP_HOST'] ?? null,
-                'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
-                'HTTPS'       => $_SERVER['HTTPS'] ?? null,
-            ];
-            $data['sess_cookie_params'] =
-                function_exists('session_get_cookie_params')
-                ? session_get_cookie_params()
-                : null;
-        }
-        if (!empty($ctx)) {
-            $data['ctx'] = $ctx;
-        }
-        $line = '[' . $ts . '] ' . $msg . ' | ' .
-            json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) .
-            PHP_EOL;
-        @file_put_contents(
-            BUZZ_SSO_BRIDGE_LOG,
-            $line,
-            FILE_APPEND | LOCK_EX
-        );
-    }
-}
-
-
 
 // -----------------------------
 // ***** Replay protection: JTI store (30 min) ***** TODO
@@ -386,13 +314,13 @@ function bz_redirect_to_wp_login($target_url = null, $platform = '') {
     }
 
     // Reject bridge target URLs
-    if (
+/*    if (
         stripos($target_url, 'ww-sso-bridge.php') !== false ||
         stripos($target_url, 'qd-sso-bridge.php') !== false
     ) {
         $target_url = $default_target;
     }
-
+*/
     // Reject anything not same-origin
     if (strpos($target_url, $site_root) !== 0) {
         $target_url = $default_target;
@@ -450,4 +378,77 @@ function bz_fetch_wp_stateless_payload($sso_token, $secret) {
         'payload'       => $payload,
         'token' => $json['token'] ?? null
     ];
+}
+
+
+
+// =============================================
+// START: DEBUG + LOGGING
+// =============================================
+function bz_is_debug() {
+    return (bool)((isset($_GET['sso_debug']) && $_GET['sso_debug'] === '1') || (defined('BUZZ_SSO_DEBUG') && BUZZ_SSO_DEBUG));
+}
+
+function bz_debug_page($title, $blocks = []) {
+    if (!bz_is_debug()) return;
+    header('Content-Type: text/html; charset=utf-8');
+    echo "<!doctype html><meta charset='utf-8'><title>SSO Bridge Debug</title>";
+    echo "<style>body{font-family:system-ui;background:#0b1020;color:#e9eef7;padding:24px}
+            .blk{background:#131a33;margin:16px 0;padding:12px;border-radius:10px}
+            pre{white-space:pre-wrap}
+        </style>";
+    echo "<h2>SSO Bridge Debug — ".htmlspecialchars($title, ENT_QUOTES)."</h2>";
+    $default = [
+        'REQUEST' => $_REQUEST ?? [],
+        'SERVER'  => [
+            'HTTP_HOST'   => $_SERVER['HTTP_HOST'] ?? null,
+            'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
+            'REMOTE_ADDR' => $_SERVER['REMOTE_ADDR'] ?? null
+        ]
+    ];
+    $blocks = array_merge($blocks, $default);
+    foreach ($blocks as $k => $v) {
+        echo "<div class='blk'><strong>".htmlspecialchars($k)."</strong><pre>", htmlspecialchars(print_r($v, true)), "</pre></div>";
+    }
+    exit;
+}
+
+if (!function_exists('bz_bridge_log')) {
+    function bz_bridge_log($msg, $ctx = []) {
+        $ts = gmdate('Y-m-d H:i:s');
+        $data = [
+            'ts'              => $ts,
+            'ip'              => $_SERVER['REMOTE_ADDR'] ?? null,
+            'uri'             => $_SERVER['REQUEST_URI'] ?? null,
+            'ua'              => $_SERVER['HTTP_USER_AGENT'] ?? null,
+            'php_session_id'  => function_exists('session_id') ? session_id() : null,
+            'session_name'    => function_exists('session_name') ? session_name() : null,
+            'buzz_sso_len'    => isset($_COOKIE[BUZZ_SSO_COOKIE]) ? strlen($_COOKIE[BUZZ_SSO_COOKIE]) : 0,
+        ];
+        // Extended debug data (only if debug enabled)
+        if (function_exists('bz_is_debug') && bz_is_debug()) {
+            $data['cookies'] = $_COOKIE ?? [];
+            $data['session'] = $_SESSION ?? [];
+            $data['server'] = [
+                'HTTP_HOST'   => $_SERVER['HTTP_HOST'] ?? null,
+                'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
+                'HTTPS'       => $_SERVER['HTTPS'] ?? null,
+            ];
+            $data['sess_cookie_params'] =
+                function_exists('session_get_cookie_params')
+                ? session_get_cookie_params()
+                : null;
+        }
+        if (!empty($ctx)) {
+            $data['ctx'] = $ctx;
+        }
+        $line = '[' . $ts . '] ' . $msg . ' | ' .
+            json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) .
+            PHP_EOL;
+        @file_put_contents(
+            BUZZ_SSO_BRIDGE_LOG,
+            $line,
+            FILE_APPEND | LOCK_EX
+        );
+    }
 }

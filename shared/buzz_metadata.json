@@ -3,6 +3,8 @@
     "user_id": "user_id",
     "qd_user_id": "qd_user_id",
     "wo_user_id": "wo_user_id",
+    "first_name": "first_name",
+    "last_name": "last_name",
     "email_code": "email_code",
     "src": "src",
     "ip_address": "ip_address",

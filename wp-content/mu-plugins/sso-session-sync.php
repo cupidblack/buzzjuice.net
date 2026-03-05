@@ -133,14 +133,7 @@ add_action('wp_login', function($user_login, $user) use ($__buzz_sso_secret) {
         'exp'           => time() + BUZZ_SSO_TTL
     ];
     $token = bz_sso_jwt_encode($payload, $__buzz_sso_secret, 'buzznet', BUZZ_SSO_TTL);
-    setcookie(BUZZ_SSO_COOKIE, $token, [
-        'expires'  => $payload['exp'],
-        'path'     => '/',
-        'domain'   => BUZZ_COOKIE_DOMAIN,
-        'secure'   => true,
-        'httponly' => true,
-        'samesite' => 'Lax'
-    ]);
+    bz_sso_set_cookie($token, BUZZ_SSO_TTL);
 }, 10, 2);
 
 add_action('wp_logout', function() {
