@@ -24,12 +24,12 @@ if (!defined('BUZZ_SSO_BRIDGE_LOG'))    define('BUZZ_SSO_BRIDGE_LOG', __DIR__ . 
 if (!defined('BUZZ_SSO_AUTO_REGISTER')) define('BUZZ_SSO_AUTO_REGISTER', true);
 if (!defined('BUZZ_SSO_TTL'))           define('BUZZ_SSO_TTL', 900);
 
-$base_site_url = defined('WP_BASE_SITE_URL') ? WP_BASE_SITE_URL : (getenv('WP_BASE_SITE_URL') ?: null);
+$base_site_url      = defined('WP_BASE_SITE_URL') ? WP_BASE_SITE_URL : (getenv('WP_BASE_SITE_URL') ?: null);
 $base_streams_url   = rtrim($wo['config']['site_url'], '/');
-$BUZZ_SSO_SECRET = defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : (getenv('BUZZ_SSO_SECRET') ?: null);																																			 
-$BUZZ_SSO_SECRET = (string)($BUZZ_SSO_SECRET ?? '');
-$sso_token  = trim($_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? ''));
-$sso_action = $_REQUEST['sso_action'] ?? '';
+$BUZZ_SSO_SECRET    = defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : (getenv('BUZZ_SSO_SECRET') ?: null);																																			 
+$BUZZ_SSO_SECRET    = (string)($BUZZ_SSO_SECRET ?? '');
+$sso_token          = trim($_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? ''));
+$sso_action         = $_REQUEST['sso_action'] ?? '';
 
 // -----------------------------------------------
 // HELPERS: LOGGING, DEBUG + SESSION VISIBILITY
@@ -150,51 +150,6 @@ if ($already_logged_in) {
     exit;
 }
 
-// SESSION: SSR/LOGIN ONLY (STATLESS SSO - JWT IS AUTHORITY - Ensure session is active when required)
-// If assets/init.php didn't start a session, start only when necessary.
-/* if (session_status() === PHP_SESSION_NONE) {
-    $needs = 
-			!empty($_COOKIE[BUZZ_SSO_COOKIE]) ||
-			(!empty($_GET['sso_action']) && $_GET['sso_action'] === 'do_login') || 
-			(!empty($_POST['sso_action']) && $_POST['sso_action'] === 'do_login') || 
-			!empty($_GET['sso_debug']);
-
-    if ($needs) {
-        @ini_set('session.serialize_handler', 'php_serialize');
-        @ini_set('session.cookie_samesite', 'Lax');
-        @ini_set('session.cookie_secure', 1);
-        @ini_set('session.cookie_httponly', 1);
-        @ini_set('session.use_only_cookies', 1);
-        @ini_set('session.use_strict_mode', 1);
-
-        // preserve incoming sid if present
-        $sname = session_name();
-        $sid = null;
-        if (!empty($_COOKIE[$sname])) {
-            $sid = preg_replace('/[^a-zA-Z0-9,-]/', '', (string) $_COOKIE[$sname]);
-        } elseif (!empty($_COOKIE['PHPSESSID'])) {
-            $sid = preg_replace('/[^a-zA-Z0-9,-]/', '', (string) $_COOKIE['PHPSESSID']);																																						
-        }
-        if ($sid) { @session_id($sid); 
-						bz_bridge_log('Resuming PHP session from cookie (bridge fallback)'); 
-				}
-        session_start();
-        bz_bridge_log('Session started by bridge (fallback)', ['session_id' => session_id()]);
-
-        // Immediately after starting a session, attempt reconciliation with WordPress canonical session.
-        // This will NOT modify or remove the WordPress PHPSESSID cookie; it only resets local WoWonder session state
-        // and rehydrates using WP canonical values when mismatch is detected.
-        try {
-            bz_attempt_session_reconciliation_if_required_bridge();
-        } catch (Throwable $e) {
-            bz_bridge_log('Session reconciliation attempt threw (bridge)', ['err' => $e->getMessage()]);
-        }
-    } else {
-        bz_bridge_log('Session not started (bridge): benign request, no buzz_sso and not an SSO action');
-    }
-}
-*/
-
 // =============================================================================
 // BuzzStreams Fetch Stateless SSO Payload Orchestration (WordPress → WoWonder)
 // =============================================================================
@@ -216,20 +171,19 @@ if (!empty($sso_token) && $BUZZ_SSO_SECRET !== '') {
 		$payload = bz_validate_jwt($sso_token, $BUZZ_SSO_SECRET);
 } else {
 		bz_bridge_log('sso_token or secret ERROR!', [
-				'token' => !empty($sso_token),
-				'secret'  => !empty($BUZZ_SSO_SECRET),
-				
-				'last_url'   => $last_url ?? null,
+				'token'         => !empty($sso_token),
+				'secret'        => !empty($BUZZ_SSO_SECRET),
+				'last_url'      => $last_url ?? null,
 				'requested'     => $requested ?? null,
 				'bridge_base'   => $bridge_base ?? null,
 				'bridge_url'    => $bridge_url ?? null,
     ]);
-		bz_redirect_to_wp_login($bridge_url, 'streams');
-		exit;
+		//bz_redirect_to_wp_login($bridge_url, 'streams');
+		//exit;
 }
 
 // Try Login from WordPress Endpoint
-if (!empty($sso_token) && $BUZZ_SSO_SECRET !== '') {
+if (!is_array($payload) && !empty($sso_token) && $BUZZ_SSO_SECRET !== '') {
     $payload_arr = bz_fetch_wp_stateless_payload($sso_token, $BUZZ_SSO_SECRET);
     // If WP explicitly says "not logged in" → redirect to WP login
     if (isset($payload_arr['status']) && (int)$payload_arr['status'] === 401) {
@@ -300,10 +254,10 @@ $claim_wp_user_email = isset($payload['wp_user_email']) ? (string)$payload['wp_u
 $claim_wo_user_id    = isset($payload['wo_user_id'])    ? (int)$payload['wo_user_id'] : 0;
 
 $original_claims = [
-    'claim_wp_user_id'=>$claim_wp_user_id,
-    'claim_wp_user_login'=>$claim_wp_user_login,
-    'claim_wp_user_email'=>$claim_wp_user_email,
-    'claim_wo_user_id'=>$claim_wo_user_id
+    'claim_wp_user_id'      =>$claim_wp_user_id,
+    'claim_wp_user_login'   =>$claim_wp_user_login,
+    'claim_wp_user_email'   =>$claim_wp_user_email,
+    'claim_wo_user_id'      =>$claim_wo_user_id
 ];
 
 bz_bridge_log('buzz_sso claims extracted', array_merge($original_claims, ['raw_payload'=>$payload]));
@@ -329,25 +283,37 @@ bz_bridge_log('Canonical pre-mapping values', ['canonical'=>$canonical,'session'
 // =========================================================
 // Auto-register if no user exists and auto-registration allowed
 // =========================================================
-if ((!$canonical['wo_user_id'] || !$claim_wo_user_id) && BUZZ_SSO_AUTO_REGISTER) {
+// Patch: auto-register if required, using correct variable
+if (!$canonical['wo_user_id'] && BUZZ_SSO_AUTO_REGISTER) {
     $registration = Wo_RegisterUser([
-        'username' => $jwt_payload['wp_user_login'],
-        'email'    => $jwt_payload['wp_user_email'],
+        'username' => $canonical['wp_user_login'],
+        'email'    => $canonical['wp_user_email'],
         'password' => bin2hex(random_bytes(16)), // random password; login only via SSO
         'active'   => 1
     ]);
     if ($registration && isset($registration['user_id'])) {
+        // Save new user_id in both canonical and session for subsequent matching
         $wo_user_id = (int) $registration['user_id'];
-        bz_bridge_log('Auto-registered WoWonder user from SSO', ['user_id'=>$wo_user_id, 'wp_user'=>$jwt_payload['wp_user_id']]);
+        $canonical['wo_user_id'] = $wo_user_id;
+        $_SESSION['wo_auto_registered'] = true;
+        bz_bridge_log('Auto-registered WoWonder user from SSO', [
+            'user_id' => $wo_user_id,
+            'wp_user' => $canonical['wp_user_id']
+        ]);
+    } else {
+        $errors[] = 'Could not auto-register WoWonder user.';
+        bz_bridge_log('Wo_SSO_Login: registration failed', ['canonical'=>$canonical]);
+        echo json_encode(['status'=>500, 'errors'=>$errors]);
+        error_reporting($old_err);
+        exit;
     }
 }
-
-$final_wo_user_id = $canonical['wo_user_id'] ?? $wo_user_id;
 
 
 
 // Persist canonical session values (set wp_user_login only if not set already to keep it immutable)
 // -- 2. HYDRATE CANONICAL SESSION FIELDS FOR CURRENT UI
+$final_wo_user_id = $canonical['wo_user_id'] ?? $wo_user_id;
 if (!isset($_SESSION['wp_user_login'])) 
 $_SESSION['wp_user_login']  = (string)$canonical['wp_user_login'];
 $_SESSION['wp_user_id']     = (int)$canonical['wp_user_id'];
@@ -355,10 +321,10 @@ $_SESSION['wp_user_email']  = (string)$canonical['wp_user_email'];
 $_SESSION['wo_user_id']     = (int)$final_wo_user_id;
 
 bz_bridge_log('After mapping/registration - canonical session snapshot', [
-    'wp_user_id' => $_SESSION['wp_user_id'],
+    'wp_user_id'    => $_SESSION['wp_user_id'],
     'wp_user_login' => $_SESSION['wp_user_login'],
     'wp_user_email' => $_SESSION['wp_user_email'],
-    'wo_user_id' => $_SESSION['wo_user_id'],
+    'wo_user_id'    => $_SESSION['wo_user_id'],
 ]);
 
 // -----------------------------
@@ -491,12 +457,12 @@ if (!empty($_GET['redirect_to'])) {
     $ajax_preview = isset($ajax_url) ? $ajax_url : '(ajax_url not set)';
 
     bz_bridge_log('redirect_to present; deferring server redirect so bridge HTML can render', [
-        'raw'              => $raw_requested,
-        'sanitized'        => $requested,
-        'ajax_url_preview' => $ajax_preview,
-        'session_preview'  => isset($_SESSION) ? [
-            'wp_user_id' => ($_SESSION['wp_user_id'] ?? null),
-            'wo_user_id' => ($_SESSION['wo_user_id'] ?? null)
+        'raw'               => $raw_requested,
+        'sanitized'         => $requested,
+        'ajax_url_preview'  => $ajax_preview,
+        'session_preview'   => isset($_SESSION) ? [
+            'wp_user_id'    => ($_SESSION['wp_user_id'] ?? null),
+            'wo_user_id'    => ($_SESSION['wo_user_id'] ?? null)
         ] : null
     ]);
 
@@ -516,20 +482,30 @@ if (!empty($_GET['sso_action']) && $_GET['sso_action'] === 'do_login' && $_SERVE
 //Wo_SSO_Login();
 
 function Wo_SSO_Login() {
+    header('Content-Type: application/json; charset=utf-8');
     global $wo, $sqlConnect, $BUZZ_SSO_SECRET, $last_url, $canonical;
-//    header('Content-Type: application/json; charset=utf-8');
     $errors = [];
+
+    // Optionally suppress PHP notices/warnings to prevent output corruption
+    $old_err = error_reporting();
+    error_reporting($old_err & ~E_NOTICE & ~E_WARNING);
 
     $posted_last_url = isset($_POST['last_url']) ? (string)$_POST['last_url'] : '';
     bz_bridge_log('Wo_SSO_Login: credentials received', ['posted_last_url'=>$posted_last_url,'session'=>$_SESSION ?? []]);
 
     $claims = $canonical;
-    if (!$claims) { $errors[]='Invalid or expired SSO token'; bz_bridge_log('Wo_SSO_Login: token parse/verify failed'); echo json_encode(['errors'=>$errors]); exit; }
-
-    $exp_wo = (isset($claims['wo_user_id']) ? (int)$claims['wo_user_id'] : 0);
-    $exp_wp = (isset($claims['wp_user_id']) ? (int)$claims['wp_user_id'] : 0);
-    $exp_login = (isset($claims['wp_user_login']) ? (string)$claims['wp_user_login'] : '');
-    $exp_email = (isset($claims['wp_user_email']) ? (string)$claims['wp_user_email'] : '');
+    if (!$claims) {
+        $errors[] = 'Invalid or expired SSO token';
+        bz_bridge_log('Wo_SSO_Login: token parse/verify failed');
+        echo json_encode(['status'=>500, 'errors'=>$errors]);
+        error_reporting($old_err);
+        exit;
+    }
+    
+    $exp_wo     = (isset($canonical['wo_user_id']) ? (int)$canonical['wo_user_id'] : 0);
+    $exp_wp     = (isset($canonical['wp_user_id']) ? (int)$canonical['wp_user_id'] : 0);
+    $exp_login  = (isset($canonical['wp_user_login']) ? (string)$canonical['wp_user_login'] : '');
+    $exp_email  = (isset($canonical['wp_user_email']) ? (string)$canonical['wp_user_email'] : '');
 
     bz_bridge_log('Wo_SSO_Login: expected (auth) values', ['exp_wo'=>$exp_wo,'exp_wp'=>$exp_wp,'exp_login'=>$exp_login,'exp_email'=>$exp_email,'session_snapshot'=>$_SESSION ?? [],'claims'=>$claims]);
 
@@ -549,7 +525,6 @@ function Wo_SSO_Login() {
     if (empty($candidates) && $exp_wp) {
         $q = mysqli_query($sqlConnect, "SELECT user_id,username,email,wp_user_id FROM {$tbl} WHERE wp_user_id=".(int)$exp_wp." LIMIT 1"); if ($q && $r=mysqli_fetch_assoc($q)) $candidates[]=$r;
     }
-
     bz_bridge_log('Wo_SSO_Login: candidates fetched', ['count'=>count($candidates),'candidates'=>$candidates]);
 
     $accepted_user_id = 0; $accepted_reason = ''; $accepted_matches = [];
@@ -559,20 +534,16 @@ function Wo_SSO_Login() {
         $db_username = (string)$row['username'];
         $db_email = (string)$row['email'];
         $db_wp_userid = (int)$row['wp_user_id'];
-
         $cmp_user_id = ($exp_wo && $db_user_id === $exp_wo) ? 1 : 0;
         $cmp_email = ($exp_email && strcasecmp($db_email, $exp_email) === 0) ? 1 : 0;
         $cmp_username = ($exp_login && strcasecmp($db_username, $exp_login) === 0) ? 1 : 0;
         $cmp_wp_userid = ($exp_wp && $db_wp_userid === $exp_wp) ? 1 : 0;
-
         $match_count = $cmp_user_id + $cmp_email + $cmp_username + $cmp_wp_userid;
-
         bz_bridge_log('Wo_SSO_Login: compare row', [
             'db'=>['user_id'=>$db_user_id,'username'=>$db_username,'email'=>$db_email,'wp_user_id'=>$db_wp_userid],
             'cmp'=>['user_id'=>$cmp_user_id,'email'=>$cmp_email,'username'=>$cmp_username,'wp_user_id'=>$cmp_wp_userid],
             'match_count'=>$match_count
         ]);
-
         if ($match_count >= 3) {
             $accepted_user_id = $db_user_id;
             $accepted_reason = implode('|', array_filter([
@@ -589,8 +560,14 @@ function Wo_SSO_Login() {
 
     if (!$accepted_user_id) {
         $errors[] = 'No matching WoWonder account for SSO (>=3 identifiers required).';
-        bz_bridge_log('Wo_SSO_Login: no match (>=3 required)', ['expected'=>['wo'=>$exp_wo,'wp'=>$exp_wp,'login'=>$exp_login,'email'=>$exp_email],'session'=>$_SESSION ?? [],'claims'=>$claims]);
-        echo json_encode(['errors'=>$errors]); exit;
+        bz_bridge_log('Wo_SSO_Login: no match (>=3 required)', [
+            'expected'=>['wo'=>$exp_wo,'wp'=>$exp_wp,'login'=>$exp_login,'email'=>$exp_email],
+            'session'=>$_SESSION ?? [],
+            'claims'=>$canonical
+        ]);
+        echo json_encode(['status'=>401, 'errors'=>$errors]);
+        error_reporting($old_err);
+        exit;
     }
 
     $ip = function_exists('get_ip_address') ? Wo_Secure(get_ip_address()) : '0.0.0.0';
@@ -599,18 +576,17 @@ function Wo_SSO_Login() {
 
     $session_token = Wo_CreateLoginSession($accepted_user_id);
 
-    $_SESSION['user_id'] = $session_token;
-    $_SESSION['wo_user_id'] = (int)$accepted_user_id;
-    $_SESSION['wp_Wo_SSO_Login'] = true;
+    $_SESSION['user_id']            = $session_token;
+    $_SESSION['wo_user_id']         = (int)$accepted_user_id;
+    $_SESSION['wp_Wo_SSO_Login']    = true;
 
     //
     // IMPORTANT: mark request-local $wo as logged in and provide a minimal $wo['user']
     // snapshot so the rest of the Wo code can run without heavy initialization.
-    //
+    // Bridge: minimal user for $wo
     try {
         if (!is_array($wo)) $wo = [];
         $wo['loggedin'] = true;
-
         $minimal = [
             'user_id'  => (int)$accepted_user_id,
             'id'       => (int)$accepted_user_id,
@@ -623,24 +599,37 @@ function Wo_SSO_Login() {
             'type'     => $accepted_row['type'] ?? 'user',
             'lastseen' => time()
         ];
-
+        // DB lookup for is_pro/admin
         try {
             $safe_q = @mysqli_query($sqlConnect, "SELECT is_pro,admin FROM {$tbl} WHERE user_id=".(int)$accepted_user_id." LIMIT 1");
             if ($safe_q && $r_safe = mysqli_fetch_assoc($safe_q)) {
                 if (isset($r_safe['is_pro'])) $minimal['is_pro'] = (int)$r_safe['is_pro'];
                 if (isset($r_safe['admin']))   $minimal['admin']  = (int)$r_safe['admin'];
             }
-        } catch (Throwable $e) {
-            // ignore
-        }
+        } catch (Throwable $e) {}
         $wo['user'] = $minimal;
-        bz_bridge_log('Wo_SSO_Login: set $wo[\'loggedin\']=true and minimal user snapshot', ['user'=>$wo['user'],'session_token_preview'=>substr((string)$session_token,0,40)]);
     } catch (Throwable $e) {
-        bz_bridge_log('Wo_SSO_Login: error while creating minimal $wo user snapshot', ['ex'=>$e->getMessage()]);
+        bz_bridge_log('Wo_SSO_Login: error creating $wo user', ['ex'=>$e->getMessage()]);
         if (!is_array($wo)) $wo = [];
         $wo['loggedin'] = true;
         $wo['user'] = ['user_id' => (int)$accepted_user_id, 'id' => (int)$accepted_user_id, 'admin'=>0, 'is_pro'=>0];
     }
+
+
+
+    // Double check session established
+    if (empty($session_token) || empty($accepted_user_id) || empty($wo['loggedin'])) {
+        $errors[] = 'WoWonder session not established after login.';
+        bz_bridge_log('Wo_SSO_Login: WoWonder session not established', [
+            'user_id'=>$accepted_user_id,'session'=>$session_token,
+            'reason'=>$accepted_reason, 'matches'=>$accepted_matches
+        ]);
+        echo json_encode(['status'=>500, 'errors'=>$errors]);
+        error_reporting($old_err);
+        exit;
+    }
+
+
 
     // Consider the login established when we have a created session token and user id.
     if (!empty($session_token) && !empty($accepted_user_id) && !empty($wo['loggedin'])) {
@@ -705,11 +694,10 @@ function Wo_SSO_Login() {
         //  5) last_url or fallback
         // ------------------------------
         $base_streams_url = rtrim($wo['config']['site_url'] ?? '', '/');
-        
-        // Default fallback location
         $data = [
-            'status'   => 200,
-            'location' => $base_streams_url . '/?cache=' . time(),
+            'status'=>200,
+            'location'=>$base_streams_url.'/?cache='.time()
+            // Overwrite this with your final redirect logic as in main file
         ];
         
         // Helper: resolve a safe redirect_to token or path to an absolute location on this site
@@ -883,10 +871,14 @@ function Wo_SSO_Login() {
            $is_ajax = (         !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'     );
         // ------------------------------
 
-        bz_bridge_log('Wo_SSO_Login: success', ['user_id'=>$accepted_user_id,'session'=>$session_token,'reason'=>$accepted_reason,'matches'=>$accepted_matches,'redirect'=>$data['location']]);
-
-           $is_ajax = (         !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'     );
-
+    bz_bridge_log('Wo_SSO_Login: success', [
+        'user_id'=>$accepted_user_id,'session'=>$session_token,
+        'reason'=>$accepted_reason,'matches'=>$accepted_matches,
+        'redirect'=>$data['location']
+    ]);
+    echo json_encode($data);
+    error_reporting($old_err);
+    exit;
     } else {
         $errors[] = 'WoWonder session not established after login.';
         bz_bridge_log('Wo_SSO_Login: WoWonder session not established', ['user_id'=>$accepted_user_id,'session'=>$session_token,'reason'=>$accepted_reason,'matches'=>$accepted_matches,'wo_loggedin'=>!empty($wo['loggedin'])]);

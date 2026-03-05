@@ -85,6 +85,7 @@ wp-content/backwpup-*
 wp-content/wflogs/
 wp-content/ai1wm-backups/
 shared/sso_sessions/
+shared/.bz_sso_jti_store/
 # ----------------------------
 # WoWonder / QuickDate specifics
 # ----------------------------
