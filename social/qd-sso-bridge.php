@@ -901,7 +901,7 @@ body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2re
 </head>
 <body>
   <div class="card">
-    <div class="title">Loading BuzzSocial…</div>
+    <div class="title">BuzzSocial...…</div>
     <div id="status" class="status">Preparing secure session…</div>
     <?php if (bz_is_debug()): ?>
       <div class="dbg"><pre><?php echo htmlspecialchars(print_r([
@@ -954,7 +954,7 @@ body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:2re
         if (res) { ok = !!(res.status===200 || res.status===600) && !!res.location; locationUrl = res.location; errors = res.errors || null; }
         beacon('bridge:response', {status: res && res.status, location: locationUrl, errors: errors, http: xhr.status});
         if (ok) {
-          statusEl && (statusEl.className='status ok', statusEl.textContent='Connected! Redirecting...…');
+          statusEl && (statusEl.className='status ok', statusEl.textContent='Connected to socials! Redirecting...…');
           setTimeout(function(){ window.location.href = locationUrl; }, 400);
         } else {
           // If parse failed and response looks like HTML redirect (server-side redirect), fall back to last_url

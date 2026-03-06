@@ -32,46 +32,6 @@ function bz_debug_log($msg, $extra = []) {
     bz_sso_bridge_log($msg, $extra, BUZZ_DEBUG_LOG);
 }
 
-// --------------------------------------
-// Expire SSO Cookie
-// --------------------------------------
-function bz_expire_buzz_cookie() {
-    $expiry = time() - 3600;
-    if (PHP_VERSION_ID >= 70300) {
-        setcookie(BUZZ_SSO_COOKIE, '', [
-            'expires'  => $expiry,
-            'path'     => '/',
-            'domain'   => BUZZ_COOKIE_DOMAIN,
-            'secure'   => true,
-            'httponly' => true,
-            'samesite' => 'Lax'
-        ]);
-    } else {
-        setcookie(BUZZ_SSO_COOKIE, '', $expiry, '/', BUZZ_COOKIE_DOMAIN, true, true);
-    }
-    unset($_COOKIE[BUZZ_SSO_COOKIE]);
-}
-
-// --------------------------------------
-// Set SSO Cookie helper
-// --------------------------------------
-function bz_sso_set_cookie($token, $ttl = BUZZ_SSO_TTL) {
-    $expiry = time() + $ttl;
-    if (PHP_VERSION_ID >= 70300) {
-        setcookie(BUZZ_SSO_COOKIE, $token, [
-            'expires'  => $expiry,
-            'path'     => '/',
-            'domain'   => BUZZ_COOKIE_DOMAIN,
-            'secure'   => true,
-            'httponly' => true,
-            'samesite' => 'Lax'
-        ]);
-    } else {
-        setcookie(BUZZ_SSO_COOKIE, $token, $expiry, '/', BUZZ_COOKIE_DOMAIN, true, true);
-    }
-    $_COOKIE[BUZZ_SSO_COOKIE] = $token;
-}
-
 // ---------------------------------------------------
 // Token endpoint (?sso_action=get_token&aud)
 // ---------------------------------------------------
@@ -146,27 +106,35 @@ add_action('wp_logout', function() {
 // BUZZ_SSO_COOKIE Auto-refresh (activity/throttled)
 // ---------------------------------------------------
 add_action('init', function() use ($__buzz_sso_secret) {
-    if (!$__buzz_sso_secret || !is_user_logged_in() || empty($_COOKIE[BUZZ_SSO_COOKIE])) return;
-    $payload = bz_sso_jwt_validate($_COOKIE[BUZZ_SSO_COOKIE], $__buzz_sso_secret, 'buzznet');
-    if (!$payload) return;
-    static $last_refresh = 0;
-    $now = time();
-    if (($payload['exp'] - $now) < 300 && ($last_refresh == 0 || ($now - $last_refresh) > 60)) {
+    if (empty($_GET['sso_action'])) return;
+    if ($_GET['sso_action'] == 'issue_tokens') {
+        nocache_headers();
+        header('Content-Type: application/json; charset=utf-8');
+        if (!$__buzz_sso_secret) { status_header(500); echo wp_json_encode(['status'=>500]); exit; }
+        if (!is_user_logged_in()) { status_header(401); echo wp_json_encode(['status'=>401]); exit; }
         $user = wp_get_current_user();
-        $new_payload = [
+        $aud = $_REQUEST['aud'] ?? 'buzznet'; // streams/social/buzznet
+        $payload = [
             'wp_user_id'    => (int)$user->ID,
-            'wp_user_login' => (string)$user->user_login,
-            'wp_user_email' => (string)$user->user_email,
-            'wo_user_id'    => (string)get_user_meta($user->ID, 'wo_user_id', true),
-            'qd_user_id'    => (string)get_user_meta($user->ID, 'qd_user_id', true)
+            'wp_user_login' => $user->user_login,
+            'wp_user_email' => $user->user_email,
+            'wo_user_id'    => get_user_meta($user->ID,'wo_user_id',true),
+            'qd_user_id'    => get_user_meta($user->ID,'qd_user_id',true),
         ];
-        $new_token = bz_sso_jwt_encode($new_payload, $__buzz_sso_secret, 'buzznet', BUZZ_SSO_TTL);
-        bz_sso_set_cookie($new_token, BUZZ_SSO_TTL);
-        $last_refresh = $now;
-        bz_debug_log('BUZZ_SSO_COOKIE auto-refreshed', ['user'=>$user->ID]);
+        $access_token = bz_sso_jwt_encode($payload, $__buzz_sso_secret, $aud, 600, 'access');
+        $refresh_token = bz_sso_jwt_encode($payload, $__buzz_sso_secret, $aud, 216000, 'refresh');
+        setcookie('buzz_access', $access_token, time()+600, '/', '.buzzjuice.net', true, true);
+        setcookie('buzz_refresh', $refresh_token, time()+216000, '/', '.buzzjuice.net', true, true);
+        status_header(200);
+        echo wp_json_encode([
+            'status'=>200,
+            'access'=>$access_token,
+            'refresh'=>$refresh_token,
+            'exp'=>time()+600
+        ]);
+        exit;
     }
-}, 1);
-
+});
 // ---------------------------------------------------
 // LOGOUT HANDOFF
 // ---------------------------------------------------

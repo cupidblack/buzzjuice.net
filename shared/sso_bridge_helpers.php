@@ -183,12 +183,13 @@ if (!function_exists('bz_sso_b64url_decode')) {
 // JWT Encode/Validate (HS256, RFC 7519)
 // ---------------------
 if (!function_exists('bz_sso_jwt_encode')) {
-    function bz_sso_jwt_encode($payload, $secret, $aud = 'buzznet', $ttl = 1200) {
+    function bz_sso_jwt_encode($payload, $secret, $aud = 'buzznet', $ttl = 1200, $type = 'access') {
         $now = time();
         $payload['iat'] = $now;
-        $payload['exp'] = $now + $ttl;
+        $payload['exp'] = $now + intval($ttl);
         $payload['iss'] = 'buzzjuice.net';
         $payload['aud'] = $aud;
+        $payload['typ'] = $type;
         $payload['jti'] = bin2hex(random_bytes(16));
         $header = ['alg'=>'HS256','typ'=>'JWT'];
         $segments = [
@@ -201,59 +202,85 @@ if (!function_exists('bz_sso_jwt_encode')) {
     }
 }
 
-if (!function_exists('bz_validate_stateless_sso')) {
-    function bz_validate_stateless_sso($token, $secret) {
-        $parts = explode('.', $token, 2);
-        if (count($parts) !== 2 || !$secret) return false;
-        $json = base64_decode(strtr($parts[0], '-_', '+/'));
-        $sig  = base64_decode(strtr($parts[1], '-_', '+/'));
-        if ($json === false || $sig === false) return false;
-        $calc = hash_hmac('sha256', $json, $secret, true);
-        if (!hash_equals($calc, $sig)) return false;
-        $payload = json_decode($json, true);
-        if (!$payload || !is_array($payload)) return false;
-        if (isset($payload['exp']) && time() > intval($payload['exp'])) return false;
-        return $payload;
-    }
-}
-
 if (!function_exists('bz_sso_jwt_validate')) {
-    function bz_sso_jwt_validate($jwt, $secret, $aud = 'buzznet') {
+    function bz_sso_jwt_validate($jwt, $secret, $audience = null, $type = null) {
+        if (!$jwt) return false;
         $parts = explode('.', $jwt);
         if (count($parts) !== 3) return false;
         list($h, $p, $s) = $parts;
         $payload = json_decode(bz_sso_b64url_decode($p), true);
-        $sig     = bz_sso_b64url_decode($s);
+        $sig = bz_sso_b64url_decode($s);
+        if (!$payload) return false;
         $expected = hash_hmac('sha256', "$h.$p", $secret, true);
         if (!hash_equals($expected, $sig)) return false;
-        if (!$payload || !isset($payload['exp']) || time() > $payload['exp']) return false;
-        if ($aud && (!isset($payload['aud']) || $payload['aud'] !== $aud)) return false;
+        $now = time();
+        if (!empty($payload['exp']) && $now > $payload['exp']) return false;
+        if (!empty($payload['nbf']) && $now < $payload['nbf']) return false;
+        if (($payload['iss'] ?? '') !== 'buzzjuice.net') return false;
+        $valid_audiences = ['streams', 'social', 'buzznet'];
+        if (!empty($payload['aud']) && !in_array($payload['aud'], $valid_audiences)) return false;
+        // Universal: allow bridge to accept own audience or buzznet
+        if ($audience && $payload['aud'] !== $audience && $payload['aud'] !== 'buzznet') return false;
+        if ($type && ($payload['typ'] ?? 'access') !== $type) return false;
         return $payload;
     }
 }
 
-// -----------------------------
-// RFC 7519 JWT validation
-// -----------------------------
-function bz_validate_jwt($jwt, $BUZZ_SSO_SECRET) {
-    $parts = explode('.', $jwt);
-    if (count($parts) !== 3) return false;
-    list($h, $p, $s) = $parts;
-    $header  = json_decode(bz_sso_b64url_decode($h), true);
-    $payload = json_decode(bz_sso_b64url_decode($p), true);
-    if (!$header || !$payload || ($header['alg'] ?? '') !== 'HS256') return false;
-    $expected_sig = hash_hmac('sha256', "$h.$p", $BUZZ_SSO_SECRET, true);
-    $actual_sig  = bz_sso_b64url_decode($s);
-    if (!hash_equals($expected_sig, $actual_sig)) return false;
-    $now = time();
-    if (!empty($payload['nbf']) && $now < $payload['nbf']) return false;
-    if (!empty($payload['exp']) && $now > $payload['exp']) return false;
-    if (($payload['iss'] ?? '') !== 'buzzjuice.net') return false;
-    if (($payload['aud'] ?? '') !== 'buzznet') return false;
-    if (empty($payload['jti'])) return false;
-    // You may want to check more claims here as needed
-    return $payload;
+// --------------------------------------
+// Expire SSO Cookie
+// --------------------------------------
+function bz_expire_buzz_cookie() {
+    $expiry = time() - 3600;
+    if (PHP_VERSION_ID >= 70300) {
+        setcookie(BUZZ_SSO_COOKIE, '', [
+            'expires'  => $expiry,
+            'path'     => '/',
+            'domain'   => BUZZ_COOKIE_DOMAIN,
+            'secure'   => true,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+    } else {
+        setcookie(BUZZ_SSO_COOKIE, '', $expiry, '/', BUZZ_COOKIE_DOMAIN, true, true);
+    }
+    unset($_COOKIE[BUZZ_SSO_COOKIE]);
 }
+// --------------------------------------
+// Unified SSO Cookie Helper
+// Accepts:
+//   1) bz_sso_set_cookie_universal($token, $ttl = BUZZ_SSO_TTL)
+//   2) bz_sso_set_cookie_universal($name, $value, $expiry)
+// --------------------------------------
+function bz_sso_set_cookie($arg1, $arg2 = null, $arg3 = null) {
+    // Case 1: two parameters → token + TTL (default cookie name)
+    if ($arg3 === null) {
+        $name   = BUZZ_SSO_COOKIE;
+        $value  = $arg1;
+        $expiry = time() + ($arg2 ?? BUZZ_SSO_TTL);
+    } else {
+        // Case 2: three parameters → name, value, expiry
+        $name   = $arg1;
+        $value  = $arg2;
+        $expiry = $arg3;
+    }
+
+    if (PHP_VERSION_ID >= 70300) {
+        setcookie($name, $value, [
+            'expires'  => $expiry,
+            'path'     => '/',
+            'domain'   => BUZZ_COOKIE_DOMAIN,
+            'secure'   => true,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+    } else {
+        setcookie($name, $value, $expiry, '/', BUZZ_COOKIE_DOMAIN, true, true);
+    }
+
+    // Update superglobal so cookie is immediately available in PHP
+    $_COOKIE[$name] = $value;
+}
+
 
 
 
