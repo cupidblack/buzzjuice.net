@@ -13,16 +13,15 @@ require_once __DIR__ . '/assets/init.php';
 if (file_exists(__DIR__ . '/../shared/wwqd_bridge.php')) require_once __DIR__ . '/../shared/wwqd_bridge.php';
 require_once __DIR__ . '/../shared/sso_bridge_helpers.php';
 
-// =========================================================
+// ======================================
 // START: CONFIGURATIONS / DEFAULTS
-// =========================================================
+// ======================================
 if (!defined('WP_BASE_SITE_URL'))        define('WP_BASE_SITE_URL', 'https://buzzjuice.net');
 if (!defined('BUZZ_SSO_COOKIE'))        define('BUZZ_SSO_COOKIE', 'buzz_sso');
 if (!defined('BUZZ_COOKIE_DOMAIN'))     define('BUZZ_COOKIE_DOMAIN', '.buzzjuice.net');
 if (!defined('BUZZ_SSO_DEBUG'))         define('BUZZ_SSO_DEBUG', false);
 if (!defined('BUZZ_SSO_BRIDGE_LOG'))    define('BUZZ_SSO_BRIDGE_LOG', __DIR__ . '/ww_sso_bridge.log');
 if (!defined('BUZZ_SSO_AUTO_REGISTER')) define('BUZZ_SSO_AUTO_REGISTER', true);
-if (!defined('BUZZ_SSO_TTL'))           define('BUZZ_SSO_TTL', 900);
 
 $base_site_url      = defined('WP_BASE_SITE_URL') ? WP_BASE_SITE_URL : (getenv('WP_BASE_SITE_URL') ?: null);
 $base_streams_url   = rtrim($wo['config']['site_url'], '/');
@@ -73,6 +72,72 @@ if (empty($wo['config']['site_url']) || empty($sqlConnect) || empty($BUZZ_SSO_SE
     exit;			 
 }
 
+// ===============================
+// last_url Derivation & Normalization Block
+// ===============================
+
+// Ensure site base is known
+$base_streams_url = rtrim($wo['config']['site_url'] ?? WP_BASE_SITE_URL ?? '', '/');
+$site_host = parse_url($base_streams_url, PHP_URL_HOST) ?: '';
+
+// 1) Check explicit last_url/redirect_to from GET, POST, COOKIE
+$last_url = '';
+foreach (['last_url', 'redirect_to'] as $param) {
+    if (!empty($_GET[$param]))  { $last_url = (string)$_GET[$param]; break; }
+    if (!empty($_POST[$param])) { $last_url = (string)$_POST[$param]; break; }
+    if (!empty($_COOKIE[$param])) { $last_url = (string)$_COOKIE[$param]; break; }
+}
+
+// 2) Fallback to HTTP_REFERER ONLY if same-site
+if (!$last_url && !empty($_SERVER['HTTP_REFERER'])) {
+    $referer = trim((string)$_SERVER['HTTP_REFERER']);
+    $referer_host = parse_url($referer, PHP_URL_HOST);
+    if ($referer_host && strcasecmp($referer_host, $site_host) === 0) {
+        $last_url = $referer;
+    }
+}
+
+// 3) Fallback to REQUEST_URI (not bridge/self-reference)
+if (!$last_url) {
+    $req_uri = $_SERVER['REQUEST_URI'] ?? '/';
+    $bridge_path = parse_url($_SERVER['PHP_SELF'] ?? '', PHP_URL_PATH);
+    if ($req_uri && $req_uri !== $bridge_path && strpos($req_uri, basename(__FILE__)) === false) {
+        $candidate = $base_streams_url . $req_uri;
+        $candidate_host = parse_url($candidate, PHP_URL_HOST);
+        if ($candidate_host && strcasecmp($candidate_host, $site_host) === 0) {
+            $last_url = $candidate;
+        }
+    }
+}
+
+// 4) Normalize relative paths to absolute; enforce same-site
+if ($last_url) {
+    if (!preg_match('#^https?://#i', $last_url)) {
+        $last_url = strpos($last_url, '/') === 0
+            ? $base_streams_url . $last_url
+            : $base_streams_url . '/' . ltrim($last_url, '/');
+    }
+    $candidate_host = parse_url($last_url, PHP_URL_HOST);
+    if (!$candidate_host || strcasecmp($candidate_host, $site_host) !== 0) {
+        $last_url = '';
+    }
+}
+
+// 5) Prevent bridge/self-reference loop
+if (!empty($last_url) && function_exists('bz_is_bridge_url') && bz_is_bridge_url($last_url, $base_streams_url)) {
+//    bz_bridge_log('last_url rejected: bridge/self-reference detected', ['last_url'=>$last_url, 'site_base'=>$base_streams_url]);
+    $last_url = $base_streams_url . '/';
+}
+
+// 6) Final fallback
+if (!$last_url || !empty($forced_last_url_fallback)) {
+    $last_url = $base_streams_url . '/';
+}
+
+// 7) Persist for use after SSO login
+$_SESSION['last_url'] = $last_url;
+//bz_bridge_log('last_url derivation complete', ['last_url' => $last_url]);
+
 // -------------------------------------------------------------
 /* ----- START LEGACY SESSION BOOTSTRAP & SHADOW RECONCILIATION — DEPRECATED BLOCK ----- */
 // -------------------------------------------------------------
@@ -98,15 +163,15 @@ if (empty($wo['config']['site_url']) || empty($sqlConnect) || empty($BUZZ_SSO_SE
 // -------------------------------------------------------------
 /* ----- END LEGACY SESSION BOOTSTRAP & SHADOW RECONCILIATION — DEPRECATED BLOCK ----- */
 
-// ===================================================================================================
+// =====================================================================================================
 // END: CONFIGURATIONS + LOGGING + graceful failure (no legacy HMAC/token helpers below this point!)
-// ===================================================================================================
+// =====================================================================================================
 
 
 
-// =================================================================
+// ===================================================================
 // START: SESSION MANAGEMENT / ENDPOINTS / PAYLOAD / DATA MAPPING
-// =================================================================
+// ===================================================================
 // =================================================================
 // STEP 1: SESSION SAFETY GUARD FOR DUAL-TOKEN JWT SSO
 // =================================================================
@@ -165,15 +230,7 @@ if ($wordpress_logged_in_) {
     }
 
     // --- CASE A.2: WP logged in but WoWonder session not active ---
-    bz_bridge_log(
-        'WP session active, WW session inactive — proceeding to SSO bootstrap.',
-        [
-            'wo_loggedin'        => $wo_loggedin,
-            'wo_user_id'         => $wo_user_id,
-            'session_user_id'    => $session_user_id,
-            'session_wo_user_id' => $session_wo_user_id,
-        ]
-    );
+//bz_bridge_log('WP session active, WW session inactive — proceeding to SSO bootstrap.', ['wo_loggedin' => $wo_loggedin, 'wo_user_id' => $wo_user_id, 'session_user_id' => $session_user_id, 'session_wo_user_id' => $session_wo_user_id, ]); 
     // Allow SSO bootstrap code (dual-token flow) to run next
 }
 
@@ -272,6 +329,15 @@ $_SESSION['wp_user_email'] = (string)($access_payload['wp_user_email'] ?? '');
 $_SESSION['wo_user_id']    = (int)($access_payload['wo_user_id'] ?? 0);
 $_SESSION['wp_Wo_SSO_Login'] = true;
 
+// -----------------------------
+// Required claims guard
+// -----------------------------
+if (!$_SESSION['wp_user_id'] || !$_SESSION['wp_user_login'] || !$_SESSION['wp_user_email']) {
+    bz_bridge_log('Missing required claims (cookie incomplete)', $access_payload);
+    header('Location: /wp-login.php?redirect_to=/members/me/settings/');
+    exit;
+}
+
 bz_bridge_log('buzz_access token claims hydrated into session', [
     'wp_user_id'      => $_SESSION['wp_user_id'],
     'wp_user_login'   => $_SESSION['wp_user_login'],
@@ -282,31 +348,140 @@ bz_bridge_log('buzz_access token claims hydrated into session', [
 
 
 
-// =========================================================
-// Auto-register if no user exists and auto-registration allowed
-// =========================================================
-// Patch: auto-register if required, using correct variable
-if (!$access_payload['wo_user_id'] && BUZZ_SSO_AUTO_REGISTER) {
-    $registration = Wo_RegisterUser([
-        'username' => $access_payload['wp_user_login'],
-        'email'    => $access_payload['wp_user_email'],
-        'password' => bin2hex(random_bytes(16)), // random password; login only via SSO
-        'active'   => 1
-    ]);
-    if ($registration && isset($registration['user_id'])) {
-        // Save new user_id in both canonical and session for subsequent matching
-        $wo_user_id = (int) $registration['user_id'];
-        $access_payload['wo_user_id'] = $wo_user_id;
-        $_SESSION['wo_auto_registered'] = true;
-        bz_bridge_log('Auto-registered WoWonder user from SSO', [
-            'user_id' => $wo_user_id,
-            'wp_user' => $access_payload['wp_user_id']
+// =======================================================================================
+// SSO: Auto-register WoWonder user if missing
+// Updates WordPress usermeta 'wo_user_id' after successful registration
+// Redirects to /wp-login.php?redirect_to=/members/me/settings/ if registration fails
+// =======================================================================================
+
+if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
+    $wp_user_id   = !empty($access_payload['wp_user_id']) ? (int)$access_payload['wp_user_id'] : 0;
+    $max_attempts = 5;
+    $attempt      = 0;
+    $wo_user_id   = 0;
+
+    // Helper: fetch WordPress usermeta 'wo_user_id'
+    function bz_fetch_wp_wo_user_id($wp_user_id) {
+        $wp_conn = get_wp_db_conn();
+        if (!$wp_conn || empty($wp_user_id)) return 0;
+        $meta_key = 'wo_user_id';
+        $key_esc = mysqli_real_escape_string($wp_conn, $meta_key);
+        $table = function_exists('wp_table') ? wp_table('usermeta') : 'wp_usermeta';
+        $query = "SELECT meta_value FROM {$table} WHERE user_id = $wp_user_id AND meta_key = '$key_esc' LIMIT 1";
+        $result = mysqli_query($wp_conn, $query);
+        if ($result && $row = mysqli_fetch_assoc($result)) return (int)$row['meta_value'];
+        return 0;
+    }
+
+    // Helper: upsert 'wo_user_id' usermeta in WordPress
+    function bz_update_wp_wo_user_id($wp_user_id, $wo_user_id) {
+        $wp_conn = get_wp_db_conn();
+        if (!$wp_conn || empty($wp_user_id) || empty($wo_user_id)) return false;
+        $wp_user_id = (int)$wp_user_id;
+        $wo_user_id = (int)$wo_user_id;
+        $meta_key = 'wo_user_id';
+        $key_esc = mysqli_real_escape_string($wp_conn, $meta_key);
+        $table = function_exists('wp_table') ? wp_table('usermeta') : 'wp_usermeta';
+        $check_query = "SELECT umeta_id FROM {$table} WHERE user_id = $wp_user_id AND meta_key = '$key_esc' LIMIT 1";
+        $check_result = mysqli_query($wp_conn, $check_query);
+
+        if ($check_result && mysqli_num_rows($check_result) > 0) {
+            $row = mysqli_fetch_assoc($check_result);
+            $umeta_id = (int)$row['umeta_id'];
+            return (bool)mysqli_query($wp_conn, "UPDATE {$table} SET meta_value = '$wo_user_id' WHERE umeta_id = $umeta_id");
+        } else {
+            return (bool)mysqli_query($wp_conn, "INSERT INTO {$table} (user_id, meta_key, meta_value) VALUES ($wp_user_id, '$key_esc', '$wo_user_id')");
+        }
+    }
+
+    while ($attempt < $max_attempts) {
+        // Defensive check for existing mapping (race safety)
+        $current_wo_id = ($wp_user_id ? bz_fetch_wp_wo_user_id($wp_user_id) : 0);
+        if (!empty($current_wo_id)) {
+            $wo_user_id = $current_wo_id;
+            $access_payload['wo_user_id'] = $wo_user_id;
+            bz_bridge_log('SSO registration race detected: using existing WoWonder user', [
+                'wo_user_id' => $wo_user_id,
+                'wp_user_id' => $wp_user_id
+            ]);
+            break;
+        }
+
+        // Check WoWonder for existing username/email
+        $sqlConn = $GLOBALS['sqlConnect'];
+        $username_esc = mysqli_real_escape_string($sqlConn, $access_payload['wp_user_login']);
+        $email_esc    = mysqli_real_escape_string($sqlConn, $access_payload['wp_user_email']);
+        $tbl = defined('T_USERS') ? T_USERS : 'Wo_Users';
+
+        $q = mysqli_query($sqlConn, "SELECT user_id,username,email FROM {$tbl} WHERE username='{$username_esc}' OR email='{$email_esc}'");
+        $rows = [];
+        while ($r = mysqli_fetch_assoc($q)) $rows[] = $r;
+
+        // Find user IDs for username/email
+        $user_id_by_username = null;
+        $user_id_by_email = null;
+        foreach ($rows as $r) {
+            if (strcasecmp($r['username'], $access_payload['wp_user_login']) === 0) $user_id_by_username = (int)$r['user_id'];
+            if (strcasecmp($r['email'], $access_payload['wp_user_email']) === 0) $user_id_by_email = (int)$r['user_id'];
+        }
+
+        // If username/email exist and belong to same user, map that user_id and update WP
+        if ($user_id_by_username && $user_id_by_email && $user_id_by_username === $user_id_by_email) {
+            $wo_user_id = $user_id_by_username;
+            if ($wp_user_id && $wo_user_id) {
+                bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
+            }
+            header('Location: /wp-login.php?redirect_to=/streams');
+            exit;
+        }
+
+        // If username/email exist but belong to different users, rename both and continue registration
+        if ($user_id_by_username && $user_id_by_email && $user_id_by_username !== $user_id_by_email) {
+            $prefix = 'error'.rand(10000,99999).'-';
+            // Rename username
+            $new_username = $prefix.$access_payload['wp_user_login'];
+            mysqli_query($sqlConn, "UPDATE {$tbl} SET username='".mysqli_real_escape_string($sqlConn,$new_username)."' WHERE user_id=".intval($user_id_by_username));
+            // Rename email (prefix before @)
+            $new_email = preg_replace('/^([^@]+)/', $prefix.'$1', $access_payload['wp_user_email']);
+            mysqli_query($sqlConn, "UPDATE {$tbl} SET email='".mysqli_real_escape_string($sqlConn,$new_email)."' WHERE user_id=".intval($user_id_by_email));
+            // continue registration
+        }
+
+        // Register new WoWonder user
+        $registration = Wo_RegisterUser([
+            'username' => $access_payload['wp_user_login'],
+            'email'    => $access_payload['wp_user_email'],
+            'password' => bin2hex(random_bytes(16)), // random password; login only via SSO
+            'active'   => 1
         ]);
-    } else {
-        $errors[] = 'Could not auto-register WoWonder user.';
-        bz_bridge_log('Wo_SSO_Login: registration failed', ['canonical'=>$access_payload]);
-        echo json_encode(['status'=>500, 'errors'=>$errors]);
-        error_reporting($old_err);
+
+        if ($registration && isset($registration['user_id'])) {
+            $wo_user_id = (int)$registration['user_id'];
+            $access_payload['wo_user_id'] = $wo_user_id;
+            // Update WP mapping
+            if ($wp_user_id && $wo_user_id) {
+                bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
+            }
+            $_SESSION['wo_auto_registered'] = true;
+            bz_bridge_log('Auto-registered WoWonder user from SSO', [
+                'user_id' => $wo_user_id,
+                'wp_user' => $wp_user_id
+            ]);
+            break;
+        }
+
+        // Registration failed, wait and retry up to max_attempts
+        usleep(100000);
+        $attempt++;
+    }
+
+    // Failed after all attempts → redirect
+    if (empty($wo_user_id)) {
+        bz_bridge_log('WoWonder auto-registration failed after retries', [
+            'payload'  => $access_payload,
+            'attempts' => $attempt
+        ]);
+        header('Location: /wp-login.php?redirect_to=/members/me/settings/');
         exit;
     }
 }
@@ -332,97 +507,6 @@ bz_bridge_log('After mapping/registration - canonical session snapshot', [
 // -----------------------------
 // Build SSO token and choose username for the client (username = wp_user_login)
 $sso_username = $_SESSION['wp_user_login'];
-
-
-
-
-
-
-
-
-
-
-
-// -----------------------------
-// last_url derivation & normalization
-// -----------------------------
-$last_url = '';
-
-// 1) explicit last_url param
-if (!empty($_GET['last_url'])) {
-    $last_url = (string)$_GET['last_url'];
-} elseif (!empty($_POST['last_url'])) {
-    $last_url = (string)$_POST['last_url'];
-} elseif (!empty($_COOKIE['last_url'])) {
-    $last_url = (string)$_COOKIE['last_url'];
-}
-																																								
-// 2) fallback to HTTP_REFERER (likely when Welcome redirected via header)
-if (empty($last_url) && !empty($_SERVER['HTTP_REFERER'])) {
-    $last_url = trim((string)$_SERVER['HTTP_REFERER']);																								 
-}
-
-// 3) if still empty, derive from REQUEST_URI as before (avoid taking bridge path)
-if (empty($last_url)) {
-    $req_uri = $_SERVER['REQUEST_URI'] ?? '/';
-    $bridge_path = parse_url($_SERVER['PHP_SELF'] ?? ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
-    if ($req_uri && $bridge_path && $req_uri !== $bridge_path && strpos($req_uri, basename(__FILE__)) === false) {
-        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'] ?? parse_url($base_streams_url, PHP_URL_HOST);
-        $candidate = rtrim($scheme . '://' . $host, '/') . $req_uri;
-        $ok = false;
-        if ($base_streams_url && strpos($candidate, $base_streams_url) === 0) $ok = true;
-        if (!$ok) {
-            $path_only = parse_url($candidate, PHP_URL_PATH) ?: '/';
-            if (strpos($path_only, '/streams') === 0) $ok = true;
-        }
-        if ($ok) $last_url = $candidate;
-    }
-}
-																 
-// Normalize last_url: if relative convert to absolute; if not same-site fallback to site base
-if ($last_url) {
-    // If relative path like '/streams/messages', convert to absolute
-    if (strpos($last_url, 'http://') !== 0 && strpos($last_url, 'https://') !== 0) {
-        // allow root-relative paths
-        if (strpos($last_url, '/') === 0) {
-            $last_url = $base_streams_url . $last_url;
-        } else {
-            $last_url = $base_streams_url . '/' . ltrim($last_url, '/');
-        }
-
-    }
-																											
-    // Ensure same-site
-    if ($base_streams_url && strpos($last_url, $base_streams_url) !== 0) {
-        // Not same site; drop it
-																		
-									
-        $last_url = '';
-    }
-}
-if (!$last_url) $last_url = $base_streams_url . '/';
-
-// Insert immediately after the block that normalizes $last_url (after "if (!$last_url) $last_url = $base_streams_url . '/';")
-if (!empty($last_url) && function_exists('bz_is_bridge_url') && bz_is_bridge_url($last_url, $base_streams_url)) {
-    bz_bridge_log('last_url rejected: bridge/self-reference detected', ['last_url' => $last_url, 'site_base' => $base_streams_url]);
-    $last_url = rtrim($base_streams_url, '/') . '/';
-}
-				
-																										
-if (!empty($forced_last_url_fallback)) {
-    $last_url = rtrim($base_streams_url, '/') . '/';
-}
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -473,10 +557,43 @@ if (!empty($_GET['redirect_to'])) {
     // Wo_SSO_Login() will return JSON { location: "..." } and the client JS will perform the final redirect.
 }
 // ------------------------------
+//bz_bridge_log('SSO session prepared', ['sso_username'=>$sso_username,'sso_token_len'=>strlen($sso_token),'ajax_url'=>$ajax_url,'last_url'=>$last_url]);
 
-bz_bridge_log('SSO session prepared', ['sso_username'=>$sso_username,'sso_token_len'=>strlen($sso_token),'ajax_url'=>$ajax_url,'last_url'=>$last_url]);
-
-
+// Helper function: place in shared/wwqd_bridge.php or above Wo_SSO_Login()
+if (!function_exists('bz_clear_wp_wo_user_id')) {
+    /**
+     * Removes 'wo_user_id' usermeta for WordPress user.
+     * On success: reloads page.
+     * On failure: redirects to WP login with /streams redirect.
+     */
+    function bz_clear_wp_wo_user_id($wp_user_id) {
+        $wp_conn = get_wp_db_conn();
+        if (!$wp_conn || empty($wp_user_id)) {
+            header('Location: /wp-login.php?redirect_to=/streams');
+            exit;
+        }
+        $wp_user_id = (int)$wp_user_id;
+        $meta_key = 'wo_user_id';
+        $key_esc = mysqli_real_escape_string($wp_conn, $meta_key);
+        // Defensive: Use table prefix if available
+        $table = function_exists('wp_table') ? wp_table('usermeta') : 'wp_usermeta';
+        $del_query = "DELETE FROM {$table} WHERE user_id = $wp_user_id AND meta_key = '$key_esc'";
+        $result = mysqli_query($wp_conn, $del_query);
+        $affected = mysqli_affected_rows($wp_conn);
+        
+        bz_bridge_log('should redirect or reload around here:', [$wp_user_id, $meta_key, $key_esc, $table, $del_query, $result, $affected]);
+        
+        if ($result /*&& mysqli_affected_rows($wp_conn) > 0*/) {
+            // Success: meta deleted, reload page (AJAX-safe)
+            header('Location: /wp-login.php?redirect_to=/streams');
+            exit;
+        } else {
+            // Failed to clear mapping, redirect to login
+            header('Location: /wp-login.php?redirect_to=/streams');
+            exit;
+        }
+    }
+}
 
 // -----------------------------
 // Wo_SSO_Login endpoint (POST)
@@ -491,25 +608,13 @@ function Wo_SSO_Login() {
     // Optionally suppress PHP notices/warnings to prevent output corruption
     $old_err = error_reporting();
     error_reporting($old_err & ~E_NOTICE & ~E_WARNING);
-
-    $posted_last_url = isset($_POST['last_url']) ? (string)$_POST['last_url'] : '';
-    bz_bridge_log('Wo_SSO_Login: credentials received', ['posted_last_url'=>$posted_last_url,'session'=>$_SESSION ?? []]);
-
-    $claims = $access_payload;
-    if (!$claims) {
-        $errors[] = 'Invalid or expired SSO token';
-        bz_bridge_log('Wo_SSO_Login: token parse/verify failed');
-        echo json_encode(['status'=>500, 'errors'=>$errors]);
-        error_reporting($old_err);
-        exit;
-    }
     
     $exp_wo     = (isset($access_payload['wo_user_id']) ? (int)$access_payload['wo_user_id'] : 0);
     $exp_wp     = (isset($access_payload['wp_user_id']) ? (int)$access_payload['wp_user_id'] : 0);
     $exp_login  = (isset($access_payload['wp_user_login']) ? (string)$access_payload['wp_user_login'] : '');
     $exp_email  = (isset($access_payload['wp_user_email']) ? (string)$access_payload['wp_user_email'] : '');
 
-    bz_bridge_log('Wo_SSO_Login: expected (auth) values', ['exp_wo'=>$exp_wo,'exp_wp'=>$exp_wp,'exp_login'=>$exp_login,'exp_email'=>$exp_email,'session_snapshot'=>$_SESSION ?? [],'claims'=>$claims]);
+    bz_bridge_log('Wo_SSO_Login: expected (auth) values', ['exp_wo'=>$exp_wo,'exp_wp'=>$exp_wp,'exp_login'=>$exp_login,'exp_email'=>$exp_email,'session_snapshot'=>$_SESSION ?? [],'claims'=>$access_payload]);
 
     $candidates = [];
     $tbl = defined('T_USERS') ? T_USERS : 'Wo_Users';
@@ -546,6 +651,7 @@ function Wo_SSO_Login() {
             'cmp'=>['user_id'=>$cmp_user_id,'email'=>$cmp_email,'username'=>$cmp_username,'wp_user_id'=>$cmp_wp_userid],
             'match_count'=>$match_count
         ]);
+
         if ($match_count >= 3) {
             $accepted_user_id = $db_user_id;
             $accepted_reason = implode('|', array_filter([
@@ -561,7 +667,21 @@ function Wo_SSO_Login() {
     }
 
     if (!$accepted_user_id) {
-        $errors[] = 'No matching WoWonder account for SSO (>=3 identifiers required).';
+        $errors[] = 'No matching BuzzStreams account for SSO (>=3 identifiers required).';
+
+        // PATCH: Orphan WoWonder ID in WP usermeta, clear it and reload/redirect
+        if (empty($db_user_id) || $db_user_id === 0 || $db_user_id == '' || $db_user_id == null) {
+            if (!empty($exp_wp)) {
+                bz_bridge_log('Wo_SSO_Login: orphan WoWonder ID detected, clearing WordPress usermeta', [
+                    'wp_user_id' => $exp_wp,
+                    'wo_user_id' => $exp_wo
+                ]);
+                bz_clear_wp_wo_user_id($exp_wp);
+            }
+            // No need to continue further; this function will exit after clearing.
+        }
+        
+        
         bz_bridge_log('Wo_SSO_Login: no match (>=3 required)', [
             'expected'=>['wo'=>$exp_wo,'wp'=>$exp_wp,'login'=>$exp_login,'email'=>$exp_email],
             'session'=>$_SESSION ?? [],
@@ -582,10 +702,11 @@ function Wo_SSO_Login() {
     $_SESSION['wo_user_id']         = (int)$accepted_user_id;
     $_SESSION['wp_Wo_SSO_Login']    = true;
 
-    //
+    //====================================================================================
     // IMPORTANT: mark request-local $wo as logged in and provide a minimal $wo['user']
     // snapshot so the rest of the Wo code can run without heavy initialization.
     // Bridge: minimal user for $wo
+    // ===================================================================================
     try {
         if (!is_array($wo)) $wo = [];
         $wo['loggedin'] = true;
@@ -617,24 +738,12 @@ function Wo_SSO_Login() {
         $wo['user'] = ['user_id' => (int)$accepted_user_id, 'id' => (int)$accepted_user_id, 'admin'=>0, 'is_pro'=>0];
     }
 
-
-
-    // Double check session established
-    if (empty($session_token) || empty($accepted_user_id) || empty($wo['loggedin'])) {
-        $errors[] = 'WoWonder session not established after login.';
-        bz_bridge_log('Wo_SSO_Login: WoWonder session not established', [
-            'user_id'=>$accepted_user_id,'session'=>$session_token,
-            'reason'=>$accepted_reason, 'matches'=>$accepted_matches
-        ]);
-        echo json_encode(['status'=>500, 'errors'=>$errors]);
-        error_reporting($old_err);
-        exit;
-    }
-
-
-
     // Consider the login established when we have a created session token and user id.
-    if (!empty($session_token) && !empty($accepted_user_id) && !empty($wo['loggedin'])) {
+    if (!empty($session_token) || !empty($accepted_user_id) || !empty($wo['loggedin'])) {
+
+        if (!empty($_POST['remember_device']) && $_POST['remember_device'] == 'on' && !empty($wo['config']['remember_device']) && $wo['config']['remember_device'] == 1) {
+            setcookie('user_id', $session_token, time() + (10*365*24*60*60), '/', BUZZ_COOKIE_DOMAIN, true, true);
+        }
 
         // --- update Wo user data (sync WP fields) ---
         $update = [];
@@ -672,28 +781,9 @@ function Wo_SSO_Login() {
             }
         }
 
-        if (!empty($_POST['remember_device']) && $_POST['remember_device'] == 'on' && !empty($wo['config']['remember_device']) && $wo['config']['remember_device'] == 1) {
-            setcookie('user_id', $session_token, time() + (10*365*24*60*60), '/', BUZZ_COOKIE_DOMAIN, true, true);
-        }
-
-
-
-
-
-
-
-
-
-
-
         // ------------------------------
         // Wo_SSO_Login() — JSON redirect resolution (replace existing redirect-building block)
-        // Priority:
-        //  1) $_REQUEST['redirect_to'] override (highest priority, sanitized + mapped)
-        //  2) new auto-registered users -> start-up
-        //  3) membership override -> go-pro (if membership enabled and user is not pro)
-        //  4) posted_last_url (validated same-site)
-        //  5) last_url or fallback
+        // last_url fallback or default
         // ------------------------------
         $base_streams_url = rtrim($wo['config']['site_url'] ?? '', '/');
         $data = [
@@ -702,191 +792,35 @@ function Wo_SSO_Login() {
             // Overwrite this with your final redirect logic as in main file
         ];
         
-        // Helper: resolve a safe redirect_to token or path to an absolute location on this site
-        $resolve_redirect_to = function($token) use ($base_streams_url) {
-            $token_raw = (string)$token;
-            $token_safe = preg_replace('/[^\w\-\/:.\@]/u', '', $token_raw);
-            if ($token_safe === '') return '';
-        
-            // Known mapping
-            $map = [
-                'go-pro'   => 'index.php?link1=go-pro',
-                'start-up' => 'index.php?link1=start-up',
-                'home'     => '/',
-            ];
-        
-            if (isset($map[$token_safe])) {
-                $internal = $map[$token_safe];
-                if (function_exists('Wo_SeoLink')) {
-                    return Wo_SeoLink($internal);
-                } else {
-                    return (strpos($internal, '/') === 0)
-                        ? rtrim($base_streams_url, '/') . $internal
-                        : rtrim($base_streams_url, '/') . '/' . ltrim($internal, '/');
-                }
-            }
-        
-            // Absolute URL — allow only same-site host
-            if (preg_match('#^https?://#i', $token_safe)) {
-                $parts = @parse_url($token_safe);
-                $site_host = parse_url($base_streams_url, PHP_URL_HOST);
-                if (!empty($parts['host']) && strcasecmp($parts['host'], $site_host) === 0) {
-                    return $token_safe;
-														 
-								 
-                }
-                return '';
-            }
-        
-            // Treat as path or short path under site root
-            if (strpos($token_safe, '/') === 0) {
-                $candidate = rtrim($base_streams_url, '/') . $token_safe;
-            } else {
-                $candidate = rtrim($base_streams_url, '/') . '/' . ltrim($token_safe, '/');
-																				
-								 
-																	 
-            }
-            if (strpos($candidate, $base_streams_url) === 0) {
-                return $candidate;
-            }
-            return '';
-        };
-        
-        // 1) REQUEST redirect_to override (highest priority for JSON flows)
-        if (!empty($_REQUEST['redirect_to'])) {
-            $resolved = $resolve_redirect_to($_REQUEST['redirect_to']);
-            if ($resolved) {
-                $data['location'] = $resolved;
-                bz_bridge_log('Wo_SSO_Login: redirect_to override applied', ['redirect_to' => $_REQUEST['redirect_to'], 'resolved' => $resolved]);
-                   $is_ajax = (         !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'     );
-            } else {
-                bz_bridge_log('Wo_SSO_Login: redirect_to present but could not resolve to safe location', ['raw' => $_REQUEST['redirect_to']]);
-                // fall through to normal rules
-            }
-        }
-        
-        // 2) New auto-registered user -> start-up
+        // New auto-registered user -> start-up
         if (!empty($_SESSION['wo_auto_registered'])) {
-            $start_up = function_exists('Wo_SeoLink') ? Wo_SeoLink('index.php?link1=start-up') : rtrim($base_streams_url, '/') . '/index.php?link1=start-up';
+            $start_up = function_exists('Wo_SeoLink') ? Wo_SeoLink('index.php?link1=start-up') : rtrim($site_base, '/') . '/index.php?link1=start-up';
             $data['location'] = $start_up;
             unset($_SESSION['wo_auto_registered']);
             bz_bridge_log('Wo_SSO_Login: new auto-registered user; redirecting to start-up', ['redirect' => $data['location']]);
-               $is_ajax = (         !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'     );
-        }
-        
-        // 3) Membership override -> go-pro (if membership enabled & user is not pro)
-        $user_is_pro = null;
-        if (!empty($wo['config']['membership_system']) && (int)$wo['config']['membership_system'] === 1) {
-            $user_is_pro = isset($wo['user']['is_pro']) ? (int)$wo['user']['is_pro'] : null;
-            if ($user_is_pro === null) {
-                // fallback DB check (safe)
-                $safe_q2 = @mysqli_query($sqlConnect, "SELECT is_pro FROM {$tbl} WHERE user_id=" . (int)$accepted_user_id . " LIMIT 1");
-                if ($safe_q2 && $r2 = mysqli_fetch_assoc($safe_q2)) {
-                    $user_is_pro = (int)($r2['is_pro'] ?? 0);
-                } else {
-                    $user_is_pro = 0;			
-                }
-            }
-            if ($user_is_pro === 0) {
-                $data['location'] = function_exists('Wo_SeoLink') ? Wo_SeoLink('index.php?link1=go-pro') : rtrim($base_streams_url, '/') . '/index.php?link1=go-pro';
-                bz_bridge_log('Wo_SSO_Login: membership go-pro override applied', ['user_id' => $accepted_user_id, 'redirect' => $data['location']]);
-                   $is_ajax = (         !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'     );
-            }
-        }
-        
-        // 4) posted_last_url (if provided and valid)
-        // REPLACE existing posted_last_url acceptance code with this hardened validator
-        
-        // --- Hardened posted_last_url handling (replace existing posted_last_url block) ---
-        if (!empty($posted_last_url)) {
-            $candidate_raw = trim((string)$posted_last_url);
-        
-            // Reject protocol-relative (//...) — avoid host ambiguity
-            if (strpos($candidate_raw, '//') === 0) {
-                bz_bridge_log('posted_last_url rejected: protocol-relative URL', ['posted' => $candidate_raw]);
+            if ($is_ajax) {
+            echo json_encode($data);
             } else {
-                // Normalize path-only to absolute using $base_streams_url
-                if (strpos($candidate_raw, '/') === 0) {
-                    $candidate_abs = rtrim($base_streams_url, '/') . $candidate_raw;
-                } else {
-                    $candidate_abs = $candidate_raw;
-                }
-        
-                // Basic parse and scheme validation
-                $scheme = @parse_url($candidate_abs, PHP_URL_SCHEME);
-                if (!in_array($scheme, ['http', 'https'], true)) {
-                    bz_bridge_log('posted_last_url rejected: invalid scheme', ['posted' => $candidate_raw, 'scheme' => $scheme]);
-                } else {
-                    // Ensure same-site host
-                    $site_host = bz_normalize_host(parse_url($base_streams_url, PHP_URL_HOST) ?: '');
-                    $candidate_host = bz_normalize_host(parse_url($candidate_abs, PHP_URL_HOST) ?: '');
-        
-                    // Reject if it references the bridge or SSO paths
-                    $is_bridge_ref = bz_is_bridge_url($candidate_abs, $base_streams_url);
-        
-                    if ($candidate_abs && $site_host && $candidate_host === $site_host && !$is_bridge_ref) {
-                        $data['location'] = $candidate_abs;
-                        bz_bridge_log('Wo_SSO_Login: using posted_last_url as redirect', ['posted_last_url' => $candidate_raw, 'final' => $data['location']]);
-                        // success — clear loop counter cookie
-                        if (function_exists('bz_bridge_loop_count')) bz_bridge_loop_count(false, true);
-                           $is_ajax = (         !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'     );
-                    } else {
-                        bz_bridge_log('Wo_SSO_Login: posted_last_url rejected', [
-                            'posted' => $candidate_raw,
-                            'candidate' => $candidate_abs,
-                            'candidate_host' => $candidate_host,
-                            'site_host' => $site_host,
-                            'is_bridge_ref' => $is_bridge_ref
-                        ]);
-                        // fall through to last_url fallback
-												 
-                    }
-                }
+                header('Location: ' . $data['location']);
             }
+            exit;
         }
-        // --- end hardened posted_last_url handling ---
-        
-        // 5) last_url fallback or default
-        $data['location'] = !empty($last_url) && strpos($last_url, $base_streams_url) === 0 ? $last_url : ($base_streams_url . '/?cache=' . time());
-        
-        bz_bridge_log('Wo_SSO_Login: final redirect chosen', ['final' => $data['location']]);
-        
-        // Final safety: never return the bridge itself as redirect
-        if (function_exists('bz_is_bridge_url') && !empty($data['location']) && bz_is_bridge_url($data['location'], $base_streams_url)) {
-								 
-						 
-            bz_bridge_log('Final redirect would go to bridge; replacing with site base to avoid loop', ['chosen' => $data['location']]);
-            $data['location'] = rtrim($base_streams_url, '/') . '/';
-            if (function_exists('bz_bridge_loop_count')) bz_bridge_loop_count(false, true);
-        }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-           $is_ajax = (         !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'     );
-        // ------------------------------
-
-    bz_bridge_log('Wo_SSO_Login: success', [
-        'user_id'=>$accepted_user_id,'session'=>$session_token,
-        'reason'=>$accepted_reason,'matches'=>$accepted_matches,
-        'redirect'=>$data['location']
-    ]);
-    echo json_encode($data);
-    error_reporting($old_err);
-    exit;
+        $data['location'] = !empty($_SESSION['last_url']) && strpos($_SESSION['last_url'], $base_streams_url) === 0 ? $last_url : ($base_streams_url . '/?cache=' . time());
+        $is_ajax = (         !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'     );
+        bz_bridge_log('Wo_SSO_Login: success', [
+            'user_id'=>$accepted_user_id,'session'=>$session_token,
+            'reason'=>$accepted_reason,'matches'=>$accepted_matches,
+            'final redirect'=>$data['location']
+        ]);
+        echo json_encode($data);
+        error_reporting($old_err);
+        exit;
     } else {
         $errors[] = 'WoWonder session not established after login.';
         bz_bridge_log('Wo_SSO_Login: WoWonder session not established', ['user_id'=>$accepted_user_id,'session'=>$session_token,'reason'=>$accepted_reason,'matches'=>$accepted_matches,'wo_loggedin'=>!empty($wo['loggedin'])]);
-														
+        echo json_encode(['status'=>500, 'errors'=>$errors]);
+        error_reporting($old_err);
     }
-																		
     $data = ['status' => 500, 'message' => 'Session not established.'];
        $is_ajax = (         !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'     );
 }
@@ -895,7 +829,7 @@ function Wo_SSO_Login() {
 
 bz_bridge_log('Rendering bridge page', [
     'sso_username'    => $sso_username,
-    'sso_token_len'=> strlen($sso_token),
+    'sso_token_len'   => strlen($sso_token),
     'last_url'        => $last_url
 ]);
 ?>
