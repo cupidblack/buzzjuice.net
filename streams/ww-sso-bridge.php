@@ -24,7 +24,7 @@ if (!defined('BUZZ_SSO_BRIDGE_LOG'))    define('BUZZ_SSO_BRIDGE_LOG', __DIR__ . 
 if (!defined('BUZZ_SSO_AUTO_REGISTER')) define('BUZZ_SSO_AUTO_REGISTER', true);
 
 $base_site_url      = defined('WP_BASE_SITE_URL') ? WP_BASE_SITE_URL : (getenv('WP_BASE_SITE_URL') ?: null);
-$base_streams_url   = rtrim($wo['config']['site_url'], '/');
+$base_streams_url   = rtrim($wo['config']['site_url'] ?? WP_BASE_SITE_URL ?? '', '/');
 $BUZZ_SSO_SECRET    = defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : (getenv('BUZZ_SSO_SECRET') ?: null);																																			 
 $BUZZ_SSO_SECRET    = (string)($BUZZ_SSO_SECRET ?? '');
 $sso_token          = trim($_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? ''));
@@ -77,7 +77,6 @@ if (empty($wo['config']['site_url']) || empty($sqlConnect) || empty($BUZZ_SSO_SE
 // ===============================
 
 // Ensure site base is known
-$base_streams_url = rtrim($wo['config']['site_url'] ?? WP_BASE_SITE_URL ?? '', '/');
 $site_host = parse_url($base_streams_url, PHP_URL_HOST) ?: '';
 
 // 1) Check explicit last_url/redirect_to from GET, POST, COOKIE
@@ -172,9 +171,9 @@ $_SESSION['last_url'] = $last_url;
 // ===================================================================
 // START: SESSION MANAGEMENT / ENDPOINTS / PAYLOAD / DATA MAPPING
 // ===================================================================
-// =================================================================
+// -----------------------------------------------------
 // STEP 1: SESSION SAFETY GUARD FOR DUAL-TOKEN JWT SSO
-// =================================================================
+// -----------------------------------------------------
 // --- Current WoWonder authentication state ---
 $wo_loggedin        = !empty($wo['loggedin']);
 $wo_user_id         = $wo['user']['user_id'] ?? null;
@@ -220,7 +219,7 @@ if ($wordpress_logged_in_) {
             ]
         );
 
-        $redirect = $_GET['redirect_to'] ?? $_SERVER['HTTP_REFERER'] ?? '/streams';
+        $redirect = $_SESSION['last_url'] ?? '/streams';
         if (!is_string($redirect) || strpos($redirect, '/') !== 0) {
             $redirect = '/streams';
         }
@@ -318,7 +317,7 @@ if (!$access_payload && $wordpress_logged_in_) {
 // 4. Fail → redirect user to login
 if (!$access_payload) {
     bz_bridge_log('Dual-token bootstrap failed — redirecting to login');
-    header('Location: /wp-login.php?redirect_to=/streams');
+    header('Location: /wp-login.php?action=logout&redirect_to=/wp-login.php?redirect_to=/streams');
     exit;
 }
 
@@ -334,18 +333,18 @@ $_SESSION['wp_Wo_SSO_Login'] = true;
 // -----------------------------
 if (!$_SESSION['wp_user_id'] || !$_SESSION['wp_user_login'] || !$_SESSION['wp_user_email']) {
     bz_bridge_log('Missing required claims (cookie incomplete)', $access_payload);
-    header('Location: /wp-login.php?redirect_to=/members/me/settings/');
+    header('Location: /wp-login.php?action=logout&redirect_to=/wp-login.php?redirect_to=/streams');
     exit;
 }
 
-bz_bridge_log('buzz_access token claims hydrated into session', [
+/* bz_bridge_log('buzz_access token claims hydrated into session', [
     'wp_user_id'      => $_SESSION['wp_user_id'],
     'wp_user_login'   => $_SESSION['wp_user_login'],
     'wp_user_email'   => $_SESSION['wp_user_email'],
     'wo_user_id'      => $_SESSION['wo_user_id'],
     'raw_payload'     => $access_payload
 ]);
-
+*/
 
 
 // =======================================================================================
@@ -431,7 +430,7 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
             if ($wp_user_id && $wo_user_id) {
                 bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
             }
-            header('Location: /wp-login.php?redirect_to=/streams');
+            header('Location: /wp-login.php?action=logout&redirect_to=/wp-login.php?redirect_to=/streams');
             exit;
         }
 
@@ -481,7 +480,7 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
             'payload'  => $access_payload,
             'attempts' => $attempt
         ]);
-        header('Location: /wp-login.php?redirect_to=/members/me/settings/');
+        header('Location: /wp-login.php?action=logout&redirect_to=/wp-login.php?redirect_to=/members/me/settings/');
         exit;
     }
 }
@@ -497,12 +496,13 @@ $_SESSION['wp_user_id']     = (int)$access_payload['wp_user_id'];
 $_SESSION['wp_user_email']  = (string)$access_payload['wp_user_email'];
 $_SESSION['wo_user_id']     = (int)$final_wo_user_id;
 
-bz_bridge_log('After mapping/registration - canonical session snapshot', [
+/* bz_bridge_log('After mapping/registration - canonical session snapshot', [
     'wp_user_id'    => $_SESSION['wp_user_id'],
     'wp_user_login' => $_SESSION['wp_user_login'],
     'wp_user_email' => $_SESSION['wp_user_email'],
     'wo_user_id'    => $_SESSION['wo_user_id'],
 ]);
+*/
 
 // -----------------------------
 // Build SSO token and choose username for the client (username = wp_user_login)
@@ -569,7 +569,7 @@ if (!function_exists('bz_clear_wp_wo_user_id')) {
     function bz_clear_wp_wo_user_id($wp_user_id) {
         $wp_conn = get_wp_db_conn();
         if (!$wp_conn || empty($wp_user_id)) {
-            header('Location: /wp-login.php?redirect_to=/streams');
+            header('Location: /wp-login.php?action=logout&redirect_to=/wp-login.php?redirect_to=/streams');
             exit;
         }
         $wp_user_id = (int)$wp_user_id;
@@ -585,11 +585,11 @@ if (!function_exists('bz_clear_wp_wo_user_id')) {
         
         if ($result /*&& mysqli_affected_rows($wp_conn) > 0*/) {
             // Success: meta deleted, reload page (AJAX-safe)
-            header('Location: /wp-login.php?redirect_to=/streams');
+            header('Location: /streams');
             exit;
         } else {
             // Failed to clear mapping, redirect to login
-            header('Location: /wp-login.php?redirect_to=/streams');
+            header('Location: /wp-login.php?action=logout&redirect_to=/wp-login.php?redirect_to=/streams');
             exit;
         }
     }
@@ -614,7 +614,7 @@ function Wo_SSO_Login() {
     $exp_login  = (isset($access_payload['wp_user_login']) ? (string)$access_payload['wp_user_login'] : '');
     $exp_email  = (isset($access_payload['wp_user_email']) ? (string)$access_payload['wp_user_email'] : '');
 
-    bz_bridge_log('Wo_SSO_Login: expected (auth) values', ['exp_wo'=>$exp_wo,'exp_wp'=>$exp_wp,'exp_login'=>$exp_login,'exp_email'=>$exp_email,'session_snapshot'=>$_SESSION ?? [],'claims'=>$access_payload]);
+//    bz_bridge_log('Wo_SSO_Login: expected (auth) values', ['exp_wo'=>$exp_wo,'exp_wp'=>$exp_wp,'exp_login'=>$exp_login,'exp_email'=>$exp_email,'session_snapshot'=>$_SESSION ?? [],'claims'=>$access_payload]);
 
     $candidates = [];
     $tbl = defined('T_USERS') ? T_USERS : 'Wo_Users';
@@ -632,7 +632,7 @@ function Wo_SSO_Login() {
     if (empty($candidates) && $exp_wp) {
         $q = mysqli_query($sqlConnect, "SELECT user_id,username,email,wp_user_id FROM {$tbl} WHERE wp_user_id=".(int)$exp_wp." LIMIT 1"); if ($q && $r=mysqli_fetch_assoc($q)) $candidates[]=$r;
     }
-    bz_bridge_log('Wo_SSO_Login: candidates fetched', ['count'=>count($candidates),'candidates'=>$candidates]);
+//    bz_bridge_log('Wo_SSO_Login: candidates fetched', ['count'=>count($candidates),'candidates'=>$candidates]);
 
     $accepted_user_id = 0; $accepted_reason = ''; $accepted_matches = [];
     $accepted_row = null;
@@ -646,11 +646,12 @@ function Wo_SSO_Login() {
         $cmp_username = ($exp_login && strcasecmp($db_username, $exp_login) === 0) ? 1 : 0;
         $cmp_wp_userid = ($exp_wp && $db_wp_userid === $exp_wp) ? 1 : 0;
         $match_count = $cmp_user_id + $cmp_email + $cmp_username + $cmp_wp_userid;
-        bz_bridge_log('Wo_SSO_Login: compare row', [
+/*        bz_bridge_log('Wo_SSO_Login: compare row', [
             'db'=>['user_id'=>$db_user_id,'username'=>$db_username,'email'=>$db_email,'wp_user_id'=>$db_wp_userid],
             'cmp'=>['user_id'=>$cmp_user_id,'email'=>$cmp_email,'username'=>$cmp_username,'wp_user_id'=>$cmp_wp_userid],
             'match_count'=>$match_count
         ]);
+*/
 
         if ($match_count >= 3) {
             $accepted_user_id = $db_user_id;
@@ -670,8 +671,8 @@ function Wo_SSO_Login() {
         $errors[] = 'No matching BuzzStreams account for SSO (>=3 identifiers required).';
 
         // PATCH: Orphan WoWonder ID in WP usermeta, clear it and reload/redirect
-        if (empty($db_user_id) || $db_user_id === 0 || $db_user_id == '' || $db_user_id == null) {
-            if (!empty($exp_wp)) {
+        //if (empty($db_user_id) || $db_user_id === 0 || $db_user_id == '' || $db_user_id == null) {
+            if (!empty($exp_wp && $exp_login && $exp_email)) {
                 bz_bridge_log('Wo_SSO_Login: orphan WoWonder ID detected, clearing WordPress usermeta', [
                     'wp_user_id' => $exp_wp,
                     'wo_user_id' => $exp_wo
@@ -679,7 +680,7 @@ function Wo_SSO_Login() {
                 bz_clear_wp_wo_user_id($exp_wp);
             }
             // No need to continue further; this function will exit after clearing.
-        }
+        //}
         
         
         bz_bridge_log('Wo_SSO_Login: no match (>=3 required)', [
@@ -745,41 +746,188 @@ function Wo_SSO_Login() {
             setcookie('user_id', $session_token, time() + (10*365*24*60*60), '/', BUZZ_COOKIE_DOMAIN, true, true);
         }
 
-        // --- update Wo user data (sync WP fields) ---
-        $update = [];
-        if (!empty($_SESSION['wp_user_id']))    $update['wp_user_id'] = (int)$_SESSION['wp_user_id'];
-        if (!empty($_SESSION['wp_user_email'])) $update['email']      = (string)$_SESSION['wp_user_email'];
-        if (!empty($_SESSION['wp_user_login'])) $update['username']   = (string)$_SESSION['wp_user_login'];
 
+
+
+
+        // =========================================================
+        // WordPress → WoWonder User Metadata Sync (Canonical Source)
+        // Buzzjuice: after successful login, replace WoWonder meta with WordPress meta
+        // =========================================================
+        
+        // 1. PRECONDITION: Must have valid login
+        $wp_user_id = isset($_SESSION['wp_user_id']) ? (int)$_SESSION['wp_user_id'] : 0;
+        if (!$wp_user_id) {
+            bz_bridge_log('WP→Wo sync skipped: missing wp_user_id');
+            return;
+        }
+        $wp_conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
+        if (!$wp_conn) {
+            bz_bridge_log('WP→Wo sync skipped: WP DB unavailable');
+            return;
+        }
+        $sqlConn  = $GLOBALS['sqlConnect'];
+        $wo_table = defined('T_USERS') ? T_USERS : 'Wo_Users';
+        
+        // 2. LOAD BUZZ METADATA REGISTRY
         $metadata = function_exists('get_user_field_metadata') ? get_user_field_metadata() : [];
         $wp_usermeta_fields = $metadata['private_secure_fields'] ?? [];
         $wp_xprofile_fields = $metadata['public_open_fields'] ?? [];
-
-        foreach ($_SESSION as $field => $value) {
-            if (in_array($field, $wp_usermeta_fields, true) || in_array($field, $wp_xprofile_fields, true)) {
-                if (!empty($value)) {
-                    $update[$field] = is_string($value) ? trim($value) : $value;
+        $field_map          = $metadata['field_map'] ?? [];
+        $sync_fields = array_unique(array_merge($wp_usermeta_fields, $wp_xprofile_fields));
+        
+        // 3. FETCH FULL WORDPRESS PROFILE
+        $wp_data = function_exists('wp_get_full_user_data')
+            ? wp_get_full_user_data($wp_conn, $wp_user_id)
+            : false;
+        if (!$wp_data || !is_array($wp_data)) {
+            bz_bridge_log('WP→Wo sync aborted: wp_get_full_user_data failed', ['wp_user_id'=>$wp_user_id]);
+            return;
+        }
+        $wp_meta     = $wp_data['meta'] ?? [];
+        $wp_xprofile = $wp_data['xprofile'] ?? [];
+        $wp_core     = $wp_data;
+        
+        // 4. NORMALIZE & AGGREGATE WP METADATA (usermeta, xprofile, core)
+        $wp_all_meta = [];
+        foreach ($wp_meta as $key => $value)
+            $wp_all_meta[$key] = $value;
+        foreach ($wp_xprofile as $key => $value) {
+            $norm = strtolower(str_replace([' ','-'],'_',trim($key)));
+            $wp_all_meta[$norm] = $value;
+        }
+        foreach (['user_login','user_email','display_name','user_registered'] as $field)
+            if (isset($wp_core[$field]) && !empty($wp_core[$field]))
+                $wp_all_meta[$field] = $wp_core[$field];
+        
+        // 5. Avatar/Cover: BuddyBoss plugin normalization and fix
+        // Helper: Normalize avatar and cover paths for WoWonder display.
+        function bz_normalize_avatar_cover($url, $site_base = 'https://buzzjuice.net/streams', $type = 'avatar') {
+            $url = trim($url);
+            if (!$url) return '';
+            if ($type === 'cover') {
+                // Remove leading /streams/ for relative path
+                $url = preg_replace('#^/?streams/#', '', $url);
+                // If full URL, extract path after site_base
+                if (preg_match('#^https?://#', $url)) {
+                    $parsed = parse_url($url, PHP_URL_PATH);
+                    if ($parsed && strpos($parsed, '/streams/') === 0) {
+                        $url = substr($parsed, strlen('/streams/'));
+                    } elseif ($parsed && strpos($parsed, '/') === 0) {
+                        $url = ltrim($parsed, '/');
+                    }
+                }
+                // Remove remaining /streams/ prefix if present
+                $url = preg_replace('#^/?streams/#', '', $url);
+                // Ensure starts with upload/photos/
+                if (strpos($url, 'upload/photos/') !== 0) {
+                    $url = 'upload/photos/' . ltrim($url, '/');
+                }
+                return $url;
+            }
+            // AVATAR: Always full URL
+            if (!preg_match('#^https?://#', $url)) {
+                $url = preg_replace('#^/?streams/#', '', $url);
+                $url = rtrim($site_base, '/') . '/' . ltrim($url, '/');
+            }
+            return $url;
+        }
+        
+        $site_base = rtrim($base_streams_url ?? 'https://buzzjuice.net/streams', '/');
+        if (!empty($wp_meta['bp_profile_avatar'])) {
+            $wp_all_meta['avatar'] = bz_normalize_avatar_cover($wp_meta['bp_profile_avatar'], $site_base, 'avatar');
+        }
+        if (!empty($wp_meta['bp_profile_cover'])) {
+            $wp_all_meta['cover']  = bz_normalize_avatar_cover($wp_meta['bp_profile_cover'], $site_base, 'cover');
+        }
+        
+        // 6. BUILD WoWonder UPDATE PAYLOAD (schema mapping)
+        $update = [];
+        foreach ($sync_fields as $field) {
+            if (!array_key_exists($field, $wp_all_meta)) continue;
+            $val = $wp_all_meta[$field];
+            if ($val === null || (is_string($val) && trim($val) === '')) continue;
+            // Normalize avatar/cover as you push
+            if ($field === 'avatar') $val = bz_normalize_avatar_cover($val, $site_base, 'avatar');
+            if ($field === 'cover')  $val = bz_normalize_avatar_cover($val, $site_base, 'cover');
+            $wo_field = $field_map[$field] ?? $field;
+            $update[$wo_field] = is_string($val) ? trim($val) : $val;
+        }
+        
+        // Canonical identity always synced from session
+        $update['wp_user_id'] = $wp_user_id;
+        if (!empty($_SESSION['wp_user_email']))  $update['email']    = trim($_SESSION['wp_user_email']);
+        if (!empty($_SESSION['wp_user_login']))  $update['username'] = trim($_SESSION['wp_user_login']);
+        
+        // 7. LOAD WoWonder SCHEMA CACHE (efficient, reloads only if missing)
+        $schema_cache_folder = $_SERVER['DOCUMENT_ROOT'] . '/data/schema_cache/';
+        $schema_cache_file   = $schema_cache_folder . 'wo_users_schema.json';
+        if (!is_dir($schema_cache_folder)) @mkdir($schema_cache_folder, 0755, true);
+        static $wo_schema = null;
+        if ($wo_schema === null) {
+            if (file_exists($schema_cache_file)) {
+                $wo_schema = json_decode(file_get_contents($schema_cache_file), true) ?: [];
+            } else {
+                $wo_schema = [];
+                $q = mysqli_query($sqlConn, "SHOW COLUMNS FROM {$wo_table}");
+                while ($row = mysqli_fetch_assoc($q)) $wo_schema[$row['Field']] = true;
+                @file_put_contents($schema_cache_file, json_encode($wo_schema));
+            }
+        }
+        
+        // 8. FILTER UNSUPPORTED FIELDS (future-proof)
+        $update_filtered = [];
+        foreach ($update as $field => $value) {
+            if (isset($wo_schema[$field])) {
+                $update_filtered[$field] = $value;
+            } else {
+ //               bz_bridge_log('WP→Wo sync skipped field (not in WoWonder schema)', ['field'=>$field]);
+            }
+        }
+        
+        // 9. METADATA HASH OPTIMIZATION — Only write if changed
+        $hash_payload = $update_filtered;
+        unset($hash_payload['lastseen'], $hash_payload['session'], $hash_payload['ip_address']);
+        $new_hash = md5(json_encode($hash_payload));
+        $old_hash = '';
+        if (isset($wo_schema['wp_meta_hash'])) {
+            $q = mysqli_query($sqlConn, "SELECT wp_meta_hash FROM {$wo_table} WHERE user_id=".(int)$accepted_user_id." LIMIT 1");
+            if ($q && $row = mysqli_fetch_assoc($q)) $old_hash = $row['wp_meta_hash'] ?? '';
+        }
+        
+        // 10. PUSH TO WoWonder ONLY IF CHANGED; Extensive Error Logging
+        if ($new_hash !== $old_hash) {
+            $update_filtered['wp_meta_hash'] = $new_hash;
+            if (!empty($update_filtered) && function_exists('Wo_UpdateUserData')) {
+                $old_level = error_reporting();
+                error_reporting($old_level & ~E_NOTICE & ~E_WARNING);
+                try {
+                    $result = Wo_UpdateUserData($accepted_user_id, $update_filtered);
+/*                    bz_bridge_log('WP→Wo sync: metadata updated', [
+                        'user_id'=>$accepted_user_id,
+                        'fields'=>array_keys($update_filtered),
+                        'result'=>$result
+                    ]);
+*/
+                } catch (Throwable $e) {
+                    bz_bridge_log('WP→Wo sync: ERROR during Wo_UpdateUserData', [
+                        'user_id'=>$accepted_user_id,
+                        'error'=>$e->getMessage()
+                    ]);
+                } finally {
+                    error_reporting($old_level);
                 }
             }
+        } else {
+            bz_bridge_log('WP→Wo sync skipped (meta hash unchanged)', ['user_id'=>$accepted_user_id]);
         }
+        // todo: Advanced field mapping implementation and 
+        // helper utilities for WordPress/BuddyPress meta extraction and transformation
+        // WP->WW API meta sync, Buzzjuice Identity Sync Engine -> central identity authority, Sync Queue, Worker Processes Sync Queue, Push data....
 
-        if (!empty($update) && function_exists('Wo_UpdateUserData')) {
-            // Suppress notices/warnings during Wo_UpdateUserData call to avoid polluting JSON
-            $old_level = error_reporting();
-            error_reporting($old_level & ~E_NOTICE & ~E_WARNING);
-            try {
-                $result = Wo_UpdateUserData($accepted_user_id, $update);
-                bz_bridge_log('Wo_UpdateUserData post-login sync', [
-                    'user_id' => $accepted_user_id,
-                    'update'  => $update,
-                    'result'  => $result
-                ]);
-            } catch (Throwable $e) {
-                bz_bridge_log('Wo_UpdateUserData exception', ['ex'=>$e->getMessage(),'user_id'=>$accepted_user_id,'update'=>$update]);
-            } finally {
-                error_reporting($old_level);
-            }
-        }
+
+
+
 
         // ------------------------------
         // Wo_SSO_Login() — JSON redirect resolution (replace existing redirect-building block)
@@ -788,8 +936,7 @@ function Wo_SSO_Login() {
         $base_streams_url = rtrim($wo['config']['site_url'] ?? '', '/');
         $data = [
             'status'=>200,
-            'location'=>$base_streams_url.'/?cache='.time()
-            // Overwrite this with your final redirect logic as in main file
+            'location'=>$_SESSION['last_url'] // Overwrite this with your final redirect logic as in main file
         ];
         
         // New auto-registered user -> start-up
@@ -805,8 +952,8 @@ function Wo_SSO_Login() {
             }
             exit;
         }
-        $data['location'] = !empty($_SESSION['last_url']) && strpos($_SESSION['last_url'], $base_streams_url) === 0 ? $last_url : ($base_streams_url . '/?cache=' . time());
-        $is_ajax = (         !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'     );
+        $data['location'] = !empty($_SESSION['last_url']) && strpos($_SESSION['last_url'], $base_streams_url) === 0 ? $_SESSION['last_url'] : ($base_streams_url . '/?cache=' . time());
+        $is_ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
         bz_bridge_log('Wo_SSO_Login: success', [
             'user_id'=>$accepted_user_id,'session'=>$session_token,
             'reason'=>$accepted_reason,'matches'=>$accepted_matches,
@@ -822,16 +969,17 @@ function Wo_SSO_Login() {
         error_reporting($old_err);
     }
     $data = ['status' => 500, 'message' => 'Session not established.'];
-       $is_ajax = (         !empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&         strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'     );
+    $is_ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
 }
 
 
 
-bz_bridge_log('Rendering bridge page', [
+/*bz_bridge_log('Rendering bridge page', [
     'sso_username'    => $sso_username,
     'sso_token_len'   => strlen($sso_token),
     'last_url'        => $last_url
 ]);
+*/
 ?>
 <!DOCTYPE html>
 <html lang="en">

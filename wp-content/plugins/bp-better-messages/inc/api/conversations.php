@@ -319,6 +319,14 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Conversations' ) ):
                 }
             }
 
+            if( ! $added ){
+                return new WP_Error(
+                    'rest_forbidden',
+                    _x( 'All selected users are already participating in this conversation', 'Rest API Error', 'bp-better-messages' ),
+                    array( 'status' => rest_authorization_required_code() )
+                );
+            }
+
             return $added;
         }
 
@@ -439,14 +447,14 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Conversations' ) ):
             $query = $wpdb->prepare("
                 SELECT `users`.`ID`
                 FROM `{$wpdb->users}` as users
-                RIGHT JOIN " . bm_get_table('recipients') . " recipients 
+                INNER JOIN " . bm_get_table('recipients') . " recipients
                 ON ( `users`.`ID` = `recipients`.`user_id`
                     AND `recipients`.`thread_id` = %d
                     AND `recipients`.`user_id` != %d
                     AND `recipients`.`is_deleted` = 0)
-                WHERE `user_login` LIKE %s 
-                   OR `user_nicename` LIKE %s 
-                   OR `display_name` LIKE %s 
+                WHERE `user_login` LIKE %s
+                   OR `user_nicename` LIKE %s
+                   OR `display_name` LIKE %s
                 ORDER BY `display_name` ASC
                 LIMIT 0, 50
             ", $thread_id, Better_Messages()->functions->get_current_user_id(), $search, $search, $search );
@@ -474,7 +482,12 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Conversations' ) ):
 
         public function change_subject( WP_REST_Request $request ){
             $thread_id  = intval($request->get_param('id'));
-            $subject    = sanitize_text_field($request->get_param('subject'));
+            $subject    = $request->get_param('subject');
+
+            $subject = apply_filters( 'better_messages_change_subject_content',
+                sanitize_text_field( $subject ),
+                $subject, $thread_id
+            );
 
             $can_change = Better_Messages()->functions->is_thread_super_moderator( Better_Messages()->functions->get_current_user_id(), $thread_id );
 

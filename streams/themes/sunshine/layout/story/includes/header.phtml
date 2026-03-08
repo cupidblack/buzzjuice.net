@@ -620,7 +620,7 @@ if (!empty($wo['story']['parent_id'])) {
 <div class="post-heading">
    <div class="<?php echo Wo_RightToLeft('pull-left');?> image">
       <?php if (!isset($anonymous)) { ?>
-      <a href="<?php echo $wo['story']['publisher']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['story']['publisher']['username']?>" class="avatar wow_post_usr_ava <?php if($wo['story']['publisher']['verified'] == 1) { ?>wow_post_usr_ava_active<?php } ?>">
+      <a href="<?php echo $wo['story']['publisher']['url'] ?? '#'; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['story']['publisher']['username']?>" class="avatar wow_post_usr_ava <?php if($wo['story']['publisher']['verified'] == 1) { ?>wow_post_usr_ava_active<?php } ?>">
          <img src="<?php echo $wo['story']['publisher']['avatar']; ?>" class="blur_img" alt="<?php echo $wo['story']['publisher']['name']; ?> profile picture">
 		 <img src="<?php echo $wo['story']['publisher']['avatar']; ?>" id="updateImage-<?php echo $wo['story']['publisher']['user_id']?>" alt="<?php echo $wo['story']['publisher']['name']; ?> profile picture">
          <?php if($wo['story']['publisher']['verified'] == 1) { ?>

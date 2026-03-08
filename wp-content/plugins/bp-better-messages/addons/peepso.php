@@ -563,33 +563,68 @@ if ( !class_exists( 'Better_Messages_Peepso' ) ){
 
                     headerButton.innerHTML += html;
 
-                    var popup = headerButton.querySelector('.ps-notif__box,.pso-notifbox');
-                    var link = jQuery(headerButton).find('> a');
+                    function getPopup() {
+                        return headerButton.querySelector('.ps-notif__box,.pso-notifbox');
+                    }
+
+                    function isVisible(el) {
+                        return el && el.offsetParent !== null && getComputedStyle(el).display !== 'none';
+                    }
+
+                    function togglePopup() {
+                        var popup = getPopup();
+                        if( ! popup ) return;
+                        var $popup = jQuery(popup);
+                        if( $popup.is(':visible') ){
+                            $popup.stop().slideUp('fast');
+                        } else {
+                            $popup.stop().slideDown('fast');
+                        }
+                    }
+
+                    function addOutsideListener() {
+                        document.addEventListener('click', handleClickOutside);
+                        document.addEventListener('touchend', handleClickOutside);
+                    }
+
+                    function removeOutsideListener() {
+                        document.removeEventListener('click', handleClickOutside);
+                        document.removeEventListener('touchend', handleClickOutside);
+                    }
 
                     function handleClickOutside(event) {
-                        if (!popup.contains(event.target) && !headerButton.contains(event.target)) {
-                            if (jQuery(popup).is(':visible')) {
-                                jQuery(popup).slideToggle();
-                                document.removeEventListener('click', handleClickOutside);
+                        var popup = getPopup();
+                        if (popup && !popup.contains(event.target) && !headerButton.contains(event.target)) {
+                            if (isVisible(popup)) {
+                                togglePopup();
+                                removeOutsideListener();
                             }
                         }
                     }
 
-                    if( link[0] ) {
-                        link[0].onclick = function (event) {
-                            event.preventDefault();
-                            jQuery(popup).slideToggle();
+                    function handleToggle(event) {
+                        var link = event.target.closest('a');
+                        if( !link || !headerButton.contains(link) ) return;
+                        var popup = getPopup();
+                        if( !popup ) return;
+                        if( popup.contains(link) ) return;
 
-                            if (jQuery(popup).is(':visible')) {
-                                document.addEventListener('click', handleClickOutside);
-                            } else {
-                                document.removeEventListener('click', handleClickOutside);
-                            }
-                        };
+                        event.preventDefault();
+                        event.stopPropagation();
+                        togglePopup();
+
+                        if (isVisible(popup)) {
+                            addOutsideListener();
+                        } else {
+                            removeOutsideListener();
+                        }
                     }
+
+                    headerButton.addEventListener('click', handleToggle);
+                    headerButton.addEventListener('touchend', handleToggle);
                 });
 
-                jQuery(document).trigger("bp-better-messages-init-scrollers");
+                document.dispatchEvent(new Event("bp-better-messages-init-scrollers"));
 
                 <?php if( class_exists('PeepSo_Block_Theme_Settings') ) { ?>
                 const config = { attributes: true, attributeFilter: ['class'] };
@@ -631,15 +666,10 @@ if ( !class_exists( 'Better_Messages_Peepso' ) ){
             ob_start(); ?>
             <script type="text/javascript">
                 wp.hooks.addAction('better_messages_update_unread', 'better_messages', function( unread ) {
-                    var private_messages = jQuery('.ps-notif--better-messages .js-counter');
+                    var counters = document.querySelectorAll('.ps-notif--better-messages .js-counter');
 
-                    private_messages.each(function(){
-                        var item = jQuery(this);
-                        if( unread > 0 ){
-                            item.text(unread);
-                        } else {
-                            item.text('');
-                        }
+                    counters.forEach(function( item ){
+                        item.textContent = unread > 0 ? unread : '';
                     });
                 });
             </script>

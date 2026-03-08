@@ -1,0 +1,28 @@
+[23-Jul-2025 11:50:34 UTC] PHP Warning:  require_once(/home/koware/public_html/buzzjuice.net/../../data/DotEnv.php): Failed to open stream: No such file or directory in /home/koware/public_html/buzzjuice.net/wp-config.php on line 39
+[23-Jul-2025 11:50:34 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/koware/public_html/buzzjuice.net/../../data/DotEnv.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/koware/public_html/buzzjuice.net/wp-config.php:39
+Stack trace:
+#0 /home/koware/public_html/buzzjuice.net/wp-load.php(50): require_once()
+#1 /home/koware/public_html/buzzjuice.net/wp-admin/admin-ajax.php(22): require_once('/home/koware/pu...')
+#2 {main}
+  thrown in /home/koware/public_html/buzzjuice.net/wp-config.php on line 39
+[23-Jul-2025 11:51:01 UTC] PHP Warning:  require_once(/home/koware/public_html/buzzjuice.net/../../data/DotEnv.php): Failed to open stream: No such file or directory in /home/koware/public_html/buzzjuice.net/wp-config.php on line 39
+[23-Jul-2025 11:51:01 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/koware/public_html/buzzjuice.net/../../data/DotEnv.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/koware/public_html/buzzjuice.net/wp-config.php:39
+Stack trace:
+#0 /home/koware/public_html/buzzjuice.net/wp-load.php(50): require_once()
+#1 /home/koware/public_html/buzzjuice.net/wp-admin/admin-ajax.php(22): require_once('/home/koware/pu...')
+#2 {main}
+  thrown in /home/koware/public_html/buzzjuice.net/wp-config.php on line 39
+[23-Jul-2025 11:51:44 UTC] PHP Warning:  require_once(/home/koware/public_html/buzzjuice.net/../../data/DotEnv.php): Failed to open stream: No such file or directory in /home/koware/public_html/buzzjuice.net/wp-config.php on line 39
+[23-Jul-2025 11:51:44 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/koware/public_html/buzzjuice.net/../../data/DotEnv.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/koware/public_html/buzzjuice.net/wp-config.php:39
+Stack trace:
+#0 /home/koware/public_html/buzzjuice.net/wp-load.php(50): require_once()
+#1 /home/koware/public_html/buzzjuice.net/wp-admin/admin-ajax.php(22): require_once('/home/koware/pu...')
+#2 {main}
+  thrown in /home/koware/public_html/buzzjuice.net/wp-config.php on line 39
+[23-Jul-2025 11:51:45 UTC] PHP Warning:  require_once(/home/koware/public_html/buzzjuice.net/../../data/DotEnv.php): Failed to open stream: No such file or directory in /home/koware/public_html/buzzjuice.net/wp-config.php on line 39
+[23-Jul-2025 11:51:45 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/koware/public_html/buzzjuice.net/../../data/DotEnv.php' (include_path='.:/opt/alt/php82/usr/share/pear:/opt/alt/php82/usr/share/php:/usr/share/pear:/usr/share/php') in /home/koware/public_html/buzzjuice.net/wp-config.php:39
+Stack trace:
+#0 /home/koware/public_html/buzzjuice.net/wp-load.php(50): require_once()
+#1 /home/koware/public_html/buzzjuice.net/wp-admin/admin-ajax.php(22): require_once('/home/koware/pu...')
+#2 {main}
+  thrown in /home/koware/public_html/buzzjuice.net/wp-config.php on line 39

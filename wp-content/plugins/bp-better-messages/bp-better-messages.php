@@ -5,7 +5,7 @@
     Plugin Name: Better Messages
     Plugin URI: https://www.wordplus.org
     Description: Realtime private messaging system for WordPress
-    Version: 2.12.4
+    Version: 2.13.0
     Author: WordPlus
     Author URI: https://www.wordplus.org
     Requires PHP: 7.4
@@ -16,7 +16,7 @@
 defined( 'ABSPATH' ) || exit;
 if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
     class Better_Messages {
-        public $version = '2.12.4';
+        public $version = '2.13.0';
 
         public $db_version = '1.0.4';
 
@@ -94,6 +94,9 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
         /** @var Better_Messages_Cleaner $cleaner */
         public $cleaner;
 
+        /** @var Better_Messages_Bulk_Sender $bulk_sender */
+        public $bulk_sender;
+
         /** @var Better_Messages_Capabilities $capabilities */
         public $capabilities;
 
@@ -108,6 +111,9 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
 
         /** @var Better_Messages_AI $group_calls */
         public $ai = false;
+
+        /** @var Better_Messages_E2E_Encryption $e2e */
+        public $e2e = false;
 
         /** @var Better_Messages_Blocks $blocks */
         public $blocks = false;
@@ -173,6 +179,7 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
             require_once 'inc/rest-api.php';
             require_once 'inc/capabilities.php';
             require_once 'inc/cleaner.php';
+            require_once 'inc/bulk-sender.php';
             require_once 'inc/moderation.php';
             require_once 'inc/guests.php';
             require_once 'addons/urls.php';
@@ -217,9 +224,16 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
             $this->shortcodes = Better_Messages_Shortcodes();
             $this->api = Better_Messages_Rest_Api();
             $this->cleaner = Better_Messages_Cleaner();
+            $this->bulk_sender = Better_Messages_Bulk_Sender();
             $this->moderation = Better_Messages_Moderation();
             $this->ai = Better_Messages_AI();
             $this->blocks = Better_Messages_Blocks();
+            if ( file_exists( $this->path . 'addons/e2e-encryption.php' ) && Better_Messages()->functions->can_use_premium_code_premium_only() ) {
+                require_once $this->path . 'addons/e2e-encryption.php';
+            }
+            if ( function_exists( 'Better_Messages_E2E_Encryption' ) && $this->settings['e2eEncryption'] === '1' ) {
+                $this->e2e = Better_Messages_E2E_Encryption();
+            }
             if ( bm_bp_is_active( 'groups' ) ) {
                 require_once 'inc/component-group.php';
                 $this->groups = Better_Messages_Group();
@@ -320,6 +334,10 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
                         } else {
                             if ( str_ends_with( $current_screen->id, 'better-messages-settings' ) ) {
                                 $include_css = true;
+                            } else {
+                                if ( str_ends_with( $current_screen->id, 'better-messages-bulk' ) ) {
+                                    $include_css = true;
+                                }
                             }
                         }
                     }
@@ -355,6 +373,11 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
                         } else {
                             if ( str_ends_with( $current_screen->id, 'better-messages-settings' ) ) {
                                 $include_js = true;
+                            } else {
+                                if ( str_ends_with( $current_screen->id, 'better-messages-bulk' ) ) {
+                                    $include_js = true;
+                                    wp_enqueue_editor();
+                                }
                             }
                         }
                     }
@@ -460,6 +483,16 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
             $this->js_loaded = true;
         }
 
+        private function get_worker_version() {
+            if ( defined( 'BM_DEV' ) ) {
+                $worker_file = $this->path . 'assets/js/workers/bmdb-shared.worker.js';
+                if ( file_exists( $worker_file ) ) {
+                    return $this->version . '-' . filemtime( $worker_file );
+                }
+            }
+            return $this->version;
+        }
+
         public function get_script_variables() {
             $enableSound = '1';
             if ( Better_Messages()->settings['allowSoundDisable'] === '1' ) {
@@ -485,89 +518,96 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
                 $hash .= $ukey;
             }
             $script_variables = array(
-                'hash'               => md5( $hash ),
-                'user_id'            => get_current_user_id(),
-                'version'            => $this->version,
-                'ajaxUrl'            => admin_url( 'admin-ajax.php' ),
-                'restUrl'            => esc_url_raw( get_rest_url( null, '/better-messages/v1/' ) ),
-                'nonce'              => wp_create_nonce( 'wp_rest' ),
-                'siteRefresh'        => ( isset( $this->settings['site_interval'] ) ? intval( $this->settings['site_interval'] ) * 1000 : 10000 ),
-                'threadRefresh'      => ( isset( $this->settings['thread_interval'] ) ? intval( $this->settings['thread_interval'] ) * 1000 : 3000 ),
-                'url'                => $this->functions->get_link(),
-                'threadUrl'          => $this->functions->get_link( get_current_user_id() ) . '#/conversation/',
-                'baseUrl'            => $this->functions->get_link( get_current_user_id() ),
-                'assets'             => plugin_dir_url( __FILE__ ) . 'assets/',
-                'sounds'             => apply_filters( 'bp_better_messages_sounds_assets', plugin_dir_url( __FILE__ ) . 'assets/sounds/' ),
-                'soundLevels'        => array(
+                'hash'                     => md5( $hash ),
+                'user_id'                  => get_current_user_id(),
+                'version'                  => $this->version,
+                'workerVersion'            => $this->get_worker_version(),
+                'ajaxUrl'                  => admin_url( 'admin-ajax.php' ),
+                'restUrl'                  => esc_url_raw( get_rest_url( null, '/better-messages/v1/' ) ),
+                'nonce'                    => wp_create_nonce( 'wp_rest' ),
+                'siteRefresh'              => ( isset( $this->settings['site_interval'] ) ? intval( $this->settings['site_interval'] ) * 1000 : 10000 ),
+                'threadRefresh'            => ( isset( $this->settings['thread_interval'] ) ? intval( $this->settings['thread_interval'] ) * 1000 : 3000 ),
+                'url'                      => $this->functions->get_link(),
+                'threadUrl'                => $this->functions->get_link( get_current_user_id() ) . '#/conversation/',
+                'baseUrl'                  => $this->functions->get_link( get_current_user_id() ),
+                'assets'                   => plugin_dir_url( __FILE__ ) . 'assets/',
+                'sounds'                   => apply_filters( 'bp_better_messages_sounds_assets', plugin_dir_url( __FILE__ ) . 'assets/sounds/' ),
+                'soundLevels'              => array(
                     'notification' => $this->settings['notificationSound'] / 100,
                     'sent'         => $this->settings['sentSound'] / 100,
                     'calling'      => $this->settings['callSound'] / 100,
                     'dialing'      => $this->settings['dialingSound'] / 100,
                 ),
-                'color'              => get_theme_mod( 'main-bm-color', '#21759b' ),
-                'darkColor'          => get_theme_mod( 'main-bm-color-dark', '#fff' ),
-                'locale'             => $locale,
-                'stickers'           => ( !empty( $this->settings['stipopApiKey'] ) ? '1' : '0' ),
-                'gifs'               => ( !empty( $this->settings['giphyApiKey'] ) ? '1' : '0' ),
-                'realtime'           => ( $this->realtime ? '1' : '0' ),
-                'minHeight'          => (int) $this->settings['messagesMinHeight'],
-                'maxHeight'          => (int) apply_filters( 'bp_better_messages_max_height', $this->settings['messagesHeight'] ),
-                'headerHeight'       => (int) $this->settings['fixedHeaderHeight'],
-                'sideWidth'          => (int) $this->settings['sideThreadsWidth'],
-                'favorite'           => ( $this->settings['disableFavoriteMessages'] == '1' ? '0' : '1' ),
-                'fullScreen'         => ( $this->settings['desktopFullScreen'] == '1' ? '1' : '0' ),
-                'myProfile'          => ( $this->settings['myProfileButton'] == '1' ? '1' : '0' ),
-                'replies'            => ( $this->settings['enableReplies'] == '1' ? '1' : '0' ),
-                'selfReplies'        => ( $this->settings['enableSelfReplies'] == '1' ? '1' : '0' ),
-                'privateReplies'     => ( $this->settings['privateReplies'] == '1' ? '1' : '0' ),
-                'template'           => $this->settings['template'],
-                'layout'             => $this->settings['modernLayout'],
-                'singleThread'       => ( $this->settings['singleThreadMode'] == '1' ? '1' : '0' ),
-                'forceThread'        => ( $this->settings['newThreadMode'] == '1' ? '1' : '0' ),
-                'groupThreads'       => ( $this->settings['disableGroupThreads'] == '1' ? '0' : '1' ),
-                'subjects'           => ( $this->settings['disableSubject'] == '1' ? '0' : '1' ),
-                'suggestions'        => ( $this->settings['enableUsersSuggestions'] == '1' ? '1' : '0' ),
-                'friends'            => ( $friends ? '1' : '0' ),
-                'groups'             => ( $groups ? '1' : '0' ),
-                'newThread'          => ( $this->settings['disableNewThread'] == '1' && !current_user_can( 'manage_options' ) ? '0' : '1' ),
-                'mobileFullScreen'   => ( $this->settings['mobileFullScreen'] == '1' ? '1' : '0' ),
-                'mobileSwipeBack'    => ( $this->settings['mobileSwipeBack'] == '1' ? '1' : '0' ),
-                'autoFullScreen'     => ( $this->settings['autoFullScreen'] == '1' ? '1' : '0' ),
-                'tapToOpen'          => ( $this->settings['tapToOpenMsg'] == '1' ? '1' : '0' ),
-                'emojiHash'          => get_option( 'bm-emoji-hash', '' ),
-                'emojiSet'           => $this->settings['emojiSet'],
-                'sprite'             => Better_Messages_Emojis()->getSpriteUrl(),
-                'search'             => ( $this->settings['disableSearch'] == '1' ? '0' : '1' ),
-                'datePosition'       => ( get_theme_mod( 'bm-date-position', 'message' ) === 'stack' ? 'stack' : 'message' ),
-                'timeFormat'         => ( get_theme_mod( 'bm-time-format', '24' ) === '12' ? '12' : '24' ),
-                'avatars'            => ( in_array( get_theme_mod( 'bm-avatars-list', 'show' ), ['hide_private', 'hide_groups', 'hide'] ) ? get_theme_mod( 'bm-avatars-list', 'show' ) : 'show' ),
-                'subName'            => ( in_array( get_theme_mod( 'bm-private-sub-name', 'show' ), ['online', 'subject', 'hide'] ) ? get_theme_mod( 'bm-private-sub-name', 'show' ) : 'online' ),
-                'touchEnter'         => ( $this->settings['disableEnterForTouch'] == '1' ? '0' : '1' ),
-                'loginUrl'           => apply_filters( 'better_messages_login_url', wp_login_url( add_query_arg( [] ) ) ),
-                'total_unread'       => (int) $unread_count,
-                'disableEnter'       => ( $this->settings['disableEnterForDesktop'] == '1' ? '1' : '0' ),
-                'miniClose'          => ( $this->settings['enableMiniCloseButton'] ? '1' : '0' ),
-                'miniChats'          => ( $this->realtime && $this->settings['miniChatsEnable'] ? '1' : '0' ),
-                'miniMessages'       => ( $this->realtime && $this->settings['miniThreadsEnable'] ? '1' : '0' ),
-                'combinedChats'      => ( $this->realtime && $this->settings['combinedChatsEnable'] == '1' ? '1' : '0' ),
-                'miniAudio'          => ( $this->realtime && $this->settings['miniChatAudioCall'] ? '1' : '0' ),
-                'miniVideo'          => ( $this->realtime && $this->settings['miniChatVideoCall'] ? '1' : '0' ),
-                'messagesStatus'     => ( $this->realtime && $this->settings['messagesStatus'] ? '1' : '0' ),
-                'listStatus'         => ( $this->realtime && $this->settings['messagesStatusList'] ? '1' : '0' ),
-                'statusDetails'      => ( $this->realtime && $this->settings['messagesStatusDetailed'] ? '1' : '0' ),
-                'combinedView'       => ( $this->settings['combinedView'] == '1' ? '1' : '0' ),
-                'onSiteNotification' => ( $this->settings['disableOnSiteNotification'] == '1' ? '0' : '1' ),
-                'onsitePosition'     => ( $this->settings['onsitePosition'] === 'right' ? 'right' : 'left' ),
-                'titleNotifications' => ( $this->settings['titleNotifications'] == '1' ? '1' : '0' ),
-                'hPBE'               => ( $this->settings['hidePossibleBreakingElements'] == '1' ? '1' : '0' ),
-                'userSettings'       => ( $this->settings['disableUserSettings'] == '1' ? '0' : '1' ),
-                'miniSync'           => ( $this->settings['miniChatDisableSync'] != '1' ? '1' : '0' ),
-                'pinning'            => ( $this->settings['pinnedThreads'] == '1' ? '1' : '0' ),
-                'drafts'             => ( $this->settings['enableDrafts'] == '1' ? '1' : '0' ),
-                'mobileOnsite'       => ( in_array( $this->settings['mobileOnsiteLocation'], ['top', 'bottom'] ) ? $this->settings['mobileOnsiteLocation'] : 'auto' ),
-                'enableSound'        => $enableSound,
-                'guests'             => ( Better_Messages()->guests->guest_access_enabled() ? '1' : '0' ),
-                'reports'            => ( $this->settings['allowReports'] == '1' ? '1' : '0' ),
+                'color'                    => get_theme_mod( 'main-bm-color', '#21759b' ),
+                'darkColor'                => get_theme_mod( 'main-bm-color-dark', '#fff' ),
+                'locale'                   => $locale,
+                'stickers'                 => ( !empty( $this->settings['stipopApiKey'] ) ? '1' : '0' ),
+                'gifs'                     => ( !empty( $this->settings['giphyApiKey'] ) ? '1' : '0' ),
+                'realtime'                 => ( $this->realtime ? '1' : '0' ),
+                'minHeight'                => (int) $this->settings['messagesMinHeight'],
+                'maxHeight'                => (int) apply_filters( 'bp_better_messages_max_height', $this->settings['messagesHeight'] ),
+                'headerHeight'             => (int) $this->settings['fixedHeaderHeight'],
+                'sideWidth'                => (int) $this->settings['sideThreadsWidth'],
+                'sidebarCompactMode'       => $this->settings['sidebarCompactMode'],
+                'sidebarUserToggle'        => $this->settings['sidebarUserToggle'],
+                'sidebarCompactBreakpoint' => (int) $this->settings['sidebarCompactBreakpoint'],
+                'sidebarHideBreakpoint'    => (int) $this->settings['sidebarHideBreakpoint'],
+                'favorite'                 => ( $this->settings['disableFavoriteMessages'] == '1' ? '0' : '1' ),
+                'unreadFilter'             => ( $this->settings['enableUnreadFilter'] == '1' ? '1' : '0' ),
+                'fullScreen'               => ( $this->settings['desktopFullScreen'] == '1' ? '1' : '0' ),
+                'myProfile'                => ( $this->settings['myProfileButton'] == '1' ? '1' : '0' ),
+                'replies'                  => ( $this->settings['enableReplies'] == '1' ? '1' : '0' ),
+                'selfReplies'              => ( $this->settings['enableSelfReplies'] == '1' ? '1' : '0' ),
+                'privateReplies'           => ( $this->settings['privateReplies'] == '1' ? '1' : '0' ),
+                'forwardMessages'          => ( $this->settings['enableForwardMessages'] == '1' ? '1' : '0' ),
+                'template'                 => $this->settings['template'],
+                'layout'                   => $this->settings['modernLayout'],
+                'singleThread'             => ( $this->settings['singleThreadMode'] == '1' ? '1' : '0' ),
+                'forceThread'              => ( $this->settings['newThreadMode'] == '1' ? '1' : '0' ),
+                'groupThreads'             => ( $this->settings['disableGroupThreads'] == '1' ? '0' : '1' ),
+                'subjects'                 => ( $this->settings['disableSubject'] == '1' ? '0' : '1' ),
+                'suggestions'              => ( $this->settings['enableUsersSuggestions'] == '1' ? '1' : '0' ),
+                'friends'                  => ( $friends ? '1' : '0' ),
+                'groups'                   => ( $groups ? '1' : '0' ),
+                'newThread'                => ( $this->settings['disableNewThread'] == '1' && !current_user_can( 'manage_options' ) ? '0' : '1' ),
+                'mobileFullScreen'         => ( $this->settings['mobileFullScreen'] == '1' ? '1' : '0' ),
+                'mobileSwipeBack'          => ( $this->settings['mobileSwipeBack'] == '1' ? '1' : '0' ),
+                'autoFullScreen'           => ( $this->settings['autoFullScreen'] == '1' ? '1' : '0' ),
+                'tapToOpen'                => ( $this->settings['tapToOpenMsg'] == '1' ? '1' : '0' ),
+                'emojiHash'                => get_option( 'bm-emoji-hash', '' ),
+                'emojiSet'                 => $this->settings['emojiSet'],
+                'sprite'                   => Better_Messages_Emojis()->getSpriteUrl(),
+                'search'                   => ( $this->settings['disableSearch'] == '1' ? '0' : '1' ),
+                'datePosition'             => ( get_theme_mod( 'bm-date-position', 'message' ) === 'stack' ? 'stack' : 'message' ),
+                'timeFormat'               => ( get_theme_mod( 'bm-time-format', '24' ) === '12' ? '12' : '24' ),
+                'avatars'                  => ( in_array( get_theme_mod( 'bm-avatars-list', 'show' ), ['hide_private', 'hide_groups', 'hide'] ) ? get_theme_mod( 'bm-avatars-list', 'show' ) : 'show' ),
+                'subName'                  => ( in_array( get_theme_mod( 'bm-private-sub-name', 'show' ), ['online', 'subject', 'hide'] ) ? get_theme_mod( 'bm-private-sub-name', 'show' ) : 'online' ),
+                'touchEnter'               => ( $this->settings['disableEnterForTouch'] == '1' ? '0' : '1' ),
+                'loginUrl'                 => apply_filters( 'better_messages_login_url', wp_login_url( add_query_arg( [] ) ) ),
+                'total_unread'             => (int) $unread_count,
+                'disableEnter'             => ( $this->settings['disableEnterForDesktop'] == '1' ? '1' : '0' ),
+                'miniClose'                => ( $this->settings['enableMiniCloseButton'] ? '1' : '0' ),
+                'miniChats'                => ( $this->realtime && $this->settings['miniChatsEnable'] ? '1' : '0' ),
+                'miniMessages'             => ( $this->realtime && $this->settings['miniThreadsEnable'] ? '1' : '0' ),
+                'combinedChats'            => ( $this->realtime && $this->settings['combinedChatsEnable'] == '1' ? '1' : '0' ),
+                'miniAudio'                => ( $this->realtime && $this->settings['miniChatAudioCall'] ? '1' : '0' ),
+                'miniVideo'                => ( $this->realtime && $this->settings['miniChatVideoCall'] ? '1' : '0' ),
+                'messagesStatus'           => ( $this->realtime && $this->settings['messagesStatus'] ? '1' : '0' ),
+                'listStatus'               => ( $this->realtime && $this->settings['messagesStatusList'] ? '1' : '0' ),
+                'statusDetails'            => ( $this->realtime && $this->settings['messagesStatusDetailed'] ? '1' : '0' ),
+                'combinedView'             => ( $this->settings['combinedView'] == '1' ? '1' : '0' ),
+                'onSiteNotification'       => ( $this->settings['disableOnSiteNotification'] == '1' ? '0' : '1' ),
+                'onsitePosition'           => ( $this->settings['onsitePosition'] === 'right' ? 'right' : 'left' ),
+                'titleNotifications'       => ( $this->settings['titleNotifications'] == '1' ? '1' : '0' ),
+                'hPBE'                     => ( $this->settings['hidePossibleBreakingElements'] == '1' ? '1' : '0' ),
+                'userSettings'             => ( $this->settings['disableUserSettings'] == '1' ? '0' : '1' ),
+                'miniSync'                 => ( $this->settings['miniChatDisableSync'] != '1' ? '1' : '0' ),
+                'pinning'                  => ( $this->settings['pinnedThreads'] == '1' ? '1' : '0' ),
+                'drafts'                   => ( $this->settings['enableDrafts'] == '1' ? '1' : '0' ),
+                'mobileOnsite'             => ( in_array( $this->settings['mobileOnsiteLocation'], ['top', 'bottom'] ) ? $this->settings['mobileOnsiteLocation'] : 'auto' ),
+                'enableSound'              => $enableSound,
+                'guests'                   => ( Better_Messages()->guests->guest_access_enabled() ? '1' : '0' ),
+                'reports'                  => ( $this->settings['allowReports'] == '1' ? '1' : '0' ),
             );
             $sounds_keys = [
                 'notificationSound',
@@ -593,6 +633,7 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
             }
             if ( Better_Messages_Rest_Api_Bulk_Message()->has_access() ) {
                 $script_variables['canBulk'] = '1';
+                $script_variables['adminUrl'] = admin_url();
             }
             if ( $this->settings['enableReactions'] == '1' ) {
                 $script_variables['reactions'] = Better_Messages_Reactions::instance()->get_reactions();
@@ -698,6 +739,10 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
                 case 'roles':
                     return $bp_prefix . 'bm_user_roles_index';
                     break;
+                case 'bulk_jobs':
+                    return $bp_prefix . 'bm_bulk_jobs';
+                case 'bulk_job_threads':
+                    return $bp_prefix . 'bm_bulk_job_threads';
             }
         } else {
             switch ( $table ) {
@@ -732,6 +777,10 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
                 case 'roles':
                     return $bp_prefix . 'bm_user_roles_index';
                     break;
+                case 'bulk_jobs':
+                    return $bp_prefix . 'bm_bulk_jobs';
+                case 'bulk_job_threads':
+                    return $bp_prefix . 'bm_bulk_job_threads';
             }
         }
         return false;
@@ -784,24 +833,25 @@ if ( !class_exists( 'Better_Messages' ) && !function_exists( 'bpbm_fs' ) ) {
                 // Include Freemius SDK.
                 require_once dirname( __FILE__ ) . '/vendor/freemius/start.php';
                 $bbm_fs = fs_dynamic_init( array(
-                    'id'             => '1557',
-                    'slug'           => 'bp-better-messages',
-                    'premium_slug'   => 'bp-better-messages-websocket',
-                    'type'           => 'plugin',
-                    'public_key'     => 'pk_8af54172153e9907893f32a4706e2',
-                    'is_premium'     => false,
-                    'premium_suffix' => '- WebSocket Version',
-                    'has_addons'     => true,
-                    'has_paid_plans' => true,
-                    'trial'          => array(
+                    'id'               => '1557',
+                    'slug'             => 'bp-better-messages',
+                    'premium_slug'     => 'bp-better-messages-websocket',
+                    'type'             => 'plugin',
+                    'public_key'       => 'pk_8af54172153e9907893f32a4706e2',
+                    'is_premium'       => false,
+                    'premium_suffix'   => '- WebSocket Version',
+                    'has_addons'       => true,
+                    'has_paid_plans'   => true,
+                    'trial'            => array(
                         'days'               => 3,
                         'is_require_payment' => true,
                     ),
-                    'menu'           => array(
+                    'menu'             => array(
                         'slug'    => 'bp-better-messages',
                         'support' => false,
                     ),
-                    'is_live'        => true,
+                    'is_live'          => true,
+                    'is_org_compliant' => true,
                 ) );
             }
             return $bbm_fs;

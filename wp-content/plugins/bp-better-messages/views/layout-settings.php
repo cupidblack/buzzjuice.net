@@ -93,6 +93,13 @@ $has_late_message = ob_get_clean();
         display: block;
     }
 
+    .bpbm-sub-tabs .nav-tab{
+        font-size: 13px;
+        padding: 6px 10px;
+        line-height: 1.4;
+        margin-bottom: -1px;
+    }
+
     td.attachments-formats ul{
         display: inline-block;
         vertical-align: top;
@@ -398,10 +405,44 @@ $has_late_message = ob_get_clean();
         }
 
         changeProxyVisibility();
+        changeE2EVisibility();
+        changeE2EForceVisibility();
 
         $('input[name="attachmentsProxy"]').change(function () {
             changeProxyVisibility();
         });
+
+        $('input[name="e2eEncryption"]').change(function () {
+            changeE2EVisibility();
+        });
+
+        $('input[name="e2eDefault"]').change(function () {
+            changeE2EForceVisibility();
+        });
+
+        function changeE2EVisibility() {
+            var enabled = $('input[name="e2eEncryption"]').is(':checked');
+            if ( enabled ) {
+                $('.bpbm-e2e-sub-option').find('input').prop('disabled', false);
+                $('.bpbm-e2e-disabled-overlay').hide();
+                $('.bpbm-e2e-detailed-link').show();
+                changeE2EForceVisibility();
+            } else {
+                $('.bpbm-e2e-sub-option').find('input').prop('disabled', true);
+                $('.bpbm-e2e-disabled-overlay').css('display', 'flex');
+                $('.bpbm-e2e-detailed-link').hide();
+            }
+        }
+
+        function changeE2EForceVisibility() {
+            var defaultEnabled = $('input[name="e2eDefault"]').is(':checked');
+            var $forceInput = $('input[name="e2eForceSend"]');
+            if ( defaultEnabled ) {
+                $forceInput.prop('disabled', false);
+            } else {
+                $forceInput.prop('checked', false).prop('disabled', true);
+            }
+        }
 
         $('#bpbm-proxy-method').change(function () {
             changeProxyMethodVisibility();
@@ -440,7 +481,7 @@ $has_late_message = ob_get_clean();
             }
 
             btn.attr('disabled', true);
-            result.html('<span style="color: #666;"><?php _ex( 'Testing...', 'Settings page', 'bp-better-messages' ); ?></span>');
+            result.html('<span style="color: #666;"><?php echo esc_js( _x( 'Testing...', 'Settings page', 'bp-better-messages' ) ); ?></span>');
 
             jQuery.ajax({
                 url: '<?php echo esc_url( get_rest_url( null, 'better-messages/v1/admin/testProxyMethod' ) ); ?>',
@@ -453,12 +494,12 @@ $has_late_message = ob_get_clean();
                 }
             }).done(function(response) {
                 if ( response.trim() === 'BM_PROXY_TEST_OK' ) {
-                    result.html('<span style="color: #00a32a; font-weight: bold;"><?php _ex( 'Working!', 'Settings page', 'bp-better-messages' ); ?></span>');
+                    result.html('<span style="color: #00a32a; font-weight: bold;"><?php echo esc_js( _x( 'Working!', 'Settings page', 'bp-better-messages' ) ); ?></span>');
                 } else {
-                    result.html('<span style="color: #d63638;"><?php _ex( 'Failed — method not supported by your server', 'Settings page', 'bp-better-messages' ); ?></span>');
+                    result.html('<span style="color: #d63638;"><?php echo esc_js( _x( 'Failed — method not supported by your server', 'Settings page', 'bp-better-messages' ) ); ?></span>');
                 }
             }).fail(function() {
-                result.html('<span style="color: #d63638;"><?php _ex( 'Failed — method not supported by your server', 'Settings page', 'bp-better-messages' ); ?></span>');
+                result.html('<span style="color: #d63638;"><?php echo esc_js( _x( 'Failed — method not supported by your server', 'Settings page', 'bp-better-messages' ) ); ?></span>');
             }).always(function() {
                 btn.attr('disabled', false);
             });
@@ -607,7 +648,7 @@ $has_late_message = ob_get_clean();
             var currentVal = modelSelect.val();
 
             modelSelect.prop('disabled', true);
-            modelSelect.html('<option value="' + currentVal + '"><?php _ex( 'Loading...', 'Settings page', 'bp-better-messages' ); ?></option>');
+            modelSelect.html('<option value="' + currentVal + '"><?php echo esc_js( _x( 'Loading...', 'Settings page', 'bp-better-messages' ) ); ?></option>');
 
             jQuery.ajax({
                 url: '<?php echo esc_url( get_rest_url( null, 'better-messages/v1/admin/ai/getTranscriptionModels' ) ); ?>',
@@ -892,7 +933,9 @@ $has_late_message = ob_get_clean();
                                     $output .= "\t<option value=\"woocommerce\" " . selected($parsed_args['selected'], 'woocommerce', false) . ">" . _x('Show in WooCommerce My Account',  'Settings page', 'bp-better-message' ) . "</option>\n";
                                 }
 
-
+                                if( defined('SUREDASHBOARD_VER') ) {
+                                    $output .= "\t<option value=\"suredash-portal\" " . selected($parsed_args['selected'], 'suredash-portal', false) . ">" . _x('Show in SureDash Portal',  'Settings page', 'bp-better-messages' ) . "</option>\n";
+                                }
 
                                 if ( ! empty( $pages ) ) {
                                     $output .= walk_page_dropdown_tree( $pages, $parsed_args['depth'], $parsed_args );
@@ -996,6 +1039,24 @@ $has_late_message = ob_get_clean();
                             </td>
                         </tr>
 
+                        <?php $bm_e2e_ssl_ok = is_ssl() || defined( 'BM_DEV' ); ?>
+                        <tr>
+                            <th scope="row">
+                                <?php _ex( 'Enable End-to-End Encryption', 'Settings page', 'bp-better-messages' ); ?>
+                                <p style="font-size: 10px;"><?php _ex( 'Allow users to create end-to-end encrypted conversations where only participants can decrypt messages and files. The server never sees the message and files content.', 'Settings page', 'bp-better-messages' ); ?></p>
+                                <?php if ( ! $bm_e2e_ssl_ok ) : ?>
+                                    <p style="font-size: 10px; color: #d63638; font-weight: bold;"><?php _ex( 'End-to-end encryption requires HTTPS. Please enable SSL on your site to use this feature.', 'Settings page', 'bp-better-messages' ); ?></p>
+                                <?php endif; ?>
+                                <p class="bpbm-e2e-detailed-link" style="font-size: 10px; <?php if ( $this->settings['e2eEncryption'] !== '1' ) echo 'display:none;'; ?>"><a href="#messaging" onclick="jQuery('a.nav-tab[href=\'#messaging\']').click(); setTimeout(function(){ document.getElementById('bm-e2e-settings').scrollIntoView({behavior:'smooth'}); }, 100);"><?php _ex( 'Detailed settings', 'Settings page', 'bp-better-messages' ); ?> &rarr;</a></p>
+                            </th>
+                            <td>
+                                <fieldset>
+                                    <input name="e2eEncryption" type="checkbox" <?php checked( $this->settings[ 'e2eEncryption' ], '1' ); ?> value="1" <?php if( ! $bm_e2e_ssl_ok || ! Better_Messages()->functions->can_use_premium_code() || ! bpbm_fs()->is_premium() ) echo 'disabled'; ?> />
+                                    <?php Better_Messages()->functions->license_proposal(); ?>
+                                </fieldset>
+                            </td>
+                        </tr>
+
                         <tr>
                             <th scope="row" style="width: 300px">
                                 <?php _ex( 'Messages styling', 'Settings page', 'bp-better-messages' ); ?>
@@ -1067,8 +1128,9 @@ $has_late_message = ob_get_clean();
 
                         <tr valign="top" class="">
                             <th scope="row" valign="top">
-                                <?php _ex( 'Combined View', 'Settings page', 'bp-better-messages' ); ?>
+                                <?php _ex( 'Side Conversations List', 'Settings page', 'bp-better-messages' ); ?>
                                 <p style="font-size: 10px;"><?php _ex( 'Always show conversation list on left side of conversation', 'Settings page', 'bp-better-messages' ); ?></p>
+                                <p style="font-size: 10px;"><a href="#messaging" onclick="jQuery('a.nav-tab[href=\'#messaging\']').click(); setTimeout(function(){ document.getElementById('bm-sidebar-settings').scrollIntoView({behavior:'smooth'}); }, 100);"><?php _ex( 'Detailed settings', 'Settings page', 'bp-better-messages' ); ?> &rarr;</a></p>
                             </th>
                             <td>
                                 <input name="combinedView" type="checkbox" <?php checked( $this->settings[ 'combinedView' ], '1' ); ?> value="1" />
@@ -1192,11 +1254,11 @@ $has_late_message = ob_get_clean();
                                             var showLocked = true;
                                             if (code === 'license_valid') {
                                                 checking.parent().addClass('bpbm-ok');
-                                                var message = '<span class="dashicons dashicons-yes-alt"></span> <?php echo esc_attr_x('All good, WebSocket server know about this domain, all should be working good.', 'Settings page', 'bp-better-messages'); ?>';
+                                                var message = '<span class="dashicons dashicons-yes-alt"></span> <?php echo esc_js( _x('All good, WebSocket server know about this domain, all should be working good.', 'Settings page', 'bp-better-messages') ); ?>';
                                             } else {
                                                 checking.parent().addClass('bpbm-error');
 
-                                                var message = '<span class="dashicons dashicons-dismiss"></span> <?php echo esc_attr_x('WebSocket server does not know about this domain, realtime functionality will not work. Please ensure that license is attached properly to this website.', 'Settings page', 'bp-better-messages'); ?>';
+                                                var message = '<span class="dashicons dashicons-dismiss"></span> <?php echo esc_js( _x('WebSocket server does not know about this domain, realtime functionality will not work. Please ensure that license is attached properly to this website.', 'Settings page', 'bp-better-messages') ); ?>';
 
                                                 if (code === 'license_valid_but_not_for_domain') {
                                                     if (Array.isArray(response.domains) && response.domains.length > 0) {
@@ -1473,6 +1535,64 @@ $has_late_message = ob_get_clean();
                             </table>
                         </fieldset>
                     </td>
+                </tr>
+
+                <?php $bm_e2e_enabled = $this->settings['e2eEncryption'] === '1'; ?>
+                <tr id="bm-e2e-settings" class="bpbm-e2e-sub-option">
+                    <th scope="row">
+                        <?php _ex( 'End-to-End Encryption', 'Settings page', 'bp-better-messages' ); ?>
+                        <p style="font-size: 10px;"><?php _ex( 'Settings related to end-to-end encrypted conversations', 'Settings page', 'bp-better-messages' ); ?></p>
+                    </th>
+                    <td>
+                        <fieldset>
+                            <div style="position: relative; display: inline-block;">
+                                <table class="widefat bm-switcher-table">
+                                    <tbody>
+                                    <tr>
+                                        <td>
+                                            <input name="e2eDefault" type="checkbox" <?php checked( $this->settings[ 'e2eDefault' ], '1' ); ?> value="1" <?php if( ! $bm_e2e_enabled ) echo 'disabled'; ?> />
+                                        </td>
+                                        <th>
+                                            <?php _ex( 'Enabled by default', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'The encryption toggle will be pre-checked when users create new conversations.', 'Settings page', 'bp-better-messages' ); ?></p>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input name="e2eForceSend" type="checkbox" <?php checked( $this->settings[ 'e2eForceSend' ], '1' ); ?> value="1" <?php if( ! $bm_e2e_enabled || $this->settings[ 'e2eDefault' ] !== '1' ) echo 'disabled'; ?> />
+                                        </td>
+                                        <th>
+                                            <?php _ex( 'Force for all conversations', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'All new private conversations will be end-to-end encrypted. Users cannot disable encryption.', 'Settings page', 'bp-better-messages' ); ?></p>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input name="e2eAllowGuests" type="checkbox" <?php checked( $this->settings[ 'e2eAllowGuests' ], '1' ); ?> value="1" <?php if( ! $bm_e2e_enabled ) echo 'disabled'; ?> />
+                                        </td>
+                                        <th>
+                                            <?php _ex( 'Allow guest users', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'Allow guest chat users to participate in end-to-end encrypted conversations. AI chat bots are always excluded.', 'Settings page', 'bp-better-messages' ); ?></p>
+                                        </th>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <?php $license_message = Better_Messages()->functions->license_proposal( true );
+                                if( empty( $license_message ) ) { ?>
+                                <div class="bpbm-e2e-disabled-overlay" style="box-sizing: border-box;position:absolute;top:0;left:0;background: #ffffffb8;width: 100%;height: 100%;text-align: center;display: flex;align-items: center;justify-content: center;z-index: 1;<?php if ( $bm_e2e_enabled ) echo 'display:none;'; ?>">
+                                    <?php _ex( 'Enable End-to-End Encryption in the General tab to configure these settings.', 'Settings page', 'bp-better-messages' ); ?>
+                                </div>
+                                <?php }
+                                if( ! empty( $license_message ) ) { ?>
+                                    <div style="box-sizing: border-box;position:absolute;top:0;left:0;background: #ffffffb8;width: 100%;height: 100%;text-align: center;display: flex;align-items: center;justify-content: center;z-index: 2;">
+                                        <?php echo $license_message; ?>
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        </fieldset>
+                    </td>
+                </tr>
+
                 <tr>
                     <th scope="row">
                         <?php _ex( 'Messages functions', 'Settings page','bp-better-messages' ); ?>
@@ -1534,6 +1654,31 @@ $has_late_message = ob_get_clean();
                                     <th>
                                         <?php _ex( 'Add "Private Message" button to message context menu', 'Settings page', 'bp-better-messages' ); ?>
                                         <p style="font-size: 10px;"><?php _ex( 'Enables easy way to send message to specific user in group conversations by opening his message context menu', 'Settings page', 'bp-better-messages' ); ?></p>
+                                    </th>
+                                </tr>
+
+                                <tr valign="top" class="">
+                                    <td>
+                                        <input name="enableForwardMessages" type="checkbox" <?php checked( $this->settings[ 'enableForwardMessages' ], '1' ); ?> value="1" />
+                                    </td>
+                                    <th>
+                                        <?php _ex( 'Enable Forward Messages', 'Settings page', 'bp-better-messages' ); ?>
+                                        <p style="font-size: 10px;"><?php _ex( 'Allow users to forward messages to other conversations', 'Settings page', 'bp-better-messages' ); ?></p>
+                                    </th>
+                                </tr>
+                                <tr valign="top">
+                                    <td style="padding:0"></td>
+                                    <th style="padding:0">
+                                        <table>
+                                            <tbody>
+                                            <tr>
+                                                <td style="padding:0">
+                                                    <input style="vertical-align: middle;" name="forwardMessagesAttribution" type="checkbox" <?php checked( $this->settings[ 'forwardMessagesAttribution' ], '1' ); ?> value="1" />
+                                                    <label style="padding-left:5px"><?php _ex( 'Show "Forwarded from" attribution on forwarded messages', 'Settings page', 'bp-better-messages' ); ?></label>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
                                     </th>
                                 </tr>
 
@@ -1834,6 +1979,16 @@ $has_late_message = ob_get_clean();
 
                                 <tr valign="top" class="">
                                     <td>
+                                        <input name="enableUnreadFilter" type="checkbox" <?php checked( $this->settings[ 'enableUnreadFilter' ], '1' ); ?> value="1" />
+                                    </td>
+                                    <th scope="row" valign="top">
+                                        <?php _ex( 'Enable Unread Filter', 'Settings page', 'bp-better-messages' ); ?>
+                                        <p style="font-size: 10px;"><?php _ex( 'Enables button to filter conversations list to show only unread conversations', 'Settings page', 'bp-better-messages' ); ?></p>
+                                    </th>
+                                </tr>
+
+                                <tr valign="top" class="">
+                                    <td>
                                         <input name="disableUserSettings" type="checkbox" <?php checked( $this->settings[ 'disableUserSettings' ], '1' ); ?> value="1" />
                                     </td>
                                     <th scope="row" valign="top">
@@ -1909,15 +2064,68 @@ $has_late_message = ob_get_clean();
                                     </td>
                                 </tr>
 
-                                <tr valign="top" class="">
+                                <tr valign="top" class="" id="bm-sidebar-settings">
                                     <th scope="row" valign="top" class="th-left-pd">
-                                        <?php _ex( 'Side conversation list width', 'Settings page', 'bp-better-messages' ); ?>
-                                        <p style="font-size: 10px;"><?php _ex( 'Side conversation list width when Combined View is enabled in pixels', 'Settings page', 'bp-better-messages' ); ?></p>
+                                        <?php _ex( 'Side Conversations List Width', 'Settings page', 'bp-better-messages' ); ?>
+                                        <p style="font-size: 10px;"><?php _ex( 'Side Conversations List width in pixels', 'Settings page', 'bp-better-messages' ); ?></p>
                                     </th>
                                     <td>
                                         <input type="number" name="sideThreadsWidth" value="<?php echo esc_attr( $this->settings[ 'sideThreadsWidth' ] ); ?>">
                                     </td>
                                 </tr>
+
+                                <tr valign="top" class="">
+                                    <th scope="row" valign="top" class="th-left-pd">
+                                        <?php _ex( 'Sidebar Compact Mode', 'Settings page', 'bp-better-messages' ); ?>
+                                        <p style="font-size: 10px;"><?php _ex( 'Controls how the sidebar behaves when container width is limited', 'Settings page', 'bp-better-messages' ); ?></p>
+                                    </th>
+                                    <td>
+                                        <select name="sidebarCompactMode">
+                                            <option value="auto" <?php selected( 'auto', $this->settings['sidebarCompactMode'] ); ?>>
+                                                <?php _ex( 'Auto — compact/expand based on container width', 'Settings page', 'bp-better-messages' ); ?>
+                                            </option>
+                                            <option value="always_expanded" <?php selected( 'always_expanded', $this->settings['sidebarCompactMode'] ); ?>>
+                                                <?php _ex( 'Always Expanded — never compact, hide when too narrow', 'Settings page', 'bp-better-messages' ); ?>
+                                            </option>
+                                            <option value="always_compact" <?php selected( 'always_compact', $this->settings['sidebarCompactMode'] ); ?>>
+                                                <?php _ex( 'Always Compact — always show icons-only sidebar', 'Settings page', 'bp-better-messages' ); ?>
+                                            </option>
+                                        </select>
+                                    </td>
+                                </tr>
+
+                                <tr valign="top" class="">
+                                    <th scope="row" valign="top" class="th-left-pd">
+                                        <?php _ex( 'Allow users to toggle sidebar', 'Settings page', 'bp-better-messages' ); ?>
+                                        <p style="font-size: 10px;"><?php _ex( 'Show expand/collapse toggle button on sidebar border', 'Settings page', 'bp-better-messages' ); ?></p>
+                                    </th>
+                                    <td>
+                                        <input name="sidebarUserToggle" type="checkbox" value="1" <?php checked( $this->settings['sidebarUserToggle'], '1' ); ?> />
+                                    </td>
+                                </tr>
+
+                                <tr valign="top" class="">
+                                    <th scope="row" valign="top" class="th-left-pd">
+                                        <?php _ex( 'Compact Breakpoint', 'Settings page', 'bp-better-messages' ); ?>
+                                        <p style="font-size: 10px;"><?php _ex( 'Container width in pixels below which sidebar auto-compacts. Set 0 for auto-detection.', 'Settings page', 'bp-better-messages' ); ?></p>
+                                    </th>
+                                    <td>
+                                        <input type="number" name="sidebarCompactBreakpoint" value="<?php echo esc_attr( $this->settings['sidebarCompactBreakpoint'] ); ?>" min="0" step="1">
+                                        <?php _ex( 'px', 'Settings page', 'bp-better-messages' ); ?>
+                                    </td>
+                                </tr>
+
+                                <tr valign="top" class="">
+                                    <th scope="row" valign="top" class="th-left-pd">
+                                        <?php _ex( 'Hide Breakpoint', 'Settings page', 'bp-better-messages' ); ?>
+                                        <p style="font-size: 10px;"><?php _ex( 'Container width in pixels below which sidebar hides entirely. Set 0 for auto-detection.', 'Settings page', 'bp-better-messages' ); ?></p>
+                                    </th>
+                                    <td>
+                                        <input type="number" name="sidebarHideBreakpoint" value="<?php echo esc_attr( $this->settings['sidebarHideBreakpoint'] ); ?>" min="0" step="1">
+                                        <?php _ex( 'px', 'Settings page', 'bp-better-messages' ); ?>
+                                    </td>
+                                </tr>
+
                                 </tbody>
                             </table>
                         </fieldset>
@@ -1958,6 +2166,7 @@ $has_late_message = ob_get_clean();
                 </tr>
                 </tbody>
             </table>
+
         </div>
 
 
@@ -2317,6 +2526,215 @@ $has_late_message = ob_get_clean();
                         <input name="attachmentsBrowserEnable" type="checkbox" <?php checked( $this->settings[ 'attachmentsBrowserEnable' ], '1' ); ?> value="1" />
                     </td>
                 </tr>
+
+                <tr valign="top" class="">
+                    <th scope="row" valign="top">
+                        <?php _ex( 'Optimize images', 'Settings page', 'bp-better-messages' ); ?>
+                        <p style="font-size: 10px;"><?php _ex( 'Convert uploaded images (PNG, BMP, TIFF, etc.) to the best format supported by the browser (AVIF, WebP or JPEG) before uploading.', 'Settings page', 'bp-better-messages' ); ?></p>
+                        <p style="font-size: 10px;"><?php _ex( 'HEIC/HEIF images from iPhones are always converted regardless of this setting, since browsers cannot display them.', 'Settings page', 'bp-better-messages' ); ?></p>
+                    </th>
+                    <?php $image_opt_enabled = $this->settings['transcodingImageFormat'] !== 'original'; ?>
+                    <td>
+                        <input type="hidden" name="transcodingImageFormat" value="original" />
+                        <label>
+                            <input type="checkbox" id="bpbm-transcoding-image-format" name="transcodingImageFormat" value="avif" <?php checked( $image_opt_enabled ); ?> />
+                            <?php _ex( 'Enable image optimization', 'Settings page', 'bp-better-messages' ); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr valign="top" class="bpbm-transcoding-quality-row" style="<?php if ( ! $image_opt_enabled ) echo 'display:none;'; ?>">
+                    <th scope="row" valign="top">
+                        <?php _ex( 'Image quality', 'Settings page', 'bp-better-messages' ); ?>
+                        <p style="font-size: 10px;"><?php _ex( 'Higher values preserve more detail but produce larger files. 85 is recommended for most use cases.', 'Settings page', 'bp-better-messages' ); ?></p>
+                    </th>
+                    <td>
+                        <input type="range" name="transcodingImageQuality" id="bpbm-transcoding-quality" min="1" max="100" value="<?php echo intval( $this->settings['transcodingImageQuality'] ); ?>" style="vertical-align: middle;" />
+                        <span id="bpbm-transcoding-quality-value" style="margin-left: 8px; font-weight: bold;"><?php echo intval( $this->settings['transcodingImageQuality'] ); ?></span>
+                    </td>
+                </tr>
+                <tr valign="top" class="bpbm-transcoding-quality-row" style="<?php if ( ! $image_opt_enabled ) echo 'display:none;'; ?>">
+                    <th scope="row" valign="top">
+                        <?php _ex( 'Max image resolution', 'Settings page', 'bp-better-messages' ); ?>
+                        <p style="font-size: 10px;"><?php _ex( 'Downscale images so neither width nor height exceeds this value. Set 0 for no limit.', 'Settings page', 'bp-better-messages' ); ?></p>
+                    </th>
+                    <td>
+                        <input type="number" name="transcodingImageMaxResolution" min="0" step="1" value="<?php echo intval( $this->settings['transcodingImageMaxResolution'] ); ?>" /> px
+                    </td>
+                </tr>
+                <?php
+                $ffmpeg_installed = Better_Messages_Files::is_ffmpeg_installed();
+                $video_enabled = $this->settings['transcodingVideoFormat'] === 'mp4';
+                ?>
+                <tr valign="top" class="">
+                    <th scope="row" valign="top">
+                        <?php _ex( 'Optimize videos', 'Settings page', 'bp-better-messages' ); ?>
+                        <p style="font-size: 10px;"><?php _ex( 'Convert uploaded videos (MOV, AVI, WMV) to MP4 in the browser before uploading.', 'Settings page', 'bp-better-messages' ); ?></p>
+                        <p style="font-size: 10px;"><?php _ex( 'iPhone MOV files with H.264 are remuxed instantly without re-encoding.', 'Settings page', 'bp-better-messages' ); ?></p>
+                        <p style="font-size: 10px;"><?php _ex( 'Recommended for cross-platform compatibility — MOV files from iPhones may not play on Android and Windows devices.', 'Settings page', 'bp-better-messages' ); ?></p>
+                    </th>
+                    <td>
+                        <input type="hidden" name="transcodingVideoFormat" value="original" />
+                        <label>
+                            <input type="checkbox" id="bpbm-transcoding-video-format" name="transcodingVideoFormat" value="mp4" <?php checked( $video_enabled ); ?> />
+                            <?php _ex( 'Enable video conversion to MP4 (H.264)', 'Settings page', 'bp-better-messages' ); ?>
+                        </label>
+                    </td>
+                </tr>
+                <tr valign="top" class="bpbm-video-engine-row" style="<?php if ( ! $video_enabled ) echo 'display:none;'; ?>">
+                    <th scope="row" valign="top">
+                        <?php _ex( 'Video engine', 'Settings page', 'bp-better-messages' ); ?>
+                        <p style="font-size: 10px;"><?php _ex( 'FFmpeg WASM engine required for video conversion. Downloaded once to your server (~30MB). All processing happens in the user\'s browser.', 'Settings page', 'bp-better-messages' ); ?></p>
+                    </th>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                        <?php if ( $ffmpeg_installed ) :
+                            $ffmpeg_info = Better_Messages_Files::get_ffmpeg_info();
+                            ?>
+                            <span style="color: #00a32a; font-weight: bold;">
+                                <?php printf( _x( 'Installed (%s)', 'Settings page', 'bp-better-messages' ), esc_html( $ffmpeg_info['size'] ) ); ?>
+                            </span>
+                            <button type="button" class="button" id="bpbm-ffmpeg-remove"><?php _ex( 'Remove', 'Settings page', 'bp-better-messages' ); ?></button>
+                        <?php else : ?>
+                            <span style="color: #d63638; font-weight: bold;"><?php _ex( 'Not installed', 'Settings page', 'bp-better-messages' ); ?></span>
+                            <button type="button" class="button button-primary" id="bpbm-ffmpeg-download"><?php _ex( 'Download video engine', 'Settings page', 'bp-better-messages' ); ?></button>
+                        <?php endif; ?>
+                        </div>
+                        <script type="text/javascript">
+                            (function(){
+                                var imageOptCheckbox = document.getElementById('bpbm-transcoding-image-format');
+                                var qualityRow = document.querySelector('.bpbm-transcoding-quality-row');
+                                var qualitySlider = document.getElementById('bpbm-transcoding-quality');
+                                var qualityValue = document.getElementById('bpbm-transcoding-quality-value');
+
+                                if (imageOptCheckbox && qualityRow) {
+                                    imageOptCheckbox.addEventListener('change', function(){
+                                        qualityRow.style.display = this.checked ? '' : 'none';
+                                    });
+                                }
+
+                                if (qualitySlider && qualityValue) {
+                                    qualitySlider.addEventListener('input', function(){
+                                        qualityValue.textContent = this.value;
+                                    });
+                                }
+
+                                var videoCheckbox = document.getElementById('bpbm-transcoding-video-format');
+                                var videoEngineRow = document.querySelector('.bpbm-video-engine-row');
+                                if (videoCheckbox && videoEngineRow) {
+                                    videoCheckbox.addEventListener('change', function(){
+                                        videoEngineRow.style.display = this.checked ? '' : 'none';
+                                    });
+                                }
+
+                                var downloadBtn = document.getElementById('bpbm-ffmpeg-download');
+                                var removeBtn = document.getElementById('bpbm-ffmpeg-remove');
+                                var downloadBtnOriginalText = downloadBtn ? downloadBtn.textContent : '';
+                                var removeBtnOriginalText = removeBtn ? removeBtn.textContent : '';
+
+                                if (downloadBtn) {
+                                    downloadBtn.addEventListener('click', function(){
+                                        downloadBtn.disabled = true;
+                                        downloadBtn.textContent = '<?php _ex( 'Downloading...', 'Settings page', 'bp-better-messages' ); ?>';
+
+                                        fetch(ajaxurl + '?action=bm_download_ffmpeg&_wpnonce=<?php echo wp_create_nonce( 'bm_ffmpeg_action' ); ?>', {
+                                            method: 'POST',
+                                        }).then(function(r){ return r.json(); }).then(function(data){
+                                            if (data.success) {
+                                                downloadBtn.textContent = '<?php _ex( 'Downloaded! Reloading...', 'Settings page', 'bp-better-messages' ); ?>';
+                                                location.reload();
+                                            } else {
+                                                downloadBtn.textContent = data.data || 'Download failed';
+                                                setTimeout(function(){ downloadBtn.textContent = downloadBtnOriginalText; downloadBtn.disabled = false; }, 3000);
+                                            }
+                                        }).catch(function(e){
+                                            downloadBtn.textContent = e.message || 'Download failed';
+                                            setTimeout(function(){ downloadBtn.textContent = downloadBtnOriginalText; downloadBtn.disabled = false; }, 3000);
+                                        });
+                                    });
+                                }
+
+                                if (removeBtn) {
+                                    removeBtn.addEventListener('click', function(){
+                                        if (!confirm('<?php _ex( 'Remove the video engine?', 'Settings page', 'bp-better-messages' ); ?>')) return;
+                                        removeBtn.disabled = true;
+                                        removeBtn.textContent = '<?php _ex( 'Removing...', 'Settings page', 'bp-better-messages' ); ?>';
+
+                                        fetch(ajaxurl + '?action=bm_remove_ffmpeg&_wpnonce=<?php echo wp_create_nonce( 'bm_ffmpeg_action' ); ?>', {
+                                            method: 'POST',
+                                        }).then(function(r){ return r.json(); }).then(function(data){
+                                            if (data.success) {
+                                                location.reload();
+                                            } else {
+                                                removeBtn.textContent = data.data || 'Failed';
+                                                setTimeout(function(){ removeBtn.textContent = removeBtnOriginalText; removeBtn.disabled = false; }, 3000);
+                                            }
+                                        }).catch(function(e){
+                                            removeBtn.textContent = e.message;
+                                            setTimeout(function(){ removeBtn.textContent = removeBtnOriginalText; removeBtn.disabled = false; }, 3000);
+                                        });
+                                    });
+                                }
+                            })();
+                        </script>
+                    </td>
+                </tr>
+                <tr valign="top" class="">
+                    <th scope="row" valign="top">
+                        <?php _ex( 'WASM headers test', 'Settings page', 'bp-better-messages' ); ?>
+                        <p style="font-size: 10px;"><?php _ex( 'Verify your server delivers WASM files with the correct Content-Type header. If this test fails, image and video conversion will not work.', 'Settings page', 'bp-better-messages' ); ?></p>
+                    </th>
+                    <td>
+                        <button type="button" class="button" id="bpbm-test-wasm"><?php _ex( 'Test', 'Settings page', 'bp-better-messages' ); ?></button>
+                        <span id="bpbm-wasm-test-result" style="margin-left: 8px;"></span>
+                        <script type="text/javascript">
+                            (function(){
+                                var btn = document.getElementById('bpbm-test-wasm');
+                                var result = document.getElementById('bpbm-wasm-test-result');
+                                var wasmUrls = [
+                                    { name: 'libheif', url: '<?php echo esc_url( Better_Messages_Files::get_libheif_wasm_url() ); ?>' },
+                                    <?php if ( $ffmpeg_installed ) : ?>
+                                    { name: 'FFmpeg', url: '<?php echo esc_url( Better_Messages_Files::get_ffmpeg_wasm_url() . 'ffmpeg-core.wasm' ); ?>' },
+                                    <?php endif; ?>
+                                ];
+
+                                btn.addEventListener('click', function(){
+                                    btn.disabled = true;
+                                    result.innerHTML = '<span style="color: #666;"><?php echo esc_js( _x( 'Testing...', 'Settings page', 'bp-better-messages' ) ); ?></span>';
+
+                                    Promise.all(wasmUrls.map(function(item){
+                                        return fetch(item.url, { method: 'HEAD' }).then(function(r){
+                                            var ct = r.headers.get('content-type') || '';
+                                            return { name: item.name, ok: ct.indexOf('application/wasm') !== -1, contentType: ct, status: r.status };
+                                        }).catch(function(e){
+                                            return { name: item.name, ok: false, contentType: e.message, status: 0 };
+                                        });
+                                    })).then(function(results){
+                                        var failed = results.filter(function(r){ return !r.ok; });
+                                        if (failed.length === 0) {
+                                            result.innerHTML = '<span style="color: #00a32a; font-weight: bold;"><?php echo esc_js( _x( 'All WASM files served correctly', 'Settings page', 'bp-better-messages' ) ); ?></span>';
+                                        } else {
+                                            var msgs = failed.map(function(f){
+                                                return f.name + ': ' + (f.contentType || 'no response');
+                                            });
+                                            result.innerHTML = '<span style="color: #d63638;"><?php echo esc_js( _x( 'Wrong Content-Type:', 'Settings page', 'bp-better-messages' ) ); ?> ' + msgs.join(', ') + '</span>';
+                                        }
+                                        btn.disabled = false;
+                                    });
+                                });
+                            })();
+                        </script>
+                    </td>
+                </tr>
+                <tr valign="top" class="">
+                    <th scope="row" valign="top">
+                        <?php _ex( 'Strip metadata', 'Settings page', 'bp-better-messages' ); ?>
+                        <p style="font-size: 10px;"><?php _ex( 'Remove EXIF data, GPS location, camera info and other metadata from uploaded images and videos to protect user privacy.', 'Settings page', 'bp-better-messages' ); ?></p>
+                        <p style="font-size: 10px;"><?php _ex( 'Images are cleaned by re-encoding in the browser. Falls back to server-side stripping if client-side processing is unavailable. Video metadata requires video optimization to be enabled.', 'Settings page', 'bp-better-messages' ); ?></p>
+                    </th>
+                    <td>
+                        <input name="transcodingStripMetadata" type="checkbox" <?php checked( $this->settings['transcodingStripMetadata'], '1' ); ?> value="1" />
+                    </td>
+                </tr>
                 <tr valign="top" class="">
                     <th scope="row" valign="top">
                         <?php _ex( 'Protect files with proxy', 'Settings page', 'bp-better-messages' ); ?>
@@ -2442,6 +2860,11 @@ $has_late_message = ob_get_clean();
                         <?php _ex( 'Allowed formats', 'Settings page', 'bp-better-messages' ); ?>
                     </th>
                     <td class="attachments-formats">
+                        <div style="margin-bottom: 10px;">
+                            <button type="button" class="button" id="bpbm-formats-defaults"><?php _ex( 'Set defaults', 'Settings page', 'bp-better-messages' ); ?></button>
+                            <button type="button" class="button" id="bpbm-formats-select-all"><?php _ex( 'Select all', 'Settings page', 'bp-better-messages' ); ?></button>
+                            <button type="button" class="button" id="bpbm-formats-deselect-all"><?php _ex( 'Deselect all', 'Settings page', 'bp-better-messages' ); ?></button>
+                        </div>
                         <fieldset>
                             <legend class="screen-reader-text">
                                 <span><?php _ex( 'Allowed formats', 'Settings page', 'bp-better-messages' ); ?></span>
@@ -2461,6 +2884,80 @@ $has_late_message = ob_get_clean();
                                 </ul>
                             <?php } ?>
                         </fieldset>
+                        <script type="text/javascript">
+                            (function(){
+                                var defaultFormats = [
+                                    'jpg', 'jpeg', 'jpe', 'png', 'gif', 'webp', 'avif', 'heic',
+                                    'mp3', 'm4a', 'ogg', 'wav', 'flac',
+                                    'mp4', 'mov', 'webm',
+                                    'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'txt', 'rtf', 'csv',
+                                    'zip'
+                                ];
+
+                                // Protected format logic
+                                var allOutputExts = ['jpg','jpeg','webp','avif'];
+                                var imageOptCheckbox = document.getElementById('bpbm-transcoding-image-format');
+
+                                function getProtectedExts() {
+                                    if (imageOptCheckbox && imageOptCheckbox.checked) return allOutputExts;
+                                    var heicCb = document.querySelector('input[name="attachmentsFormats[]"][value="heic"]');
+                                    if (heicCb && heicCb.checked) return ['jpg','jpeg'];
+                                    return [];
+                                }
+
+                                function enforceProtectedExts() {
+                                    var exts = getProtectedExts();
+                                    exts.forEach(function(ext){
+                                        var cb = document.querySelector('input[name="attachmentsFormats[]"][value="' + ext + '"]');
+                                        if (cb && !cb.checked) cb.checked = true;
+                                    });
+                                }
+
+                                // Button handlers
+                                document.getElementById('bpbm-formats-defaults').addEventListener('click', function(){
+                                    document.querySelectorAll('input[name="attachmentsFormats[]"]').forEach(function(cb){
+                                        cb.checked = defaultFormats.indexOf(cb.value) !== -1;
+                                    });
+                                    enforceProtectedExts();
+                                });
+
+                                document.getElementById('bpbm-formats-select-all').addEventListener('click', function(){
+                                    document.querySelectorAll('input[name="attachmentsFormats[]"]').forEach(function(cb){
+                                        cb.checked = true;
+                                    });
+                                });
+
+                                document.getElementById('bpbm-formats-deselect-all').addEventListener('click', function(){
+                                    document.querySelectorAll('input[name="attachmentsFormats[]"]').forEach(function(cb){
+                                        cb.checked = false;
+                                    });
+                                    enforceProtectedExts();
+                                });
+
+                                // Checkbox change guard
+                                document.querySelectorAll('input[name="attachmentsFormats[]"]').forEach(function(cb){
+                                    cb.addEventListener('change', function(){
+                                        if (this.checked) return;
+                                        var exts = getProtectedExts();
+                                        if (exts.indexOf(this.value) !== -1) {
+                                            this.checked = true;
+                                            if (imageOptCheckbox && imageOptCheckbox.checked) {
+                                                alert('<?php echo esc_js( _x( 'This format cannot be disabled while image optimization is enabled. The browser may output AVIF, WebP or JPEG depending on support. Disable image optimization first.', 'Settings page', 'bp-better-messages' ) ); ?>');
+                                            } else {
+                                                alert('<?php echo esc_js( _x( 'This format cannot be disabled while HEIC is enabled. HEIC images are always converted to JPEG since browsers cannot display HEIC natively. Disable HEIC first.', 'Settings page', 'bp-better-messages' ) ); ?>');
+                                            }
+                                        }
+                                    });
+                                });
+
+                                // When image optimization checkbox changes, enforce protected extensions
+                                if (imageOptCheckbox) {
+                                    imageOptCheckbox.addEventListener('change', function(){
+                                        enforceProtectedExts();
+                                    });
+                                }
+                            })();
+                        </script>
                     </td>
                 </tr>
                 </tbody>
@@ -2979,7 +3476,7 @@ $has_late_message = ob_get_clean();
                     // Select email logo from media library
                     function selectEmailLogo() {
                         var selectFrame = wp.media({
-                            title: '<?php _ex( 'Select Email Logo', 'Settings page', 'bp-better-messages' ); ?>',
+                            title: '<?php echo esc_js( _x( 'Select Email Logo', 'Settings page', 'bp-better-messages' ) ); ?>',
                             library: { type: 'image' },
                             multiple: false
                         });
@@ -3000,7 +3497,7 @@ $has_late_message = ob_get_clean();
 
                     // Reset/remove email logo
                     function resetEmailLogo() {
-                        if (!confirm('<?php _ex( 'Are you sure you want to remove the logo?', 'Settings page', 'bp-better-messages' ); ?>')) return;
+                        if (!confirm('<?php echo esc_js( _x( 'Are you sure you want to remove the logo?', 'Settings page', 'bp-better-messages' ) ); ?>')) return;
 
                         document.getElementById('emailLogoId').value = '0';
                         document.getElementById('emailLogoPreview').style.display = 'none';
@@ -3009,7 +3506,7 @@ $has_late_message = ob_get_clean();
 
                     // Reset email colors to defaults
                     function resetEmailTemplateColors() {
-                        if (!confirm('<?php _ex( 'Are you sure you want to reset colors to default?', 'Settings page', 'bp-better-messages' ); ?>')) return;
+                        if (!confirm('<?php echo esc_js( _x( 'Are you sure you want to reset colors to default?', 'Settings page', 'bp-better-messages' ) ); ?>')) return;
 
                         var defaults = {
                             'emailPrimaryColor': '#21759b',
@@ -3038,7 +3535,7 @@ $has_late_message = ob_get_clean();
                         var textColor = document.getElementById('emailTextColor').value || '#333333';
                         var headerText = document.querySelector('input[name="emailHeaderText"]').value || 'Hi John,';
                         var footerText = document.querySelector('input[name="emailFooterText"]').value || '<?php echo esc_js( get_bloginfo('name') ); ?>';
-                        var buttonText = document.querySelector('input[name="emailButtonText"]').value || '<?php _ex( 'View Conversation', 'Settings page', 'bp-better-messages' ); ?>';
+                        var buttonText = document.querySelector('input[name="emailButtonText"]').value || '<?php echo esc_js( _x( 'View Conversation', 'Settings page', 'bp-better-messages' ) ); ?>';
                         var logoUrl = '';
                         var logoPreview = document.querySelector('#emailLogoPreview img');
                         if (logoPreview && document.getElementById('emailLogoPreview').style.display !== 'none') {
@@ -3125,7 +3622,7 @@ $has_late_message = ob_get_clean();
 
                     // Load default email template into custom HTML textarea
                     function loadDefaultEmailTemplate() {
-                        if (!confirm('<?php _ex( 'This will replace your current custom template. Continue?', 'Settings page', 'bp-better-messages' ); ?>')) return;
+                        if (!confirm('<?php echo esc_js( _x( 'This will replace your current custom template. Continue?', 'Settings page', 'bp-better-messages' ) ); ?>')) return;
 
                         // Get current color values from form inputs
                         var primaryColor = document.querySelector('input[name="emailPrimaryColor"]').value || '#21759b';
@@ -3223,7 +3720,7 @@ $has_late_message = ob_get_clean();
                         var template = document.getElementById('emailCustomHtml').value;
 
                         if (!template.trim()) {
-                            alert('<?php _ex( 'Please enter a custom template first, or load the default template.', 'Settings page', 'bp-better-messages' ); ?>');
+                            alert('<?php echo esc_js( _x( 'Please enter a custom template first, or load the default template.', 'Settings page', 'bp-better-messages' ) ); ?>');
                             return;
                         }
 
@@ -3262,13 +3759,13 @@ $has_late_message = ob_get_clean();
                         var status = document.getElementById('bmTestEmailStatus');
 
                         if (!email || !email.includes('@')) {
-                            alert('<?php _ex( 'Please enter a valid email address.', 'Settings page', 'bp-better-messages' ); ?>');
+                            alert('<?php echo esc_js( _x( 'Please enter a valid email address.', 'Settings page', 'bp-better-messages' ) ); ?>');
                             return;
                         }
 
                         // Disable button and show loading
                         button.classList.add('disabled');
-                        button.textContent = '<?php _ex( 'Sending...', 'Settings page', 'bp-better-messages' ); ?>';
+                        button.textContent = '<?php echo esc_js( _x( 'Sending...', 'Settings page', 'bp-better-messages' ) ); ?>';
                         status.style.display = 'none';
 
                         jQuery.ajax({
@@ -3283,7 +3780,7 @@ $has_late_message = ob_get_clean();
                             }),
                             success: function(response) {
                                 button.classList.remove('disabled');
-                                button.textContent = '<?php _ex( 'Send Test Email', 'Settings page', 'bp-better-messages' ); ?>';
+                                button.textContent = '<?php echo esc_js( _x( 'Send Test Email', 'Settings page', 'bp-better-messages' ) ); ?>';
                                 status.style.display = 'inline';
 
                                 if (response.success) {
@@ -3301,11 +3798,11 @@ $has_late_message = ob_get_clean();
                             },
                             error: function(xhr) {
                                 button.classList.remove('disabled');
-                                button.textContent = '<?php _ex( 'Send Test Email', 'Settings page', 'bp-better-messages' ); ?>';
+                                button.textContent = '<?php echo esc_js( _x( 'Send Test Email', 'Settings page', 'bp-better-messages' ) ); ?>';
                                 status.style.display = 'inline';
                                 status.style.color = '#d63638';
 
-                                var errorMessage = '<?php _ex( 'An error occurred. Please try again.', 'Settings page', 'bp-better-messages' ); ?>';
+                                var errorMessage = '<?php echo esc_js( _x( 'An error occurred. Please try again.', 'Settings page', 'bp-better-messages' ) ); ?>';
                                 if (xhr.responseJSON && xhr.responseJSON.message) {
                                     errorMessage = xhr.responseJSON.message;
                                 }
@@ -4472,6 +4969,8 @@ $has_late_message = ob_get_clean();
             $active_integration = 'integrations_bm-peepso';
         } else if( defined('FLUENT_COMMUNITY_PLUGIN_VERSION') ){
             $active_integration = 'integrations_bm-fluentcommunity';
+        } else if( defined('SUREDASHBOARD_VER') ){
+            $active_integration = 'integrations_bm-suredash';
         }
         ?>
         <div id="integrations" class="bpbm-tab">
@@ -4479,7 +4978,13 @@ $has_late_message = ob_get_clean();
                 <a class="nav-tab <?php if($active_integration === 'integrations_bm-buddypress') echo 'nav-tab-active'; ?>" id="integrations_bm-buddypress-tab" href="#integrations_bm-buddypress">BuddyPress & BuddyBoss</a>
                 <a class="nav-tab <?php if($active_integration === 'integrations_bm-ultimate-member') echo 'nav-tab-active'; ?>" id="integrations_bm-ultimate-member-tab" href="#integrations_bm-ultimate-member">Ultimate Member</a>
                 <a class="nav-tab <?php if($active_integration === 'integrations_bm-peepso') echo 'nav-tab-active'; ?>" id="integrations_bm-peepso-tab" href="#integrations_bm-peepso">PeepSo</a>
+                <?php if( defined('FLUENT_COMMUNITY_PLUGIN_VERSION') ) { ?>
                 <a class="nav-tab <?php if($active_integration === 'integrations_bm-fluentcommunity') echo 'nav-tab-active'; ?>" id="integrations_bm-fluentcommunity-tab" href="#integrations_bm-fluentcommunity">FluentCommunity</a>
+                <?php } ?>
+                <?php if( defined('SUREDASHBOARD_VER') ) { ?>
+                <a class="nav-tab <?php if($active_integration === 'integrations_bm-suredash') echo 'nav-tab-active'; ?>" id="integrations_bm-suredash-tab" href="#integrations_bm-suredash">SureDash</a>
+                <?php } ?>
+                <a class="nav-tab" id="integrations_woocommerce-tab" href="#integrations_bm-woocommerce">WooCommerce</a>
                 <a class="nav-tab" id="integrations_other-plugins-tab" href="#integrations_bm-other-plugins"><?php _ex( 'Other Plugins', 'Settings page', 'bp-better-messages' ); ?></a>
                 <a class="nav-tab" id="integrations_openai-tab" href="#integrations_openai">Open AI</a>
                 <a class="nav-tab" id="integrations_mycred-tab" href="#integrations_mycred">MyCRED</a>
@@ -4488,14 +4993,8 @@ $has_late_message = ob_get_clean();
                 <a class="nav-tab" id="integrations_emojies-tab" href="#integrations_bm-emojies"><?php _ex( 'Emojis', 'Settings page','bp-better-messages' ); ?></a>
             </div>
 
+            <?php if( defined('FLUENT_COMMUNITY_PLUGIN_VERSION') ) { ?>
             <div id="integrations_bm-fluentcommunity" class="bpbm-subtab <?php if($active_integration === 'integrations_bm-fluentcommunity') echo 'active'; ?>">
-                <?php if( ! defined('FLUENT_COMMUNITY_PLUGIN_VERSION') ){ ?>
-                    <div class="bp-better-messages-connection-check bpbm-error" style="margin: 20px 0;">
-                        <p><?php echo sprintf(esc_html_x('Website must to have %s plugin to be installed.', 'Settings page', 'bp-better-messages'), '<a href="https://www.wordplus.org/fluentcommunity" target="_blank">FluentCommunity</a>'); ?></p>
-                        <p><small><?php echo esc_attr_x('This notice will be hidden when FluentCommunity plugin is installed', 'Settings page', 'bp-better-messages'); ?></small></p>
-                    </div>
-                <?php } ?>
-
                 <table class="form-table">
                     <tbody>
 
@@ -4635,6 +5134,7 @@ $has_late_message = ob_get_clean();
                     </tbody>
                 </table>
             </div>
+            <?php } ?>
 
             <div id="integrations_bm-peepso" class="bpbm-subtab <?php if($active_integration === 'integrations_bm-peepso') echo 'active'; ?>">
                 <?php if( ! class_exists('PeepSo') ){ ?>
@@ -4736,8 +5236,8 @@ $has_late_message = ob_get_clean();
                                             <input type="checkbox" name="PScombinedFriendsEnable" <?php disabled( ! class_exists('PeepSoFriendsPlugin') ); ?> <?php checked( $this->settings[ 'PScombinedFriendsEnable' ] && class_exists('PeepSoFriendsPlugin'), '1' ); ?> value="1">
                                         </td>
                                         <th>
-                                            <?php _ex( 'Combined View', 'Settings page', 'bp-better-messages' ); ?>
-                                            <p style="font-size: 10px;"><?php _ex( 'Shows Friends in left column of Combined view', 'Settings page','bp-better-messages' ); ?></p>
+                                            <?php _ex( 'Side Conversations List', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'Shows Friends as a tab in Side Conversations List', 'Settings page','bp-better-messages' ); ?></p>
                                         </th>
                                     </tr>
                                     <tr>
@@ -4818,8 +5318,8 @@ $has_late_message = ob_get_clean();
                                             <input type="checkbox" name="PScombinedGroupsEnable" <?php disabled( ! class_exists('PeepSoGroup') ); ?> <?php checked( $this->settings[ 'PScombinedGroupsEnable' ] && class_exists('PeepSoGroup'), '1' ); ?> value="1">
                                         </td>
                                         <th>
-                                            <?php _ex( 'Combined View', 'Settings page', 'bp-better-messages' ); ?>
-                                            <p style="font-size: 10px;"><?php _ex( 'Shows Groups in left column of Combined view', 'Settings page','bp-better-messages' ); ?></p>
+                                            <?php _ex( 'Side Conversations List', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'Shows Groups as a tab in Side Conversations List', 'Settings page','bp-better-messages' ); ?></p>
                                         </th>
                                     </tr>
                                     <tr>
@@ -4840,9 +5340,214 @@ $has_late_message = ob_get_clean();
                 </table>
             </div>
 
-            <div id="integrations_bm-other-plugins" class="bpbm-subtab">
+            <?php if( defined('SUREDASHBOARD_VER') ) { ?>
+            <div id="integrations_bm-suredash" class="bpbm-subtab <?php if($active_integration === 'integrations_bm-suredash') echo 'active'; ?>">
+
                 <table class="form-table">
                     <tbody>
+
+                    <tr>
+                        <th scope="row">
+                            <?php _ex( 'SureDash User Profiles', 'Settings page', 'bp-better-messages' ); ?>
+                        </th>
+                        <td>
+                            <fieldset>
+                                <table class="widefat bm-switcher-table">
+                                    <tbody>
+                                    <tr>
+                                        <td>
+                                            <input name="SDenableProfileButton" type="checkbox" <?php checked( $this->settings['SDenableProfileButton'], '1' ); ?> value="1" />
+                                        </td>
+                                        <th>
+                                            <?php _ex( 'Send Message button on user profiles', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'Add Send Message button to SureDash user profile pages', 'Settings page', 'bp-better-messages' ); ?></p>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input name="SDenableAuthorButton" type="checkbox" <?php checked( $this->settings['SDenableAuthorButton'], '1' ); ?> value="1" />
+                                        </td>
+                                        <th>
+                                            <?php _ex( 'Message button next to discussion authors', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'Add a compact message icon next to post and comment authors in SureDash discussions', 'Settings page', 'bp-better-messages' ); ?></p>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input name="SDProfileVideoCall" type="checkbox" <?php checked( $this->settings['SDProfileVideoCall'], '1' ); ?> value="1" <?php if( ! Better_Messages()->functions->can_use_premium_code() || ! bpbm_fs()->is_premium() ) echo 'disabled'; ?> />
+                                        </td>
+                                        <th>
+                                            <?php _ex( 'Video Call button on user profiles', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'Add video call button to SureDash user profile pages', 'Settings page', 'bp-better-messages' ); ?></p>
+                                            <?php Better_Messages()->functions->license_proposal(); ?>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input name="SDProfileAudioCall" type="checkbox" <?php checked( $this->settings['SDProfileAudioCall'], '1' ); ?> value="1" <?php if( ! Better_Messages()->functions->can_use_premium_code() || ! bpbm_fs()->is_premium() ) echo 'disabled'; ?> />
+                                        </td>
+                                        <th>
+                                            <?php _ex( 'Audio Call button on user profiles', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'Add audio call button to SureDash user profile pages', 'Settings page', 'bp-better-messages' ); ?></p>
+                                            <?php Better_Messages()->functions->license_proposal(); ?>
+                                        </th>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </fieldset>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">
+                            <?php _ex( 'SureDash Navigation', 'Settings page', 'bp-better-messages' ); ?>
+                        </th>
+                        <td>
+                            <fieldset>
+                                <table class="widefat bm-switcher-table">
+                                    <tbody>
+                                    <tr>
+                                        <td>
+                                            <input name="SDenableSidebarMessages" type="checkbox" <?php checked( $this->settings['SDenableSidebarMessages'], '1' ); ?> value="1" />
+                                        </td>
+                                        <th>
+                                            <?php _ex( 'Messages link in sidebar', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'Add a Messages link with unread counter to SureDash sidebar navigation', 'Settings page', 'bp-better-messages' ); ?></p>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input name="SDenableDropdownMessages" type="checkbox" <?php checked( $this->settings['SDenableDropdownMessages'], '1' ); ?> value="1" />
+                                        </td>
+                                        <th>
+                                            <?php _ex( 'Messages link in profile dropdown', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'Add a Messages link with unread counter to SureDash user profile dropdown menu', 'Settings page', 'bp-better-messages' ); ?></p>
+                                        </th>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </fieldset>
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <?php } ?>
+            <div id="integrations_bm-woocommerce" class="bpbm-subtab">
+                <table class="form-table">
+                    <tbody>
+
+                    <tr>
+                        <th scope="row">
+                            <?php printf(_x( '%s Integration', 'Settings page','bp-better-messages' ), '<a href="https://www.wordplus.org/dokan" target="_blank">Dokan Marketplace</a>'); ?>
+
+                            <?php if( ! class_exists('WeDevs_Dokan') ){ ?>
+                                <p style="font-size: 10px;"><?php printf(_x( '%s must be installed', 'Settings page', 'bp-better-messages' ), '<a href="https://www.wordplus.org/dokan" target="_blank">Dokan Marketplace</a>'); ?></p>
+                            <?php } ?>
+                        </th>
+                        <td>
+                            <fieldset>
+                                <table class="widefat bm-switcher-table">
+                                    <tbody>
+
+                                    <tr>
+                                        <td>
+                                            <input name="dokanIntegration" type="checkbox" <?php checked( $this->settings[ 'dokanIntegration' ], '1' ); ?> value="1" />
+                                        </td>
+                                        <th style="padding-bottom:0;">
+                                            <?php _ex( 'Enable Live Chat for Vendors', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'When enabled vendors will be able to activate live chat feature in their stores, which will allow buyers easily contact vendors via live chat', 'Settings page', 'bp-better-messages' ); ?></p>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <th style="padding-top: 0;">
+                                            <p style="font-size: 12px;font-weight: 400;">
+                                                <?php _ex( 'If you are using custom page builder or button does not show up due to different reasons, you can use this shortcode to show the button at your product page', 'Settings page', 'bp-better-messages' ); ?>
+                                                <input readonly="" type="text" style="margin: 0;width: 100%;padding-left: 5px;font-size: 12px;" onclick="this.focus();this.select()" value="[better_messages_dokan_product_button]">
+                                            </p>
+                                        </th>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </fieldset>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">
+                            <?php printf(_x( '%s Integration', 'Settings page','bp-better-messages' ), '<a href="https://www.wordplus.org/wcvendors" target="_blank">WC Vendors</a>'); ?>
+
+                            <?php if( ! class_exists('WCV_Vendors') ){ ?>
+                                <p style="font-size: 10px;"><?php printf(_x( '%s must be installed', 'Settings page', 'bp-better-messages' ), '<a href="https://www.wordplus.org/wcvendors" target="_blank">WC Vendors</a>'); ?></p>
+                            <?php } ?>
+                        </th>
+                        <td>
+                            <fieldset>
+                                <table class="widefat bm-switcher-table">
+                                    <tbody>
+
+                                    <tr>
+                                        <td>
+                                            <input name="wcVendorsIntegration" type="checkbox" <?php checked( $this->settings[ 'wcVendorsIntegration' ], '1' ); ?> value="1" />
+                                        </td>
+                                        <th style="padding-bottom:0;">
+                                            <?php _ex( 'Enable Live Chat for Vendors', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'When enabled vendors will be able to activate live chat feature in their stores, which will allow buyers easily contact vendors via live chat', 'Settings page', 'bp-better-messages' ); ?></p>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <th style="padding-top: 0;">
+                                            <p style="font-size: 12px;font-weight: 400;">
+                                                <?php _ex( 'If you are using custom page builder or button does not show up due to different reasons, you can use this shortcode to show the button at your product page', 'Settings page', 'bp-better-messages' ); ?>
+                                                <input readonly="" type="text" style="margin: 0;width: 100%;padding-left: 5px;font-size: 12px;" onclick="this.focus();this.select()" value="[better_messages_wc_vendors_product_button]">
+                                            </p>
+                                        </th>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </fieldset>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">
+                            <?php printf(_x( '%s Integration', 'Settings page','bp-better-messages' ), '<a href="https://www.wordplus.org/wcfm" target="_blank">WCFM Marketplace</a>'); ?>
+
+                            <?php if( ! class_exists('WCFM') ){ ?>
+                                <p style="font-size: 10px;"><?php printf(_x( '%s must be installed', 'Settings page', 'bp-better-messages' ), '<a href="https://www.wordplus.org/wcfm" target="_blank">WCFM Marketplace</a>'); ?></p>
+                            <?php } ?>
+                        </th>
+                        <td>
+                            <fieldset>
+                                <table class="widefat bm-switcher-table">
+                                    <tbody>
+
+                                    <tr>
+                                        <td>
+                                            <input name="wcfmIntegration" type="checkbox" <?php checked( $this->settings[ 'wcfmIntegration' ], '1' ); ?> value="1" />
+                                        </td>
+                                        <th style="padding-bottom:0;">
+                                            <?php _ex( 'Enable Live Chat for Vendors', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'When enabled vendors will be able to activate live chat feature in their stores, which will allow buyers easily contact vendors via live chat', 'Settings page', 'bp-better-messages' ); ?></p>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <th style="padding-top: 0;">
+                                            <p style="font-size: 12px;font-weight: 400;">
+                                                <?php _ex( 'If you are using custom page builder or button does not show up due to different reasons, you can use this shortcode to show the button at your product page', 'Settings page', 'bp-better-messages' ); ?>
+                                                <input readonly="" type="text" style="margin: 0;width: 100%;padding-left: 5px;font-size: 12px;" onclick="this.focus();this.select()" value="[better_messages_wcfm_product_button]">
+                                            </p>
+                                        </th>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </fieldset>
+                        </td>
+                    </tr>
 
                     <tr>
                         <th scope="row">
@@ -4880,6 +5585,14 @@ $has_late_message = ob_get_clean();
                             </fieldset>
                         </td>
                     </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="integrations_bm-other-plugins" class="bpbm-subtab">
+                <table class="form-table">
+                    <tbody>
 
                     <tr>
                         <th scope="row">
@@ -4947,43 +5660,6 @@ $has_late_message = ob_get_clean();
                                             <p style="font-size: 12px;font-weight: 400;">
                                                 <?php _ex( 'If you are using custom page builder or button does not show up due to different reasons, you can use this shortcode to show the button at your job listing page', 'Settings page', 'bp-better-messages' ); ?>
                                                 <input readonly="" type="text" style="margin: 0;width: 100%;padding-left: 5px;font-size: 12px;" onclick="this.focus();this.select()" value="[better_messages_wp_job_manager_listing_button]">
-                                            </p>
-                                        </th>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </fieldset>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <th scope="row">
-                            <?php printf(_x( '%s Integration', 'Settings page','bp-better-messages' ), '<a href="https://www.wordplus.org/dokan" target="_blank">Dokan Marketplace</a>'); ?>
-
-                            <?php if( ! class_exists('WeDevs_Dokan') ){ ?>
-                                <p style="font-size: 10px;"><?php printf(_x( '%s must be installed', 'Settings page', 'bp-better-messages' ), '<a href="https://www.wordplus.org/dokan" target="_blank">Dokan Marketplace</a>'); ?></p>
-                            <?php } ?>
-                        </th>
-                        <td>
-                            <fieldset>
-                                <table class="widefat bm-switcher-table">
-                                    <tbody>
-
-                                    <tr>
-                                        <td>
-                                            <input name="dokanIntegration" type="checkbox" <?php checked( $this->settings[ 'dokanIntegration' ], '1' ); ?> value="1" />
-                                        </td>
-                                        <th style="padding-bottom:0;">
-                                            <?php _ex( 'Enable Live Chat for Vendors', 'Settings page', 'bp-better-messages' ); ?>
-                                            <p style="font-size: 10px;"><?php _ex( 'When enabled vendors will be able to activate live chat feature in their stores, which will allow buyers easily contact vendors via live chat', 'Settings page', 'bp-better-messages' ); ?></p>
-                                        </th>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <th style="padding-top: 0;">
-                                            <p style="font-size: 12px;font-weight: 400;">
-                                                <?php _ex( 'If you are using custom page builder or button does not show up due to different reasons, you can use this shortcode to show the button at your product page', 'Settings page', 'bp-better-messages' ); ?>
-                                                <input readonly="" type="text" style="margin: 0;width: 100%;padding-left: 5px;font-size: 12px;" onclick="this.focus();this.select()" value="[better_messages_dokan_product_button]">
                                             </p>
                                         </th>
                                     </tr>
@@ -5440,8 +6116,8 @@ $has_late_message = ob_get_clean();
                                             <input type="checkbox" name="UMcombinedFriendsEnable" <?php disabled( ! class_exists('UM_Friends_API') ); ?> <?php checked( $this->settings[ 'UMcombinedFriendsEnable' ] && class_exists('UM_Friends_API'), '1' ); ?> value="1">
                                         </td>
                                         <th>
-                                            <?php _ex( 'Combined View', 'Settings page', 'bp-better-messages' ); ?>
-                                            <p style="font-size: 10px;"><?php _ex( 'Shows Friends in left column of Combined view', 'Settings page','bp-better-messages' ); ?></p>
+                                            <?php _ex( 'Side Conversations List', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'Shows Friends as a tab in Side Conversations List', 'Settings page','bp-better-messages' ); ?></p>
                                         </th>
                                     </tr>
                                     <tr>
@@ -5525,8 +6201,8 @@ $has_late_message = ob_get_clean();
                                             <input type="checkbox" name="UMcombinedGroupsEnable" <?php disabled( ! class_exists('UM_Groups') ); ?> <?php checked( $this->settings[ 'UMcombinedGroupsEnable' ] && class_exists('UM_Groups'), '1' ); ?> value="1">
                                         </td>
                                         <th>
-                                            <?php _ex( 'Combined View', 'Settings page', 'bp-better-messages' ); ?>
-                                            <p style="font-size: 10px;"><?php _ex( 'Shows Groups in left column of Combined view', 'Settings page','bp-better-messages' ); ?></p>
+                                            <?php _ex( 'Side Conversations List', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'Shows Groups as a tab in Side Conversations List', 'Settings page','bp-better-messages' ); ?></p>
                                         </th>
                                     </tr>
                                     <tr>
@@ -5754,8 +6430,8 @@ $has_late_message = ob_get_clean();
                                             <input type="checkbox" name="combinedFriendsEnable" <?php disabled( ! function_exists('friends_get_friend_user_ids') ); ?> <?php checked( $this->settings[ 'combinedFriendsEnable' ] && function_exists('friends_get_friend_user_ids'), '1' ); ?> value="1">
                                         </td>
                                         <th>
-                                            <?php _ex( 'Combined View', 'Settings page', 'bp-better-messages' ); ?>
-                                            <p style="font-size: 10px;"><?php _ex( 'Shows Friends in left column of Combined view', 'Settings page','bp-better-messages' ); ?></p>
+                                            <?php _ex( 'Side Conversations List', 'Settings page', 'bp-better-messages' ); ?>
+                                            <p style="font-size: 10px;"><?php _ex( 'Shows Friends as a tab in Side Conversations List', 'Settings page','bp-better-messages' ); ?></p>
                                         </th>
                                     </tr>
                                     <tr>
@@ -5815,8 +6491,8 @@ $has_late_message = ob_get_clean();
                                         <input name="combinedGroupsEnable" type="checkbox" <?php if ( ! bm_bp_is_active( 'groups' ) ) echo 'disabled'; ?> <?php checked( $this->settings[ 'combinedGroupsEnable' ], '1' ); ?> value="1" />
                                     </td>
                                     <th>
-                                        <?php _ex( 'Combined View', 'Settings page', 'bp-better-messages' ); ?>
-                                        <p style="font-size: 10px;"><?php _ex( 'Shows Groups in left column of Combined view', 'Settings page', 'bp-better-messages' ); ?></p>
+                                        <?php _ex( 'Side Conversations List', 'Settings page', 'bp-better-messages' ); ?>
+                                        <p style="font-size: 10px;"><?php _ex( 'Shows Groups as a tab in Side Conversations List', 'Settings page', 'bp-better-messages' ); ?></p>
                                     </th>
                                 </tr>
                                 <tr>
@@ -6529,8 +7205,8 @@ $has_late_message = ob_get_clean();
                         <button id="bpbm-import-settings" class="button" style="display:none;">Import</button>
 
                         <script type="text/javascript">
-
-                            var button = jQuery('#tools-tab');
+                        (function($){
+                            var button = $('#tools-tab');
 
                             var bpbmsettingsLoaded = false;
                             function loadSettingsBase64(){
@@ -6540,15 +7216,15 @@ $has_late_message = ob_get_clean();
 
                                 bpbmsettingsLoaded = true;
 
-                                jQuery.post('<?php echo admin_url('admin-ajax.php'); ?>', {
+                                $.post('<?php echo admin_url('admin-ajax.php'); ?>', {
                                     'action'   : 'bp_messages_admin_export_options',
                                     'nonce'    : '<?php echo wp_create_nonce( 'bpbm-import-options' ); ?>'
                                 }, function(response){
-                                    jQuery('#export-settings').val(response);
+                                    $('#export-settings').val(response);
                                 });
                             }
 
-                            jQuery(document).ready(function() {
+                            $(document).ready(function() {
                                 if (button.hasClass('nav-tab-active')) {
                                     loadSettingsBase64();
                                 }
@@ -6558,23 +7234,23 @@ $has_late_message = ob_get_clean();
                                 loadSettingsBase64();
                             });
 
-                            jQuery('#bpbm-import-area').change(function( event ){
-                                var settings = jQuery(this).val();
+                            $('#bpbm-import-area').change(function( event ){
+                                var settings = $(this).val();
 
                                 if( settings.trim() === '' ){
-                                    jQuery('#bpbm-import-settings').hide();
+                                    $('#bpbm-import-settings').hide();
                                 } else {
-                                    jQuery('#bpbm-import-settings').show();
+                                    $('#bpbm-import-settings').show();
                                 }
                             });
 
-                            jQuery('#bpbm-import-settings').click(function( event ){
+                            $('#bpbm-import-settings').click(function( event ){
                                 event.preventDefault();
-                                var settingsArea = jQuery('#bpbm-import-area');
+                                var settingsArea = $('#bpbm-import-area');
                                 var settings = settingsArea.val();
 
                                 if( settings.trim() !== '' ){
-                                    jQuery.post('<?php echo admin_url('admin-ajax.php'); ?>', {
+                                    $.post('<?php echo admin_url('admin-ajax.php'); ?>', {
                                         'action'   : 'bp_messages_admin_import_options',
                                         'settings' : settings,
                                         'nonce'    : '<?php echo wp_create_nonce( 'bpbm-import-options' ); ?>'
@@ -6586,6 +7262,7 @@ $has_late_message = ob_get_clean();
                                     });
                                 }
                             });
+                        })(jQuery);
                         </script>
                     </td>
                 </tr>
