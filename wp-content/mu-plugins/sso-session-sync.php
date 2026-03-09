@@ -139,10 +139,44 @@ add_action('init', function() use ($__buzz_sso_secret) {
 // LOGOUT HANDOFF
 // ---------------------------------------------------
 add_action('wp_logout', function() {
-    bz_expire_buzz_cookie();
-    wp_safe_redirect('https://buzzjuice.net/shared/sso-logout.php?from_wp=1&logged_out=1');
+    // Expire WordPress login cookies
+    foreach ($_COOKIE as $key => $val) {
+        if (strpos($key, 'wordpress_logged_in_') === 0) {
+            setcookie($key, '', time() - 3600, '/');
+            unset($_COOKIE[$key]);
+        }
+    }
+    // Expire SSO JWT cookies (all known variants)
+    $domain = defined('BUZZ_COOKIE_DOMAIN') ? BUZZ_COOKIE_DOMAIN : '.buzzjuice.net';
+    foreach (['buzz_sso','buzz_access','buzz_refresh'] as $c) {
+        setcookie($c, '', time() - 3600, '/', $domain, true, true);
+        unset($_COOKIE[$c]);
+        setcookie($c, '', time() - 3600, '/');
+    }
+    // Destroy PHP session if active
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        $_SESSION = [];
+        @session_unset();
+        @session_destroy();
+    }
+    // Chained orchestrator: WP disables local SSO/JWT, then cascades
+    wp_safe_redirect('https://buzzjuice.net/shared/sso-logout.php?cabin=home');
     exit;
 }, 10);
+
+// Optional: forced SLO if WP cookie missing but SSO cookie present
+add_action('init', function() {
+    if (!is_user_logged_in() && isset($_COOKIE['buzz_sso'])) {
+        $domain = defined('BUZZ_COOKIE_DOMAIN') ? BUZZ_COOKIE_DOMAIN : '.buzzjuice.net';
+        foreach (['buzz_sso','buzz_access','buzz_refresh'] as $c) {
+            setcookie($c, '', time() - 3600, '/', $domain, true, true);
+            unset($_COOKIE[$c]);
+            setcookie($c, '', time() - 3600, '/');
+        }
+        header('Location: https://buzzjuice.net/shared/sso-logout.php');
+        exit();
+    }
+});
 
 // --- logout without confirm ---
 add_action('check_admin_referer', function($action, $result){

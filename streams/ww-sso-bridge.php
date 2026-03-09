@@ -319,7 +319,7 @@ if (!$access_payload && $wordpress_logged_in_) {
 // 4. Fail → redirect user to login
 if (!$access_payload) {
     bz_bridge_log('Dual-token bootstrap failed — redirecting to login');
-    header('Location: /wp-login.php?try=1&redirect_to=/wp-login.php?redirect_to=/streams');
+    header('Location: /wp-login.php?try=1&redirect_to=/streams');
     exit;
 }
 
@@ -335,7 +335,7 @@ $_SESSION['wp_Wo_SSO_Login'] = true;
 // -----------------------------
 if (!$_SESSION['wp_user_id'] || !$_SESSION['wp_user_login'] || !$_SESSION['wp_user_email']) {
     bz_bridge_log('Missing required claims (cookie incomplete)', $access_payload);
-    header('Location: /wp-login.php?try=2&redirect_to=/wp-login.php?redirect_to=/streams');
+    header('Location: /wp-login.php?try=2&redirect_to=/streams');
     exit;
 }
 
@@ -432,7 +432,7 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
             if ($wp_user_id && $wo_user_id) {
                 bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
             }
-            header('Location: /wp-login.php?try=3&redirect_to=/wp-login.php?redirect_to=/streams');
+            header('Location: /wp-login.php?try=3&redirect_to=/streams');
             exit;
         }
         
@@ -454,7 +454,7 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
             // Check minimum username length (WoWonder requires 5)
             if (strlen($desired_username) < 5) {
                 bz_bridge_log('SSO: Desired username too short', ['attempted_username' => $desired_username]);
-                header('Location: /wp-login.php?try=4&redirect_to=/wp-login.php?redirect_to=/members/me/settings/');
+                header('Location: /wp-login.php?try=4&redirect_to=/members/me/settings/');
                 exit;
             }
         
@@ -466,7 +466,7 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
                 in_array($desired_username, $reserved_usernames)
             ) {
                 bz_bridge_log('SSO: Desired WoWonder username already exists or is reserved', ['username' => $desired_username]);
-                header('Location: /wp-login.php?try=5&redirect_to=/wp-login.php?redirect_to=/members/me/settings/');
+                header('Location: /wp-login.php?try=5&redirect_to=/members/me/settings/');
                 exit;
             }
         
@@ -486,14 +486,14 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
                     bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
                 }
                 $access_payload['wo_user_id'] = $wo_user_id;
-                header('Location: /wp-login.php?try=6&redirect_to=/wp-login.php?redirect_to=/streams');
+                header('Location: /wp-login.php?try=6&redirect_to=/streams');
                 exit;
             } else {
                 bz_bridge_log('SSO: WoWonder username update failed', [
                     'wo_user_id' => $wo_user_id,
                     'desired_username' => $desired_username
                 ]);
-                header('Location: /wp-login.php?try=7&redirect_to=/wp-login.php?redirect_to=/members/me/settings/');
+                header('Location: /wp-login.php?try=7&redirect_to=/members/me/settings/');
                 exit;
             }
         }
@@ -544,7 +544,7 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
             'payload'  => $access_payload,
             'attempts' => $attempt
         ]);
-        header('Location: /wp-login.php?try=8&redirect_to=/wp-login.php?redirect_to=/members/me/settings/');
+        header('Location: /wp-login.php?try=8&redirect_to=/members/me/settings/');
         exit;
     }
 }
@@ -632,7 +632,7 @@ if (!function_exists('bz_clear_wp_wo_user_id')) {
     function bz_clear_wp_wo_user_id($wp_user_id) {
         $wp_conn = get_wp_db_conn();
         if (!$wp_conn || empty($wp_user_id)) {
-            header('Location: /wp-login.php?try=9&redirect_to=/wp-login.php?redirect_to=/streams');
+            header('Location: /wp-login.php?try=9&redirect_to=/streams');
             exit;
         }
         $wp_user_id = (int)$wp_user_id;
@@ -652,7 +652,7 @@ if (!function_exists('bz_clear_wp_wo_user_id')) {
             exit;
         } else {
             // Failed to clear mapping, redirect to login
-            header('Location: /wp-login.php?try=10&redirect_to=/wp-login.php?redirect_to=/streams');
+            header('Location: /wp-login.php?try=10&redirect_to=/streams');
             exit;
         }
     }
@@ -865,34 +865,50 @@ function Wo_SSO_Login() {
         
         // 5. Avatar/Cover: BuddyBoss plugin normalization and fix
         // Helper: Normalize avatar and cover paths for WoWonder display.
-        function bz_normalize_avatar_cover($url, $site_base = 'https://buzzjuice.net/streams', $type = 'avatar') {
+        function bz_normalize_avatar_cover($url, $site_base = 'https://buzzjuice.net', $type = 'avatar') {
             $url = trim($url);
             if (!$url) return '';
-            if ($type === 'cover') {
-                // Remove leading /streams/ for relative path
-                $url = preg_replace('#^/?streams/#', '', $url);
-                // If full URL, extract path after site_base
-                if (preg_match('#^https?://#', $url)) {
-                    $parsed = parse_url($url, PHP_URL_PATH);
-                    if ($parsed && strpos($parsed, '/streams/') === 0) {
-                        $url = substr($parsed, strlen('/streams/'));
-                    } elseif ($parsed && strpos($parsed, '/') === 0) {
-                        $url = ltrim($parsed, '/');
-                    }
-                }
-                // Remove remaining /streams/ prefix if present
-                $url = preg_replace('#^/?streams/#', '', $url);
-                // Ensure starts with upload/photos/
-                if (strpos($url, 'upload/photos/') !== 0) {
-                    $url = 'upload/photos/' . ltrim($url, '/');
-                }
-                return $url;
+        
+            $site_host = parse_url($site_base, PHP_URL_HOST);
+        
+            // Absolute URL handling
+            if (preg_match('#^https?://#i', $url)) {
+                $host = parse_url($url, PHP_URL_HOST);
+                $path = parse_url($url, PHP_URL_PATH);
+                // Keep external URLs as-is
+                if ($host && $host !== $site_host) return $url;
+                if ($path) $url = $path;
             }
-            // AVATAR: Always full URL
-            if (!preg_match('#^https?://#', $url)) {
-                $url = preg_replace('#^/?streams/#', '', $url);
-                $url = rtrim($site_base, '/') . '/' . ltrim($url, '/');
+        
+            // Remove leading slashes
+            $url = ltrim($url, '/');
+        
+            // Remove all 'streams' or 'social' segments
+            $url = preg_replace('#(?:^|/)(streams|social)(?:/|$)#i', '', $url);
+        
+            // Split into path segments and resolve '..'
+            $parts = explode('/', $url);
+            $resolved = [];
+            foreach ($parts as $part) {
+                if ($part === '' || $part === '.') continue;
+                if ($part === '..') {
+                    array_pop($resolved);
+                } else {
+                    $resolved[] = $part;
+                }
             }
+        
+            $url = implode('/', $resolved);
+        
+            // Ensure starts with 'upload/photos/'
+            if (!preg_match('#^upload/photos/#i', $url)) {
+                if (strpos($url, 'photos/') !== false) {
+                    $url = preg_replace('#^.*photos/#i', 'upload/photos/', $url);
+                } else {
+                    $url = 'upload/photos/' . $url;
+                }
+            }
+        
             return $url;
         }
         
@@ -959,19 +975,20 @@ function Wo_SSO_Login() {
         }
         
         // 10. PUSH TO WoWonder ONLY IF CHANGED; Extensive Error Logging
-        if ($new_hash !== $old_hash) {
+        if ($new_hash !== $old_hash || $new_hash === $old_hash) {
             $update_filtered['wp_meta_hash'] = $new_hash;
             if (!empty($update_filtered) && function_exists('Wo_UpdateUserData')) {
                 $old_level = error_reporting();
                 error_reporting($old_level & ~E_NOTICE & ~E_WARNING);
                 try {
                     $result = Wo_UpdateUserData($accepted_user_id, $update_filtered);
-/*                    bz_bridge_log('WP→Wo sync: metadata updated', [
+
+                    bz_bridge_log('WP→Wo sync: metadata updated', [
                         'user_id'=>$accepted_user_id,
                         'fields'=>array_keys($update_filtered),
                         'result'=>$result
                     ]);
-*/
+
                 } catch (Throwable $e) {
                     bz_bridge_log('WP→Wo sync: ERROR during Wo_UpdateUserData', [
                         'user_id'=>$accepted_user_id,

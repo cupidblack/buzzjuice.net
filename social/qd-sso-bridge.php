@@ -398,7 +398,7 @@ if (!$access_payload && $wordpress_logged_in_) {
 // 4. Fail → redirect user to login
 if (!$access_payload) {
     bz_bridge_log('Dual-token bootstrap failed — redirecting to login');
-    header('Location: /wp-login.php?try=1&redirect_to=/wp-login.php?redirect_to=/social');
+    header('Location: /wp-login.php?try=1&redirect_to=/social');
     exit;
 }
 
@@ -414,7 +414,7 @@ $_SESSION['wp_qd_SSO_Login'] = true;
 // -----------------------------
 if (!$_SESSION['wp_user_id'] || !$_SESSION['wp_user_login'] || !$_SESSION['wp_user_email']) {
     bz_bridge_log('Missing required claims (cookie incomplete)', $access_payload);
-    header('Location: /wp-login.php?try=2&redirect_to=/wp-login.php?redirect_to=/social');
+    header('Location: /wp-login.php?try=2&redirect_to=/social');
     exit;
 }
 
@@ -430,7 +430,7 @@ if (!$_SESSION['wp_user_id'] || !$_SESSION['wp_user_login'] || !$_SESSION['wp_us
 
 // =======================================================================================
 // SSO: Auto-register WoWonder user if missing
-// Updates WordPress usermeta 'wo_user_id' after successful registration
+// Updates WordPress usermeta 'qd_user_id' after successful registration
 // Redirects to /wp-login.php?redirect_to=/members/me/settings/ if registration fails
 // =======================================================================================
 
@@ -511,7 +511,7 @@ if (empty($access_payload['qd_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
             if ($wp_user_id && $qd_user_id) {
                 bz_update_wp_qd_user_id($wp_user_id, $qd_user_id);
             }
-            header('Location: /wp-login.php?try=3&redirect_to=/wp-login.php?redirect_to=/social');
+            header('Location: /wp-login.php?try=3&redirect_to=/social');
             exit;
         }
 
@@ -626,7 +626,7 @@ if (empty($access_payload['qd_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
             'payload'  => $access_payload,
             'attempts' => $attempt
         ]);
-        header('Location: /wp-login.php?try=5&redirect_to=/wp-login.php?redirect_to=/members/me/settings/');
+        header('Location: /wp-login.php?try=5&redirect_to=/members/me/settings/');
         exit;
     }
 }
@@ -715,7 +715,7 @@ if (!function_exists('bz_clear_wp_qd_user_id')) {
     function bz_clear_wp_qd_user_id($wp_user_id) {
         $wp_conn = get_wp_db_conn();
         if (!$wp_conn || empty($wp_user_id)) {
-            header('Location: /wp-login.php?try=6&redirect_to=/wp-login.php?redirect_to=/social');
+            header('Location: /wp-login.php?try=6&redirect_to=/social');
             exit;
         }
         $wp_user_id = (int)$wp_user_id;
@@ -735,7 +735,7 @@ if (!function_exists('bz_clear_wp_qd_user_id')) {
             exit;
         } else {
             // Failed to clear mapping, redirect to login
-            header('Location: /wp-login.php?try=7&redirect_to=/wp-login.php?redirect_to=/social');
+            header('Location: /wp-login.php?try=7&redirect_to=/social');
             exit;
         }
     }
@@ -843,9 +843,9 @@ function QD_SSO_Login() {
             if (!empty($exp_wp && $exp_login && $exp_email)) {
                 bz_bridge_log('Wo_SSO_Login: orphan WoWonder ID detected, clearing WordPress usermeta', [
                     'wp_user_id' => $exp_wp,
-                    'wo_user_id' => $exp_wo
+                    'qd_user_id' => $exp_qd
                 ]);
-                bz_clear_wp_wo_user_id($exp_wp);
+                bz_clear_wp_qd_user_id($exp_wp);
             }
             // No need to continue further; this function will exit after clearing.
         //}
@@ -931,35 +931,67 @@ function QD_SSO_Login() {
             if (!empty($wp_full[$core_field])) $wp_all_meta[$core_field] = $wp_full[$core_field];
 
         // 3. Normalize avatar/cover for QuickDate (display safe)
-        $site_base = 'https://buzzjuice.net/streams';
-        function qd_normalize_avatar_cover($url, $site_base = 'https://buzzjuice.net/streams', $type = 'avatar') {
+        // 3. Canonical avatar/cover normalization for QuickDate
+        $site_base = 'https://buzzjuice.net';
+        
+        // Drop-in canonical normalization helper:
+        function qd_normalize_avatar_cover($url, $site_base = 'https://buzzjuice.net', $type = 'avatar') {
             $url = trim($url);
-            if (!$url) return '';
-            if ($type === 'cover') {
-                // Remove /streams/, /social/, ensure upload/photos/ prefix
-                $url = preg_replace('#^/?(streams|social)/#', '', $url);
-                if (!preg_match('#^https?://#', $url) && strpos($url, 'upload/photos/') !== 0)
-                    $url = 'upload/photos/' . ltrim($url, '/');
-                if (preg_match('#^https?://#', $url)) {
-                    $parsed = parse_url($url, PHP_URL_PATH);
-                    if ($parsed && (strpos($parsed, '/streams/') === 0 || strpos($parsed, '/social/') === 0))
-                        $url = preg_replace('#^/?(streams|social)/#', '', $parsed);
-                    else
-                        $url = ltrim($parsed, '/');
+            if ($url === '') return '';
+        
+            $site_host = parse_url($site_base, PHP_URL_HOST);
+        
+            // If absolute URL
+            if (preg_match('#^https?://#i', $url)) {
+                $host = parse_url($url, PHP_URL_HOST);
+                $path = parse_url($url, PHP_URL_PATH);
+        
+                // If external domain, keep unchanged
+                if ($host && $host !== $site_host) return $url;
+                // Local domain, use only the path
+                if ($path) $url = $path;
+            }
+        
+            $url = ltrim($url, '/');
+            // Remove /streams/ or /social/
+            $url = preg_replace('#^(streams|social)/#i', '', $url);
+        
+            // Ensure upload/photos prefix
+            if (!preg_match('#^upload/photos/#i', $url)) {
+                if (strpos($url, 'photos/') !== false) {
+                    $url = preg_replace('#^.*photos/#i', 'upload/photos/', $url);
+                } else {
+                    $url = 'upload/photos/' . $url;
                 }
-                return $url;
             }
-            // Avatar: always full URL
-            if (!preg_match('#^https?://#', $url)) {
-                $url = preg_replace('#^/?(streams|social)/#', '', $url);
-                $url = rtrim($site_base, '/') . '/' . ltrim($url, '/');
-            }
+        
             return $url;
         }
-        if (!empty($wp_full['meta']['bp_profile_avatar']))
+        
+        // Normalize and set avatar/cover fields
+        if (!empty($wp_full['meta']['bp_profile_avatar'])) {
             $wp_all_meta['avatar'] = qd_normalize_avatar_cover($wp_full['meta']['bp_profile_avatar'], $site_base, 'avatar');
-        if (!empty($wp_full['meta']['bp_profile_cover']))
-            $wp_all_meta['cover']  = qd_normalize_avatar_cover($wp_full['meta']['bp_profile_cover'], $site_base, 'cover');
+        }
+        if (!empty($wp_full['meta']['bp_profile_cover'])) {
+            $wp_all_meta['cover'] = qd_normalize_avatar_cover($wp_full['meta']['bp_profile_cover'], $site_base, 'cover');
+        }
+        
+        // Canonical fields; normalization
+        foreach(['username','email','first_name','last_name','avatar','cover'] as $f) {
+            if (!isset($qd_candidate[$f]) && !empty($wp_all_meta[$f])) {
+                if ($f === 'avatar') $qd_candidate[$f] = qd_normalize_avatar_cover($wp_all_meta[$f], $site_base, 'avatar');
+                elseif ($f === 'cover') $qd_candidate[$f] = qd_normalize_avatar_cover($wp_all_meta[$f], $site_base, 'cover');
+                else $qd_candidate[$f] = $wp_all_meta[$f];
+            }
+        }
+        
+        // Harden the QD update filter
+        foreach ($qd_candidate as $k => $v) {
+            // Prevent overwriting avatar with empty value
+            if ($k === 'avatar' && $v === '') continue;
+            if (isset($qd_schema[$k])) $qd_update[$k] = $v;
+            else bz_bridge_log('QuickDate sync skipped unsupported field', ['field'=>$k]);
+        }
 
         // 4. Build QuickDate candidate fields using buzz_metadata.json mapping
         $qd_candidate = [];

@@ -1169,7 +1169,7 @@ if (!function_exists('sync_quickdate_to_wordpress')) {
 
         // Update xprofile (skip password)
         foreach ($wp_xprofile_fields as $xprofile_field) {
-            if ($meta_key === 'password' || $meta_key === 'user_pass') continue; // skip password
+            if ($xprofile_field === 'password' || $xprofile_field === 'user_pass') continue; // skip password
             if (isset($quickdate_user[$xprofile_field])) {
                 $field_value = $quickdate_user[$xprofile_field];
                 wp_update_xprofile_field($wpDb, $wp_user_id, $xprofile_field, $field_value);
@@ -1184,7 +1184,7 @@ if (!function_exists('sync_quickdate_to_wordpress')) {
 }
 
 /**
- * Sync QuickDate user array to WoWonder DB
+ * Sync QuickDate user array to WoWonder DB (safe version)
  */
 if (!function_exists('sync_quickdate_to_wowonder')) {
     function sync_quickdate_to_wowonder($quickdate_user) {
@@ -1200,14 +1200,40 @@ if (!function_exists('sync_quickdate_to_wowonder')) {
             return false;
         }
 
+        // === NEW: Load/cached WoWonder user schema ===
+        $schema_cache_folder = $_SERVER['DOCUMENT_ROOT'] . '/data/schema_cache/';
+        $schema_cache_file   = $schema_cache_folder . 'wo_users_schema.json';
+        if (!is_dir($schema_cache_folder)) @mkdir($schema_cache_folder, 0755, true);
+        static $wo_schema = null;
+        if ($wo_schema === null) {
+            if (file_exists($schema_cache_file)) {
+                $wo_schema = json_decode(file_get_contents($schema_cache_file), true) ?: [];
+            } else {
+                $wo_schema = [];
+                $q = $wwDb->query("SHOW COLUMNS FROM Wo_Users");
+                while ($row = $q && $q->fetch_assoc()) $wo_schema[$row['Field']] = true;
+                @file_put_contents($schema_cache_file, json_encode($wo_schema));
+            }
+        }
+        // === END schema load ===
+
         $set_clause = [];
+        // Use $ww_schema to only update fields present in the table
         foreach ($ww_private_fields as $qd_key => $ww_key) {
+            if (!isset($wo_schema[$ww_key])) {
+                error_log("[sync_quickdate_to_wowonder] Skipping (not in Wo_Users): $ww_key");
+                continue;
+            }
             if (isset($quickdate_user[$qd_key])) {
                 $value = $wwDb->real_escape_string($quickdate_user[$qd_key]);
                 $set_clause[] = "`$ww_key` = '$value'";
             }
         }
         foreach ($ww_public_fields as $qd_key => $ww_key) {
+            if (!isset($wo_schema[$ww_key])) {
+                error_log("[sync_quickdate_to_wowonder] Skipping (not in Wo_Users): $ww_key");
+                continue;
+            }
             if (isset($quickdate_user[$qd_key])) {
                 $value = $wwDb->real_escape_string($quickdate_user[$qd_key]);
                 $set_clause[] = "`$ww_key` = '$value'";
