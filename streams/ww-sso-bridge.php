@@ -16,12 +16,14 @@ require_once __DIR__ . '/../shared/sso_bridge_helpers.php';
 // ======================================
 // START: CONFIGURATIONS / DEFAULTS
 // ======================================
-if (!defined('WP_BASE_SITE_URL'))        define('WP_BASE_SITE_URL', 'https://buzzjuice.net');
+if (!defined('WP_BASE_SITE_URL'))       define('WP_BASE_SITE_URL', 'https://buzzjuice.net');
 if (!defined('BUZZ_SSO_COOKIE'))        define('BUZZ_SSO_COOKIE', 'buzz_sso');
 if (!defined('BUZZ_COOKIE_DOMAIN'))     define('BUZZ_COOKIE_DOMAIN', '.buzzjuice.net');
 if (!defined('BUZZ_SSO_DEBUG'))         define('BUZZ_SSO_DEBUG', false);
 if (!defined('BUZZ_SSO_BRIDGE_LOG'))    define('BUZZ_SSO_BRIDGE_LOG', __DIR__ . '/ww_sso_bridge.log');
 if (!defined('BUZZ_SSO_AUTO_REGISTER')) define('BUZZ_SSO_AUTO_REGISTER', true);
+if (!defined('BUZZ_SSO_TTL_ACCESS'))    define('BUZZ_SSO_TTL_ACCESS', 12345);
+if (!defined('BUZZ_SSO_TTL_REFRESH'))   define('BUZZ_SSO_TTL_REFRESH', 216000);
 
 $base_site_url      = defined('WP_BASE_SITE_URL') ? WP_BASE_SITE_URL : (getenv('WP_BASE_SITE_URL') ?: null);
 $base_streams_url   = rtrim($wo['config']['site_url'] ?? WP_BASE_SITE_URL ?? '', '/');
@@ -57,7 +59,7 @@ if ($loop_count > 4) {
 }
 
 // ***** Replay protection: JTI store (30 min) ***** TODO																																																										
-define('BUZZ_JTI_STORE', __DIR__ . '/data/sso_jti_store');
+define('BUZZ_JTI_STORE', __DIR__ . '/../data/sso_jti_store');
 if (!is_dir(BUZZ_JTI_STORE)) @mkdir(BUZZ_JTI_STORE, 0755, true);
 if (mt_rand(1, 35) === 9) bz_cleanup_jti_store();
 
@@ -288,8 +290,8 @@ if (!$access_payload && $refresh_token) {
             'wo_user_id'    => $refresh_payload['wo_user_id'] ?? null,
             'qd_user_id'    => $refresh_payload['qd_user_id'] ?? null
         ];
-        $new_access = bz_sso_jwt_encode($new_payload, $BUZZ_SSO_SECRET, $audience, 600, 'access');
-        bz_sso_set_cookie('buzz_access', $new_access, time()+600);
+        $new_access = bz_sso_jwt_encode($new_payload, $BUZZ_SSO_SECRET, $audience, BUZZ_SSO_TTL_ACCESS, 'access');
+        bz_sso_set_cookie('buzz_access', $new_access, time()+BUZZ_SSO_TTL_ACCESS);
         $access_payload = bz_sso_jwt_validate($new_access, $BUZZ_SSO_SECRET, $audience, 'access');
     }
 }
@@ -303,9 +305,9 @@ if (!$access_payload && $wordpress_logged_in_) {
     $resp = @file_get_contents($wp_token_url, false, $context);
     $data = json_decode($resp, true);
     if (!empty($data['access'])) {
-        bz_sso_set_cookie('buzz_access',$data['access'],time()+600);
+        bz_sso_set_cookie('buzz_access',$data['access'],time()+BUZZ_SSO_TTL_ACCESSL);
         if (!empty($data['refresh'])) {
-            bz_sso_set_cookie('buzz_refresh',$data['refresh'],time()+216000);
+            bz_sso_set_cookie('buzz_refresh',$data['refresh'],time()+BUZZ_SSO_TTL_REFRESH);
         }
         $access_payload = bz_sso_jwt_validate($data['access'], $BUZZ_SSO_SECRET, $audience, 'access');
         if (!$access_payload) {
@@ -317,7 +319,7 @@ if (!$access_payload && $wordpress_logged_in_) {
 // 4. Fail → redirect user to login
 if (!$access_payload) {
     bz_bridge_log('Dual-token bootstrap failed — redirecting to login');
-    header('Location: /wp-login.php?action=logout&redirect_to=/wp-login.php?redirect_to=/streams');
+    header('Location: /wp-login.php?try=1&redirect_to=/wp-login.php?redirect_to=/streams');
     exit;
 }
 
@@ -333,7 +335,7 @@ $_SESSION['wp_Wo_SSO_Login'] = true;
 // -----------------------------
 if (!$_SESSION['wp_user_id'] || !$_SESSION['wp_user_login'] || !$_SESSION['wp_user_email']) {
     bz_bridge_log('Missing required claims (cookie incomplete)', $access_payload);
-    header('Location: /wp-login.php?action=logout&redirect_to=/wp-login.php?redirect_to=/streams');
+    header('Location: /wp-login.php?try=2&redirect_to=/wp-login.php?redirect_to=/streams');
     exit;
 }
 
@@ -430,8 +432,70 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
             if ($wp_user_id && $wo_user_id) {
                 bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
             }
-            header('Location: /wp-login.php?action=logout&redirect_to=/wp-login.php?redirect_to=/streams');
+            header('Location: /wp-login.php?try=3&redirect_to=/wp-login.php?redirect_to=/streams');
             exit;
+        }
+        
+        // -------------------------------------------------------------------
+        // CASE: WoWonder email matches WordPress email, username differs
+        // Update WoWonder username to match WordPress, then sync wo_user_id
+        // -------------------------------------------------------------------
+        if (
+            $user_id_by_email &&
+            (
+                !$user_id_by_username ||
+                strcasecmp($rows[array_search($user_id_by_email, array_column($rows, 'user_id'))]['username'], $access_payload['wp_user_login']) !== 0
+            )
+        ) {
+            $wo_user_id = (int)$user_id_by_email;
+            $desired_username = preg_replace('/[^a-zA-Z0-9_]/', '', $access_payload['wp_user_login']);
+            $desired_username = substr($desired_username, 0, 32);
+        
+            // Check minimum username length (WoWonder requires 5)
+            if (strlen($desired_username) < 5) {
+                bz_bridge_log('SSO: Desired username too short', ['attempted_username' => $desired_username]);
+                header('Location: /wp-login.php?try=4&redirect_to=/wp-login.php?redirect_to=/members/me/settings/');
+                exit;
+            }
+        
+            // Check WoWonder reserved/disallowed usernames and existence
+            $reserved_usernames = $wo['reserved_usernames'] ?? [];
+            if (
+                (function_exists('Wo_IsNameExist') && Wo_IsNameExist($desired_username)) ||
+                in_array($desired_username, $wo['site_pages'] ?? []) ||
+                in_array($desired_username, $reserved_usernames)
+            ) {
+                bz_bridge_log('SSO: Desired WoWonder username already exists or is reserved', ['username' => $desired_username]);
+                header('Location: /wp-login.php?try=5&redirect_to=/wp-login.php?redirect_to=/members/me/settings/');
+                exit;
+            }
+        
+            // Official WoWonder update method
+            $update_success = false;
+            if (function_exists('Wo_UpdateUserData')) {
+                $update_success = Wo_UpdateUserData($wo_user_id, ['username' => $desired_username]);
+            }
+            bz_bridge_log('SSO: WoWonder username sync attempt', [
+                'wo_user_id' => $wo_user_id,
+                'old_username' => $rows[array_search($wo_user_id, array_column($rows, 'user_id'))]['username'] ?? '',
+                'new_username' => $desired_username,
+                'result' => $update_success
+            ]);
+            if ($update_success) {
+                if ($wp_user_id && $wo_user_id) {
+                    bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
+                }
+                $access_payload['wo_user_id'] = $wo_user_id;
+                header('Location: /wp-login.php?try=6&redirect_to=/wp-login.php?redirect_to=/streams');
+                exit;
+            } else {
+                bz_bridge_log('SSO: WoWonder username update failed', [
+                    'wo_user_id' => $wo_user_id,
+                    'desired_username' => $desired_username
+                ]);
+                header('Location: /wp-login.php?try=7&redirect_to=/wp-login.php?redirect_to=/members/me/settings/');
+                exit;
+            }
         }
 
         // If username/email exist but belong to different users, rename both and continue registration
@@ -480,7 +544,7 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
             'payload'  => $access_payload,
             'attempts' => $attempt
         ]);
-        header('Location: /wp-login.php?action=logout&redirect_to=/wp-login.php?redirect_to=/members/me/settings/');
+        header('Location: /wp-login.php?try=8&redirect_to=/wp-login.php?redirect_to=/members/me/settings/');
         exit;
     }
 }
@@ -514,8 +578,7 @@ $sso_username = $_SESSION['wp_user_login'];
 // Build $ajax_url for the bridge page so the client POST preserves redirect_to
 // Place this after $last_url / $sso_username / $sso_token are set and BEFORE the HTML render.
 // -----------------------------
-$ajax_url_base = (isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : '/ww-sso-bridge.php') . '?sso_action=do_login';
-$ajax_url = $ajax_url_base;
+$ajax_url = (isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : '/ww-sso-bridge.php') . '?sso_action=do_login';
 
 // Preserve redirect_to from the incoming GET (so POST carries it through).
 if (!empty($_GET['redirect_to'])) {
@@ -569,7 +632,7 @@ if (!function_exists('bz_clear_wp_wo_user_id')) {
     function bz_clear_wp_wo_user_id($wp_user_id) {
         $wp_conn = get_wp_db_conn();
         if (!$wp_conn || empty($wp_user_id)) {
-            header('Location: /wp-login.php?action=logout&redirect_to=/wp-login.php?redirect_to=/streams');
+            header('Location: /wp-login.php?try=9&redirect_to=/wp-login.php?redirect_to=/streams');
             exit;
         }
         $wp_user_id = (int)$wp_user_id;
@@ -589,7 +652,7 @@ if (!function_exists('bz_clear_wp_wo_user_id')) {
             exit;
         } else {
             // Failed to clear mapping, redirect to login
-            header('Location: /wp-login.php?action=logout&redirect_to=/wp-login.php?redirect_to=/streams');
+            header('Location: /wp-login.php?try=10&redirect_to=/wp-login.php?redirect_to=/streams');
             exit;
         }
     }

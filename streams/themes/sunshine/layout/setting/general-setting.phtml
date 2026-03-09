@@ -10,14 +10,14 @@
 		<div class="setting-general-alert setting-update-alert"></div>
 
 		<div class="row">
-			<div class="col-md-6">
+<!--		<div class="col-md-6">
 				<div class="wow_form_fields">
 					<label for="username"><?php echo $wo['lang']['username']; ?></label>
 					<input id="username" name="username" type="text" value="<?php echo $wo['setting']['username']?>" onkeyup="Wo_CheckUsername(this.value);" autocomplete="off">
 					<span class="help-block checking"></span>
 				</div>
 			</div>
-			<div class="col-md-6">
+-->			<div class="col-md-6">
 				<div class="wow_form_fields">
 					<label for="phone_number"><?php echo $wo['lang']['phone_number']; ?> </label>
 					<input name="phone_number" id="phone_number" type="tel" value="<?php echo $wo['setting']['phone_number']?>" autocomplete="off">
@@ -26,26 +26,7 @@
 					<?php } ?>
 				</div>
 			</div>
-		</div>
-		<div class="wow_form_fields">
-			<label for="email"><?php echo $wo['lang']['email']; ?> </label>
-			<input name="email" id="email" type="email" value="<?php echo $wo['setting']['email']?>" autocomplete="off">
-			<?php if (($wo['config']['sms_or_email'] == 'mail') && !empty($wo['setting']['new_email']) && $wo['config']['emailValidation'] == 1) { ?>
-				<span class="help-block unverify_color"><?php echo ($wo['setting']['new_email']); ?>(<?php echo ($wo['lang']['unverified']); ?>)</span>
-			<?php } ?>
-		</div>
-		<div class="row">
-			<div class="col-md-6">
-				<?php
-					$cutoff   = 1930;
-					$now      = date('Y');
-					$birthday = explode('-', $wo['setting']['birthday']);
-				?>
-				<div class="wow_form_fields">
-					<label for="usr_birthday"><?php echo $wo['lang']['birthday']; ?></label>
-					<input id="usr_birthday" name="birthday" type="text" autocomplete="off" value="<?php echo $wo['setting']['birthday']?>"> 
-				</div>
-			</div>
+			
 			<div class="col-md-6">
 				<div class="wow_form_fields">
 					<label for="country"><?php echo $wo['lang']['country']; ?> </label>
@@ -60,8 +41,32 @@
 					</select>
 				</div>
 			</div>
+			
 		</div>
+
+<!--	<div class="wow_form_fields">
+			<label for="email"><?php echo $wo['lang']['email']; ?> </label>
+			<input name="email" id="email" type="email" value="<?php echo $wo['setting']['email']?>" autocomplete="off">
+			<?php if (($wo['config']['sms_or_email'] == 'mail') && !empty($wo['setting']['new_email']) && $wo['config']['emailValidation'] == 1) { ?>
+				<span class="help-block unverify_color"><?php echo ($wo['setting']['new_email']); ?>(<?php echo ($wo['lang']['unverified']); ?>)</span>
+			<?php } ?>
+		</div>
+-->
+
 		<div class="row">
+			<div class="col-md-6">
+				<?php
+					$cutoff   = 1930;
+					$now      = date('Y');
+					$birthday = explode('-', $wo['setting']['birthday']);
+				?>
+				<div class="wow_form_fields">
+					<label for="usr_birthday"><?php echo $wo['lang']['birthday']; ?></label>
+					<input id="usr_birthday" name="birthday" type="text" autocomplete="off" value="<?php echo $wo['setting']['birthday']?>"> 
+				</div>
+			</div>
+			
+			
 			<div class="col-md-6">
 				<div class="wow_form_fields">
 					<label for="gender"><?php echo $wo['lang']['gender']; ?></label>
@@ -72,6 +77,11 @@
 					</select>
 				</div>
 			</div>
+			
+		</div>
+		
+		<div class="row">
+
 			<?php if ($wo['config']['weather_widget'] == 1 && !empty($wo['config']['weather_key'])) { ?>
 			<div class="col-md-6">
 				<div class="wow_form_fields">
