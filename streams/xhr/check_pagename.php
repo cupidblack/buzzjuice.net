@@ -14,7 +14,7 @@ if ($f == 'check_pagename') {
             $data['message'] = $wo['lang']['too_long'];
         } else if (!preg_match('/^[\w]+$/', $_GET['pagename'])) {
             $data['status']  = 600;
-            $data['message'] = $wo['lang']['username_invalid_characters_2'];
+            $data['message'] = 'Page name should only contain letters, numbers or underscores.';
         } else {
             $is_exist = Wo_IsNameExist($_GET['pagename'], 0);
             if (in_array(true, $is_exist)) {

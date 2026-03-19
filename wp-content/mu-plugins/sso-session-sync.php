@@ -173,7 +173,7 @@ add_action('init', function() {
             unset($_COOKIE[$c]);
             setcookie($c, '', time() - 3600, '/');
         }
-        header('Location: https://buzzjuice.net/shared/sso-logout.php');
+        header('Location: https://buzzjuice.net');
         exit();
     }
 });

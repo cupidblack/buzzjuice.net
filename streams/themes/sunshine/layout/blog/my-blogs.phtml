@@ -1,18 +1,23 @@
 <div class="page-margin">
+
+	<div class="page-margin mt-0">
+		<div class="wow_content popular_posts_hdr movie">
+			<img src="<?php echo $wo['config']['theme_url'];?>/img/blog.png" class="bg_trail">
+			<h2><svg width="17" height="18" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.61171 6.79433C2.12446 4.55719 3.83126 2.8104 6.0172 2.28564C7.59585 1.90666 9.23879 1.90666 10.8174 2.28564C13.0034 2.8104 14.7102 4.55719 15.2229 6.79434C15.5932 8.40998 15.5932 10.0914 15.2229 11.707C14.7102 13.9442 13.0034 15.691 10.8174 16.2157C9.23878 16.5947 7.59585 16.5947 6.0172 16.2157C3.83126 15.691 2.12446 13.9442 1.61171 11.707C1.24141 10.0914 1.24141 8.40998 1.61171 6.79433Z" class="icon_main" stroke-width="1.5" stroke-linecap="round"></path><path d="M5.14258 1.5V3.59479M11.6924 1.5V3.59479M5.96131 11.7645H8.41751M5.96131 9.25071H10.8737" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>&nbsp;<?php echo 'My Blog Articles'; ?></h2>
+		</div>
+		
+		<div class="col-md-2 leftcol"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div>
+		
+	</div>
+    
 	<div class="row">
-		<div class="col-md-2 leftcol"><?php echo Wo_LoadPage("sidebar/left-sidebar"); ?></div>
 		<div class="col-md-7 profile-lists singlecol">
-			<div class="page-margin mt-0">
-				<div class="wow_content popular_posts_hdr movie">
-					<img src="<?php echo $wo['config']['theme_url'];?>/img/blog.png" class="bg_trail">
-					<h2><svg width="17" height="18" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.61171 6.79433C2.12446 4.55719 3.83126 2.8104 6.0172 2.28564C7.59585 1.90666 9.23879 1.90666 10.8174 2.28564C13.0034 2.8104 14.7102 4.55719 15.2229 6.79434C15.5932 8.40998 15.5932 10.0914 15.2229 11.707C14.7102 13.9442 13.0034 15.691 10.8174 16.2157C9.23878 16.5947 7.59585 16.5947 6.0172 16.2157C3.83126 15.691 2.12446 13.9442 1.61171 11.707C1.24141 10.0914 1.24141 8.40998 1.61171 6.79433Z" class="icon_main" stroke-width="1.5" stroke-linecap="round"></path><path d="M5.14258 1.5V3.59479M11.6924 1.5V3.59479M5.96131 11.7645H8.41751M5.96131 9.25071H10.8737" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>&nbsp;<?php echo $wo['lang']['blog']; ?></h2>
-				</div>
-			</div>
-			
+
 			<div class="page-margin wow_content wow_big_head_link">
 				<ul class="list-unstyled">
+				    <li><a href="<?php echo Wo_SeoLink('index.php?link1=blogs'); ?>" data-ajax="?link1=blogs"><?php echo $wo['lang']['browse_articles'] ?></a></li>
 					<li class="active"><a href="<?php echo Wo_SeoLink('index.php?link1=my-blogs'); ?>" data-ajax="?link1=my-blogs"><?php echo $wo['lang']['my_articles'] ?></a></li>
-					<li><a href="<?php echo Wo_SeoLink('index.php?link1=blogs'); ?>" data-ajax="?link1=blogs"><?php echo $wo['lang']['browse_articles'] ?></a></li>
+					
 				</ul>
 			</div>
 			

@@ -1,6 +1,6 @@
 <div class="page-margin">
 	<div class="row">
-		<div class="col-md-2 leftcol"><?php if($wo['loggedin']){echo Wo_LoadPage("sidebar/left-sidebar"); }elseif($wo['config']['directory_system']){ ?><div class="post_prnt"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div><?php } ?></div>
+		<div class="col-md-2 leftcol"><?php if($wo['loggedin']){echo Wo_LoadPage("directory/left-sidebar"); }elseif($wo['config']['directory_system']){ ?><div class="post_prnt"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div><?php } ?></div>
 		<div class="col-md-7 middlecol">
 			<?php if ($wo['config']['user_status'] == 1 && $wo['loggedin']) { ?>
 				<div class="wow_content user-status-home wow_home_stories">

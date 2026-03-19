@@ -17,13 +17,29 @@ $groups    = $db->objectbuilder()->orderBy('id', 'DESC')->paginate(T_GROUPS, $pa
 				<p><?php echo $wo['lang']['welcome_discover'] ?> <?php echo $wo['lang']['groups'] ?><b><?php echo $wo['lang']['explore_diverse_communities'] ?></b></p>
 			</h2>
 		</div>
-	</div>
-	
-    <div class="row">
+		
 		<div class="col-md-3 leftcol">
 			<div class="group_prnt"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div>
 		</div>
+		
+	</div>
+	
+    <div class="row">
     <div class="col-md-9 singlecol">
+        
+        
+        	<div class="page-margin wow_content wow_big_head_link">
+				<ul class="list-unstyled">
+				    <li class="active"><a href="<?php echo Wo_SeoLink('index.php?link1=directory/groups'); ?>" data-ajax="?link1=directory/groups"><?php echo 'Browse Groups'; ?></a></li>
+					<?php if ($wo['config']['can_use_groups']) { ?>
+					<li><a href="<?php echo Wo_SeoLink('index.php?link1=groups'); ?>" data-ajax="?link1=groups"><?php echo $wo['lang']['my_groups'] ?></a></li>
+					<?php } ?>
+					<li><a href="<?php echo Wo_SeoLink('index.php?link1=suggested-groups'); ?>" data-ajax="?link1=suggested-groups"><?php echo $wo['lang']['suggested_groups'] ?></a></li>
+					<li><a href="<?php echo Wo_SeoLink('index.php?link1=joined_groups'); ?>" data-ajax="?link1=joined_groups"><?php echo $wo['lang']['joined_groups'] ?></a></li>
+				</ul>
+			</div>
+        
+        
         <div class="wo_search_page">
             <div class="tab-content">
                 <div id="groups">

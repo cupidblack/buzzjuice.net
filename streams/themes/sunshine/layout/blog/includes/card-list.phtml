@@ -6,17 +6,25 @@
 		</div>
 		<div class="wow_main_blogs_info">
 			<div>
-				<a class="user_avatar" href="<?php echo $wo['article']['author']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['article']['author']['username']; ?>"><img src="<?php echo $wo['article']['author']['avatar']; ?>"></a>
+			    <h2 class="art-title"><a href="<?php echo $wo['article']['url']; ?>"><?php echo $wo['article']['title']; ?></a></h2>
+
 				<div>
-					<h2 class="art-title"><a href="<?php echo $wo['article']['url']; ?>"><?php echo $wo['article']['title']; ?></a></h2>
+
 					<div class="postMeta--author-text">
-						<div><a href="<?php echo $wo['article']['author']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['article']['author']['username']; ?>"><?php echo $wo['article']['author']['name']; ?></a>
+					    
+					    <a class="user_avatar" href="<?php echo $wo['article']['author']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['article']['author']['username']; ?>"><img src="<?php echo $wo['article']['author']['avatar']; ?>"></a>
+					    
+						<div>
+					        <a href="<?php echo $wo['article']['author']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['article']['author']['username']; ?>"><?php echo $wo['article']['author']['name']; ?></a>
+						    <div><time><?php echo date("d M Y",$wo['article']['posted']); ?></time></div>
 						</div>
-						<div><time><?php echo date("d M Y",$wo['article']['posted']); ?></time></div>
+						
 					</div>
+					
+					<a href="<?php echo $wo['article']['url']; ?>" class="btn btn-main btn-block btn-mat"><?php echo '....' ?></a>
+
 				</div>
 			</div>
-			<a href="<?php echo $wo['article']['url']; ?>" class="btn btn-main btn-block btn-mat"><?php echo $wo['lang']['read_more'] ?></a>
 		</div>
 	</div>
 </div>

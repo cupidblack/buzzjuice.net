@@ -21,8 +21,12 @@
 </div>
 <div class="clear"></div>
 <?php echo Wo_LoadPage('forum/includes/delete-thread'); ?>
-<?php echo Wo_LoadPage('forum/headers/footer'); ?>
+
 <?php if (count($wo['threads']) >= 0): ?>
+
+<?php echo Wo_LoadPage('forum/headers/footer'); ?>
+
+
 	<script>
 		$(".forum-posts-load").click(function () {
 			  

@@ -21,13 +21,32 @@
 						<input id="page_title" name="page_title" type="text">
 						<span class="help-block"><?php echo $wo['lang']['your_page_title'];?></span>
 					</div>
-					<div class="wow_form_fields">
+<!--					<div class="wow_form_fields">
 						<label for="page_name"><?php echo $wo['lang']['page'];?> URL</label>
 						<div class="input-group">
 							<span class="input-group-addon"><?php echo $wo['config']['site_url'];?>/</span>
 							<input id="page_name" name="page_name" type="text">
 						</div>
 					</div>
+-->
+
+<div class="wow_form_fields">
+    <label for="page_name"><?php echo $wo['lang']['page']; ?> URL</label>
+    <div class="input-group">
+        <span class="input-group-addon"><?php echo $wo['config']['site_url']; ?>/</span>
+        <input id="page_name" name="page_name" type="text">
+    </div>
+</div>
+
+<script>
+    const pageInput = document.getElementById('page_name');
+
+    pageInput.addEventListener('input', function() {
+        // Replace hyphens or spaces with underscore
+        this.value = this.value.replace(/[-\s]/g, '_');
+    });
+</script>
+
 					<div class="wow_form_fields">
 						<label for="page_category"><?php echo $wo['lang']['page_category']; ?></label>
 						<select name="page_category" id="page_category" onchange="GetPageSubCategory(this)">

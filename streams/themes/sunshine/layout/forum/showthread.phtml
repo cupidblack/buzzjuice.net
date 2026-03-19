@@ -71,7 +71,7 @@
 </div>
 <div class="clear"></div>
 <?php echo Wo_LoadPage('forum/includes/delete-reply'); ?>
-<?php echo Wo_LoadPage('forum/headers/footer'); ?>
+
 <div class="modal fade in" id="thread-shared" role="dialog">
     <div class="modal-dialog">
     
@@ -84,6 +84,9 @@
       
     </div>
 </div>
+
+<?php echo Wo_LoadPage('forum/headers/footer'); ?>
+
 <script>
 	function ThreadShare(self) {
 		$("#thread-shared").modal('show');

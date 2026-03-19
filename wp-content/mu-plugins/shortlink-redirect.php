@@ -10,6 +10,7 @@ add_action('init', function () {
     add_rewrite_rule('^r/hs1/?$', 'index.php?shortlink=hs1', 'top');
 
     add_rewrite_rule('^subscribe/?$', 'index.php?shortlink=subscribe', 'top');
+    add_rewrite_rule('^signup/?$', 'index.php?shortlink=signup', 'top');
 
     // Custom shortlink — escape @ in regex
     add_rewrite_rule('^dry80/?$', 'index.php?shortlink=dry80', 'top');
@@ -38,6 +39,7 @@ add_action('template_redirect', function () {
         'dry80'     => 'https://docs.google.com/forms/d/e/1FAIpQLSdIENspBqltfxUq4uawzQS7gm_wWkSTcLimeIhMR7j0qPMKaw/viewform',
         'telegram'  => 'https://t.me/+IuV7FS16Xjw5NDdk', // Telegram invite
         'subscribe'       => 'https://buzzjuice.net/streams/go-pro/',
+        'signup'       => 'https://buzzjuice.net/register/',
     ];
 
     // If matched, redirect

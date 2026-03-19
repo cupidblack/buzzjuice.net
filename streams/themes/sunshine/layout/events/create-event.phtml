@@ -1,15 +1,12 @@
 <div class="page-margin">
 	<div class="row">
-		<div class="col-md-2 leftcol"><?php echo Wo_LoadPage("sidebar/left-sidebar"); ?></div>
+		<div class="col-md-2 leftcol"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div>
 		<div class="col-md-7 middlecol">
 			<form class="form form-horizontal" method="post" id="insert-event">
 				<div class="page-margin mt-0">
 					<div class="wow_content popular_posts_hdr flex">
 						<h2>&nbsp;<?php echo $wo['lang']['create_events']; ?></h2>
-						<div class="btnss">
-							<a class="btn btn-mat btn-default" href="<?php echo Wo_SeoLink('index.php?link1=my-events'); ?>" data-ajax="?link1=my-events"><?php echo $wo['lang']['cancel'];?></a>
-							<button class="btn btn-main btn-mat add_wow_loader" type="submit"><?php echo $wo['lang']['publish']; ?></button>
-						</div>
+
 					</div>
 				</div>
 
@@ -73,11 +70,19 @@
 					<input type="hidden" name="hash_id" value="<?php echo Wo_CreateSession();?>">
 					<input type="file" name="event-cover" class="hidden" id="event-cover" accept="image/*">
 				
+				
+				
+			    	<div class="btnss">
+						<a class="btn btn-mat btn-default" href="<?php echo Wo_SeoLink('index.php?link1=my-events'); ?>" data-ajax="?link1=my-events"><?php echo $wo['lang']['cancel'];?></a>
+						<button class="btn btn-main btn-mat add_wow_loader" type="submit"><?php echo $wo['lang']['publish']; ?></button>
+					</div>
+				
+				
 				</div>
 			</form>
 		</div>
 		<!-- .col-md-8 -->
-		<?php echo Wo_LoadPage('sidebar/content');?>
+
 	</div>
 </div>
 
@@ -150,4 +155,8 @@
             }
       });
   });
+
+    jQuery(document).ready(function ($) {
+
+    });
 </script>

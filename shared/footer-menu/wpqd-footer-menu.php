@@ -140,6 +140,10 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
 }
 
 /* list inside popup */
+#buzz-create-popup .buzz-popup-list .home-block {
+    display: flex;
+    justify-content: space-between;
+}
 #buzz-create-popup .buzz-popup-list {
     display: flex;
     flex-direction: column;
@@ -181,6 +185,8 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
     gap: 8px;
     justify-content: center;
     margin: 6px 0 0 0;
+    flex-direction: column;
+    text-align: -webkit-center;
 }
 #buzz-create-popup .buzz-auth a {
     padding: 8px 12px;
@@ -197,13 +203,13 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
 
 /* small close button */
 #buzz-create-popup .buzz-popup-close {
-    position: absolute;
+    /* position: absolute; */
     top: 6px;
     right: 8px;
     background: transparent;
     border: none;
-    font-size: 18px;
-    color: #888;
+    font-size: 20px !important;
+    color: #888 !important;
     cursor: pointer;
 }
 
@@ -261,11 +267,10 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
 -->
 <!-- ========================= -->
 <div id="buzz-create-popup" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="buzz-create-popup-title">
-    <button class="buzz-popup-close" aria-label="Close" title="Close">&times;</button>
 
     <!-- Guest actions (hidden by default) -->
     <div data-auth="guest" hidden id="buzz-create-guest">
-        <div style="padding:10px;text-align:center;color:#444;">Please Log in or Sign up</div>
+<!--        <div style="padding:10px;text-align:center;color:#444;">Please Log in or Sign up</div> -->
         <div class="buzz-auth">
             <a href="/login" class="login">Log in</a>
             <a href="/signup" class="signup">Sign up</a>
@@ -274,7 +279,10 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
 
     <!-- Logged-in create actions (hidden by default) -->
     <div class="buzz-popup-list" data-auth="user" hidden id="buzz-create-user">
-        <a href="/" class="buzz-create-link"><i class="fa fa-home"></i><span><strong>Home</strong></span></a>
+        <div class="home-block">
+            <a href="/" class="buzz-create-link"><i class="fa fa-home"></i><span><strong>Home</strong></span></a>
+            <button class="buzz-popup-close" aria-label="Close" title="Close">&times;</button>
+        </div>
         <hr />
         <a href="https://buzzjuice.net/streams/create-blog/" class="buzz-create-link"><i class="fa fa-pencil"></i><span>Create Blog</span></a>
         <a href="https://buzzjuice.net/streams/create-album" class="buzz-create-link"><i class="fa fa-image"></i><span>Create Album</span></a>
@@ -292,10 +300,28 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
 (function(){
     'use strict';
 
-    // expose server-side indication (WordPress) if available
-    window.buzzServerLoggedIn = <?php echo $buzz_user_logged_in ? 'true' : 'false'; ?>;
+    // --- WordPress authentication: strictly by presence of WP login cookie ---
+    function isWordPressUserLoggedIn() {
+        // This checks ONLY for any cookie whose name begins with 'wordpress_logged_in_'
+        // This is always present for logged-in WordPress users (across Buzzjuice SSO surfaces)
+        return /(?:^|;\s*)wordpress_logged_in_[^=]+=[^;]+/.test(document.cookie);
+    }
 
-    // Detect WordPress surface
+    // --- Show guest/user popup blocks according ONLY to WP login cookie ---
+    function showAuthBlocks() {
+        var isLogged = isWordPressUserLoggedIn();
+        var userBlock = document.querySelector('[data-auth="user"]');
+        var guestBlock = document.querySelector('[data-auth="guest"]');
+        if (isLogged) {
+            if (userBlock) userBlock.hidden = false;
+            if (guestBlock) guestBlock.hidden = true;
+        } else {
+            if (userBlock) userBlock.hidden = true;
+            if (guestBlock) guestBlock.hidden = false;
+        }
+    }
+
+    // Floating FAB visibility (keep legacy non-WP show logic)
     function isWordPress() {
         try {
             if (typeof window.wp !== 'undefined') return true;
@@ -306,37 +332,8 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
             if (cls.indexOf('bb-') !== -1) return true;
             if (cls.indexOf('buddypress') !== -1) return true;
             return false;
-        } catch(e) {
-            return false;
-        }
+        } catch(e) { return false; }
     }
-
-    // Cookie-based detection to support WoWonder / QuickDate (fallback)
-    function isUserLoggedInClient() {
-        try {
-            // If server says logged in, trust that.
-            if (window.buzzServerLoggedIn) return true;
-            if (document.cookie.indexOf('buzz_sso=') === -1) return true;
-
-            // WordPress cookie pattern
-            if (document.cookie.match(/wordpress_logged_in_/)) return true;
-
-            // Common WoWonder/QuickDate cookie names - adjust if your install uses different names
-            if (document.cookie.indexOf('user_id=') !== -1) return true;
-            if (document.cookie.indexOf('wo_user_id=') !== -1) return true;
-            if (document.cookie.indexOf('qd_user_id=') !== -1) return true;
-            if (document.cookie.indexOf('wp_user_id=') !== -1) return true;
-
-            // If your SSO sets a shared token cookie like 'buzz_auth', check it:
-            if (document.cookie.indexOf('buzz_auth=') !== -1) return true;
-
-            return false;
-        } catch (e) {
-            return false;
-        }
-    }
-
-    // init FAB visibility (only show on non-WP surfaces)
     function initFloatingFab() {
         var fab = document.getElementById('buzzjuice-floating-chat-left');
         if (!fab) return;
@@ -359,35 +356,14 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
         }, false);
     }
 
-    // Popup utilities
+    // Popup utilities (unchanged except call to showAuthBlocks updated)
     var popup = document.getElementById('buzz-create-popup');
     var homeButton = document.getElementById('buzz-home-button');
-
-    function showAuthBlocks() {
-        var isLogged = isUserLoggedInClient();
-        var userBlock = document.querySelector('[data-auth="user"]');
-        var guestBlock = document.querySelector('[data-auth="guest"]');
-
-        if (window.buzzServerLoggedIn) {
-            // If server says logged in, always show the user block
-            if (userBlock) userBlock.hidden = false;
-            if (guestBlock) guestBlock.hidden = true;
-            return;
-        }
-
-        if (isLogged) {
-            if (userBlock) userBlock.hidden = false;
-            if (guestBlock) guestBlock.hidden = true;
-        } else {
-            if (userBlock) userBlock.hidden = true;
-            if (guestBlock) guestBlock.hidden = false;
-        }
-    }
 
     function openPopup() {
         if (!popup || !homeButton) return;
 
-        // prepare auth-specific blocks
+        // Show correct block on each open.
         showAuthBlocks();
 
         // position popup centered above the home button (within bounds)

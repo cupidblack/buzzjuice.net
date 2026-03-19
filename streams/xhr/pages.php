@@ -291,7 +291,7 @@ if ($f == 'pages') {
         }
         exit();
     }
-    if ($s == 'delete_page') {
+/*    if ($s == 'delete_page') {
         if (!empty($_POST['page_id']) && is_numeric($_POST['page_id']) && $_POST['page_id'] > 0 && Wo_CheckSession($hash_id) === true) {
             if (!Wo_HashPassword($_POST['password'], $wo['user']['password']) && !Wo_CheckPageAdminPassword($_POST['password'], $_POST['page_id'])) {
                 $errors[] = $error_icon . $wo['lang']['current_password_mismatch'];
@@ -319,7 +319,7 @@ if ($f == 'pages') {
         }
         exit();
     }
-    if ($s == 'add_admin') {
+*/    if ($s == 'add_admin') {
         $data = array(
             'status' => 304
         );

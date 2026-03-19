@@ -105,16 +105,7 @@ foreach (['last_url', 'redirect_to'] as $param) {
     if (!empty($_COOKIE[$param])) { $last_url = (string)$_COOKIE[$param]; break; }
 }
 
-// 2) Fallback to HTTP_REFERER ONLY if same-site
-if (!$last_url && !empty($_SERVER['HTTP_REFERER'])) {
-    $referer = trim((string)$_SERVER['HTTP_REFERER']);
-    $referer_host = parse_url($referer, PHP_URL_HOST);
-    if ($referer_host && strcasecmp($referer_host, $site_host) === 0) {
-        $last_url = $referer;
-    }
-}
-
-// 3) Fallback to REQUEST_URI (not bridge/self-reference)
+// 2) Fallback to REQUEST_URI (not bridge/self-reference)
 if (!$last_url) {
     $req_uri = $_SERVER['REQUEST_URI'] ?? '/';
     $bridge_path = parse_url($_SERVER['PHP_SELF'] ?? '', PHP_URL_PATH);
@@ -124,6 +115,15 @@ if (!$last_url) {
         if ($candidate_host && strcasecmp($candidate_host, $site_host) === 0) {
             $last_url = $candidate;
         }
+    }
+}
+
+// 3) Fallback to HTTP_REFERER ONLY if same-site
+if (!$last_url && !empty($_SERVER['HTTP_REFERER'])) {
+    $referer = trim((string)$_SERVER['HTTP_REFERER']);
+    $referer_host = parse_url($referer, PHP_URL_HOST);
+    if ($referer_host && strcasecmp($referer_host, $site_host) === 0) {
+        $last_url = $referer;
     }
 }
 
@@ -275,7 +275,7 @@ foreach ($_COOKIE as $name => $value) {
 // ---------------------------------------------------------------
 // CASE A: WordPress logged in — check WoWonder session
 // ---------------------------------------------------------------
-if ($wordpress_logged_in_) {
+if (!$wordpress_logged_in_) {
 
     // --- CASE A.1: Both WP and WoWonder session fully active ---
     $already_logged_in = (
@@ -300,7 +300,12 @@ if ($wordpress_logged_in_) {
             ]
         );
 
-        $redirect = $_SESSION['last_url'] ?? '/social';
+        $referer = $_SERVER['HTTP_REFERER'] ?? $_SESSION['last_url'] ?? '/social';
+        
+        $separator = (parse_url($referer, PHP_URL_QUERY) ? '&' : '?');
+        
+        $redirect = $referer . $separator . 'try=0';
+
         if (!is_string($redirect) || strpos($redirect, '/') !== 0) {
             $redirect = '/social';
         }
@@ -328,10 +333,11 @@ bz_bridge_log(
 );
 
 // --- Explicitly destroy stale QuickDate session ---
-/*if (!empty($session_qd_user_id) || !empty($session_user_id)) {
-    session_destroy();
+if (isset($_SESSION) && !empty($session_qd_user_id) || !empty($session_user_id)) {
+    session_unset();
+    @session_destroy();
 }
-*/
+
 // Proceed to SSO bootstrap — user must re-login
 
 // =============================================================================
@@ -1080,10 +1086,11 @@ function QD_SSO_Login() {
     }
 
     // Decide redirect URL
-    $url = (isset($config->uri) ? rtrim($config->uri,'/') : '') . '/find-matches';
+    $url = (isset($config->uri) ? rtrim($config->uri,'/') : '') . '/steps';
     if (!empty($accepted_user['start_up']) && $accepted_user['start_up'] == 3 && !empty($accepted_user['verified'])) {
-        $url = (isset($config->uri) ? rtrim($config->uri,'/') : '') . '/steps';
+        $url = (isset($config->uri) ? rtrim($config->uri,'/') : '') . '/find-matches';
     }
+    
     if (!empty($last_url) && $last_url !== '//' ) {
         // Only accept relative or same-site last_url
         $site_base = isset($config->uri) ? rtrim($config->uri,'/') : '';

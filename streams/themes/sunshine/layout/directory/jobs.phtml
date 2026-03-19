@@ -18,13 +18,16 @@ $jobs = $db->objectbuilder()->orderBy('id', 'DESC')->paginate(T_JOB, $page);
 				<p><?php echo $wo['lang']['welcome_discover'] ?> <?php echo $wo['lang']['jobs'] ?><b><?php echo $wo['lang']['unlock_your_career'] ?></b></p>
 			</h2>
 		</div>
+		
+		 <div class="col-md-3 leftcol">
+			<div class="job_prnt"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div>
+		</div>
+		
 	</div>
 	
     <div class="row">
-        <div class="col-md-3 leftcol">
-			<div class="job_prnt"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div>
-		</div>
         <div class="col-md-9 singlecol">
+            
             <div class="">
                 <div class="latest-products">
                     <div class="market_bottom">

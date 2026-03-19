@@ -14,7 +14,7 @@ body.bm-mobile-device #bp-better-messages-mini-mobile-open.bm-initialized {
 #buzzjuice-floating-chat-left {
   position: fixed;
   left: 0px;
-  bottom: calc(45px + env(safe-area-inset-bottom));
+  bottom: calc(40px + env(safe-area-inset-bottom));
   width: 32px;
   height: 32px;
   background: #63a551;
@@ -38,7 +38,7 @@ body.bm-mobile-device #bp-better-messages-mini-mobile-open.bm-initialized {
   color: #fff;
   border-radius: 20%;
   padding: 2px 6px;
-  font-size: 11px;
+  font-size: 9px;
   min-width: 18px;
   text-align: center;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
@@ -60,19 +60,26 @@ body.bm-mobile-device #bp-better-messages-mini-mobile-open.bm-initialized {
 .bottom-footer-menu ul li a,
 .bottom-footer-menu ul li button,
 .bottom-footer-menu ul li a[role="button"] {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 10px;
-  color: #333;
-  text-decoration: none;
-  padding: 6px 4px;
-  -webkit-tap-highlight-color: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 9px;
+    color: #000000;
+    text-decoration: none;
+    padding: 3px 2px;
+    -webkit-tap-highlight-color: transparent;
+    border: solid 1px;
+    width: 42px;
+    border-radius: 12px;
 }
 .bottom-footer-menu ul li a i,
-.bottom-footer-menu ul li button i { font-size: 28px; margin-bottom: 3px; }
+.bottom-footer-menu ul li button i { font-size: 20px; margin-bottom: 0px; }
 .bottom-footer-menu ul li a.active { color: #0d6efd; }
 .bottom-footer-menu { z-index: 9999; }
+
+.bottom-footer-menu li a i.fa {
+    font-size: 20px;
+}
 
 /* =========================
    Floating popup (non-WoWonder)
@@ -122,7 +129,7 @@ body.bm-mobile-device #bp-better-messages-mini-mobile-open.bm-initialized {
 #buzz-create-popup .buzz-popup-list i { width:22px; text-align:center; color:#666; }
 
 /* guest / auth */
-#buzz-create-popup .buzz-auth { display:flex; gap:8px; justify-content:center; margin-top:6px; }
+#buzz-create-popup .buzz-auth { display:flex; gap:8px; justify-content:center; margin-top:6px;flex-direction: column;text-align: -webkit-center;}
 #buzz-create-popup .buzz-auth a { padding:8px 12px; border-radius:8px; text-decoration:none; color:#fff; background:#0d6efd; font-weight:600; font-size:13px; }
 #buzz-create-popup .buzz-auth a.signup { background:#63a551; }
 
@@ -138,14 +145,35 @@ body.bm-mobile-device #bp-better-messages-mini-mobile-open.bm-initialized {
 /* =========================
    WoWonder-style modal (bootstrap) adapted as bottom popover
    ========================= */
+#buzz-home-button {
+    max-width: 32px;
+    background: black;
+    color: white;
+    border-color: black;
+}
+
+#buzz-home-button span {
+    color: white;
+    font-weight: 500;
+}
    
 #buzz-create-user > hr {
   margin-bottom: 0px;
 }
 
+/*#buzz-create-guest-modal > div:nth-child(1) {
+    display: none;
+}
+
+#buzz-create-guest > div:nth-child(1) {
+    display: none;
+}
+*/
+
 .buzz-auth {
     display: flex;
-    justify-content: space-around;
+    flex-direction: column;
+    text-align: -webkit-center;
 }
 
 #buzz-create-guest-modal > div.buzz-auth > a.login, #buzz-create-guest-modal > div.buzz-auth > a.signup {
@@ -153,6 +181,7 @@ body.bm-mobile-device #bp-better-messages-mini-mobile-open.bm-initialized {
     padding: 10px;
     border-radius: 10px;
     color: white;
+    margin: 5px 0px;
 }
 
 .modal.buzz-create-modal .modal-dialog {
@@ -192,4 +221,11 @@ body.bm-mobile-device #bp-better-messages-mini-mobile-open.bm-initialized {
 .buzz-create-close { position:absolute; right:8px; top:6px; background:transparent; border:none; font-size:18px; color:#888; cursor:pointer; }
 
 /* small visual niceties */
-.bottom-footer-menu a span { display:block; line-height:1; font-size:11px; margin-top:2px; }
+.bottom-footer-menu a span {
+    display: block;
+    line-height: 1;
+    font-size: 9px;
+    margin-top: 0px;
+    font-weight: 600;
+    color: #434343;
+}

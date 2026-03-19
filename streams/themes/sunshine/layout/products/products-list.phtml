@@ -19,31 +19,111 @@
 			<div class="product-title">
 				<a href="<?php echo $wo['product']['url']?>" data-ajax="?link1=post&id=<?php echo $wo['product']['seo_id'];?>" title="<?php echo $wo['product']['name']?>"><?php echo $wo['product']['name']?></a>
 			</div>
-			<div class="product-price">
-				<?php echo (!empty($wo['currencies'][$wo['product']['currency']]['symbol'])) ? $wo['currencies'][$wo['product']['currency']]['symbol'] : $wo['config']['classified_currency_s'];?><?php echo $wo['product']['price_format']?>
-			</div>
-			<div class="wow_main_prod_foot" style="<?php echo(empty($wo['product']['units']) && $wo['product']['units'] < 1 ? 'padding-bottom: 5px;' : '') ?>">
-				<?php if ($wo['loggedin']) { if (!empty($wo['product']['seller']) && $wo['product']['seller']['id'] != $wo['user']['user_id']) { ?>
-					<?php if ($wo['config']['store_system'] == 'on') { ?>
-					<?php if (!empty($wo['product']['units']) && $wo['product']['units'] > 0) { ?>
-						<button class="contact btn btn-main btn-mat" onclick="AddProductToCart(this,'<?php echo($wo['product']['id']); ?>','add')">
-							<?php echo $wo['lang']['buy_now'] ?>
-						</button>&nbsp;&nbsp;&nbsp;
-					<?php }else{ ?>
-						
-					<?php } ?> 
-					<?php } ?>
-					<button class="contact btn btn-default btn-mat" onclick="Wo_OpenChatTab(<?php echo $wo['product']['seller']['id']?>,0,<?php echo $wo['product']['id']?>)" data-toggle="tooltip" title="<?php echo $wo['lang']['contact_seller'] ?>">
-						<svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.71867 8.53303C2.56417 4.85464 5.31998 1.99673 8.83213 1.15601L9.11094 1.08927C11.0007 0.636911 12.9631 0.636911 14.8528 1.08927L15.3292 1.2033C18.7203 2.01505 21.3811 4.77448 22.1975 8.3261L22.3086 8.80926C22.7292 10.6391 22.7292 12.5478 22.3086 14.3776C21.4616 18.0624 18.3226 20.6585 14.7142 20.6585H13.3874C12.9517 20.6585 12.5574 20.9393 12.3918 21.3627C11.7901 22.901 10.1103 23.6561 8.64394 23.0291L8.49624 22.966C5.10763 21.5173 2.58162 18.4081 1.72289 14.6722C1.26056 12.6608 1.25634 10.5444 1.71867 8.53303Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path><path d="M7.86914 8.32251H15.4087M7.86914 12.6427H12.6671" class="icon_main" stroke-width="1.5" stroke-linecap="round"></path></svg>
-					</button>
-				<?php } else { ?>
-					<a class="btn btn-block btn-default btn-mat" href="<?php echo $wo['product']['url']?>" data-ajax="?link1=post&id=<?php echo $wo['product']['seo_id'];?>">
-						<?php echo $wo['lang']['more_info'] ?>
-					</a>
-				<?php } ?>
-				<?php } ?>
-			</div>
-		</div>
+			
+			
+<div class="buy_svg_btn" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+
+    <!-- Price (Left) -->
+    <div>
+        <?php echo (!empty($wo['currencies'][$wo['product']['currency']]['symbol'])) 
+            ? $wo['currencies'][$wo['product']['currency']]['symbol'] 
+            : $wo['config']['classified_currency_s'];?>
+        <?php echo $wo['product']['price_format']?>
+    </div>
+
+    <!-- Cart / Action Buttons (Right) -->
+    <div class="product-actions">
+
+        <?php
+        // WordPress login redirect URL
+        $login_redirect = $wo['config']['site_url'] . "/../wp-login.php?redirect_to=" . $wo['product']['url'];
+        ?>
+
+        <?php if ($wo['loggedin']): ?>
+
+            <?php if (!empty($wo['product']['seller']) && $wo['product']['seller']['id'] != $wo['user']['user_id']): ?>
+                
+                <!-- Buy Now SVG Cart -->
+                <?php if ($wo['config']['store_system'] === 'on' && !empty($wo['product']['units']) && $wo['product']['units'] > 0): ?>
+                    <button class="contact btn btn-mat"  
+                        onclick="AddProductToCart(this,'<?php echo $wo['product']['id']; ?>','add')"
+                        data-toggle="tooltip" title="<?php echo $wo['lang']['buy_now'] ?>">
+                            
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" class="icon_main" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                            <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                            <path d="M17 17h-11v-14h-2"></path>
+                            <path d="M6 5l14 1l-1 7h-13"></path>
+                        </svg>
+
+                    </button>
+                <?php endif; ?>
+
+                <!-- Contact Seller Button -->
+                <button class="contact btn btn-default btn-mat"
+                        onclick="Wo_OpenChatTab(<?php echo $wo['product']['seller']['id']?>,0,<?php echo $wo['product']['id']?>)" 
+                        data-toggle="tooltip" title="<?php echo $wo['lang']['contact_seller'] ?>">
+                        <svg width="24" height="25" viewBox="0 0 24 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1.71867 8.53303C2.56417 4.85464 5.31998 1.99673 8.83213 1.15601L9.11094 1.08927C11.0007 0.636911 12.9631 0.636911 14.8528 1.08927L15.3292 1.2033C18.7203 2.01505 21.3811 4.77448 22.1975 8.3261L22.3086 8.80926C22.7292 10.6391 22.7292 12.5478 22.3086 14.3776C21.4616 18.0624 18.3226 20.6585 14.7142 20.6585H13.3874C12.9517 20.6585 12.5574 20.9393 12.3918 21.3627C11.7901 22.901 10.1103 23.6561 8.64394 23.0291L8.49624 22.966C5.10763 21.5173 2.58162 18.4081 1.72289 14.6722C1.26056 12.6608 1.25634 10.5444 1.71867 8.53303Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+                            <path d="M7.86914 8.32251H15.4087M7.86914 12.6427H12.6671" class="icon_main" stroke-width="1.5" stroke-linecap="round"></path>
+                        </svg>
+                </button>
+
+            <?php else: ?>
+                <a class="btn btn-block btn-default btn-mat" 
+                   href="<?php echo $wo['product']['url']?>" 
+                   data-ajax="?link1=post&id=<?php echo $wo['product']['seo_id'];?>">
+                    <?php echo $wo['lang']['more_info'] ?>
+                </a>
+            <?php endif; ?>
+
+        <?php else: ?>
+
+            <!-- If NOT logged in → redirect to WordPress login -->
+            <button class="contact btn buy_svg_btn"
+                    onclick="window.location.href='<?php echo $login_redirect; ?>'"
+                    data-toggle="tooltip" title="<?php echo $wo['lang']['buy_now'] ?>">
+                    
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                     stroke-width="2" fill="none" stroke="currentColor"
+                     stroke-linecap="round" stroke-linejoin="round">
+
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                    <path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                    <path d="M17 17h-11v-14h-2"></path>
+                    <path d="M6 5l14 1l-1 7h-13"></path>
+
+                </svg>
+
+            </button>
+
+        <?php endif; ?>
+
+    </div>
+
+</div>
+
+<style>
+.buy_svg_btn .btn-mat {
+    min-width: 32px;
+    padding: 0px 5px;
+    line-height: 28px;
+}
+
+.buy_svg_btn .btn-mat svg {
+    width: 20px;
+    height: 20px;
+    margin: -2px 3px 0 0;
+    padding:0;
+    border:none;
+}
+</style>
+
+
+
+	    </div>
 	</div>
 	<div class="clear"></div>
 </div>

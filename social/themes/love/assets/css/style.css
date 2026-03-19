@@ -8,11 +8,21 @@
 
 
 
+
+.upgrade-for-filters {
+    justify-self: center;
+}
+
+.upgrade-for-filters a.prema {
+    margin: 0px;
+}
+
+
 /*Basic Styles*/
 html, body{width: 100%; height: 100%;}
 body {background-color: #f6f6f6;}
 body#white {background-color: #fff;}
-body > #container {min-height: calc(100vh - 187px);margin-top: 64px;}
+body > #container {min-height: calc(100vh - 200px);margin-top: 64px;}
 body.no-padd > #container {
 	padding: 0 !important;
 }
@@ -869,7 +879,7 @@ white-space: nowrap;
 }
 .dt_header_short_desc > svg.second {
 	width: 1318px;
-    height: 1187px;
+    height: 1200px;
     position: absolute;
     right: -350px;
     top: -250px;
@@ -951,7 +961,7 @@ white-space: nowrap;
 }
 .dt_header_how_works > svg {
 	width: 1396px;
-	height: 1187px;
+	height: 1200px;
     position: absolute;
     left: -250px;
     top: -200px;
@@ -1361,6 +1371,9 @@ color: #433E42;margin: 0 0 30px;}
 .dt_get_start_circle-3 {position: absolute;bottom: 25px;left: 25px;width: 100px;height: 100px;background: radial-gradient(#FFE0B2, #FF9800);border-radius: 50%;opacity: 0.08;}
 
 /*Footer*/
+.page_footer {
+    padding-bottom: 50px;
+}
 .page_footer > .container{padding: 30px 0px;}
 .page_footer > .container_new {padding: 0 15px;}
 .page_footer .footer-copyright {
@@ -3940,10 +3953,12 @@ height: 69px;    margin-right: 15px;
 /*Alerts*/
 .alert {background-color: #fff;
     margin: 10px auto;
-    padding: 15px;
+    padding: 10px;
     border: 1.5px dashed;
     border-radius: 16px;
-    font: normal normal normal 16px/28px Montserrat;}
+    font: normal normal normal 14px/28px Montserrat;
+    text-align: -webkit-center;
+}
 .alert p {margin:0;font-size: 14px;}
 .alert-info {background-color: #e0f1ff;color: #2196F3;border-color: #5eb8ff;}
 .alert-success {background-color: #e7f3e7;color: #4CAF50;border-color: #91cf91;}
@@ -6296,6 +6311,7 @@ nav li.credit > .boost-div {
     div#dt_ltst_users .dt_home_rand_user .col.l4.m6.s12.random_user_item {
         width: 156px;
         padding: 0 .4rem;
+        max-width: 50%;
     }
     div#random_users_container {
         justify-self: center;

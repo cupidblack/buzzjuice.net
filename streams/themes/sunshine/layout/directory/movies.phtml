@@ -18,13 +18,16 @@ $movies = $db->objectbuilder()->orderBy('id', 'DESC')->paginate(T_MOVIES, $page)
 				<p><?php echo $wo['lang']['welcome_discover'] ?> <?php echo $wo['lang']['movies'] ?><b><?php echo $wo['lang']['explore_captivating_films'] ?></b></p>
 			</h2>
 		</div>
+		
+		<div class="col-md-3 leftcol">
+			<div class="movie_prnt"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div>
+		</div>
+		
 	</div>
 	
     <div class="row">
-        <div class="col-md-3 leftcol">
-			<div class="movie_prnt"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div>
-		</div>
         <div class="col-md-9 singlecol">
+            
             <div class="">
                 <div class="movies">
                     <div class="movies-inner">

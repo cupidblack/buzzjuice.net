@@ -117,7 +117,7 @@
 		<li class="divider" tabindex="-1"></li>
 		<li>
 			<a href="<?php echo $site_url;?>/blog" data-ajax="/blog" class="<?php if($data['name'] == 'blog'){ echo 'active';}?>">
-				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20 22H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1zm-1-2V4H5v16h14zM8 9h8v2H8V9zm0 4h8v2H8v-2z"></path></svg> <?php echo __( 'Blog' );?>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20 22H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1zm-1-2V4H5v16h14zM8 9h8v2H8V9zm0 4h8v2H8v-2z"></path></svg> <?php echo __( 'Socials Blog' );?>
 			</a>
 		</li>
 		<?php if ($config->success_stories_system == 1) { ?>
@@ -127,5 +127,21 @@
 				</a>
 			</li>
 		<?php } ?>
+		
+		
+		<li class="divider" tabindex="-1"></li>
+		
+		<li>
+			<a href="<?php echo $site_url;?>/../streams/directory/groups" class="<?php if($data['name'] == 'blog'){ echo 'active';}?>">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20 22H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1zm-1-2V4H5v16h14zM8 9h8v2H8V9zm0 4h8v2H8v-2z"></path></svg> <?php echo __( 'Groups' );?>
+			</a>
+		</li>
+		<li>
+			<a href="<?php echo $site_url;?>/../streams/directory/events/" class="<?php if($data['name'] == 'blog'){ echo 'active';}?>">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M20 22H4a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1zm-1-2V4H5v16h14zM8 9h8v2H8V9zm0 4h8v2H8v-2z"></path></svg> <?php echo __( 'Events' );?>
+			</a>
+		</li>
+		
+		
 	</ul>
 </div>

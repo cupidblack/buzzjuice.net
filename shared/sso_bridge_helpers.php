@@ -6,7 +6,7 @@
 // -----------------------------
 // ***** Replay protection: JTI store (30 min) ***** TODO
 // -----------------------------
-define('BUZZ_SSO_JTI_STORE', __DIR__ . '/.bz_sso_jti_store');
+define('BUZZ_SSO_JTI_STORE', __DIR__ . '/../data/.bz_sso_jti_store');
 if (!is_dir(BUZZ_SSO_JTI_STORE)) @mkdir(BUZZ_SSO_JTI_STORE, 0755, true);
 
 function bz_is_jti_used($jti) {
@@ -22,6 +22,149 @@ function bz_cleanup_jti_store() {
 
 
 
+// shared/sso_bridge_helpers.php
+
+/**
+ * Derive the last URL for SSO redirects and prepare Full SSO State
+ *
+ * @param string $base_url Base URL of the site/bridge (e.g., $base_social_url or $base_streams_url)
+ * @param int|null $user_id Optional user ID for JWT state
+ * @param bool $force_fallback Optional, force fallback to base URL
+ * @return array ['last_url' => string, 'sso_state' => array]
+ */
+function bz_get_last_url_and_sso_state(string $base_url, ?int $user_id = null, bool $force_fallback = false): array
+{
+    $site_host = parse_url($base_url, PHP_URL_HOST) ?: '';
+
+    // -------------------------------
+    // 1) Extract explicit redirect parameters
+    $last_url = '';
+    foreach (['last_url', 'redirect_to'] as $param) {
+        if (!empty($_GET[$param]))  { $last_url = (string)$_GET[$param]; break; }
+        if (!empty($_POST[$param])) { $last_url = (string)$_POST[$param]; break; }
+        if (!empty($_COOKIE[$param])) { $last_url = (string)$_COOKIE[$param]; break; }
+    }
+
+    // -------------------------------
+    // 1.5) Decode + unwrap nested last_url
+    if (!empty($last_url)) {
+        $decoded = $last_url;
+        for ($i = 0; $i < 3; $i++) {
+            $tmp = urldecode($decoded);
+            if ($tmp === $decoded) break;
+            $decoded = $tmp;
+        }
+        $last_url = trim($decoded);
+
+        if (strpos($last_url, 'last_url=') !== false) {
+            $parts = parse_url($last_url);
+            if (!empty($parts['query'])) {
+                parse_str($parts['query'], $q);
+                if (!empty($q['last_url'])) {
+                    $last_url = $q['last_url'];
+                }
+            }
+        }
+    }
+
+    // -------------------------------
+    // 2) Fallback to REQUEST_URI (server-controlled)
+    if (!$last_url) {
+        $req_uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $bridge_path = parse_url($_SERVER['PHP_SELF'] ?? '', PHP_URL_PATH);
+
+        if ($req_uri && $req_uri !== $bridge_path && strpos($req_uri, basename(__FILE__)) === false) {
+            $candidate = rtrim($base_url, '/') . $req_uri;
+            $candidate_host = parse_url($candidate, PHP_URL_HOST);
+            if ($candidate_host && strcasecmp($candidate_host, $site_host) === 0) {
+                $last_url = $candidate;
+            }
+        }
+    }
+
+    // -------------------------------
+    // 3) Fallback to HTTP_REFERER (client-controlled, same-site only)
+    if (!$last_url && !empty($_SERVER['HTTP_REFERER'])) {
+        $referer = trim((string)$_SERVER['HTTP_REFERER']);
+        $referer_host = parse_url($referer, PHP_URL_HOST);
+        if ($referer_host && strcasecmp($referer_host, $site_host) === 0) {
+            $last_url = $referer;
+        }
+    }
+
+    // -------------------------------
+    // 4) Normalize → absolute + enforce same-site
+    if ($last_url) {
+        if (!preg_match('#^https?://#i', $last_url)) {
+            $last_url = strpos($last_url, '/') === 0
+                ? rtrim($base_url, '/') . $last_url
+                : rtrim($base_url, '/') . '/' . ltrim($last_url, '/');
+        }
+        $candidate_host = parse_url($last_url, PHP_URL_HOST);
+        if (!$candidate_host || strcasecmp($candidate_host, $site_host) !== 0) {
+            $last_url = '';
+        }
+    }
+
+    // -------------------------------
+    // 5) Prevent bridge/self-reference loop
+    if (!empty($last_url) && function_exists('bz_is_bridge_url') && bz_is_bridge_url($last_url, $base_url)) {
+        $last_url = rtrim($base_url, '/') . '/';
+    }
+
+    // -------------------------------
+    // 6) Final fallback
+    if (!$last_url || $force_fallback) {
+        $last_url = rtrim($base_url, '/') . '/';
+    }
+
+    // -------------------------------
+    // 7) Persist: SESSION, COOKIE, GLOBAL
+    $_SESSION['last_url'] = $last_url;
+    setcookie(
+        'last_url',
+        urlencode($last_url),
+        time() + 300,
+        '/',
+        '.buzzjuice.net',
+        true,
+        true
+    );
+    $GLOBALS['bz_last_url'] = $last_url;
+
+    // -------------------------------
+    // 8) Prepare Full SSO State Object
+    $sso_state = [
+        'last_url'  => $last_url,
+        'action'    => $_GET['action'] ?? null,
+        'target'    => $_GET['target'] ?? null,
+        'timestamp' => time(),
+    ];
+
+    setcookie(
+        'sso_state',
+        urlencode(json_encode($sso_state)),
+        time() + 300,
+        '/',
+        '.buzzjuice.net',
+        true,
+        true
+    );
+
+    $GLOBALS['bz_sso_state'] = $sso_state;
+
+    // -------------------------------
+    // 9) Return both last_url and SSO state for bridge usage
+    return [
+        'last_url'  => $last_url,
+        'sso_state' => $sso_state,
+        'jwt_payload' => [
+            'user_id' => $user_id ?? 0,
+            'state'   => $sso_state,
+            'iat'     => time(),
+        ],
+    ];
+}
 
 
 

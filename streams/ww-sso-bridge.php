@@ -59,7 +59,7 @@ if ($loop_count > 4) {
 }
 
 // ***** Replay protection: JTI store (30 min) ***** TODO																																																										
-define('BUZZ_JTI_STORE', __DIR__ . '/../data/sso_jti_store');
+define('BUZZ_JTI_STORE', __DIR__ . '/../data/.sso_jti_store');
 if (!is_dir(BUZZ_JTI_STORE)) @mkdir(BUZZ_JTI_STORE, 0755, true);
 if (mt_rand(1, 35) === 9) bz_cleanup_jti_store();
 
@@ -89,16 +89,7 @@ foreach (['last_url', 'redirect_to'] as $param) {
     if (!empty($_COOKIE[$param])) { $last_url = (string)$_COOKIE[$param]; break; }
 }
 
-// 2) Fallback to HTTP_REFERER ONLY if same-site
-if (!$last_url && !empty($_SERVER['HTTP_REFERER'])) {
-    $referer = trim((string)$_SERVER['HTTP_REFERER']);
-    $referer_host = parse_url($referer, PHP_URL_HOST);
-    if ($referer_host && strcasecmp($referer_host, $site_host) === 0) {
-        $last_url = $referer;
-    }
-}
-
-// 3) Fallback to REQUEST_URI (not bridge/self-reference)
+// 2) Fallback to REQUEST_URI (not bridge/self-reference)
 if (!$last_url) {
     $req_uri = $_SERVER['REQUEST_URI'] ?? '/';
     $bridge_path = parse_url($_SERVER['PHP_SELF'] ?? '', PHP_URL_PATH);
@@ -108,6 +99,15 @@ if (!$last_url) {
         if ($candidate_host && strcasecmp($candidate_host, $site_host) === 0) {
             $last_url = $candidate;
         }
+    }
+}
+
+// 3) Fallback to HTTP_REFERER ONLY if same-site
+if (!$last_url && !empty($_SERVER['HTTP_REFERER'])) {
+    $referer = trim((string)$_SERVER['HTTP_REFERER']);
+    $referer_host = parse_url($referer, PHP_URL_HOST);
+    if ($referer_host && strcasecmp($referer_host, $site_host) === 0) {
+        $last_url = $referer;
     }
 }
 
@@ -221,12 +221,7 @@ if ($wordpress_logged_in_) {
             ]
         );
 
-        $redirect = $_SESSION['last_url'] ?? '/streams';
-        if (!is_string($redirect) || strpos($redirect, '/') !== 0) {
-            $redirect = '/streams';
-        }
-
-        header('Location: ' . $redirect);
+        header('Location: ' . $last_url);
         exit;
     }
 
@@ -249,10 +244,11 @@ bz_bridge_log(
 );
 
 // --- Explicitly destroy stale WoWonder session ---
-/*if (!empty($session_wo_user_id) || !empty($session_user_id)) {
-    session_destroy();
+if (isset($_SESSION) && !empty($session_wo_user_id) || !empty($session_user_id)) {
+    session_unset();
+    @session_destroy();
 }
-*/
+
 // Proceed to SSO bootstrap — user must re-login
 
 // =============================================================================
@@ -296,6 +292,9 @@ if (!$access_payload && $refresh_token) {
     }
 }
 
+// =================================
+// **** TODO - REVIEW CODE & FUNCTIONALITY ****
+// =================================
 // 3. If still invalid, call WordPress endpoint. Use streams OR buzznet for /issue_tokens
 if (!$access_payload && $wordpress_logged_in_) {
     $wp_token_url = 'https://buzzjuice.net/?sso_action=issue_tokens&aud=' . urlencode($audience);
@@ -432,7 +431,7 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
             if ($wp_user_id && $wo_user_id) {
                 bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
             }
-            header('Location: /wp-login.php?try=3&redirect_to=/streams');
+            header('Location: /wp-login.php?try=3&redirect_to=' . $last_url);
             exit;
         }
         
@@ -486,7 +485,7 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
                     bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
                 }
                 $access_payload['wo_user_id'] = $wo_user_id;
-                header('Location: /wp-login.php?try=6&redirect_to=/streams');
+                header('Location: /wp-login.php?try=6&redirect_to=' . $last_url);
                 exit;
             } else {
                 bz_bridge_log('SSO: WoWonder username update failed', [
@@ -901,18 +900,18 @@ function Wo_SSO_Login() {
             $url = implode('/', $resolved);
         
             // Ensure starts with 'upload/photos/'
-            if (!preg_match('#^upload/photos/#i', $url)) {
+            /*if (!preg_match('#^upload/photos/#i', $url)) {
                 if (strpos($url, 'photos/') !== false) {
                     $url = preg_replace('#^.*photos/#i', 'upload/photos/', $url);
                 } else {
-                    $url = 'upload/photos/' . $url;
+                    $url = '/' . $url;
                 }
-            }
+            }*/
         
             return $url;
         }
         
-        $site_base = rtrim($base_streams_url ?? 'https://buzzjuice.net/streams', '/');
+        $site_base = rtrim($base_site_url ?? 'https://buzzjuice.net', '/');
         if (!empty($wp_meta['bp_profile_avatar'])) {
             $wp_all_meta['avatar'] = bz_normalize_avatar_cover($wp_meta['bp_profile_avatar'], $site_base, 'avatar');
         }

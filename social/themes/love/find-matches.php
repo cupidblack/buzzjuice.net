@@ -463,7 +463,7 @@ $_gender_text = '';
 	<?php } ?>
 	<div class="location_alert_update">
 		<?php if(IS_LOGGED && !empty($profile) && (empty($profile->lat) || empty($profile->lng))) { ?>
-			<div class="alert alert-warning"><?php echo __('please_enable_location'); ?></div>
+			<div class="alert alert-warning"><?php echo 'Enable location for nearby matches.'; ?></div>
 		<?php } ?>
 	</div>
 
@@ -489,6 +489,9 @@ $_gender_text = '';
 
 		<div class="col l6">
 			<!-- Filters  -->
+			
+			<?php if( ( (int)auth()->is_pro == 1 || $config->pro_system == 0 ) || isGenderFree((int)auth()->gender) === true){?>
+			
 			<div class="dt_home_filters_prnt">
 				<div class="dt_home_filters">
 					<h5><?php echo __('Just for you');?></h5>
@@ -497,6 +500,16 @@ $_gender_text = '';
 					</div>
 				</div>
 			</div>
+			
+			<?php }else{ ?>
+                <div class="col s12"><div class="upgrade-for-filters">
+				
+
+                    <a href="<?php echo $site_url;?>/pro" data-ajax="/pro" class="prema"><?php echo __( 'Upgrade for Filters' );?></a>
+                
+				</div>
+            <?php }?>
+			
 			<!-- End Filters  -->
 
             <?php
@@ -578,6 +591,9 @@ $_gender_text = '';
 			<?php require( $theme_path . 'main' . $_DS . 'sidebar-right.php' );?>
 		</div>
 	</div>
+	
+
+	
 </div>
 <script>
 $(document).ready(function(){

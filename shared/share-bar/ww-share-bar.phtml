@@ -1,0 +1,128 @@
+<?php
+if (!isset($wo) || !$wo['loggedin']) return;
+
+// Compact mode for page header (`$compact=true`) - full/tabbed for sidebar
+$compact = $compact ?? false;
+
+$page_url = $wo['page_profile']['url'] ?? $wo['config']['site_url'];
+
+$invite_user = $wo['user']['username'] ?? '';
+if (!empty($invite_user)) $page_url .= (strpos($page_url, '?') !== false ? '&' : '?') . 'invite=' . urlencode($invite_user);
+
+$page_name = $wo['page_profile']['page_name'] ?? $wo['user']['name'] ?? '';
+$about_raw = strip_tags($wo['page_profile']['about'] ?? '');
+$about_short = implode(' ', array_slice(explode(' ', $about_raw), 0, 25));
+if (str_word_count($about_raw) > 25) $about_short .= '...';
+
+$share_text = "Join me on Buzzjuice!\n\n{$page_name}\n{$about_short}\n\n{$page_url}";
+$email_message = "Join me on Buzzjuice!<br><br><strong>".htmlspecialchars($page_name)."</strong><br>".htmlspecialchars($about_short)."<br><br><a href='$page_url'>$page_url</a>";
+?>
+<div class="ww-share-bar share-tabs <?php echo $compact?'ww-share-inline':'';?> mt-2">
+    <ul class="nav nav-tabs" role="tablist" style="display:flex;gap:6px;<?php if($compact){?>padding-left:15px;<?php } ?>font-size: 16px; justify-content: space-between;margin:24px 0;">
+        
+        <a class="nav-link active" data-tab="tab-1-<?php echo $compact?'inline':'';?>">
+        <!-- Share Tab -->
+            <button type="button" class="btn btn-default btn-sm share-btn-main"
+                    style="display:inline-flex;align-items:center;gap:6px;height:<?php echo $compact?'32px':'32px';?>;font-size:<?php echo $compact?'':'16px';?>;border:1px solid;border-radius:20px;"
+                    title="Share this page">
+                <i class="fa fa-share-alt"></i> <?php if(!$compact) echo 'Share'; ?>
+            </button>
+        </a>
+        
+        <li class="nav-item">
+            <a class="nav-link btn btn-default btn-sm" data-tab="tab-email-<?php echo $compact?'inline':'';?>" href="javascript:void(0);" style="display:inline-flex;align-items:center;gap:6px;height:<?php echo $compact?'32px':'32px';?>;font-size:<?php echo $compact?'':'16px';?>;border:1px solid;border-radius:20px;">
+                <i class="fa fa-envelope"></i> <?php if(!$compact) echo 'Email'; ?>
+            </a>
+        </li>
+        
+        <a class="nav-link" data-tab="tab-3-<?php echo $compact?'inline':'';?>">
+        <!-- Copy Link Tab -->
+            <button type="button" class="btn btn-default btn-sm copy-link-btn"
+                    style="display:inline-flex;align-items:center;gap:6px;height:<?php echo $compact?'32px':'32px';?>;font-size:<?php echo $compact?'':'16px';?>;border:1px solid;border-radius:20px;"
+                    title="Copy page link">
+                <i class="fa fa-link"></i> <?php if(!$compact) echo 'Copy link'; ?>
+            </button>
+        </a>
+        
+    </ul>
+    <div class="tab-content" style="border-top:0;<?php if($compact){?>border-radius:0 0 6px 6px;<?php } ?>margin-top:-1px;">
+
+        <!-- Email Tab -->
+        <div class="tab-pane" id="tab-email-<?php echo $compact?'inline':'';?>">
+            <form action="#" method="post" class="invite-user-form">
+                <div class="invite-user-form-alert"></div>
+                <div class="wow_form_fields invite-user-combine">
+                    <input type="text" name="email" placeholder="<?php echo $wo['lang']['email']; ?>" class="form-control">
+                    <button class="btn btn-main"><?php echo $wo['lang']['invite']; ?></button>
+                </div>
+                <div class="clear"></div>
+            </form>
+        </div>
+
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+    document.querySelectorAll('.ww-share-bar').forEach(function(bar) {
+        var cmp = bar.classList.contains('ww-share-inline');
+        var tabPrefix = cmp ? 'inline' : '';
+
+        // Tab switching logic
+        var tabs = bar.querySelectorAll('.nav-link');
+        var panes = bar.querySelectorAll('.tab-pane');
+        tabs.forEach(tab=>{
+            tab.addEventListener('click', function(e){
+                e.preventDefault();
+                var target = this.getAttribute('data-tab');
+                tabs.forEach(t=>t.classList.remove('active'));
+                panes.forEach(p=>p.classList.remove('active'));
+                this.classList.add('active');
+                bar.querySelector("#"+target).classList.add('active');
+            });
+        });
+
+        // Share button
+        var shareBtn = bar.querySelector('.share-btn-main');
+        if(shareBtn){
+            var shareData = {
+                title: <?php echo json_encode($page_name); ?>,
+                text: <?php echo json_encode($about_short); ?>,
+                url: <?php echo json_encode($page_url); ?>
+            };
+            shareBtn.onclick = function(){
+                if(navigator.share){
+                    navigator.share(shareData).catch(()=>{});
+                } else if(navigator.clipboard){
+                    navigator.clipboard.writeText(<?php echo json_encode($share_text); ?>);
+                    alert("Share text copied to clipboard.");
+                } else {
+                    prompt("Copy and share:", <?php echo json_encode($share_text); ?>);
+                }
+            };
+        }
+
+        // Copy link button
+        var copyBtn = bar.querySelector('.copy-link-btn');
+        if(copyBtn){
+            copyBtn.onclick = function(){
+                if(navigator.clipboard){
+                    navigator.clipboard.writeText(<?php echo json_encode($page_url); ?>);
+                    alert("Page URL copied to clipboard.");
+                } else {
+                    prompt("Copy link:", <?php echo json_encode($page_url); ?>);
+                }
+            };
+        }
+    });
+});
+</script>
+<style>
+.ww-share-bar.ww-share-inline { margin:24px 0; display:flex; align-items:center; flex-direction: column;}
+.ww-share-bar.ww-share-inline .nav { margin-bottom: 0; }
+.ww-share-bar.ww-share-inline .tab-content { min-width:140px; }
+.ww-share-bar.ww-share-inline .nav-tabs { font-size:13px; }
+.ww-share-bar.ww-share-inline .btn { min-width:32px; padding:4px 12px; justify-content: center;}
+.ww-share-bar .nav-link { cursor:pointer; }
+.ww-share-bar .tab-pane { display:none; padding:10px 0;text-align:center; }
+.ww-share-bar .tab-pane.active { display:block; }
+</style>

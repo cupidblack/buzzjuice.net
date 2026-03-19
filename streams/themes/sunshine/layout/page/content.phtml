@@ -63,7 +63,7 @@
 						<?php echo Wo_GetLikeButton($wo['page_profile']['page_id']);?>
 					</span>
 					<span class="user-follow-button page-message-btn"><?php echo Wo_GetPageMessageButton($wo['page_profile']['page_id']);?></span>
-					<?php if (($wo['user']['id'] ?? 0) != ($wo['page_profile']['user_id'] ?? 0)) { ?>
+					<?php if (($wo['user']['id'] ?? 0) === ($wo['page_profile']['user_id'] ?? 0)) { ?>
 						<?php if ($wo['config']['job_system'] == 1 && Wo_IsPageOnwer($wo['page_profile']['page_id'],false) && $wo['config']['can_use_jobs']) { ?>
 							<a data-ajax="?link1=timeline&u=<?php echo $wo['page_profile']['page_name'];?>&type=jobs" href="<?php echo Wo_SeoLink('index.php?link1=timeline&u=' . $wo['page_profile']['page_name'] . '&type=jobs');?>" class="btn btn-success btn-sm btn-mat"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-briefcase"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg> <?php echo $wo['lang']['create_job']; ?></a>
 						<?php } ?>
@@ -112,7 +112,7 @@
 						
 						<li>
 							<a data-ajax="?link1=timeline&u=<?php echo $wo['page_profile']['page_name'];?>&type=invite" href="<?php echo Wo_SeoLink('index.php?link1=timeline&u=' . $wo['page_profile']['page_name'] . '&type=invite');?>">
-								<svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24"><path fill="#e91e63" d="M19 17V19H7V17S7 13 13 13 19 17 19 17M16 8A3 3 0 1 0 13 11A3 3 0 0 0 16 8M19.2 13.06A5.6 5.6 0 0 1 21 17V19H24V17S24 13.55 19.2 13.06M18 5A2.91 2.91 0 0 0 17.11 5.14A5 5 0 0 1 17.11 10.86A2.91 2.91 0 0 0 18 11A3 3 0 0 0 18 5M8 10H5V7H3V10H0V12H3V15H5V12H8Z" /></svg> <?php echo $wo['lang']['page_inviate_label']; ?>
+								<svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24"><path fill="#e91e63" d="M19 17V19H7V17S7 13 13 13 19 17 19 17M16 8A3 3 0 1 0 13 11A3 3 0 0 0 16 8M19.2 13.06A5.6 5.6 0 0 1 21 17V19H24V17S24 13.55 19.2 13.06M18 5A2.91 2.91 0 0 0 17.11 5.14A5 5 0 0 1 17.11 10.86A2.91 2.91 0 0 0 18 11A3 3 0 0 0 18 5M8 10H5V7H3V10H0V12H3V15H5V12H8Z" /></svg> <?php echo 'Invite your contacts/followers to like this page'; ?>
 							</a>
 						</li>
 						<?php if ($wo['loggedin'] && !Wo_IsAdmin() && $wo['user']['id'] != $wo['page_profile']['user_id'] && !Wo_IsAdmin($wo['page_profile']['user_id'])): ?>
@@ -186,19 +186,112 @@
             if (isset($_GET['type'])) {
 			if ($_GET['type'] == 'invite') {
 		?>
-			<div class="page-margin mt-0">
-				<div class="wow_content popular_posts_hdr">
-					<h2><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 10H15M17 12L17 8" class="icon_main" stroke-width="1.5" stroke-linecap="round"></path><path d="M1 17.1115C1 14.6984 2.69732 12.643 5.00404 12.2627L5.21182 12.2284C7.05892 11.9239 8.94108 11.9239 10.7882 12.2284L10.996 12.2627C13.3027 12.643 15 14.6984 15 17.1115C15 18.1545 14.1815 19 13.1719 19H2.82813C1.81848 19 1 18.1545 1 17.1115Z" stroke="currentColor" stroke-width="1.5"></path><path d="M12.0827 4.9375C12.0827 7.11212 10.2545 8.875 7.99935 8.875C5.74419 8.875 3.91602 7.11212 3.91602 4.9375C3.91602 2.76288 5.74419 1 7.99935 1C10.2545 1 12.0827 2.76288 12.0827 4.9375Z" class="icon_main" stroke-width="1.5"></path></svg>&nbsp;<?php echo $wo['lang']['invite_your_frineds']; ?>											
-					</h2>
-				</div>
-			</div>
+        <div class="page-margin mt-0">
+        	<div class="wow_content popular_posts_hdr">
+        		<h2 style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <div>
+        			<?php echo 'Invite your contacts/followers'; ?>
+        
+                    <?php $compact = true; include dirname(__FILE__).'/../../../../../shared/share-bar/ww-share-bar.phtml'; ?>
+</div>
+        			<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 10H15M17 12L17 8" class="icon_main" stroke-width="1.5" stroke-linecap="round"></path><path d="M1 17.1115C1 14.6984 2.69732 12.643 5.00404 12.2627L5.21182 12.2284C7.05892 11.9239 8.94108 11.9239 10.7882 12.2284L10.996 12.2627C13.3027 12.643 15 14.6984 15 17.1115C15 18.1545 14.1815 19 13.1719 19H2.82813C1.81848 19 1 18.1545 1 17.1115Z" stroke="currentColor" stroke-width="1.5"></path><path d="M12.0827 4.9375C12.0827 7.11212 10.2545 8.875 7.99935 8.875C5.74419 8.875 3.91602 7.11212 3.91602 4.9375C3.91602 2.76288 5.74419 1 7.99935 1C10.2545 1 12.0827 2.76288 12.0827 4.9375Z" class="icon_main" stroke-width="1.5"></path></svg>
+
+
+        		</h2>
+        		
+        		
+        		
+        	</div>
+        </div>
 			
+        <?php
+        
+        $page_url = !empty($wo['page_profile']['url'])
+        	? $wo['page_profile']['url']
+        	: $wo['config']['site_url'];
+        
+        $invite_user = !empty($wo['user']['username']) ? $wo['user']['username'] : '';
+        
+        if (!empty($invite_user)) {
+        	if (strpos($page_url, '?') !== false) {
+        		$page_url .= '&invite=' . urlencode($invite_user);
+        	} else {
+        		$page_url .= '?invite=' . urlencode($invite_user);
+        	}
+        }
+        
+        $about_raw = !empty($wo['page_profile']['about'])
+        	? strip_tags($wo['page_profile']['about'])
+        	: '';
+        
+        $about_short = implode(' ', array_slice(explode(' ', $about_raw), 0, 25));
+        if (str_word_count($about_raw) > 25) {
+        	$about_short .= '...';
+        }
+        
+        $page_name = $wo['page_profile']['page_name'];
+        
+        $share_text = "Join me on Buzzjuice!\n\n"
+        	. $page_name . "\n"
+        	. $about_short . "\n\n"
+        	. $page_url;
+        
+        // For email — basic HTML for bold
+        $email_message = "Join me on Buzzjuice!<br><br>"
+        	. "<strong>" . htmlspecialchars($page_name) . "</strong><br>"
+        	. htmlspecialchars($about_short) . "<br><br>"
+        	. "<a href='$page_url'>$page_url</a>";
+        
+        ?>
+        
+        <script>
+        
+        document.addEventListener("DOMContentLoaded", function(){
+        
+        	const shareBtn = document.getElementById("page-share-btn");
+        
+        	if(!shareBtn) return;
+        
+        	const shareData = {
+        		title: <?php echo json_encode($page_name); ?>,
+        		text: <?php echo json_encode($about_short); ?>,
+        		url: <?php echo json_encode($page_url); ?>
+        	};
+        
+        	shareBtn.onclick = function(){
+        
+        		if(navigator.share){
+        
+        			navigator.share(shareData).catch(()=>{});
+        
+        		}else{
+        
+        			const message = <?php echo json_encode($share_text); ?>;
+        
+        			if(navigator.clipboard){
+        
+        				navigator.clipboard.writeText(message);
+        				alert("Share message copied to clipboard.");
+        
+        			}else{
+        
+        				prompt("Copy and share:", message);
+        
+        			}
+        
+        		}
+        
+        	};
+        
+        });
+        
+        </script>
 
 			<div class="">
 				<div class="row cool-style-album-row profile_groups">
 					<?php
 						if (Wo_CountPageInvites($wo['page_profile']['page_id']) == 0) {
-							echo '<div class="empty_state"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M16 17V19H2V17S2 13 9 13 16 17 16 17M12.5 7.5A3.5 3.5 0 1 0 9 11A3.5 3.5 0 0 0 12.5 7.5M15.94 13A5.32 5.32 0 0 1 18 17V19H22V17S22 13.37 15.94 13M15 4A3.39 3.39 0 0 0 13.07 4.59A5 5 0 0 1 13.07 10.41A3.39 3.39 0 0 0 15 11A3.5 3.5 0 0 0 15 4Z" /></svg>' . $wo['lang']['not_invite'] . '</div>';
+							echo '<div class="empty_state"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M16 17V19H2V17S2 13 9 13 16 17 16 17M12.5 7.5A3.5 3.5 0 1 0 9 11A3.5 3.5 0 0 0 12.5 7.5M15.94 13A5.32 5.32 0 0 1 18 17V19H22V17S22 13.37 15.94 13M15 4A3.39 3.39 0 0 0 13.07 4.59A5 5 0 0 1 13.07 10.41A3.39 3.39 0 0 0 15 11A3.5 3.5 0 0 0 15 4Z" /></svg>' . "You don't have any more contacts/followers to invite" . '</div>';
 						} else {
 							foreach (Wo_GetPageInvites($wo['page_profile']['page_id']) as $wo['UsersList']) {
 							echo Wo_LoadPage('page/invite-list');

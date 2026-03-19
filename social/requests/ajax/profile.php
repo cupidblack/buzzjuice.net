@@ -1397,6 +1397,31 @@ Class Profile extends Aj {
         
         $updated = $db->where('id', self::ActiveUser()->id)->update('users', $data);
         if ($updated) {
+            
+            $quickdate_user = $db->where('id', self::ActiveUser()->id)->getOne('users');
+            // --- WWQD QuickDate -> WordPress wrapper ---
+            $qd_user_id = isset($quickdate_user['id']) ? (int)$quickdate_user['id'] : 0;
+
+            if (function_exists('_wwqd_acquire_sync_lock')) {
+                if (_wwqd_acquire_sync_lock('QuickDate', $qd_user_id)) {
+                    try {
+                        if (function_exists('_wwqd_field_maps') && function_exists('_wwqd_ensure_wp_field')) {
+                            $maps = _wwqd_field_maps();
+                            foreach ($quickdate_user as $k => $v) {
+                                if (array_key_exists($k, $maps['public_open_fields'])) {
+                                    @ _wwqd_ensure_wp_field($k);
+                                }
+                            }
+                        }
+                        sync_quickdate_to_wordpress($quickdate_user);
+                    } finally {
+                        if (function_exists('_wwqd_release_sync_lock')) _wwqd_release_sync_lock('QuickDate', $qd_user_id);
+                    }
+                }
+            } else {
+                sync_quickdate_to_wordpress($quickdate_user);
+            }
+            
             $_SESSION[ 'userEdited' ] = true;
             return $r_data;
         } else {
@@ -1458,6 +1483,33 @@ Class Profile extends Aj {
                 //$db->where('user_id',self::ActiveUser()->id)->update('verification_requests', ['seen' => 0]);
                 $db->where('id', self::ActiveUser()->id)->update('users', ['start_up' => 2]);
                 $_SESSION[ 'userEdited' ] = true;
+                
+                
+                $quickdate_user = $db->where('id', self::ActiveUser()->id)->getOne('users');
+                // --- WWQD QuickDate -> WordPress wrapper ---
+                $qd_user_id = isset($quickdate_user['id']) ? (int)$quickdate_user['id'] : 0;
+
+                if (function_exists('_wwqd_acquire_sync_lock')) {
+                    if (_wwqd_acquire_sync_lock('QuickDate', $qd_user_id)) {
+                        try {
+                            if (function_exists('_wwqd_field_maps') && function_exists('_wwqd_ensure_wp_field')) {
+                                $maps = _wwqd_field_maps();
+                                foreach ($quickdate_user as $k => $v) {
+                                    if (array_key_exists($k, $maps['public_open_fields'])) {
+                                        @ _wwqd_ensure_wp_field($k);
+                                    }
+                                }
+                            }
+                            sync_quickdate_to_wordpress($quickdate_user);
+                        } finally {
+                            if (function_exists('_wwqd_release_sync_lock')) _wwqd_release_sync_lock('QuickDate', $qd_user_id);
+                        }
+                    }
+                } else {
+                    sync_quickdate_to_wordpress($quickdate_user);
+                }
+                
+                
                 return array(
                     'status' => 200
                 );

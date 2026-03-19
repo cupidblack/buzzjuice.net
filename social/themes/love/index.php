@@ -433,7 +433,7 @@ if (IS_LOGGED === false) {
 
 <?php
 // include shared footer menu (adjusted from this file's directory)
-$shared = __DIR__ . '/../../../shared/footer-menu/wpqd-footer-menu.php';
+$shared = __DIR__ . '/../../../../shared/footer-menu/wpqd-footer-menu.php';
 
 // Fallback using DOCUMENT_ROOT if above path isn't correct on your host
 $shared_fallback = (isset($_SERVER['DOCUMENT_ROOT']) ? rtrim($_SERVER['DOCUMENT_ROOT'], '/\\') : '') . '/buzzjuice.net/shared/footer-menu/wp-qd-footer-menu.php';

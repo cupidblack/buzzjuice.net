@@ -8,7 +8,7 @@
         <?php } ?>
 		<div class="col <?php if(IS_LOGGED){ echo 'l6'; } else { echo 'l9'; }?>">
 			<div class="valign-wrapper qd_blog_sub_hdr">
-				<h4 class="bold"><?php echo __( 'Blog' );?></h4>
+				<h4 class="bold"><?php echo __( 'Socials Blog' );?></h4>
                 <div class="qd_blog_srch">
 					<input type="text" placeholder="<?php echo __( 'Search blog you want...' );?>" class="form-control" id="search-blog-input">
                     <span id="load-search-icon" class="hide">

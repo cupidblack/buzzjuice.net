@@ -19,12 +19,15 @@ $fundings = $db->objectbuilder()->orderBy('id', 'DESC')->paginate(T_FUNDING, $pa
 				<p><?php echo $wo['lang']['welcome_discover'] ?> <?php echo $wo['lang']['funding'] ?><b><?php echo $wo['lang']['unlock_financial_opportunities'] ?></b></p>
 			</h2>
 		</div>
+		
+		<div class="col-md-3 leftcol">
+			<div class="fund_prnt"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div>
+		</div>
+		
 	</div>
 	
     <div class="row">
-        <div class="col-md-3 leftcol">
-			<div class="fund_prnt"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div>
-		</div>
+
         <div class="col-md-9 singlecol products">
             <div class="wo_market">
                 <div class="market_bottom">

@@ -44,7 +44,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="wow_form_fields">
+<!--		<div class="wow_form_fields">
 			<label for="page_name"><?php echo $wo['lang']['page'];?> URL</label>
 			<div class="input-group">
 				<span class="input-group-addon"><?php echo $wo['config']['site_url'];?>/</span>
@@ -52,6 +52,42 @@
 			</div>
 			<span class="help-block checking"></span>
 		</div>
+-->		
+		<div class="wow_form_fields">
+			<label for="page_name"><?php echo $wo['lang']['page'];?> URL (only letters, numbers or underscores) </label>
+			<div class="input-group">
+				<span class="input-group-addon"><?php echo $wo['config']['site_url'];?>/</span>
+				<input id="page_name" name="page_name" type="text"
+                    value="<?php echo $wo['setting']['page_name']?>"
+                    onkeyup="formatPageName(this)"
+                    autocomplete="off"
+                >
+			</div>
+			<span class="help-block checking"></span>
+		</div>
+        <script>
+            function formatPageName(el) {
+        
+        	let value = el.value;
+        
+        	// convert to lowercase
+        	value = value.toLowerCase();
+        
+            // convert hyphens or spaces to underscores
+            value = value.replace(/[-\s]/g, "_");
+        
+        	// allow only letters, numbers, and underscores
+        	value = value.replace(/[^a-z0-9_]/g, "");
+        
+        	// update field value
+        	el.value = value;
+        
+        	// run WoWonder username check
+        	Wo_CheckPagename(value, <?php echo $wo['setting']['page_id'];?>);
+        
+        }
+        </script>		
+
 		<div class="row">
 			<div class="col-md-5">
 				<div class="wow_form_fields">
@@ -166,9 +202,12 @@ $(function() {
       if (data.status == 200) {
         $('.setting-general-alert').html('<div class="alert alert-success">' + data.message + '</div>');
         $('.alert-success').fadeIn('fast', function() {
-           $(this).delay(2500).slideUp(500, function() {
+           $(this).delay(1500).slideUp(500, function() {
               $(this).remove();
-            });
+              // Redirect after successful save
+              var pageName = $('#page_name').val();
+              window.location.href = "<?php echo $wo['config']['site_url']; ?>/page-setting/" + pageName;
+           });
         });
       } else {
           var errors = data.errors.join("<br>");

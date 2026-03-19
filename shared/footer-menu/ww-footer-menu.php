@@ -29,7 +29,7 @@ elseif (!empty($_COOKIE['user_id']) || !empty($_COOKIE['wo_user_id']) || !empty(
 <!-- Bottom Footer Menu -->
 <div class="bottom-footer-menu" role="navigation" aria-label="Bottom navigation">
     <ul>
-        <li><a href="/streams/directory/market" aria-label="Catalog"><i class="fa fa-th-large" aria-hidden="true"></i><span>Catalog</span></a></li>
+        <li><a href="/streams/products" aria-label="Catalog"><i class="fa fa-th-large" aria-hidden="true"></i><span>Catalog</span></a></li>
         <li><a href="/streams" aria-label="Streams"><i class="fa fa-image" aria-hidden="true"></i><span>Streams</span></a></li>
         <li><a href="/play" aria-label="Play"><i class="fa fa-gamepad" aria-hidden="true"></i><span>Play</span></a></li>
 

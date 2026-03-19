@@ -18,13 +18,16 @@ $games = $db->objectbuilder()->orderBy('id', 'DESC')->paginate(T_GAMES, $page);
 				<p><?php echo $wo['lang']['welcome_discover'] ?> <?php echo $wo['lang']['games'] ?><b><?php echo $wo['lang']['dive_into_a_world'] ?></b></p>
 			</h2>
 		</div>
+		
+		<div class="col-md-3 leftcol">
+			<div class="game_prnt"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div>
+		</div>
+		
 	</div>
 	
     <div class="row">
-        <div class="col-md-3 leftcol">
-			<div class="game_prnt"><?php echo Wo_LoadPage("directory/left-sidebar"); ?></div>
-		</div>
         <div class="col-md-9 singlecol">
+            
             <div class="wo_search_page">
                 <div class="tab-content">
                     <div id="games">

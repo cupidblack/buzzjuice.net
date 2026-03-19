@@ -20,13 +20,30 @@
 						<label for="group_title"><?php echo $wo['lang']['group_name']; ?></label>
 						<input id="group_title" name="group_title" type="text">
 					</div>
-					<div class="wow_form_fields">
+<!--					<div class="wow_form_fields">
 						<label for="group_name"><?php echo $wo['lang']['group'];?> URL</label>
 						<div class="input-group">
 							<span class="input-group-addon"><?php echo $wo['config']['site_url'];?>/</span>
 							<input id="group_name" name="group_name" type="text">
 						</div>
 					</div>
+-->
+
+                    <div class="wow_form_fields">
+                        <label for="group_name"><?php echo $wo['lang']['group'];?> URL</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><?php echo $wo['config']['site_url'];?>/</span>
+                            <input id="group_name" name="group_name" type="text">
+                        </div>
+                    </div>
+                    
+                    <script>
+                    document.getElementById('group_name').addEventListener('input', function(e){
+                        // Replace spaces or hyphens with underscores
+                        this.value = this.value.replace(/[\s-]+/g, '_');
+                    });
+                    </script>
+
 					<div class="wow_form_fields">
 						<label for="group_about"><?php echo $wo['lang']['description']; ?></label>
 						<textarea name="about" id="group_about" rows="3"></textarea>

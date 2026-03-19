@@ -37,7 +37,7 @@ $section = Wo_GetForumSec(array('id' => $wo['forum_data']['forum']['sections']))
 </div>
 <div class="clear"></div>
 
-<?php echo Wo_LoadPage('forum/headers/footer'); ?>
+
 <div class="modal fade in" id="forum-shared" role="dialog">
     <div class="modal-dialog">
     
@@ -50,6 +50,10 @@ $section = Wo_GetForumSec(array('id' => $wo['forum_data']['forum']['sections']))
       
     </div>
 </div>
+
+<?php echo Wo_LoadPage('forum/headers/footer'); ?>
+
+
 <script>
 	function FroumShare(self) {
 		$("#forum-shared").modal('show');
