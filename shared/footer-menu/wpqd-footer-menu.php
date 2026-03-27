@@ -268,21 +268,42 @@ $buzz_user_logged_in = (function_exists('is_user_logged_in') && is_user_logged_i
 <!-- ========================= -->
 <div id="buzz-create-popup" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="buzz-create-popup-title">
 
-    <!-- Guest actions (hidden by default) -->
-    <div data-auth="guest" hidden id="buzz-create-guest">
-<!--        <div style="padding:10px;text-align:center;color:#444;">Please Log in or Sign up</div> -->
-        <div class="buzz-auth">
-            <a href="/login" class="login">Log in</a>
-            <a href="/signup" class="signup">Sign up</a>
+    <?php
+    // --- Detect WordPress login cookie (authority signal for SSO) ---
+    $wordpress_logged_in = false;
+    
+    foreach ($_COOKIE as $name => $value) {
+        if (strncmp($name, 'wordpress_logged_in_', 20) === 0) {
+            $wordpress_logged_in = true;
+            break;
+        }
+    }
+    
+    // --- Guest actions (only show to non-logged-in users) ---
+    if (!$wordpress_logged_in): ?>
+        <div data-auth="guest" class="buzz-create-guest" aria-hidden="true" hidden>
+            <div class="buzz-auth">
+                <a href="<?php echo esc_url('/login'); ?>" class="login">Log in</a>
+                <a href="<?php echo esc_url('/signup'); ?>" class="signup">Sign up</a>
+            </div>
         </div>
-    </div>
+    <?php endif; ?>
 
     <!-- Logged-in create actions (hidden by default) -->
     <div class="buzz-popup-list" data-auth="user" hidden id="buzz-create-user">
         <div class="home-block">
             <a href="/" class="buzz-create-link"><i class="fa fa-home"></i><span><strong>Home</strong></span></a>
             <button class="buzz-popup-close" aria-label="Close" title="Close">&times;</button>
+            
         </div>
+        
+        <div class="home-block">
+            <!-- Dashboard: only visible to logged-in users -->
+            <?php if ($wordpress_logged_in): ?>
+                <a href="/dashboard" class="buzz-create-link"><i class="fa fa-tachometer"></i><span><strong>Dashboard</strong></span></a>
+            <?php endif; ?>
+        </div> 
+        
         <hr />
         <a href="https://buzzjuice.net/streams/create-blog/" class="buzz-create-link"><i class="fa fa-pencil"></i><span>Create Blog</span></a>
         <a href="https://buzzjuice.net/streams/create-album" class="buzz-create-link"><i class="fa fa-image"></i><span>Create Album</span></a>

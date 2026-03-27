@@ -142,7 +142,7 @@
                 <!-- CATALOG -->
         		<?php if ($wo['config']['classified'] == 1) { ?>
             		
-                    	<a href="<?php echo Wo_SeoLink('index.php?link1=directory-market'); ?>" data-ajax="?link1=directory-market" class="market">
+                    	<a href="<?php echo Wo_SeoLink('index.php?link1=directory/market'); ?>" data-ajax="?link1=directory/market" class="market">
                     		<span>
                     		    <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                     		        <path d="M5.66667 4.83331L5.499 5.23252C5.22832 5.877 5.16028 6.58862 5.30394 7.27272C5.52315 8.31654 6.35414 9.12274 7.40412 9.31024L7.49657 9.32675C7.82956 9.38621 8.17044 9.38621 8.50343 9.32675L8.59588 9.31024C9.64586 9.12274 10.4769 8.31654 10.6961 7.27272C10.8397 6.58862 10.7717 5.877 10.501 5.23252L10.3333 4.83331" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
@@ -354,7 +354,7 @@
                         $ajax = '?link1=' . $page_link;
                     } else {
                         $url = Wo_SeoLink('index.php?link1=directory/fundings');
-                        $ajax = '?link1=directory/pages';
+                        $ajax = '?link1=directory/fundings';
                     }
                 ?>
                 <a href="<?php echo $url; ?>" data-ajax="<?php echo $ajax; ?>" class="pages">
@@ -377,7 +377,7 @@
                         $ajax = '?link1=' . $page_link;
                     } else {
                         $url = Wo_SeoLink('index.php?link1=directory/jobs');
-                        $ajax = '?link1=directory/events';
+                        $ajax = '?link1=directory/jobs';
                     }
                 ?>
                 <a href="<?php echo $url; ?>" data-ajax="<?php echo $ajax; ?>" class="jobs">	
@@ -422,7 +422,7 @@
             	<!-- LIFESTYLE MATCHES -->
             	<?php if ($wo['config']['common_things'] == 1) { ?>
             		
-                        <a href="<?php echo Wo_SeoLink('index.php?link1=common_things'); ?>" data-ajax="?link1=events" class="common_things">
+                        <a href="<?php echo Wo_SeoLink('index.php?link1=common_things'); ?>" data-ajax="?link1=common_things" class="common_things">
                     		<span>
                     		    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M5.18859 9.22351C4.88701 7.93782 4.88701 6.59978 5.18859 5.31409C5.60618 3.53383 6.99623 2.14378 8.7765 1.72619C10.0622 1.4246 11.4002 1.4246 12.6859 1.72619C14.4662 2.14378 15.8562 3.53383 16.2738 5.3141C16.5754 6.59978 16.5754 7.93782 16.2738 9.2235C15.8562 11.0038 14.4662 12.3938 12.6859 12.8114C11.4002 13.113 10.0622 13.113 8.7765 12.8114M5.18859 9.22351C5.60618 11.0038 6.99623 12.3938 8.7765 12.8114M5.18859 9.22351C4.9987 8.41398 4.92837 7.58371 4.97761 6.75881C4.90798 6.77302 4.83852 6.78825 4.76922 6.8045C3.24328 7.16244 2.05181 8.35391 1.69387 9.87985C1.43538 10.9819 1.43538 12.1288 1.69387 13.2308C2.05181 14.7567 3.24328 15.9482 4.76922 16.3061C5.87124 16.5646 7.01813 16.5646 8.12014 16.3061C9.64609 15.9482 10.8376 14.7567 11.1955 13.2308C11.2117 13.1615 11.227 13.092 11.2412 13.0224C10.4163 13.0716 9.58602 13.0013 8.7765 12.8114" stroke="currentColor" stroke-width="1.5"/>
@@ -435,7 +435,7 @@
         		<?php } ?>
             	
             	<!-- USERS DIRECTORY -->
-                <a href="<?php echo Wo_SeoLink('index.php?link1=directory-users'); ?>" data-ajax="?link1=events" class="users">
+                <a href="<?php echo Wo_SeoLink('index.php?link1=directory-users'); ?>" data-ajax="?link1=directory-users" class="users">
             		<span>
             		    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
             		        <path d="M16.4993 9.00004H13.166M14.8327 10.6667L14.8327 7.33337" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
@@ -449,7 +449,7 @@
              	<!-- FIND PEOPLE -->
              	<?php if ($wo['config']['find_friends'] == 1) { ?>
             		
-                        <a href="<?php echo Wo_SeoLink('index.php?link1=friends-nearby'); ?>" data-ajax="?link1=events" class="friends-nearby">
+                        <a href="<?php echo Wo_SeoLink('index.php?link1=friends-nearby'); ?>" data-ajax="?link1=friends-nearby" class="friends-nearby">
                     		<span>
                     		    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M16.4993 9.00004H13.166M14.8327 10.6667L14.8327 7.33337" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -467,7 +467,7 @@
             	<!-- DISCOVER -->
         		<?php if ($wo['config']['directory_system'] == 1) { ?>
             		
-                        <a href="<?php echo Wo_SeoLink('index.php?link1=directory'); ?>" data-ajax="?link1=events" class="posts">
+                        <a href="<?php echo Wo_SeoLink('index.php?link1=directory'); ?>" data-ajax="?link1=directory" class="posts">
                     		<span>
                     		    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                 					<path d="M1.79406 6.45869C2.33698 4.14417 4.14417 2.33698 6.45869 1.79406C8.13021 1.40198 9.86979 1.40198 11.5413 1.79406C13.8558 2.33698 15.663 4.14417 16.2059 6.4587C16.598 8.13021 16.598 9.86979 16.2059 11.5413C15.663 13.8558 13.8558 15.663 11.5413 16.2059C9.86979 16.598 8.13021 16.598 6.4587 16.2059C4.14418 15.663 2.33698 13.8558 1.79406 11.5413C1.40198 9.86979 1.40198 8.13021 1.79406 6.45869Z" stroke="currentColor" stroke-width="1.5"/>
@@ -479,7 +479,7 @@
                     	</a>
                 
                     	<!-- SEARCH -->
-                        <a href="<?php echo Wo_SeoLink('index.php?link1=search?query='); ?>" data-ajax="?link1=search" class="posts">
+                        <a href="<?php echo Wo_SeoLink('index.php?link1=search?query='); ?>" data-ajax="?link1=search?query=" class="posts">
                     		<span>
                     		    <svg class="glyphicon" width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <circle cx="9" cy="9" r="8" stroke="#3F4354" stroke-width="2"></circle>

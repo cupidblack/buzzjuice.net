@@ -183,3 +183,12 @@ add_action('wp_enqueue_scripts', 'cc_enqueue_chapter_assets');
 // Disable WordPress Administration Email verification Screen
 add_filter( 'admin_email_check_interval', '__return_false' );
 
+
+
+//Get username shortcode
+add_shortcode('current_username', function () {
+    if (!is_user_logged_in()) return '';
+
+    $user = wp_get_current_user();
+    return esc_attr($user->user_login);
+});

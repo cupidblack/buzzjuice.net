@@ -1,0 +1,317 @@
+<?php
+
+/**
+ * Settings Widget Options
+ *
+ * @copyright   Copyright (c) 2015, Jeffrey Carandang
+ * @since       1.0
+ */
+
+// Exit if accessed directly
+if (!defined('ABSPATH')) exit;
+
+/**
+ * Add Settings Widget Options Tab
+ *
+ * @since 1.0
+ * @return void
+ */
+
+/**
+ * Called on 'extended_widget_opts_tabs'
+ * create new tab navigation for alignment options
+ */
+function widgetopts_tab_settings($args)
+{ ?>
+    <li class="extended-widget-opts-tab-class">
+        <a href="#extended-widget-opts-tab-<?php echo $args['id']; ?>-class" title="<?php _e('Logic & ACF', 'widget-options'); ?>"><span class="dashicons dashicons-code-standards"></span> <span class="tabtitle"><?php _e('Logic & ACF', 'widget-options'); ?></span></a>
+    </li>
+<?php
+}
+add_action('extended_widget_opts_tabs', 'widgetopts_tab_settings', 9);
+
+/**
+ * Called on 'extended_widget_opts_tabcontent'
+ * create new tab content options for alignment options
+ */
+function widgetopts_tabcontent_settings($args)
+{
+    global $widget_options;
+    $validLicense = widgetopts_global_check_license();
+
+    $id               = '';
+    $classes          = '';
+    $logic_snippet_id = '';
+    $legacy_logic     = '';
+    $selected         = 0;
+    $check            = '';
+    $fixed      = '';
+    $link       = '';
+    $nocache    = '';
+    $target     = '';
+    $nofollow   = '';
+    $link_title = '';
+    $http       = '';
+    $animation  = '';
+    $event      = '';
+    $speed      = '';
+    $offset     = '';
+    $hidden     = '';
+    $delay      = '';
+    $is_url     = 'hide';
+    $urls       = '';
+    $acf_values   = array();
+    if (isset($args['params']) && isset($args['params']['class'])) {
+        if (isset($args['params']['class']['id'])) {
+            $id = $args['params']['class']['id'];
+        }
+        if (isset($args['params']['class']['classes'])) {
+            $classes = $args['params']['class']['classes'];
+        }
+        if (isset($args['params']['class']['selected'])) {
+            $selected = $args['params']['class']['selected'];
+        }
+        // New snippet-based logic
+        if (isset($args['params']['class']['logic_snippet_id'])) {
+            $logic_snippet_id = $args['params']['class']['logic_snippet_id'];
+        }
+            // Legacy inline logic code (old format)
+            if (isset($args['params']['class']['logic']) && !empty($args['params']['class']['logic'])) {
+                $legacy_logic = $args['params']['class']['logic'];
+                // Flag that legacy migration is needed
+                if (!get_option('wopts_display_logic_migration_required', false)) {
+                    update_option('wopts_display_logic_migration_required', true);
+                }
+            }
+        if (isset($args['params']['class']['title']) && $args['params']['class']['title'] == '1') {
+            $check = 'checked="checked"';
+        }
+        if (isset($args['params']['class']['fixed']) && $args['params']['class']['fixed'] == '1') {
+            $fixed = 'checked="checked"';
+        }
+        if (isset($args['params']['class']['link'])) {
+            $link = $args['params']['class']['link'];
+        }
+        if (isset($args['params']['class']['nocache'])) {
+            $nocache = 'checked="checked"';
+        }
+        if (isset($args['params']['class']['target']) && $args['params']['class']['target'] == '1') {
+            $target = 'checked="checked"';
+        }
+        if (isset($args['params']['class']['nofollow']) && $args['params']['class']['nofollow'] == '1') {
+            $nofollow = 'checked="checked"';
+        }
+        if (isset($args['params']['class']['link_title']) && $args['params']['class']['link_title'] == '1') {
+            $link_title = 'checked="checked"';
+        }
+        if (isset($args['params']['class']['http']) && $args['params']['class']['http'] == '1') {
+            $http = 'checked="checked"';
+        }
+        if (isset($args['params']['class']['animation'])) {
+            $animation = $args['params']['class']['animation'];
+        }
+        if (isset($args['params']['class']['event'])) {
+            $event = $args['params']['class']['event'];
+        }
+        if (isset($args['params']['class']['speed'])) {
+            $speed = $args['params']['class']['speed'];
+        }
+        if (isset($args['params']['class']['offset'])) {
+            $offset = $args['params']['class']['offset'];
+        }
+        if (isset($args['params']['class']['hidden']) && $args['params']['class']['hidden'] == '1') {
+            $hidden = 'checked="checked"';
+        }
+        if (isset($args['params']['class']['delay'])) {
+            $delay = $args['params']['class']['delay'];
+        }
+        if (isset($args['params']['class']['urls'])) {
+            $urls = $args['params']['class']['urls'];
+        }
+        if (isset($args['params']['class']['is_url'])) {
+            $is_url = $args['params']['class']['is_url'];
+        }
+    }
+
+    if (isset($args['params']) && isset($args['params']['visibility'])) {
+        if (isset($args['params']['visibility']['acf'])) {
+            $acf_values = $args['params']['visibility']['acf'];
+        }
+    }
+
+    $predefined = array();
+    if (isset($widget_options['settings']['classes']) && isset($widget_options['settings']['classes']['classlists']) && !empty($widget_options['settings']['classes']['classlists'])) {
+        $predefined = $widget_options['settings']['classes']['classlists'];
+    }
+?>
+    <div id="extended-widget-opts-tab-<?php echo $args['id']; ?>-class" class="extended-widget-opts-tabcontent extended-widget-opts-inside-tabcontent extended-widget-opts-tabcontent-class">
+
+        <div class="extended-widget-opts-settings-tabs extended-widget-opts-inside-tabs">
+            <input type="hidden" id="extended-widget-opts-settings-selectedtab" value="<?php echo $selected; ?>" name="<?php echo $args['namespace']; ?>[extended_widget_opts][class][selected]" />
+            <!--  start tab nav -->
+            <ul class="extended-widget-opts-settings-tabnav-ul">
+
+                <?php if ('activate' == $widget_options['logic']) { ?>
+                    <li class="extended-widget-opts-settings-tab-logic">
+                        <a href="#extended-widget-opts-settings-tab-<?php echo $args['id']; ?>-logic" title="<?php _e('Display Logic', 'widget-options'); ?>"><?php _e('Logic', 'widget-options'); ?></a>
+                    </li>
+                <?php } ?>
+
+                <?php if (isset($widget_options['acf']) && 'activate' == $widget_options['acf']) { ?>
+                    <li class="extended-widget-opts-visibility-tab-acf">
+                        <a href="#extended-widget-opts-visibility-tab-<?php echo $args['id']; ?>-acf" title="<?php _e('ACF', 'widget-options'); ?>"><?php _e('ACF', 'widget-options'); ?></a>
+                    </li>
+                <?php } ?>
+                <div class="extended-widget-opts-clearfix"></div>
+            </ul><!--  end tab nav -->
+            <div class="extended-widget-opts-clearfix"></div>
+
+            <?php if ('activate' == $widget_options['logic']) { ?>
+                <!--  start logic tab content -->
+                <div id="extended-widget-opts-settings-tab-<?php echo $args['id']; ?>-logic" class="extended-widget-opts-settings-tabcontent extended-widget-opts-inner-tabcontent">
+                    <div class="widget-opts-logic">
+
+                            <?php
+                            // Get available snippets
+                            $snippets = array();
+                            if (class_exists('WidgetOpts_Snippets_CPT')) {
+                                $snippets = WidgetOpts_Snippets_CPT::get_all_snippets();
+                            }
+
+                            $snippet_desc = '';
+                            if (!empty($logic_snippet_id) && !empty($snippets)) {
+                                foreach ($snippets as $s) {
+                                    if ($s['id'] == $logic_snippet_id) {
+                                        $snippet_desc = $s['description'];
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // Show Legacy Logic OR Snippet dropdown — mutually exclusive
+                            $show_legacy = (!empty($legacy_logic) && empty($logic_snippet_id));
+                            ?>
+
+                            <?php if ($show_legacy) : ?>
+                                <div class="widgetopts-legacy-logic-warning" style="margin-bottom: 15px;">
+                                    <p><strong><?php _e('Legacy Display Logic Code', 'widget-options'); ?></strong></p>
+                                    <textarea readonly="readonly" class="widefat" rows="4" style="background: #f9f2f4; color: #c7254e; font-family: monospace; font-size: 12px; cursor: not-allowed;"><?php echo esc_textarea($legacy_logic); ?></textarea>
+                                    <input type="hidden" name="<?php echo $args['namespace']; ?>[extended_widget_opts][class][logic_cleared]" value="" class="widgetopts-logic-cleared-field" />
+                                    <p style="margin-top: 8px; padding: 8px 12px; background: #fff3cd; border-left: 4px solid #ffc107; color: #856404;">
+                                        <?php _e('This widget uses legacy inline display logic code that needs to be migrated to the new snippet-based system.', 'widget-options'); ?>
+                                        <?php if (current_user_can(WIDGETOPTS_MIGRATION_PERMISSIONS)) : ?>
+                                            <br><a href="<?php echo esc_url(admin_url('options-general.php?page=widgetopts_migration')); ?>" target="_blank">
+                                                <?php _e('Go to Migration Page', 'widget-options'); ?> &rarr;
+                                            </a>
+                                        <?php endif; ?>
+                                    </p>
+                                    <button type="button" class="button widgetopts-clear-legacy-btn" style="margin-top:8px;background:#dc3545;color:#fff;border-color:#dc3545;font-size:12px;" onclick="(function(btn){var $btn=jQuery(btn);var $wrap=$btn.closest('.widgetopts-legacy-logic-warning');var $logic=$btn.closest('.widget-opts-logic');var $widget=$btn.closest('.widget');var $inside=$widget.children('.widget-inside');var $cleared=$wrap.find('.widgetopts-logic-cleared-field');var $snippet=$logic.find('.widgetopts-logic-snippet-select');var $saveButton=$inside.find('.widget-control-save');var widgetId=$inside.find('.widget-id').val();var saveLabel=(window.wp&&wp.i18n&&wp.i18n.__)?wp.i18n.__( 'Save' ):'Save';$cleared.val('1').trigger('input').trigger('change');$snippet.val('').trigger('change');$wrap.slideUp();$logic.find('.widgetopts-snippet-section').slideDown();if(window.wpWidgets&&widgetId){window.wpWidgets.dirtyWidgets[widgetId]=true;}$widget.addClass('widget-dirty');$saveButton.prop('disabled',false).removeClass('disabled').val(saveLabel);$inside.trigger('input').trigger('change');$widget.find('.widget-control-close-wrapper .widget-control-close').text('Cancel');})(this)">
+                                        <?php _e('Clear Legacy Logic', 'widget-options'); ?>
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+
+                        <div class="widgetopts-snippet-section"<?php echo $show_legacy ? ' style="display:none;"' : ''; ?>>
+                            <p><strong><?php _e('Display Logic Snippet', 'widget-options'); ?></strong></p>
+                            <p><small><?php _e('Select a logic snippet to control when this widget is displayed.', 'widget-options'); ?></small></p>
+                            
+                            <select class="widefat widgetopts-logic-snippet-select widgetopts-select2-snippets" name="<?php echo $args['namespace']; ?>[extended_widget_opts][class][logic_snippet_id]" style="margin-bottom: 10px; width: 100%;" data-placeholder="<?php esc_attr_e('— No Logic (Always Show) —', 'widget-options'); ?>">
+                                <option value=""><?php _e('— No Logic (Always Show) —', 'widget-options'); ?></option>
+                                <?php foreach ($snippets as $snippet) : ?>
+                                    <option value="<?php echo esc_attr($snippet['id']); ?>" <?php selected($logic_snippet_id, $snippet['id']); ?>>
+                                        <?php echo esc_html($snippet['title']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            
+                            <p class="widgetopts-snippet-desc description" style="font-style: italic; color: #666;<?php echo empty($snippet_desc) ? ' display:none;' : ''; ?>">
+                                <?php echo esc_html($snippet_desc); ?>
+                            </p>
+                            
+                            <?php if (current_user_can('manage_options')) : ?>
+                                <p style="margin-top: 15px;">
+                                    <a href="<?php echo admin_url('edit.php?post_type=widgetopts_snippet'); ?>" target="_blank" class="button button-small">
+                                        <?php _e('Manage Logic Snippets', 'widget-options'); ?>
+                                    </a>
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div><!--  end logic tab content -->
+            <?php } ?>
+
+            <!-- Start ACF tab -->
+            <?php if (isset($widget_options['acf']) && 'activate' == $widget_options['acf']) : ?>
+                <?php if (isset($widget_options['acf']) && 'activate' == $widget_options['acf']) : ?>
+                    <div id="extended-widget-opts-visibility-tab-<?php echo $args['id']; ?>-acf" class="extended-widget-opts-visibility-tabcontent extended-widget-opts-inside-tabcontent extended-widget-opts-inner-tabcontent">
+
+                        <?php
+                        $fields = array();
+                        if (function_exists('acf_get_field_groups')) {
+                            $groups = acf_get_field_groups();
+                            if (is_array($groups)) {
+                                foreach ($groups as $group) {
+                                    $fields[$group['ID']] = array('title' => $group['title'], 'fields' => acf_get_fields($group));
+                                }
+                            }
+                        } else {
+                            $groups = apply_filters('acf/get_field_groups', array());
+                            if (is_array($groups)) {
+                                foreach ($groups as $group) {
+                                    $fields[$group['id']] = array('title' => $group['title'], 'fields' => apply_filters('acf/field_group/get_fields', array(), $group['id']));
+                                }
+                            }
+                        }
+                        ?>
+                        <p><strong><?php _e('Hide/Show', 'widget-options'); ?></strong>
+                            <select class="widefat" name="<?php echo $args['namespace']; ?>[extended_widget_opts][visibility][acf][visibility]">
+                                <option value="hide" <?php echo (isset($acf_values['visibility']) && $acf_values['visibility'] == 'hide') ? 'selected="selected"' : '' ?>><?php _e('Hide when Condition\'s met', 'widget-options'); ?></option>
+                                <option value="show" <?php echo (isset($acf_values['visibility']) && $acf_values['visibility'] == 'show') ? 'selected="selected"' : '' ?>><?php _e('Show when Condition\'s met', 'widget-options'); ?></option>
+                            </select>
+                        </p>
+
+                        <p><strong><?php _e('Choose ACF Field', 'widget-options'); ?></strong>
+                            <select class="widefat" name="<?php echo $args['namespace']; ?>[extended_widget_opts][visibility][acf][field]">
+                                <option value=""><?php _e('Select Field', 'widget-options'); ?></option>
+                                <?php
+                                if (!empty($fields)) {
+                                    foreach ($fields as $k => $field) { ?>
+                                        <optgroup label="<?php echo $field['title']; ?>">
+                                            <?php foreach ($field['fields'] as $key => $f) { ?>
+                                                <option value="<?php echo $f['key']; ?>" <?php echo (isset($acf_values['field']) && $acf_values['field'] == $f['key']) ? 'selected="selected"' : '' ?>><?php echo $f['label']; ?></option>
+                                            <?php } ?>
+                                        </optgroup>
+                                <?php }
+                                } ?>
+                            </select>
+                        </p>
+                        <p><strong><?php _e('Condition', 'widget-options'); ?></strong>
+                            <select class="widefat" name="<?php echo $args['namespace']; ?>[extended_widget_opts][visibility][acf][condition]">
+                                <option value=""><?php _e('Select Condition', 'widget-options'); ?></option>
+                                <optgroup label="<?php _e('Conditional', 'widget-options'); ?>">
+                                    <option value="equal" <?php echo (isset($acf_values['condition']) && $acf_values['condition'] == 'equal') ? 'selected="selected"' : '' ?>><?php _e('Is Equal to', 'widget-options'); ?></option>
+                                    <option value="not_equal" <?php echo (isset($acf_values['condition']) && $acf_values['condition'] == 'not_equal') ? 'selected="selected"' : '' ?>><?php _e('Is Not Equal to', 'widget-options'); ?></option>
+                                    <option value="contains" <?php echo (isset($acf_values['condition']) && $acf_values['condition'] == 'contains') ? 'selected="selected"' : '' ?>><?php _e('Contains', 'widget-options'); ?></option>
+                                    <option value="not_contains" <?php echo (isset($acf_values['condition']) && $acf_values['condition'] == 'not_contains') ? 'selected="selected"' : '' ?>><?php _e('Does Not Contain', 'widget-options'); ?></option>
+                                </optgroup>
+                                <optgroup label="<?php _e('Value Based', 'widget-options'); ?>">
+                                    <option value="empty" <?php echo (isset($acf_values['condition']) && $acf_values['condition'] == 'empty') ? 'selected="selected"' : '' ?>><?php _e('Is Empty', 'widget-options'); ?></option>
+                                    <option value="not_empty" <?php echo (isset($acf_values['condition']) && $acf_values['condition'] == 'not_empty') ? 'selected="selected"' : '' ?>><?php _e('Is Not Empty', 'widget-options'); ?></option>
+                                </optgroup>
+                            </select>
+                        </p>
+                        <p><strong><?php _e('Conditional Value', 'widget-options'); ?></strong>
+                            <textarea name="<?php echo $args['namespace']; ?>[extended_widget_opts][visibility][acf][value]" id="<?php echo $args['id']; ?>-opts-acf-value" class="widefat widgetopts-acf-conditional"><?php echo (isset($acf_values['value'])) ? $acf_values['value'] : '' ?></textarea>
+                        </p>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+            <!-- End ACF tab -->
+
+        </div><!-- end .extended-widget-opts-settings-tabs -->
+
+
+    </div>
+<?php
+}
+add_action('extended_widget_opts_tabcontent', 'widgetopts_tabcontent_settings'); ?>

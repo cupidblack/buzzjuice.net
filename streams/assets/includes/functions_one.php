@@ -1872,19 +1872,38 @@ if (!function_exists('Wo_UpdateUserData')) {
 
             // QuickDate conditional sync using origin-aware do_platform_update
             if (function_exists('get_qd_db_conn')) {
-                $qd_user_id = function_exists('get_quickdate_id_by_wowonder_id') ? (int)get_quickdate_id_by_wowonder_id($user_id) : 0;
+                $email = $wo['user']['email'] ?? '';
+                $qd_user_id = function_exists('get_quickdate_id_by_email') ? (int)get_quickdate_id_by_email($email) : 0;
+            
                 if ($qd_user_id > 0) {
                     $qd_conn = get_qd_db_conn();
                     $qd_table = defined('QD_USERS_TABLE') ? QD_USERS_TABLE : 'users';
+            
                     foreach ($update_data as $field => $value) {
                         if ($value === null) continue;
+            
                         $fl = strtolower((string)$field);
                         if ($fl === 'password' || $fl === 'user_pass') continue;
+            
+                        // Special handling for 'avatar' field
+                        if ($fl === 'avatar') {
+                            // If value starts with 'http' or 'https', leave it
+                            if (!preg_match('#^https?://#i', $value)) {
+                                // Replace known local paths with '../streams/upload/photos/...'
+                                $value = preg_replace(
+                                    '#^(upload/photos/|social/upload/photos/|streams/upload/photos/)#i',
+                                    '../streams/upload/photos/',
+                                    $value
+                                );
+                            }
+                        }
+            
                         $canUpdate = function_exists('_wwqd_can_update_target') ? _wwqd_can_update_target('WoWonder', $qd_conn, $qd_table, $field) : false;
+            
                         if ($canUpdate) {
                             @ do_platform_update($qd_conn, $qd_table, 'id', $qd_user_id, [$field => $value], 'QuickDate', 'WoWonder');
                         } else {
-                            wwqd_debug('qd_update_skipped', ['field'=>$field, 'user'=>$user_id]);
+                            wwqd_debug('qd_update_skipped', ['field' => $field, 'user' => $user_id]);
                         }
                     }
                 }

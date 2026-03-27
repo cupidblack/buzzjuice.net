@@ -89,6 +89,24 @@ elseif (!empty($_COOKIE['user_id']) || !empty($_COOKIE['wo_user_id']) || !empty(
 
         <div class="buzz-create-list" data-auth="user" id="buzz-create-user-modal" <?php if (!$buzz_user_logged_in) echo 'hidden'; ?>>
             <a href="/" class="buzz-create-link"><i class="fa fa-home"></i><span><strong>Home</strong></span></a>
+            
+            <!-- Dashboard: only visible to logged-in users -->
+            <?php // --- Detect WordPress login cookie (authority signal for SSO) ---
+                $wordpress_logged_in = false;
+                
+                foreach ($_COOKIE as $name => $value) {
+                    if (strncmp($name, 'wordpress_logged_in_', 20) === 0) {
+                        $wordpress_logged_in = true;
+                        break;
+                    }
+                }
+
+                if ($wordpress_logged_in): ?>
+                    <div class="home-block">
+                        <a href="/dashboard" class="buzz-create-link"><i class="fa fa-tachometer"></i><span><strong>Dashboard</strong></span></a>
+                    </div>
+            <?php endif; ?>
+            
             <hr />
           <a href="/streams/create-blog/" class="buzz-create-link"><i class="fa fa-pencil"></i><span>Create Blog</span></a>
           <a href="/streams/create-album" class="buzz-create-link"><i class="fa fa-image"></i><span>Create Album</span></a>

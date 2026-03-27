@@ -720,7 +720,7 @@ body .open .dropdown-menu.create_head_menu.fulls:not(.notfi-dropdown) {
 .font-13{font-size: 14.5px}
 .no-padding-right{padding-right:0!important}
 .recent-searches{padding:6px 10px}
-.content-container{margin-top:50px}
+.content-container{margin-top:50px;margin-left: 5px;}
 .page-margin{margin-top:10px;margin-bottom:10px}
 
 /*Sidebar Invite*/
@@ -1352,14 +1352,14 @@ body #progress .progress .progress-bar {    box-shadow: none;
 .post-edit{display:none;margin-bottom:15px}
 .comment-image{width:40%}
 .comment-image img{border-radius:2px;width:100%;margin-top:10px;margin-bottom:10px}
-.profile-container{padding-right:0px;padding-left:0px;}
-.profile-container .card{border-radius:max(0px, min(8px, calc((100vw - 4px - 100%) * 9999))) / 8px; border-top-left-radius: 0px;  border-top-right-radius: 0px; box-sizing:border-box;margin-bottom:20px}
+.profile-container{padding-left:0px;padding-right:0px;margin-bottom:15px}
+.profile-container .card{border-radius:0 /*max(0px, min(8px, calc((100vw - 4px - 100%) * 9999))) / 8px*/; border-top-left-radius: 0px;  border-top-right-radius: 0px; box-sizing:border-box;margin-bottom:20px}
 .profile-container .card.hovercard{position:relative;padding-top:0;overflow:hidden}
 .wo_user_profile .profile-container .card.hovercard {overflow: visible;}
 .profile-container .card.hovercard .cardheader{background:#fff;background-size:cover;max-height:365px;min-height:365px}
 
 .wo_user_profile .profile-container .card.hovercard .cardheader {
-    border-radius: 16px;
+    border-radius: 0px;
     overflow: hidden;
 }
 
@@ -5403,7 +5403,7 @@ table.wow_pymnt_table .label-danger {color: #F44336;background-color: rgba(244, 
 .o-overlayLink{display:block;position:absolute;top:0;left:0;width:100%;height:100%;text-decoration:none!important;background-color:rgba(0,0,0,0)}
 .problackback{display:block;background:linear-gradient(to bottom,rgba(0,0,0,0) 0,rgba(0,0,0,.45) 100%);padding:100px;position:absolute;width:100%;bottom:0;left:0}
 .wo_user_profile .problackback {
-    border-radius: 16px;
+    border-radius: 0;
 }
 .wo_user_profile .pic-info-cont{position:absolute;width:100%;height:150px;bottom:0;display:flex;align-items:center;justify-content:flex-start}
 .container .wo_user_profile .pic-info-cont .user-avatar{position:relative;width:140px;height:140px;bottom:0;margin-left:20px;margin-right:20px;margin-top: -30px;}
@@ -5472,7 +5472,7 @@ table.wow_pymnt_table .label-danger {color: #F44336;background-color: rgba(244, 
     position: relative;
     padding: 0;
     box-shadow: 0px -6px 30px rgb(0 0 0 / 6%);
-    border-radius: 16px;margin: 15px 0;    z-index: 10;
+    border-radius: 0 0 16px 16px;margin: 0;    z-index: 10;
 }
 .wo_user_profile .user-bottom-nav ul{padding:13px 9px;margin: 0;overflow:hidden;overflow-x:auto;white-space:nowrap;display: flex;}
 .wo_user_profile .user-bottom-nav ul li{display:inline-block;flex: 1;padding: 0 4px;}
@@ -9512,7 +9512,14 @@ height: 100%;
 }
 
 @media (min-width: 992px) {
-    
+
+.col-proxs-12.col-xs-6.col-sm-4.col-md-4 {
+    width: 20%;
+    margin-right: 0px;
+    min-width: 155px;
+    max-width: 50%;
+}
+
 .row.page-margin.wo_page_profile .col-md-8 {
     width: 40%;
     margin-left: 15%;
@@ -10467,7 +10474,7 @@ body .green-audio-player .holder .play-pause-btn svg path {
     padding: 8px 14px !important;
     white-space: normal;
     border-radius: 8px;
-    flex-direction: column;
+/*    flex-direction: column; */
 }
 .post .post-privacy-menu > li > div > div, .post .post-privacy-menu > li > a > div, .wo_user_profile .options-buttons .dropdown .detail > li > div > div, .wo_user_profile .options-buttons .dropdown .detail > li > a > div, .post_order_feed > li > a > div {
     padding: 0 !important;line-height: normal;
@@ -12274,7 +12281,7 @@ footer .footer-wrapper{display:block}
 }
 
 @media (max-width:840px) {
-.container,.header-fixed1000,.header-fixed1200{width:100%;}
+.container,.header-fixed1000,.header-fixed1200{width:100vw;}
 .messages-container .message-media video{width:100%!important}
 .wo_market .market_categories .product-navigate{opacity:1;position:relative;top:5px;right:0;transform:none;margin-left:auto;left:0}
 .wo_market .market_categories .product-navigate a{padding:1px 6px;margin-right:7px}
