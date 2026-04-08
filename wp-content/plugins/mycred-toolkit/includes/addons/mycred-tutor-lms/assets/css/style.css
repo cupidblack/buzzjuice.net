@@ -1,0 +1,24 @@
+.pick-your-class {
+	display: block;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 18px;
+    color: #455377;
+    margin-bottom: 5px;
+    vertical-align: middle;
+}
+input#mycred-pref-hooks-tutor-lms-quiz-pass-limit {
+    margin-right: 24px;
+}
+input#mycred-pref-hooks-tutor-lms-complete-courses-limit {
+    margin-right: 24px;
+}
+input#mycred-pref-hooks-tutor-lms-complete-lesson-limit {
+    margin-right: 24px;
+}
+input#mycred-pref-hooks-tutor-lms-enroll-courses-limit {
+    margin-right: 24px;
+}
+input#mycred-pref-hooks-tutor-lms-complete-quiz-limit {
+    margin-right: 24px;
+}

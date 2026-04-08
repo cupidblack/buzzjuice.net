@@ -30,11 +30,8 @@ if (IS_LOGGED === false) {
     header("Location: " . $redirect_url, true, 302);
     exit(); // Always stop execution after redirect
 }
-?>
 
-<?php
 ob_start();
-
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);

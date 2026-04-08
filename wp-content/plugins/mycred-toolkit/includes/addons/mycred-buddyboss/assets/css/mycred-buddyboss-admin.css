@@ -1,0 +1,213 @@
+.buddyboss-profile-points,.buddyboss-forum-points, .buddyboss-activity-points, .buddyboss-avatar-points {
+	margin: 0;
+}
+
+body.dragging, body.dragging * {
+  	cursor: move !important;
+}
+
+.user-badges {
+	width: 250px;
+  	display: block;
+}
+
+.ui-accordion .ui-accordion-header {
+    cursor: pointer;
+    position: relative;
+    margin: 2px 0 0;
+    padding: 0.5em 0.5em 0.5em 0.7em;
+    min-height: 0;
+    font-size: 100%;
+}
+
+.mycred-ui-accordion-header {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    cursor: pointer;
+}
+
+h3.buddyboss-profile {
+    font-size: 1em;
+}
+
+h3.buddyboss-badges {
+	font-size: 1em;
+}
+
+h3.buddyboss-ranks {
+	font-size: 1em;
+}
+
+h3.buddyboss-forum {
+	font-size: 1em;
+}
+
+h3.buddyboss-forum-badges {
+	font-size: 1em;
+}
+
+h3.buddyboss-forum-ranks {
+	font-size: 1em;
+}
+
+h3.buddyboss-activity {
+	font-size: 1em;
+}
+
+h3.buddyboss-activity-badges {
+	font-size: 1em;
+}
+
+h3.buddyboss-activity-ranks {
+	font-size: 1em;
+}
+
+h3.buddyboss-avatar {
+	font-size: 1em;
+}
+
+h3.buddyboss-avatar-badges {
+	font-size: 1em;
+}
+
+h3.buddyboss-avatar-ranks {
+	font-size: 1em;
+}
+
+.user-ranks {
+  	width: 250px;
+  	display: block;
+}
+
+.user-profile {
+  	width: 250px;
+  	display: block;
+}
+
+.user-activity {
+	width: 250px;
+  	display: block;
+}
+
+.user-avatar {
+	width: 250px;
+  	display: block;
+}
+
+.user-forum-badges {
+	width: 250px;
+  	display: block;
+}
+
+.user-avatar-badges {
+	width: 250px;
+  	display: block;
+}
+
+.selectize-control.buddyboss-all-ranks.multi.plugin-remove_button {
+    margin-bottom: 10px !important;
+}
+
+.user-avatar-ranks {
+	width: 250px;
+  	display: block;
+}
+
+.user-activity-badges {
+	width: 250px;
+  	display: block;
+}
+
+.user-forum-ranks {
+	width: 250px;
+  	display: block;
+}
+
+.user-activity-ranks {
+	width: 250px;
+  	display: block;
+}
+
+.user-forum {
+  	width: 250px;
+  	display: block;
+}
+
+.buddyboss-badges {
+	border-top: none !important;
+	font-weight: bold !important;
+}
+
+.buddyboss-forum-badges {
+	border-top: none !important;
+	font-weight: bold !important;
+}
+
+.buddyboss-avatar-badges {
+	border-top: none !important;
+	font-weight: bold !important;
+}
+
+.buddyboss-activity-badges {
+	border-top: none !important;
+	font-weight: bold !important;
+}
+
+.buddyboss-forum-ranks {
+	border-top: none !important;
+	font-weight: bold !important;
+}
+
+.buddyboss-activity-ranks {
+	border-top: none !important;
+	font-weight: bold !important;
+}
+
+.buddyboss-avatar-ranks {
+	border-top: none !important;
+	font-weight: bold !important;
+}
+
+.buddyboss-ranks {
+	border-top: none !important;
+	font-weight: bold !important;;
+}
+
+.buddyboss-profile {
+	border-top: none !important;
+	font-weight: bold !important;
+}
+
+.buddyboss-forum {
+	border-top: none !important;
+	font-weight: bold !important;
+}
+
+.buddyboss-activity {
+	border-top: none !important;
+	font-weight: bold !important;
+}
+
+.buddyboss-avatar {
+	border-top: none !important;
+	font-weight: bold !important;
+}
+
+
+h3.buddyboss-profile-points {
+    margin-bottom: 10px !important;
+}
+
+h3.buddyboss-activity-points {
+    margin-bottom: 10px !important;
+}
+
+h3.buddyboss-avatar-points {
+    margin-bottom: 10px !important;
+}
+
+h3.buddyboss-forum-points {
+	margin-bottom: 10px !important;
+}

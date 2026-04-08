@@ -134,13 +134,13 @@ function bz_dashboard_affiliate_shortcode() {
           <div class='bz-aff-status'>🟡 Not Activated</div>
           <div class='bz-aff-sim'>
             <div class='bz-aff-label'>🧠 Simulated Earnings</div>
-            <div class='bz-aff-desc'>If you activated 15 days after joining (1 every 2 wks, recursive):</div>
+            <div class='bz-aff-desc'>Potential earnings:</div>
             $lines
             <div class='bz-aff-total'>TOTAL Estimate: <strong>GHS ".number_format($total,2)."</strong></div>
           </div>
           <a href='/product/jewel-affiliate/' class='bz-aff-btn cta'>🚀 Activate Jewel Affiliate →</a>
           <div class='bz-aff-note'>
-            * Estimates use recursive recruitment every 15 days after join (max 5 levels), per Koware affiliate plan logic.
+            * Assuming ~fortnightly recursive referral.
           </div>
         ";
     } else {
@@ -167,7 +167,7 @@ function bz_dashboard_affiliate_shortcode() {
       <?php echo $panel_html; ?>
     </div>
     <style>
-    .bz-aff-panel {background:#fff;border:1px solid #e7eaf1;border-radius:10px;padding:12px;margin-top:16px;}
+    .bz-aff-panel {background:#fff;border:1px solid #D6D9DD;border-radius:10px;padding:12px;margin-top:5px;margin-bottom:5px;}
     .bz-aff-title {font-size:14px;font-weight:600;color:#3E6CB8;margin-bottom:7px;}
     .bz-aff-status {font-size:12px;margin-bottom:7px;}
     .bz-aff-row {display:flex;gap:6px;padding-top:3px;}

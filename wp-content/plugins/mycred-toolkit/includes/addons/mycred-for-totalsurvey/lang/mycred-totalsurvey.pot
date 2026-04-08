@@ -1,0 +1,73 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: myCRED for TotalSurvey\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-06-07 10:49+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.4; wp-6.2.2\n"
+"X-Domain: mycred-totalsurvey"
+
+#: includes/mycred-totalsurvey-hook.php:19
+msgid "%plural% for Completing a General Survey"
+msgstr ""
+
+#: includes/mycred-totalsurvey-hook.php:268
+#: includes/mycred-totalsurvey-hook.php:273
+#: includes/mycred-totalsurvey-hook.php:376
+msgid "%plural% for Completing a Specific Survey."
+msgstr ""
+
+#. Description of the plugin
+msgid "Allows you to reward users points for complete Survey."
+msgstr ""
+
+#: includes/mycred-totalsurvey-hook.php:291
+msgid "Enable Specific Hook"
+msgstr ""
+
+#: includes/mycred-totalsurvey-hook.php:235
+msgid "General"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://www.mycred.me"
+msgstr ""
+
+#. URI of the plugin
+msgid "https://www.mycred.me/store/"
+msgstr ""
+
+#: includes/mycred-totalsurvey-hook.php:245
+#: includes/mycred-totalsurvey-hook.php:321
+msgid "Limit"
+msgstr ""
+
+#: includes/mycred-totalsurvey-hook.php:254
+#: includes/mycred-totalsurvey-hook.php:328
+msgid "Log Template"
+msgstr ""
+
+#. Author of the plugin
+msgid "myCRED"
+msgstr ""
+
+#. Name of the plugin
+msgid "myCRED for TotalSurvey"
+msgstr ""
+
+#: includes/mycred-totalsurvey-hook.php:300
+msgid "Select Survey"
+msgstr ""
+
+#: includes/mycred-totalsurvey-hook.php:284
+msgid "Specific"
+msgstr ""

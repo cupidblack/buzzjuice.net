@@ -1,0 +1,12 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg">
+<metadata>Copyright (C) 2024 by original authors @ fontello.com</metadata>
+<defs>
+<font id="mycred-credly" horiz-adv-x="1000" >
+<font-face font-family="mycred-credly" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
+<missing-glyph horiz-adv-x="1000" />
+<glyph glyph-name="dashicon-mycred-credly" unicode="&#xe800;" d="M776 251c-12-26-70-98-89-120-36-42-81-78-133-98-39-15-83-21-124-13-29 6-56 18-79 37-17 15-31 33-42 53-17 33-26 69-30 105-13 110 9 224 59 323 17 34 38 67 67 94 26 24 60 41 96 46 30 4 64-2 88-22 17-14 24-37 23-58-1-39-22-74-26-112-2-16 0-33 7-47 6-14 17-26 31-30 16-5 34-1 47 8 15 11 26 26 33 43 7 18 11 37 15 55 15 60 39 118 70 172 9 16 19 32 25 49 4 13 6 26 3 39-5 19-20 36-39 41-20 7-44 0-59-16-11-12-18-30-31-40-9-7-22-9-32-5-16 5-28 14-43 20-48 23-104 26-155 14-55-12-104-41-144-79-38-35-67-77-92-121-31-57-54-118-67-181-7-35-11-71-11-107v-33c2-49 6-98 19-145 8-33 21-66 37-96 21-40 50-75 87-101 22-15 46-25 71-32 41-13 86-16 129-10 59 8 116 33 164 68 43 31 83 67 116 108 32 39 58 82 78 128 41 76-52 101-69 63z" horiz-adv-x="1000" />
+</font>
+</defs>
+</svg>

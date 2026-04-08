@@ -37,7 +37,8 @@ if (!defined('BUZZ_SSO_TTL_ACCESS'))    define('BUZZ_SSO_TTL_ACCESS', 12345);
 if (!defined('BUZZ_SSO_TTL_REFRESH'))   define('BUZZ_SSO_TTL_REFRESH', 216000);
 
 $base_site_url      = defined('WP_BASE_SITE_URL') ? WP_BASE_SITE_URL : (getenv('WP_BASE_SITE_URL') ?: null);
-$base_social_url   = rtrim($config->uri, '/');
+$base_social_url    = rtrim($config->uri ?? QUICKDATE_SITE_URL ?? '', '/');
+
 $BUZZ_SSO_SECRET    = defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : (getenv('BUZZ_SSO_SECRET') ?: null);																																			 
 $BUZZ_SSO_SECRET    = (string)($BUZZ_SSO_SECRET ?? '');
 $sso_token          = trim($_REQUEST['sso_token'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? ''));
@@ -341,7 +342,7 @@ if (isset($_SESSION) && !empty($session_qd_user_id) || !empty($session_user_id))
 // Proceed to SSO bootstrap — user must re-login
 
 // =============================================================================
-// BuzzStreams Fetch Stateless SSO Payload Orchestration (WordPress → WoWonder)
+// BuzzStreams Fetch Stateless SSO Payload Orchestration (WordPress → QuickDate)
 // =============================================================================
 $audience = 'social';
 $BUZZ_SSO_SECRET = getenv('BUZZ_SSO_SECRET') ?: (defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : null);
@@ -355,7 +356,6 @@ $access_payload = false;
 if ($access_token) {
     $access_payload = bz_sso_jwt_validate($access_token, $BUZZ_SSO_SECRET, $audience, 'access');
     if (!$access_payload) {
-        // Accept universal 'buzznet' audience token as fallback
         $access_payload = bz_sso_jwt_validate($access_token, $BUZZ_SSO_SECRET, 'buzznet', 'access');
     }
 }
@@ -364,7 +364,6 @@ if ($access_token) {
 if (!$access_payload && $refresh_token) {
     $refresh_payload = bz_sso_jwt_validate($refresh_token, $BUZZ_SSO_SECRET, $audience, 'refresh');
     if (!$refresh_payload) {
-        // Accept universal audience for refresh token as fallback
         $refresh_payload = bz_sso_jwt_validate($refresh_token, $BUZZ_SSO_SECRET, 'buzznet', 'refresh');
     }
     if ($refresh_payload) {
@@ -381,30 +380,119 @@ if (!$access_payload && $refresh_token) {
     }
 }
 
-// 3. If still invalid, call WordPress endpoint. Use streams OR buzznet for /issue_tokens
+// 3. If still invalid, call WordPress endpoint using server-side request *with correct Cookie/Header*
 if (!$access_payload && $wordpress_logged_in_) {
     $wp_token_url = 'https://buzzjuice.net/?sso_action=issue_tokens&aud=' . urlencode($audience);
-    $context = stream_context_create([
-        'http'=>['cookie'=>$_SERVER['HTTP_COOKIE'] ?? '']
-    ]);
-    $resp = @file_get_contents($wp_token_url, false, $context);
-    $data = json_decode($resp, true);
-    if (!empty($data['access'])) {
-        bz_sso_set_cookie('buzz_access',$data['access'],time()+BUZZ_SSO_TTL_ACCESS);
-        if (!empty($data['refresh'])) {
-            bz_sso_set_cookie('buzz_refresh',$data['refresh'],time()+BUZZ_SSO_TTL_REFRESH);
-        }
-        $access_payload = bz_sso_jwt_validate($data['access'], $BUZZ_SSO_SECRET, $audience, 'access');
-        if (!$access_payload) {
-            $access_payload = bz_sso_jwt_validate($data['access'], $BUZZ_SSO_SECRET, 'buzznet', 'access');
+
+    // Build correct Cookie header (only WP auth cookies)
+    $cookies = '';
+    foreach ($_COOKIE as $name => $val) {
+        if (strpos($name, 'wordpress_logged_in_') === 0 || strpos($name, 'wordpress_sec_') === 0) {
+            $cookies .= "$name=$val; ";
         }
     }
+    $cookies = trim($cookies);
+
+    $headers = [
+        'Cookie: ' . $cookies,
+        'User-Agent: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'BuzzSSO/1.0')
+    ];
+
+    $context = stream_context_create([
+        'http' => [
+            'method'  => 'GET',
+            'header'  => implode("\r\n", $headers),
+            'timeout' => 5
+        ]
+    ]);
+
+    // Suppress warnings with @ and detect HTTP status
+    $resp = @file_get_contents($wp_token_url, false, $context);
+    $http_code = 0;
+    if (isset($http_response_header[0])) {
+        if (preg_match('#HTTP/\d+\.\d+\s+(\d+)#', $http_response_header[0], $matches)) {
+            $http_code = (int)$matches[1];
+        }
+    }
+
+    // Handle 200 response
+    if ($resp !== false && $http_code === 200) {
+        $data = json_decode($resp, true);
+        if (!empty($data['access'])) {
+            bz_sso_set_cookie('buzz_access', $data['access'], time()+BUZZ_SSO_TTL_ACCESS);
+            if (!empty($data['refresh'])) {
+                bz_sso_set_cookie('buzz_refresh', $data['refresh'], time()+BUZZ_SSO_TTL_REFRESH);
+            }
+            $access_payload =
+                bz_sso_jwt_validate($data['access'], $BUZZ_SSO_SECRET, $audience, 'access')
+                ?: bz_sso_jwt_validate($data['access'], $BUZZ_SSO_SECRET, 'buzznet', 'access');
+        }
+    }
+    
+    // Handle 401 Unauthorized explicitly
+    elseif ($http_code === 401) {
+        bz_bridge_log('WP SSO endpoint returned 401 — user not logged in');
+        $redirect_to = $_SERVER['REQUEST_URI'] ?? '/social';
+        header('Location: /wp-login.php?try=0&redirect_to=' . urlencode($redirect_to));
+        exit;
+    }
+    
 }
 
-// 4. Fail → redirect user to login
+// 4. If still invalid, use browser JS fallback SSO
+if (!$access_payload && $wordpress_logged_in_) {
+    $aud = htmlspecialchars($audience, ENT_QUOTES, 'UTF-8');
+    $redirect = htmlspecialchars($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8');
+    ?>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Authorizing...</title>
+    </head>
+    <body>
+    <div id="status">Attempting secure SSO authorization…</div>
+    <script>
+    (function() {
+        if (window.sessionStorage && sessionStorage.getItem('sso_js_fallback_tried')) {
+            document.getElementById('status').textContent =
+                "SSO failed. Please login via WordPress or try again.";
+            return;
+        }
+        if (window.sessionStorage) sessionStorage.setItem('sso_js_fallback_tried', '1');
+
+        fetch('https://buzzjuice.net/?sso_action=issue_tokens&aud=<?php echo $aud; ?>', {
+            credentials: 'include'
+        })
+        .then(function(resp) {
+            if (!resp.ok) throw new Error("HTTP " + resp.status);
+            return resp.json();
+        })
+        .then(function(data) {
+            if (!data.access) throw new Error("No access token received");
+            document.cookie = 'buzz_access=' + data.access + '; path=/; domain=.buzzjuice.net; secure; samesite=lax';
+            if (data.refresh)
+                document.cookie = 'buzz_refresh=' + data.refresh + '; path=/; domain=.buzzjuice.net; secure; samesite=lax';
+            document.getElementById('status').textContent = "Token received. Redirecting…";
+            window.location.href = '<?php echo $redirect; ?>';
+        })
+        .catch(function(e) {
+            document.getElementById('status').textContent =
+                "Network or authentication error during SSO. Please try again.";
+        });
+    })();
+    </script>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+
+// 5. If all failed, redirect to login
 if (!$access_payload) {
     bz_bridge_log('Dual-token bootstrap failed — redirecting to login');
-    header('Location: /wp-login.php?try=1&redirect_to=/social');
+    $redirect_to = $_SERVER['REQUEST_URI'] ?? '/social';
+    header('Location: /wp-login.php?try=1&redirect_to=' . urlencode($redirect_to));
     exit;
 }
 

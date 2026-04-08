@@ -1,0 +1,47 @@
+.mycred_totalsurvey_limit_select {
+	margin: 0 !important;
+	padding: 0 !important;
+}
+.widget-content .hook-instance {
+	padding-bottom: 18px;
+}
+.line-break-row {
+	border-bottom: 1px dashed #d5d5d5;
+	margin-bottom: 18px !important;
+	padding-bottom: 10px;
+}
+
+.field_wrapper {
+	padding-right: 0% !important; 
+	padding-left: 0%;
+}
+.add_more_row {
+	width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 0% !important;
+    padding-right: 0% !important;
+}
+.survey_custom_hook_class:last-child .line-break-row {
+	border: none;
+	margin: 0%;
+	padding: 0%;
+}
+.hook-instance:last-child {
+	padding: 0%;
+}
+.checkbox {
+	display: flex !important;
+    align-items: center !important;
+}
+.specific-hook-checkbox {
+	margin-left: 3px !important;
+}
+input#mycred-pref-hooks-totalsurvey-check-specific-hook {
+    margin: 3px !important;
+}
+
+@media (min-width: 992px)
+.mycred_totalsurvey_limit_select {
+    flex: 0 0 auto !important;
+    width: 29% !important;
+}

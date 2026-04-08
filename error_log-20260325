@@ -1,4 +1,0 @@
-[24-Mar-2026 10:12:12 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "ABSPATH" in /home/koware/public_html/buzzjuice.net/wp-settings.php:34
-Stack trace:
-#0 {main}
-  thrown in /home/koware/public_html/buzzjuice.net/wp-settings.php on line 34

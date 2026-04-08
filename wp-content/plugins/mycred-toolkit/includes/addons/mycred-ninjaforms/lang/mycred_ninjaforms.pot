@@ -1,0 +1,90 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: myCRED ninjaforms integration\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-05-12 12:14+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.1; wp-5.9.3\n"
+"X-Domain: mycred_ninjaforms"
+
+#: includes/mycred-ninjaforms-specific-field-value-hook.php:228
+msgid "%plural% for Submitting a Specific Field Value"
+msgstr ""
+
+#: includes/mycred-ninjaforms-specific-field-value-on-specific-form-hook.php:248
+msgid "%plural% for Submitting a Specific Field Value on Specific Form"
+msgstr ""
+
+#: includes/mycred-ninjaforms-submitting-form-hook.php:214
+msgid "%plural% for Successfully Submitting a specific form"
+msgstr ""
+
+#: mycred-ninjaforms.php:204
+msgid ""
+"Adds a myCRED hook for tracking points scored in ninjaforms submit form "
+"events."
+msgstr ""
+
+#: mycred-ninjaforms.php:209
+msgid ""
+"Adds a myCRED hook for tracking points scored in specific field value events."
+msgstr ""
+
+#: mycred-ninjaforms.php:214
+msgid ""
+"Adds a myCRED hook for tracking points scored in submit a specific field "
+"value on a specific form events."
+msgstr ""
+
+#. URI of the plugin
+msgid "https://ninjaforms.com"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://www.ninjaforms.com"
+msgstr ""
+
+#. Author of the plugin
+msgid "myCRED"
+msgstr ""
+
+#. Name of the plugin
+msgid "myCRED ninjaforms integration"
+msgstr ""
+
+#. Description of the plugin
+msgid "myCred ninjaforms integration"
+msgstr ""
+
+#: mycred-ninjaforms.php:208
+msgid "Submit: Specific Field Value"
+msgstr ""
+
+#: mycred-ninjaforms.php:213
+msgid "Submit: Specific Field Value on Specific Form"
+msgstr ""
+
+#: mycred-ninjaforms.php:203
+msgid "Successful: Submit Form"
+msgstr ""
+
+#: mycred-ninjaforms.php:221
+msgid "Successfully submitting a form"
+msgstr ""
+
+#: mycred-ninjaforms.php:222
+msgid "Successfully Submitting a Specific Field Value"
+msgstr ""
+
+#: mycred-ninjaforms.php:223
+msgid "Successfully Submitting a Specific Field Value on Specific Form"
+msgstr ""

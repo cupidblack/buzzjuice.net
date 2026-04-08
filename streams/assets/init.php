@@ -24,8 +24,6 @@ function bz_safe_session_start() {
 }
 bz_safe_session_start();
 
-
-
 @ini_set('gd.jpeg_ignore_warning', 1);
 require_once __DIR__ . '/libraries/DB/vendor/joshcam/mysqli-database-class/MySQL-Maria.php';
 require_once __DIR__ . '/includes/cache.php';

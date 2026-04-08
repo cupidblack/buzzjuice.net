@@ -1,0 +1,165 @@
+.mycred-bbpress-points {
+    display: flex;
+    vertical-align: middle;
+    margin: 5px 5px;
+}
+span.mycred-bbpress-points-label.mycred-bbpress-label {
+    margin-right: 4px;
+    color: #4d5c6d;
+}
+span.mycred-bbpress-points-badges-label.mycred-bbpress-badges-label {
+    margin-right: 4px;
+    color: #4d5c6d;
+}
+
+div#mycred-my-ranks {
+    display: none !important;
+}
+
+span.badge-text {
+    margin-right: 4px;
+}
+
+span.mycred-bbpress-badges-label.mycred-bbpress-badges-label {
+    display: none;
+}
+span.mycred-bbpress-points-ranks-label.mycred-bbpress-ranks-label {
+    margin-right: 4px;
+    color: #4d5c6d;
+}
+span.mycred-bbpress-ranks-label.mycred-bbpress-ranks-label {
+    display: none;
+}
+.mycred-bbpress-user-ranks-type {
+
+    border-radius: 20px;
+    border: 1px solid #e7e9ec;
+    margin-right: 4px;
+    font-size: 13px;
+    padding: 3px 9px 3px 4px;
+}
+.mycred-bbpress-user-points-type {
+   border-radius: 20px;
+    border: 1px solid #e7e9ec;
+    margin-right: 4px;
+    font-size: 13px;
+     padding: 3px 9px 3px 4px;
+}
+.mycred-bbpress-user-badges-type {
+
+    border-radius: 20px;
+    border: 1px solid #e7e9ec;
+    margin-right: 4px;
+    font-size: 13px;
+     padding: 3px 9px 3px 4px;
+
+}
+.mycred-bbpress-user-points-type:hover {
+box-shadow: 0 4px 14px rgb(18 43 70 / 15%);
+}
+span.mycred-bbpress-profile-badges-label.mycred-bbpress-profile-badges-label {
+    display: none;
+}
+.mycred-bbpress-profile-user-badges-type {
+    display: flex;
+    vertical-align: middle;
+}
+span.mycred-bbpress-avatar-badges-label.mycred-bbpress-avatar-badges-label {
+    display: none;
+}
+.mycred-ranks-display {
+    margin-top: 30px;
+}
+
+.mycred-badges-display {
+    margin-top: 30px;
+}
+
+.mycred-balance {
+    display: none;
+}
+
+.bp-widget.mycred{
+
+    display: none;
+
+}
+
+td,th {
+    border-bottom: 0;
+    padding: 0;
+    margin: 0;
+}
+
+td.buddyboss-points-label {
+    width: 24%;
+}
+
+.mycred-bboss-tags {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.mycred-bboss-tag {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+    padding: 3px 7px;
+    border: 1px solid #d2d5da;
+    border-radius: 30px;
+}
+
+.mycred-bboss-tag > img {
+    margin-right: 5px;
+}
+
+.mycred-bboss-avatar .mycred-bboss-tags,
+.mycred-bboss-forum .mycred-bboss-tags {
+    justify-content: center;
+}
+
+.mycred-bboss-avatar .mycred-bboss-tag, 
+.mycred-bboss-activity .mycred-bboss-tag, 
+.mycred-bboss-forum .mycred-bboss-tag {
+    border: 0;
+}
+
+.mycred-bboss-activity {
+    clear: both;
+    padding-top: 5px;
+    width: max-content;
+}
+
+.mycred-bboss-activity .mycred-bboss-tags,
+.mycred-bboss-forum .mycred-bboss-tags {
+    margin-bottom: 3px;
+}
+
+.mycred-bboss-activity .mycred-bboss-tags.badges .mycred-bboss-tag span,
+.mycred-bboss-activity .mycred-bboss-tags.ranks .mycred-bboss-tag span,
+.mycred-bboss-forum .mycred-bboss-tags.badges .mycred-bboss-tag span,
+.mycred-bboss-forum .mycred-bboss-tags.ranks .mycred-bboss-tag span {
+    display: none;
+}
+
+.mycred-bboss-activity .mycred-bboss-tag,
+.mycred-bboss-activity .mycred-bboss-tags.badges .mycred-bboss-tag > img,
+.mycred-bboss-activity .mycred-bboss-tags.ranks .mycred-bboss-tag > img,
+.mycred-bboss-forum .mycred-bboss-tag,
+.mycred-bboss-forum .mycred-bboss-tags.badges .mycred-bboss-tag > img,
+.mycred-bboss-forum .mycred-bboss-tags.ranks .mycred-bboss-tag > img {
+    margin-right: 0;
+    padding-left: 0;
+}
+
+.mycred-bboss-forum {
+    padding-top: 5px;
+}
+
+.mycred-bboss-forum span {
+    font-size: 14px;
+}
+
+.mycred-bboss-forum img {
+    border-radius: 0 !important;
+}

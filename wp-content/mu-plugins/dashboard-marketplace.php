@@ -117,7 +117,7 @@ function bz_marketplace_snapshot_shortcode() {
     </div>
 </div>
 <style>
-.bz-market {background:#fff;border:1px solid #e7eaf1;border-radius:10px;padding:12px;margin-top:16px;}
+.bz-market {background:#fff;border:1px solid #D6D9DD;border-radius:10px;padding:12px;margin-top:5px;margin-top:5px;}
 .bz-mkt-title {font-size:14px;font-weight:600;color:#3e6cb8;margin-bottom:5px;letter-spacing:1.1px;}
 .bz-mkt-section {margin-bottom:11px;}
 .bz-mkt-label {font-size:12.2px;color:#414b5f;font-weight:600;margin-bottom:2px;}

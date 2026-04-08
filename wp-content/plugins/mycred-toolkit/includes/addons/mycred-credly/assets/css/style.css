@@ -1,0 +1,336 @@
+#mycred_credly_connect_badge {
+    background: #ffffff !important;
+    color: #3c434a !important;
+    border-color: #3c434a !important;
+    padding: 4px 16px;
+    line-height: 13px !important;
+    border-radius: 5px !important;
+    outline: none !important;
+    cursor: pointer !important;
+    border: 1px solid black;
+    margin: 15px;
+    text-decoration: none;
+}
+
+#mycred_credly_connect_badge:hover {
+    background: #e0e0e0 !important; 
+    color: #2c3138 !important;      
+    border-color: #2c3138 !important; 
+}
+
+#mycred_credly_connect_badge:focus {
+    background: #f0f0f0 !important; 
+    color: #2c3138 !important;     
+    border-color: #2c3138 !important; 
+    outline: 2px solid #7b8c9c !important; 
+}
+#mycred-credly-badge-container {
+    max-height: 200px; 
+    overflow-y: auto;  
+    padding-right: 10px; 
+}   
+
+.overlay-credly-modal {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2;
+}
+
+#mycred-credly-badge-modal {
+    overflow: hidden; 
+}
+
+#mycred-credly-badge-modal {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    width: 80%;
+    max-width: 600px;
+    margin: 40px auto;
+    position: fixed; 
+    top: 30%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    z-index: 1000; 
+}
+
+#mycred-credly-badge-modal-wraper {
+    text-align: center;
+}
+
+#mycred-credly-badge-modal h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+#mycred-credly-badge-container {
+    display: flex;
+    justify-content: start;
+    flex-wrap: wrap;
+    align-items: start;
+    padding: 20px;
+}
+
+#mycred-credly-badge-container .mycred-credly-badge-item{
+    flex: 0 100%;
+    align-items: start;
+}
+
+#mycred-credly-badge-container .mycred-credly-badge-item .mycred-credly-badge-image{
+    flex: 0 10%;
+}
+
+#mycred-credly-badge-container .mycred-credly-badge-item .mycred-credly-badge-content{
+    flex: 0 90%;
+    text-align: left;
+    position: relative;
+}
+
+#mycred-credly-badge-container .mycred-credly-badge-item .mycred-credly-badge-content p{
+    padding-right: 80px;
+}
+
+#mycred-credly-badge-container .mycred-credly-badge-item .mycred-credly-badge-content H3{
+    margin-top: 0px !important;
+}
+
+#mycred-credly-badge-container .mycred-credly-badge-item .mycred-credly-badge-content button{
+    position: absolute;
+    right: 0;
+    top: 20px;
+}
+
+#loading-spinner img {
+    width: 50px;
+    height: 50px;
+    margin-top: 20px;
+    transition: all 0.3s ease-in-out;
+}
+.close-modal-btn {
+    position: absolute; 
+    top: 10px; 
+    right: 15px; 
+    font-size: 24px; 
+    font-weight: bold; 
+    cursor: pointer;
+}
+
+#mycred-credly-badge-modal .close-modal {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ff5e57;
+    color: #fff;
+    font-size: 16px;
+    padding: 5px 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+#mycred-credly-badge-modal .close-modal:hover {
+    background: #ff2e2e;
+}
+
+.mycred-credly-login {
+    max-width: 400px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+.mycred-credly-login form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.mycred-credly-login label {
+    font-size: 16px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.mycred-credly-login input[type="email"] {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+}
+
+.mycred-credly-login input[type="email"]:focus {
+    border-color: #0073aa;
+    outline: none;
+}
+
+.mycred-credly-login button {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background-color: #0073aa;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.mycred-credly-login button:hover {
+    background-color: #005a8c;
+}
+
+.mycred-credly-login button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 115, 170, 0.5);
+}
+
+.mycred-credly-login button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.mycred-credly-login input::placeholder {
+    color: #aaa;
+}
+
+/* Responsive form styles */
+@media (max-width: 480px) {
+    .mycred-credly-login {
+        padding: 15px;
+    }
+
+    .mycred-credly-login input[type="email"],
+    .mycred-credly-login button {
+        font-size: 14px;
+        padding: 10px 15px;
+    }
+}
+
+.mycred-warning-message p {
+    background-color: #f5db73;
+    color: #000;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.mycred-success-message p {
+    background-color: #92af99;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.mycred-error-message p {
+    background-color: #dc3545;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.mycred-credly-login {
+    margin-top: 20px;
+}
+
+.mycred-credly-login input, .mycred-credly-login button {
+    margin: 10px 0;
+}
+
+@font-face {
+    font-family: 'mycred-credly';
+    src: url('font/mycred-credly.eot?57019574');
+    src: url('font/mycred-credly.eot?57019574#iefix') format('embedded-opentype'),
+         url('font/mycred-credly.woff2?57019574') format('woff2'),
+         url('font/mycred-credly.woff?57019574') format('woff'),
+         url('font/mycred-credly.ttf?57019574') format('truetype'),
+         url('font/mycred-credly.svg?57019574#mycred-credly') format('svg');
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+  .dashicon-mycred-credly{
+    line-height: 0;
+  }
+  
+  .dashicon-mycred-credly:before { 
+    content: '\e800'; 
+    font-family: "mycred-credly";
+    font-style: normal;
+    font-weight: normal;
+    speak-as: never;
+    display: inline-block;
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: .2em;
+    text-align: center;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .sync-badge-button {
+    border: none;
+    font-weight: 600;
+    border-radius: 0.15em;
+    transition: 0.3s;
+  }
+
+  .sync-badge-button:hover {
+    background-color: #ff6600;
+  }
+  
+  .sync-badge-button:focus {
+    outline: 0.05em dashed #ff6600; 
+    outline-offset: 0.05em;
+  }
+  
+  .sync-badge-button::after {
+    content: '';
+    display: block;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    left: calc(50% - 8px);
+    top: calc(50% - 8px);
+    border: 0.15em solid #00000005;
+    border-right-color: #000000;
+    border-radius: 50%;
+    animation: button-anim 0.7s linear infinite;
+    opacity: 0;
+  }
+  
+  @keyframes button-anim {
+    from {
+      transform: rotate(0);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .sync-badge-button.loading {
+    color: transparent;
+  }
+  
+  .sync-badge-button.loading::after {
+    opacity: 1;
+  }
+  
+  

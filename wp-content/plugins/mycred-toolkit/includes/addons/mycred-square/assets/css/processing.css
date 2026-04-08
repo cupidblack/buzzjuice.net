@@ -1,0 +1,65 @@
+table#gateway-debug #gateway-col-section { width: 30%; }
+table#gateway-debug #gateway-col-result { width: 70%; }
+
+table #gateway-saved-card-select { width: 10%; }
+table #gateway-saved-card-number { width: 40%; }
+table #gateway-saved-card-type { width: 20%; }
+table #gateway-saved-card-exp { width: 30%; }
+
+span.description { font-size: 12px; line-height: 14px; font-style: italic; color: gray; }
+
+#payment-title { text-align: right; font-size: 20px; line-height: 59px; padding-right: 6px; min-height: 62px; font-weight: bold; text-transform: uppercase; }
+#payment-title img { float: left; }
+#payment-title #return-where-we-came-from { display: block; font-size: 12px; line-height: 12px; margin-top: -12px; font-weight: 100; text-transform: none; }
+
+.gateway-error { display: block; float: none; clear: both; border: 1px solid #C02942; background-color: rgba(192,41,66,0.2); border-radius: 2px; padding: 6px; font-size: 13px; line-height: 1.5em; text-align: left; }
+
+#credit-cards { float: right; margin-top: -4px; margin-bottom: 6px; }
+
+ul.input-fields { display: block; clear: both; float: none; margin: 0; padding: 0 24px; list-style-type: none; }
+ul.input-fields li { display: block; margin: 0; padding: 0; }
+ul.input-fields li.inline { display: inline-block; padding-right: 24px; min-height: 60px; vertical-align: top; }
+ul.input-fields li.inline.last { padding-right: 0; }
+ul.input-fields li input[type="text"] { border: 1px solid #dedede; line-height: 24px; border-radius: 2px; padding-left: 6px; padding-right: 6px; }
+ul.input-fields li label.inline { display: inline; font-size: 12px; }
+ul.input-fields li input#card_number { width: 160px; }
+
+ul.input-fields li input.error { border-color: #C02942; background-color: rgba(192,41,66,0.2); }
+
+ul.input-fields .long { width: 250px; }
+ul.input-fields .medium { width: 150px; }
+ul.input-fields .short { width: 80px; }
+
+li#token-errors { margin-bottom: 12px; padding: 4px; background-color: #C02942; color: white; }
+
+input.submit-button { border: 1px solid #C02942; background-color: #C02942; padding: 0 24px; width: auto; line-height: 32px; border-radius: 2px; color: white; font-size: 14px; text-transform: uppercase; font-weight: bold; }
+input.submit-button.disabled { border: 1px solid #ededed; background-color: #dedede; color: #ededed; transition: all 1s; }
+input.submit-button:hover { cursor: pointer; }
+
+div.gateway-section { border-top: 1px solid #efefef; border-bottom: 1px solid #efefef; padding: 24px 0; }
+
+#accordion { display: block; float: none; clear: both; border-bottom: 1px solid #efefef; }
+#accordion > div.title { margin: 0; padding: 0 12px; outline: none; border-top: 1px solid #efefef; font-size: 18px; line-height: 42px; }
+#accordion > div.title span.ui-accordion-header-icon { display: none; }
+#accordion > div.title label:hover { cursor: pointer; }
+#accordion > div.title.ui-accordion-header-active { border-bottom: 1px solid #efefef; }
+#accordion > div.title > input { float: left; display: block; margin-right: 24px; }
+
+#accordion > div.body { padding: 24px; }
+#accordion > div.body p { margin: 0; }
+
+@media only screen and (max-width: 767px) {
+	body { width: 90%; margin: 0; padding: 5%; }
+
+	ul.input-fields { padding: 0; }
+	ul.input-fields li { float: none; display: block; padding-right: 0; }
+
+	#accordion > div.title span.ui-accordion-header-icon { display: none; }
+	#accordion > div.body { padding: 24px 0; }
+}
+
+@media only screen and (max-width: 480px) {
+	#payment-title { height: auto; text-align: center; line-height: 32px; }
+	#payment-title img { display: block; float: none; margin: 0 auto; }
+	#payment-title #return-where-we-came-from { margin-top: 0; margin-bottom: 24px; }
+}

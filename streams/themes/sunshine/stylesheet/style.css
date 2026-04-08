@@ -9,7 +9,7 @@
 }
 
 /*Basic*/
-body,html{margin:0;padding:0}
+body,html{margin:0 0 50px 0;padding:0}
 body{background:#f9f9f9;overflow-x:hidden;font-family: Segoe UI Historic, Segoe UI, Helvetica, Arial, sans-serif;font-size: 14.5px;}
 body .mfp-wrap .mfp-progress-line span{width:0;height:4px;background:#ededed;margin-bottom:-40px;transition:width 10s ease-in-out;display:inline-block; background: #ff9900}
 a{word-wrap:break-word;text-decoration:none}
@@ -8234,7 +8234,7 @@ font-size: 9px;
 .wow_mat_mdl .modal-footer .btn.main {box-shadow: none;}
 
 /*Form Fields*/
-.wow_form_fields {position: relative;margin: 15px 0;font-family: Segoe UI Historic, Segoe UI, Helvetica, Arial, sans-serif;}
+.wow_form_fields {position: relative;margin: 15px 20px;font-family: Segoe UI Historic, Segoe UI, Helvetica, Arial, sans-serif;}
 .wow_form_fields > label {font-family: 'Poppins';
     font-style: normal;
     font-weight: 400;
@@ -11981,10 +11981,13 @@ body .navbar-default .dropdown-switch-account > .dropdown-menu .user-avatar > sv
     width: calc(50% - 20px);
 }
 .wo_new_sett_sidee {
-    padding-left: 15px;width: 26%;
+    padding-left: 15px;max-width: 20%;
+    float: left;
+    margin-right: 2%;
 }
 .wo_new_sett_pagee {
-    padding-left: 0;width: 74%;
+    padding-left: 0;width: 70%;
+    margin-left: 2%;
 }
 }
 

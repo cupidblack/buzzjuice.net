@@ -70,32 +70,31 @@ function bz_dashboard_quickstats_shortcode() {
         <div class="bzqs-row">
             <span>Points</span><strong><?php echo number_format($points); ?></strong>
         </div>
+        
+        
+        
+        
+        <?php if ($is_affiliate): ?>
         <div class="bzqs-row">
             <span>Referrals</span><strong><?php echo number_format($referrals); ?></strong>
         </div>
         <div class="bzqs-link">
             <input type="text" id="bzqs-link" value="<?php echo esc_attr($ref_link); ?>" readonly>
-            <?php if ($is_affiliate): ?>
-                <button onclick="bzqsCopy()">Copy</button>
-            <?php else: ?>
-                <button onclick="bzqsShare()">Share</button>
-            <?php endif; ?>
+            <button onclick="bzqsCopy()">Copy</button>
         </div>
-        <?php if (!$is_affiliate && $referrals > 0): ?>
-            <div class="bzqs-est">
-                You referred <strong><?php echo $referrals; ?></strong> user<?php echo $referrals==1?'':'s'; ?>.<br>
-                You could have earned <strong>GHS <?php echo number_format($est_ghc,2); ?></strong> or <strong><?php echo $est_points; ?> points</strong>
-            </div>
-        <?php endif; ?>
-        <?php if ($is_affiliate): ?>
             <div class="bzqs-aff-hz">
                 <span>Earnings: <strong><?php echo $affiliate_earnings; ?></strong></span>
                 <span>Referrals: <strong><?php echo $affiliate_referrals; ?></strong></span>
             </div>
         <?php endif; ?>
+        
+        
+        
+        
+        
     </div>
     <style>
-    .bzqs { background:#fff; border:1px solid #e7eaf1; border-radius:10px; padding:12px; margin-top: 16px;}
+    .bzqs { background:#fff; border:1px solid #D6D9DD; border-radius:10px; padding:12px; margin-top: 5px;margin-bottom: 5px}
     .bzqs-row { display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;}
     .bzqs-row span { color:#888;}
     .bzqs-row strong { color:#23272a; font-weight:600;}

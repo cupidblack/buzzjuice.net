@@ -1,0 +1,76 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: myCRED wpforms integration\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-04-28 02:59+0000\n"
+"PO-Revision-Date: 2022-04-28 02:59+0000\n"
+"Last-Translator: \n"
+"Language-Team: English (United States)\n"
+"Language: en_US\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.6.1; wp-5.9.3\n"
+"X-Domain: mycred_wpforms"
+
+#: mycred-wpforms..php:210
+msgid ""
+"Adds a myCRED hook for tracking points scored in specific field value events."
+msgstr ""
+
+#: mycred-wpforms..php:215
+msgid ""
+"Adds a myCRED hook for tracking points scored in submit a specific field "
+"value on a specific form events."
+msgstr ""
+
+#: mycred-wpforms..php:205
+msgid ""
+"Adds a myCRED hook for tracking points scored in wpforms submit form events."
+msgstr ""
+
+#. URI of the plugin
+msgid "https://wpforms.com"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://www.wpforms.com"
+msgstr ""
+
+#. Author of the plugin
+msgid "myCRED"
+msgstr ""
+
+#. Name of the plugin
+msgid "myCRED wpforms integration"
+msgstr ""
+
+#. Description of the plugin
+msgid "myCred wpforms integration"
+msgstr ""
+
+#: mycred-wpforms..php:209
+msgid "Submit: Specific Field Value"
+msgstr ""
+
+#: mycred-wpforms..php:214
+msgid "Submit: Specific Field Value on Specific Form"
+msgstr ""
+
+#: mycred-wpforms..php:204
+msgid "Successful: Submit Form"
+msgstr ""
+
+#: mycred-wpforms..php:222
+msgid "Successfully submitting a form"
+msgstr ""
+
+#: mycred-wpforms..php:223
+msgid "Successfully Submitting a Specific Field Value"
+msgstr ""
+
+#: mycred-wpforms..php:224
+msgid "Successfully Submitting a Specific Field Value on Specific Form"
+msgstr ""

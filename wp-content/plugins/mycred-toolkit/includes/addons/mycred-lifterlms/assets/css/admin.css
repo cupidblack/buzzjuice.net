@@ -1,0 +1,74 @@
+.wp-core-ui select {
+    max-width:50% !important;
+}
+table.form-table > tbody > tr:nth-child(5) {
+  display:none;
+}
+.forminp-number > .description {
+  margin-bottom: -10px !important;
+  font-size: 14px !important;
+}
+.forminp-text > .description {
+  margin-top: -14px !important;
+  font-size: 14px !important;
+}
+input#llms_gateway_mycred_description {
+    margin-bottom: -5px;
+}
+input#llms_gateway_mycred_lifterlms_exchange_rate {
+    margin-bottom: 14px!important;
+}
+input#llms_gateway_mycred_enabled {
+    margin-bottom: 8px!important;
+}
+input#llms_gateway_mycred_lifterlms_profit_sharing {
+    margin-bottom: 14px!important;
+}
+input#llms_gateway_mycred_title  {
+  margin-bottom: -24px!important;
+}
+textarea#llms_gateway_mycred_lifterlms_payment_instructions {
+    margin-bottom: -24px !important;
+}
+input#lifterlms_email_from_name {
+    margin-bottom: 20px !important;
+}
+input#lifterlms_myaccount_confirm_payment_endpoint {
+  margin-bottom: 20px !important;
+}
+input#lifterlms_thousand_separator {
+  margin-bottom: 20px !important;
+}
+.form-group > #mycred-editor-reference {
+  width: 100% !important;
+}
+input#llms_gateway_mycred_enabled {
+    margin-bottom: 0px!important; 
+}
+input#lifterlms_myaccount_grades_endpoint {
+    margin-bottom: 20px;
+}
+input#lifterlms_myaccount_courses_endpoint {
+    margin-bottom: 20px;
+}
+input#lifterlms_myaccount_memberships_endpoint {
+  margin-bottom: 20px;
+}
+input#lifterlms_myaccount_achievements_endpoint {
+   margin-bottom: 20px;
+}
+input#lifterlms_myaccount_notifications_endpoint {
+    margin-bottom: 20px;
+}
+input#lifterlms_myaccount_edit_account_endpoint {
+    margin-bottom: 20px;
+}
+input#lifterlms_myaccount_lost_password_endpoint {
+    margin-bottom: 20px;
+}
+input#lifterlms_myaccount_redeem_vouchers_endpoint {
+    margin-bottom: 20px;
+}
+input#lifterlms_myaccount_orders_endpoint {
+    margin-bottom: 20px;
+}

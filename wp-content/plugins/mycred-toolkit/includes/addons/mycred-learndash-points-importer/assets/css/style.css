@@ -1,0 +1,38 @@
+span.li_icon::before
+{
+    line-height: 26px!important;
+}
+.li-right-div
+{
+    background-color: #fff;
+    width: 100%;
+    height: 285px;
+    overflow: scroll;
+}
+.mycred-note {
+    font-style: italic;
+    font-size: 12px;
+}
+#mycred_learndash_points_importer_workflow{
+    max-width: 55% !important;
+}
+.mycred-learndash-importer-label{
+    line-height: 30px;
+}
+div#mycred_learndash_points_importer_response {
+    display: inline-block !important;
+    margin-left: 8px !important;
+    margin-top: 12px !important;
+}
+/* Disable ui-helper-reset class */
+.ui-helper-reset {
+    margin: 14px !important;
+   
+}
+button#mycred_learndash_points_importer_run {
+    margin-left: 35% !important;
+}
+#myCRED-wrap h1 {
+    display: block !important;
+    margin-left: 15px !important;
+}

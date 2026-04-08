@@ -1375,7 +1375,7 @@ class Users {
             if ($user) {
                 SessionStart();
                 $userProfile = $this->get_user_profile($userData['id'],array('web_token','start_up','active','web_token_created_at','verified'));
-                $JWT = $_SESSION['CreateLoginSessionjwt'];
+                $JWT = $_SESSION['CreateLoginSessionjwt'] ?? null;
                 if(isset($userProfile->web_token)) {
                     $JWT = $userProfile->web_token;
                 }

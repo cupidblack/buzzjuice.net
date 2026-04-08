@@ -111,7 +111,16 @@ add_action('init', function() use ($__buzz_sso_secret) {
         nocache_headers();
         header('Content-Type: application/json; charset=utf-8');
         if (!$__buzz_sso_secret) { status_header(500); echo wp_json_encode(['status'=>500]); exit; }
-        if (!is_user_logged_in()) { status_header(401); echo wp_json_encode(['status'=>401]); exit; }
+        if (!is_user_logged_in()) {
+            status_header(401);
+            echo wp_json_encode([
+                'status' => 401,
+                'error' => 'User not logged in',
+                'cookies_received' => array_keys($_COOKIE),
+                'headers_received' => getallheaders() // if available
+            ]);
+            exit;
+        }
         $user = wp_get_current_user();
         $aud = $_REQUEST['aud'] ?? 'buzznet'; // streams/social/buzznet
         $payload = [

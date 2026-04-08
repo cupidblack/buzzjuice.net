@@ -1,0 +1,40 @@
+.mycred-metabox .widget-content .hook-instance .specific-hook-actions {
+	margin-bottom: 12px !important;
+}
+
+.mycred-metabox .widget-content .hook-instance:last-child .specific-hook-actions {
+	margin-bottom: 0px !important;
+}
+
+.mycred-metabox .widget-content .hook-instance .specific-hook-actions .mycred-add-specific-hook {
+	display: none;
+}
+
+.mycred-metabox .widget-content .hook-instance:last-child .specific-hook-actions .mycred-add-specific-hook {
+	display: initial;
+}
+
+.ui-accordion .ui-accordion-header {
+    cursor: pointer;
+    position: relative;
+    margin: 2px 0 0;
+    padding: 0.5em 0.5em 0.5em 0.7em;
+    min-height: 0;
+    font-size: 100%;
+}
+
+.mycred-ui-accordion-header {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    cursor: pointer;
+}
+
+.mbb-excluded-profiles + span.select2 {
+    width: 100% !important;
+}
+
+.mycred-buddyboss-settings + div.row {
+    display: none;
+}

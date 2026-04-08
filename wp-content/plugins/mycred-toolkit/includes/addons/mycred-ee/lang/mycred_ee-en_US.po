@@ -1,0 +1,97 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: myCRED for Event Espresso 4\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: Sun Aug 07 2016 17:16:28 GMT+0200 (CEST)\n"
+"PO-Revision-Date: Wed Aug 17 2016 19:03:26 GMT+0200 (CEST)\n"
+"Last-Translator: unimatrix0 <gabriel.s@merovingi.com>\n"
+"Language-Team: \n"
+"Language: English\n"
+"Plural-Forms: nplurals=2; plural=n != 1\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-KeywordsList: _:1;gettext:1;dgettext:2;ngettext:1,2;dngettext:2,3;"
+"__:1;_e:1;_c:1;_n:1,2;_n_noop:1,2;_nc:1,2;__ngettext:1,2;__ngettext_noop:1,2;"
+"_x:1,2c;_ex:1,2c;_nx:1,2,4c;_nx_noop:1,2,3c;_n_js:1,2;_nx_js:1,2,3c;"
+"esc_attr__:1;esc_html__:1;esc_attr_e:1;esc_html_e:1;esc_attr_x:1,2c;"
+"esc_html_x:1,2c;comments_number_link:2,3;t:1;st:1;trans:1;transChoice:1,2\n"
+"X-Generator: Loco - https://localise.biz/\n"
+"X-Loco-Target-Locale: en_US"
+
+#: ../EE_MyCRED_Payment_Method.class.php:66
+msgid "Settings"
+msgstr ""
+
+#. Name of the plugin
+msgid "myCRED for Event Espresso 4"
+msgstr ""
+
+#. URI of the plugin
+msgid "http://mycred.me"
+msgstr ""
+
+#. Description of the plugin
+msgid "Allows users to pay for event tickets using myCRED points."
+msgstr ""
+
+#. Author of the plugin
+msgid "Gabriel S Merovingi"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "http://www.merovingi.com"
+msgstr ""
+
+#: ../mycred-ee.php:182
+msgid "Ticket Payment (Event Espresso)"
+msgstr ""
+
+#: ../mycred-ee.php:242
+msgid "More information about this plugin"
+msgstr ""
+
+#: ../mycred-ee.php:244
+msgid "View details"
+msgstr ""
+
+#: ../myCRED_Onsite/EE_PMT_myCRED_Onsite.pm.php:66
+msgid "The point type to accept as form of payment."
+msgstr ""
+
+#: ../myCRED_Onsite/EE_PMT_myCRED_Onsite.pm.php:69
+msgid "Log Template"
+msgstr ""
+
+#: ../myCRED_Onsite/EE_PMT_myCRED_Onsite.pm.php:70
+msgid "The log entry template for successful payments."
+msgstr ""
+
+#: ../myCRED_Onsite/EE_PMT_myCRED_Onsite.pm.php:72
+msgid "Event payment"
+msgstr ""
+
+#: ../myCRED_Onsite/EE_PMT_myCRED_Onsite.pm.php:75
+msgid "Exchange Rate"
+msgstr ""
+
+#: ../myCRED_Onsite/EE_PMT_myCRED_Onsite.pm.php:76
+msgid "Exchange rate between the store currency and points."
+msgstr ""
+
+#: ../myCRED_Onsite/EEG_myCRED_Onsite.gateway.php:68
+#, php-format
+msgid "Account successfully charged %s %s"
+msgstr ""
+
+#: ../myCRED_Onsite/EEG_myCRED_Onsite.gateway.php:76 ..
+#: myCRED_Onsite/EEG_myCRED_Onsite.gateway.php:86
+msgid "Insufficient Funds"
+msgstr ""
+
+#: ../myCRED_Onsite/EEG_myCRED_Onsite.gateway.php:98
+msgid "Refund Completed"
+msgstr ""

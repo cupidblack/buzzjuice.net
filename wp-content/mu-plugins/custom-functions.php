@@ -192,3 +192,7 @@ add_shortcode('current_username', function () {
     $user = wp_get_current_user();
     return esc_attr($user->user_login);
 });
+
+
+
+add_filter('http_request_timeout', function($timeout) { return 30; });

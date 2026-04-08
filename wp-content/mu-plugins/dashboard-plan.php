@@ -55,7 +55,9 @@ function bz_dashboard_plan_shortcode() {
     </div>
     <style>
     .bz-plan-widget {
-        margin:8px 0 0 0;
+        margin:5px 0 5px 0;
+        border:1px solid #D6D9DD;
+        border-radius:10px;
         display:flex;
         align-items:center;
         gap:10px;

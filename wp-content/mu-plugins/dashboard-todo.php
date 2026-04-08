@@ -229,10 +229,15 @@ function bz_render_todo($items) {
         </ul>
     </div>
     <style>
-    .bz-todo-block { background:#fff; border:1px solid #e7eaf1; border-radius:10px; padding:13px 10px; margin-top:16px;}
+    .bz-todo-block { background:#fff; border:1px solid #D6D9DD; border-radius:10px; padding:13px 10px; margin-top:5px;margin-bottom: 5px}
     .bz-todo-title { font-size:14px;font-weight:600; margin-bottom:7px;color:#3e6cb8;letter-spacing:1.1px;}
-    .bz-todo-list {list-style:none;padding-left:0;margin:0;}
-    .bz-todo-list li {font-size:13px;margin-bottom:6px;}
+    .bz-todo-list {list-style:none;padding-left:0;margin:0;font-weight: 600;}
+    .bz-todo-list li {font-size:12px;margin-bottom:6px;}
+    
+    ul.bz-todo-list li a.bz-todo-link {
+        font-size: 16px;
+    }
+    
     .bz-todo-link {color:#2865BA;text-decoration:none;transition:color .16s;}
     .bz-todo-link:hover {text-decoration:underline;}
     </style>

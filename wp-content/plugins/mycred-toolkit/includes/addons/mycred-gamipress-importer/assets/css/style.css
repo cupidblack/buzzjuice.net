@@ -1,0 +1,16 @@
+span.gi_icon::before
+{
+    line-height: 26px!important;
+}
+.mycred-gamipress-label {
+    line-height: 25px;
+}
+.gi-right-div
+{
+    background-color: #fff;
+    height: 285px;
+}
+.mycred-note {
+    font-style: italic;
+    font-size: 12px;
+}
