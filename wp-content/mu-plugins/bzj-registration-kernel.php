@@ -196,16 +196,17 @@ function bzj_auth_decision() {
     if ($secret_valid) {
         return true;
     }
+    
+    bzj_log('AUTH_DECISION_DEBUG', [
+        'result' => bzj_auth_decision(),
+        'code_valid' => $code_valid ?? null,
+        'secret_present' => !empty($_POST['bzj_sso_secret']),
+        'post_keys' => array_keys($_POST),
+        'verified_flag' => $bzj_request_verified ?? false
+    ]);
 
     return false;
 }
-
-bzj_log('AUTH_DECISION_DEBUG', [
-    'result' => bzj_auth_decision(),
-    'code_valid' => $code_valid ?? null,
-    'secret_present' => !empty($_POST['bzj_sso_secret']),
-    'verified_flag' => $bzj_request_verified
-]);
 
 /** ====== UI row: challenge + error placement always directly above Create Account ====== */
 add_action('bp_before_registration_submit_buttons', function () {
@@ -401,7 +402,6 @@ add_filter('wp_pre_insert_user_data', function($data, $update) {
     if ($update) return $data;
 
     if (!bzj_auth_decision()) {
-
         bzj_log('BLOCK_pre_insert_user', [
             'data' => $data,
             'post' => $_POST
