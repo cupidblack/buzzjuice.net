@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the LearnDash LMS plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: LearnDash LMS 5.0.1.1\n"
+"Project-Id-Version: LearnDash LMS 5.0.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/learndash-core\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-02-16T15:22:41+00:00\n"
+"POT-Creation-Date: 2026-04-07T19:34:05+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: learndash\n"
@@ -371,7 +371,7 @@ msgstr ""
 #: includes/admin/class-learndash-admin-data-upgrades.php:654
 #: includes/admin/class-learndash-admin-settings-data-reports.php:390
 #: includes/admin/class-learndash-admin-settings-data-reports.php:450
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:502
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:510
 #: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-quizzes.php:505
 msgid "ERROR: Cannot create working folder. Check that the parent folder is writable"
 msgstr ""
@@ -544,7 +544,7 @@ msgstr ""
 #: includes/admin/class-learndash-admin-groups-users-list.php:241
 #: includes/admin/class-learndash-admin-groups-users-list.php:255
 #: includes/admin/classes-posts-edits/class-learndash-admin-assignment-edit.php:243
-#: includes/class-ld-translations.php:533
+#: includes/class-ld-translations.php:598
 #: src/Core/Modules/Payments/Orders/Admin/Edit.php:103
 msgid "Actions"
 msgstr ""
@@ -590,7 +590,7 @@ msgid "Sending..."
 msgstr ""
 
 #: includes/admin/class-learndash-admin-groups-users-list.php:339
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:17
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:32
 #: includes/licensing/assets/scripts/settings.js:2408
 #: includes/licensing/frontend/src/Settings/Permissions.jsx:154
 msgid "Search Users"
@@ -2333,54 +2333,54 @@ msgctxt "placeholders: result count, total count"
 msgid "%1$d of %2$s results"
 msgstr ""
 
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:401
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:409
 #: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-quizzes.php:381
 msgid "user_id"
 msgstr ""
 
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:406
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:414
 #: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-quizzes.php:386
 msgid "name"
 msgstr ""
 
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:412
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:420
 #: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-quizzes.php:392
 msgid "email"
 msgstr ""
 
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:418
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:426
 #: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-quizzes.php:455
 msgid "course_id"
 msgstr ""
 
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:423
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:431
 #: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-quizzes.php:461
 msgid "course_title"
 msgstr ""
 
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:429
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:437
 msgid "steps_completed"
 msgstr ""
 
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:434
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:442
 msgid "steps_total"
 msgstr ""
 
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:439
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:447
 msgid "course_completed"
 msgstr ""
 
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:444
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:452
 msgid "course_completed_on"
 msgstr ""
 
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:709
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:717
 msgctxt "Course Complete Report label: NO"
 msgid "NO"
 msgstr ""
 
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:714
-#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:719
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:722
+#: includes/admin/classes-data-reports-actions/class-learndash-admin-data-reports-user-courses.php:727
 msgctxt "Course Complete Report label: YES"
 msgid "YES"
 msgstr ""
@@ -2503,7 +2503,7 @@ msgstr ""
 #: includes/class-ldlms-post-types.php:161
 #: includes/deprecated/5.0.0/functions.php:2032
 #: includes/ld-groups.php:2176
-#: includes/reports/templates/reporting-filters/status/ld-propanel-reporting-filter-status.php:56
+#: includes/reports/templates/reporting-filters/status/ld-propanel-reporting-filter-status.php:69
 #: includes/settings/shortcodes-sections/ld_course_list.php:136
 #: includes/settings/shortcodes-sections/ld_group_list.php:135
 #: includes/shortcodes/ld_course_inprogress.php:72
@@ -2774,7 +2774,7 @@ msgstr ""
 #. translators: placeholder: Status label, Status value.
 #: includes/admin/classes-filters/class-learndash-admin-filter-post-status.php:32
 #: includes/admin/classes-posts-edits/class-learndash-admin-assignment-edit.php:185
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:470
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:625
 #: includes/class-ld-gdpr.php:1269
 #: src/admin_views/modules/payments/orders/edit/subscription/details/table-head.php:23
 #: themes/ld30/templates/modern/course/enrollment/status/pre-ordered.php:14
@@ -2798,7 +2798,7 @@ msgstr ""
 #: includes/class-ld-cpt-instance.php:119
 #: includes/class-ld-lms.php:1829
 #: includes/class-ld-lms.php:2301
-#: includes/course-grid/includes/class-utilities.php:609
+#: includes/course-grid/includes/class-utilities.php:594
 #: includes/lib/wp-pro-quiz/lib/view/WpProQuiz_View_QuestionEdit.php:71
 #: includes/lib/wp-pro-quiz/lib/view/WpProQuiz_View_QuizOverall.php:102
 #: includes/settings/settings-metaboxes/class-ld-settings-metabox-course-display-content.php:450
@@ -3033,20 +3033,20 @@ msgid "Associate with a %s."
 msgstr ""
 
 #: includes/admin/classes-posts-edits/class-learndash-admin-assignment-edit.php:190
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:58
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:62
 #: themes/ld30/templates/assignment/partials/row.php:220
 #: themes/ld30/templates/shortcodes/profile/assignment-row.php:144
 msgid "Approved"
 msgstr ""
 
 #: includes/admin/classes-posts-edits/class-learndash-admin-assignment-edit.php:194
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:59
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:63
 msgid "Not Approved"
 msgstr ""
 
 #: includes/admin/classes-posts-edits/class-learndash-admin-assignment-edit.php:197
 #: includes/admin/classes-posts-edits/class-learndash-admin-assignment-edit.php:314
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:535
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:690
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:494
 msgid "Approve"
 msgstr ""
@@ -3059,9 +3059,9 @@ msgstr ""
 #: includes/admin/classes-posts-edits/class-learndash-admin-assignment-edit.php:211
 #: includes/admin/classes-posts-edits/class-learndash-admin-question-edit.php:270
 #: includes/admin/classes-posts-edits/class-learndash-admin-question-edit.php:500
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:481
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:491
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:504
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:636
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:646
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:659
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:768
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:780
 #: includes/admin/classes-posts-listings/class-learndash-admin-questions-listing.php:118
@@ -3094,7 +3094,7 @@ msgstr ""
 #: includes/admin/classes-posts-edits/class-learndash-admin-assignment-edit.php:219
 #: includes/admin/classes-posts-edits/class-learndash-admin-essay-edit.php:318
 #: includes/admin/classes-posts-edits/class-learndash-admin-essay-edit.php:319
-#: includes/class-ld-translations.php:626
+#: includes/class-ld-translations.php:703
 #: includes/settings/settings-sections/class-ld-settings-section-bulk-edit.php:146
 #: includes/settings/settings-sections/class-ld-settings-section-questions-management-display.php:121
 #: includes/settings/settings-sections/class-ld-settings-section-questions-taxonomies.php:165
@@ -3126,10 +3126,10 @@ msgid "Assignment Points."
 msgstr ""
 
 #: includes/admin/classes-posts-edits/class-learndash-admin-assignment-edit.php:247
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:720
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:875
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:529
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:586
-#: includes/class-ld-translations.php:532
+#: includes/class-ld-translations.php:597
 #: includes/reports/templates/ld-propanel-reporting-download-button.php:22
 #: includes/settings/settings-sections/class-ld-settings-section-import-export.php:125
 #: includes/settings/settings-sections/class-ld-settings-section-logs.php:270
@@ -3807,17 +3807,17 @@ msgctxt "placeholder: Quiz Title"
 msgid "Revert: %s"
 msgstr ""
 
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:48
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:52
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:49
 msgid "All Authors"
 msgstr ""
 
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:56
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:60
 msgid "Approval Status"
 msgstr ""
 
 #. translators: placeholder: Groups.
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:71
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:75
 #: includes/admin/classes-posts-listings/class-learndash-admin-courses-listing.php:60
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:60
 #: includes/admin/classes-posts-listings/class-learndash-admin-transactions-listing.php:112
@@ -3829,7 +3829,7 @@ msgid "All %s"
 msgstr ""
 
 #. translators: placeholder: Courses.
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:84
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:88
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:73
 #: includes/admin/classes-posts-listings/class-learndash-admin-groups-listing.php:72
 #: includes/admin/classes-posts-listings/class-learndash-admin-lessons-listing.php:51
@@ -3843,7 +3843,7 @@ msgid "All %s"
 msgstr ""
 
 #. translators: placeholder: Lessons.
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:98
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:102
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:87
 #: includes/admin/classes-posts-listings/class-learndash-admin-quizzes-listing.php:70
 #: includes/admin/classes-posts-listings/class-learndash-admin-topics-listing.php:70
@@ -3853,7 +3853,7 @@ msgid "All %s"
 msgstr ""
 
 #. translators: placeholder: Topics.
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:112
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:116
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:101
 #: includes/admin/classes-posts-listings/class-learndash-admin-quizzes-listing.php:90
 #, php-format
@@ -3861,13 +3861,13 @@ msgctxt "placeholder: Topics"
 msgid "All %s"
 msgstr ""
 
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:124
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:128
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:152
 msgid "Status / Points"
 msgstr ""
 
 #. translators: Assigned Course Label.
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:131
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:135
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:177
 #, php-format
 msgctxt "Assigned Course Label"
@@ -3875,7 +3875,7 @@ msgid "Assigned %s"
 msgstr ""
 
 #. translators: Placeholders: Lesson, Topic.
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:141
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:145
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:187
 #: includes/admin/classes-posts-listings/class-learndash-admin-quizzes-listing.php:129
 #, php-format
@@ -3883,50 +3883,50 @@ msgctxt "Placeholders: Lesson, Topic"
 msgid "Assigned %1$s / %2$s"
 msgstr ""
 
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:461
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:616
 msgctxt "Assignment approval status"
 msgid "Approved"
 msgstr ""
 
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:464
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:619
 msgctxt "Assignment approval status"
 msgid "Not Approved"
 msgstr ""
 
 #. translators: placeholder: Status label, Status value.
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:469
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:624
 #, php-format
 msgctxt "placeholder: Status label, Status value"
 msgid "%1$s: %2$s"
 msgstr ""
 
 #. translators: placeholders: Points label, points input, maximum points.
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:485
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:640
 #, php-format
 msgctxt "placeholders: Points label, points input, maximum points"
 msgid "%1$s: %2$s / %3$d"
 msgstr ""
 
 #. translators: placeholders: Points label, current points, maximum points.
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:494
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:649
 #, php-format
 msgctxt "placeholders: Points label, points input, maximum points"
 msgid "%1$s: %2$d / %3$d"
 msgstr ""
 
 #. translators: placeholder: Points label.
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:503
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:658
 #, php-format
 msgctxt "placeholder: Points label"
 msgid "%s: Not Enabled"
 msgstr ""
 
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:512
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:667
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:796
 msgid "approve"
 msgstr ""
 
-#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:703
+#: includes/admin/classes-posts-listings/class-learndash-admin-assignments-listing.php:858
 #: includes/admin/classes-posts-listings/class-learndash-admin-essays-listing.php:560
 msgid "Quick View"
 msgstr ""
@@ -4126,7 +4126,7 @@ msgstr ""
 
 #: includes/admin/classes-posts-listings/class-learndash-admin-courses-listing.php:50
 #: includes/admin/classes-posts-listings/class-learndash-admin-groups-listing.php:47
-#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:163
+#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:193
 msgid "All Users"
 msgstr ""
 
@@ -4518,7 +4518,7 @@ msgid "All Gateways"
 msgstr ""
 
 #: includes/admin/classes-posts-listings/class-learndash-admin-transactions-listing.php:132
-#: includes/course-grid/includes/class-utilities.php:605
+#: includes/course-grid/includes/class-utilities.php:590
 #: includes/settings/settings-fields/class-ld-settings-fields-quiz-custom-fields.php:66
 #: includes/gutenberg/blocks/ld-user-status/index.js:134
 msgid "ID"
@@ -4786,7 +4786,7 @@ msgstr ""
 
 #: includes/admin/classes-posts-listings/class-learndash-admin-transactions-listing.php:1034
 #: includes/ld-misc-functions.php:1180
-#: includes/reports/includes/class-ld-propanel-activity.php:716
+#: includes/reports/includes/class-ld-propanel-activity.php:835
 #: themes/ld30/templates/shortcodes/profile/quiz-row.php:80
 #: themes/legacy/templates/learndash_lesson_assignment_uploads_list.php:72
 msgid "View"
@@ -5525,7 +5525,7 @@ msgstr ""
 #: includes/class-ld-cpt-instance.php:121
 #: includes/class-ld-lms.php:1831
 #: includes/class-ld-lms.php:2303
-#: includes/course-grid/includes/class-utilities.php:625
+#: includes/course-grid/includes/class-utilities.php:610
 #: includes/settings/settings-metaboxes/class-ld-settings-metabox-course-display-content.php:452
 #: includes/settings/settings-metaboxes/class-ld-settings-metabox-group-display-content.php:392
 #: includes/settings/settings-sections/class-ld-settings-section-courses-management-display.php:355
@@ -6460,7 +6460,7 @@ msgstr ""
 
 #: includes/class-ld-gdpr.php:269
 #: includes/settings/settings-sections/settings-sections-payments/class-ld-settings-section-paypal-checkout.php:315
-#: src/Core/Modules/Payments/Gateways/Paypal/Assets.php:527
+#: src/Core/Modules/Payments/Gateways/Paypal/Assets.php:535
 #: src/Core/Modules/Payments/Gateways/Paypal/Profile_Handler.php:145
 #: assets/js/setup-wizard/src/screen/step-3.jsx:147
 msgid "PayPal"
@@ -6665,7 +6665,7 @@ msgstr ""
 #: includes/reports/templates/ld-propanel-activity-rows.php:534
 #: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course-row.php:85
 #: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group-row.php:104
-#: includes/reports/templates/reporting-filters/status/ld-propanel-reporting-filter-status.php:52
+#: includes/reports/templates/reporting-filters/status/ld-propanel-reporting-filter-status.php:65
 #: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user-row.php:61
 #: includes/settings/shortcodes-sections/ld_course_list.php:135
 #: includes/settings/shortcodes-sections/ld_group_list.php:134
@@ -6694,7 +6694,7 @@ msgstr ""
 #: includes/deprecated/5.0.0/functions.php:1885
 #: includes/deprecated/5.0.0/functions.php:2042
 #: includes/ld-groups.php:2170
-#: includes/reports/templates/reporting-filters/status/ld-propanel-reporting-filter-status.php:60
+#: includes/reports/templates/reporting-filters/status/ld-propanel-reporting-filter-status.php:73
 #: includes/settings/shortcodes-sections/ld_course_list.php:137
 #: includes/settings/shortcodes-sections/ld_group_list.php:136
 #: includes/shortcodes/ld_course_complete.php:73
@@ -9502,109 +9502,116 @@ msgid "Setup Wizard"
 msgstr ""
 
 #. translators: placeholders: Language Name, Language code.
-#: includes/class-ld-translations.php:250
+#: includes/class-ld-translations.php:264
 #, php-format
 msgctxt "placeholders: Language Name, Language code"
 msgid "Translation installed: %1$s (%2$s)"
 msgstr ""
 
 #. translators: placeholders: Language Name, Language code.
-#: includes/class-ld-translations.php:363
+#: includes/class-ld-translations.php:387
 #, php-format
 msgctxt "placeholders: Language Name, Language code"
 msgid "Translation updated: %1$s (%2$s)"
 msgstr ""
 
 #. translators: placeholders: Language Name, Language code.
-#: includes/class-ld-translations.php:403
+#: includes/class-ld-translations.php:432
 #, php-format
 msgctxt "placeholders: Language Name, Language code"
 msgid "Translation removed: %1$s (%2$s)"
 msgstr ""
 
-#: includes/class-ld-translations.php:441
+#. translators: placeholders: Language code.
+#: includes/class-ld-translations.php:453
+#, php-format
+msgctxt "placeholder: Language code"
+msgid "Translation removed: %s"
+msgstr ""
+
+#: includes/class-ld-translations.php:492
 msgid "No translations available for this plugin."
 msgstr ""
 
-#: includes/class-ld-translations.php:517
+#: includes/class-ld-translations.php:582
 msgid "Download the original strings (POT) File."
 msgstr ""
 
-#: includes/class-ld-translations.php:519
+#: includes/class-ld-translations.php:584
 msgid "Download POT File from your server."
 msgstr ""
 
-#: includes/class-ld-translations.php:519
+#: includes/class-ld-translations.php:584
 msgid "POT"
 msgstr ""
 
-#: includes/class-ld-translations.php:526
+#: includes/class-ld-translations.php:591
 msgid "Installed Translations"
 msgstr ""
 
-#: includes/class-ld-translations.php:530
+#: includes/class-ld-translations.php:595
 msgid "Locale"
 msgstr ""
 
-#: includes/class-ld-translations.php:531
+#: includes/class-ld-translations.php:596
 msgid "Name / Native"
 msgstr ""
 
-#: includes/class-ld-translations.php:564
+#: includes/class-ld-translations.php:641
 msgid "No Translations installed"
 msgstr ""
 
 #. translators: placeholder: Language directory.
-#: includes/class-ld-translations.php:575
+#: includes/class-ld-translations.php:652
 #, php-format
 msgctxt "placeholder: Language directory"
 msgid "All translations are stored into the directory: %s"
 msgstr ""
 
-#: includes/class-ld-translations.php:582
+#: includes/class-ld-translations.php:659
 msgid "The language directory is not writable"
 msgstr ""
 
-#: includes/class-ld-translations.php:607
+#: includes/class-ld-translations.php:684
 msgid "Not from LearnDash"
 msgstr ""
 
-#: includes/class-ld-translations.php:615
+#: includes/class-ld-translations.php:692
 msgid "Download PO File from your server."
 msgstr ""
 
-#: includes/class-ld-translations.php:615
+#: includes/class-ld-translations.php:692
 msgid "PO"
 msgstr ""
 
-#: includes/class-ld-translations.php:621
+#: includes/class-ld-translations.php:698
 msgid "Remove translation from server"
 msgstr ""
 
-#: includes/class-ld-translations.php:626
+#: includes/class-ld-translations.php:703
 msgid "Update translation from LearnDash"
 msgstr ""
 
-#: includes/class-ld-translations.php:680
+#: includes/class-ld-translations.php:771
 msgid "Available Translations"
 msgstr ""
 
-#: includes/class-ld-translations.php:682
+#: includes/class-ld-translations.php:773
 msgid "-- Install Translation --"
 msgstr ""
 
-#: includes/class-ld-translations.php:691
+#: includes/class-ld-translations.php:785
 msgid "Recommended"
 msgstr ""
 
-#: includes/class-ld-translations.php:709
+#: includes/class-ld-translations.php:803
 #: includes/course-grid/includes/functions.php:436
 #: includes/licensing/assets/scripts/projects.js:2805
 #: includes/licensing/frontend/src/Plugins/Projects.jsx:371
 msgid "Available"
 msgstr ""
 
-#: includes/class-ld-translations.php:725
+#: includes/class-ld-translations.php:819
 #: includes/licensing/assets/scripts/projects.js:2855
 #: includes/licensing/assets/scripts/projects.js:2915
 #: includes/licensing/frontend/src/Dashboard/Main.jsx:78
@@ -9792,31 +9799,31 @@ msgstr ""
 msgid "LearnDash LMS - Course Grid"
 msgstr ""
 
-#: includes/course-grid/includes/class-utilities.php:613
+#: includes/course-grid/includes/class-utilities.php:598
 msgid "Published Date"
 msgstr ""
 
-#: includes/course-grid/includes/class-utilities.php:617
+#: includes/course-grid/includes/class-utilities.php:602
 msgid "Modified Date"
 msgstr ""
 
-#: includes/course-grid/includes/class-utilities.php:621
+#: includes/course-grid/includes/class-utilities.php:606
 msgid "Author"
 msgstr ""
 
-#: includes/course-grid/includes/class-utilities.php:691
+#: includes/course-grid/includes/class-utilities.php:676
 msgid "Load More Button"
 msgstr ""
 
-#: includes/course-grid/includes/class-utilities.php:695
+#: includes/course-grid/includes/class-utilities.php:680
 msgid "Infinite Scrolling"
 msgstr ""
 
-#: includes/course-grid/includes/class-utilities.php:699
+#: includes/course-grid/includes/class-utilities.php:684
 msgid "Disable"
 msgstr ""
 
-#: includes/course-grid/includes/class-utilities.php:739
+#: includes/course-grid/includes/class-utilities.php:724
 #, php-format
 msgctxt "Duration, e.g. 1 hour 30 minutes"
 msgid "%1$d h %2$d min"
@@ -10104,7 +10111,7 @@ msgid "Take This Course"
 msgstr ""
 
 #: includes/deprecated/4.17.0/functions.php:105
-#: includes/reports/includes/gutenberg/lib/enqueue-scripts.php:85
+#: includes/reports/includes/gutenberg/lib/enqueue-scripts.php:99
 msgid "LearnDash LMS Reporting Blocks"
 msgstr ""
 
@@ -10267,7 +10274,7 @@ msgstr ""
 #. translators: placeholder: Course.
 #: includes/gutenberg/blocks/ld-certificate/index.php:157
 #: includes/gutenberg/blocks/ld-course-content/index.php:138
-#: includes/gutenberg/blocks/ld-course-expire-status/index.php:94
+#: includes/gutenberg/blocks/ld-course-expire-status/index.php:93
 #: includes/gutenberg/blocks/ld-course-progress/index.php:87
 #: includes/gutenberg/blocks/ld-course-resume/index.php:97
 #: includes/gutenberg/blocks/ld-courseinfo/index.php:107
@@ -11347,15 +11354,15 @@ msgstr ""
 msgid "UR = unregistered user, R = registered user"
 msgstr ""
 
-#. translators: User ID.
+#. Translators: User ID column label.
 #: includes/lib/wp-pro-quiz/lib/view/WpProQuiz_View_AdminToplist.php:86
 #: includes/lib/wp-pro-quiz/lib/view/WpProQuiz_View_Statistics.php:256
 #: includes/lib/wp-pro-quiz/lib/view/WpProQuiz_View_StatisticsAjax.php:929
 #: includes/lib/wp-pro-quiz/lib/view/WpProQuiz_View_StatisticsNew.php:137
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:281
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:288
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:294
-#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:287
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:418
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:425
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:431
+#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:453
 #: includes/settings/settings-metaboxes/class-ld-settings-metabox-quiz-admin-data-handling-settings.php:938
 #: includes/settings/settings-sections/class-ld-settings-section-general-rest-api.php:283
 #: includes/settings/settings-sections/class-ld-settings-section-general-rest-api.php:535
@@ -11452,7 +11459,7 @@ msgstr ""
 
 #. translators: placeholder: Quiz.
 #: includes/lib/wp-pro-quiz/lib/view/WpProQuiz_View_FrontQuiz.php:995
-#: includes/reports/includes/class-ld-propanel-activity.php:714
+#: includes/reports/includes/class-ld-propanel-activity.php:833
 #, php-format
 msgctxt "placeholder: Quiz"
 msgid "View %s Statistics"
@@ -12876,10 +12883,10 @@ msgid "TextArea"
 msgstr ""
 
 #: includes/lib/wp-pro-quiz/lib/view/WpProQuiz_View_QuizEdit.php:1494
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:280
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:286
-#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:274
-#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:281
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:417
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:423
+#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:440
+#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:447
 #: includes/settings/settings-fields/class-ld-settings-fields-quiz-custom-fields.php:101
 msgid "Checkbox"
 msgstr ""
@@ -13332,21 +13339,21 @@ msgstr ""
 msgid "You can also find them listed <a class=\"text-blue-500\" target=\"_blank\" href=\"%s\">on your account.</a>"
 msgstr ""
 
-#: includes/licensing/src/component/class-projects.php:127
-#: includes/licensing/src/component/class-projects.php:150
-#: includes/licensing/src/component/class-projects.php:171
+#: includes/licensing/src/component/class-projects.php:172
+#: includes/licensing/src/component/class-projects.php:195
+#: includes/licensing/src/component/class-projects.php:216
 msgid "Invalid plugin file."
 msgstr ""
 
-#: includes/licensing/src/component/class-projects.php:131
+#: includes/licensing/src/component/class-projects.php:176
 msgid "Filesystem credentials are required to proceed"
 msgstr ""
 
-#: includes/licensing/src/component/class-projects.php:205
+#: includes/licensing/src/component/class-projects.php:250
 msgid "Plugin update failed."
 msgstr ""
 
-#: includes/licensing/src/component/class-projects.php:236
+#: includes/licensing/src/component/class-projects.php:281
 msgid "Plugin install failed"
 msgstr ""
 
@@ -14162,44 +14169,48 @@ msgstr ""
 msgid "LearnDash Activity"
 msgstr ""
 
-#: includes/reports/includes/class-ld-propanel-activity.php:243
+#: includes/reports/includes/class-ld-propanel-activity.php:270
 msgid "course_total_time_on"
 msgstr ""
 
-#: includes/reports/includes/class-ld-propanel-activity.php:251
+#: includes/reports/includes/class-ld-propanel-activity.php:278
 msgid "course_last_step_id"
 msgstr ""
 
-#: includes/reports/includes/class-ld-propanel-activity.php:259
+#: includes/reports/includes/class-ld-propanel-activity.php:286
 msgid "course_last_step_type"
 msgstr ""
 
-#: includes/reports/includes/class-ld-propanel-activity.php:267
+#: includes/reports/includes/class-ld-propanel-activity.php:294
 msgid "course_last_step_title"
 msgstr ""
 
-#: includes/reports/includes/class-ld-propanel-activity.php:275
+#: includes/reports/includes/class-ld-propanel-activity.php:302
 msgid "last_login_date"
 msgstr ""
 
-#: includes/reports/includes/class-ld-propanel-base-widget.php:108
+#: includes/reports/includes/class-ld-propanel-base-widget.php:188
 msgid "ProPanel Email: AJAX submission could not complete, please try again."
 msgstr ""
 
-#: includes/reports/includes/class-ld-propanel-filtering.php:33
+#: includes/reports/includes/class-ld-propanel-base-widget.php:261
+msgid "Insufficient permissions."
+msgstr ""
+
+#: includes/reports/includes/class-ld-propanel-filtering.php:36
 #: includes/reports/includes/class-ld-propanel-shortcodes.php:60
 msgid "LearnDash Report Filters"
 msgstr ""
 
 #. translators: placeholder: email count.
-#: includes/reports/includes/class-ld-propanel-filtering.php:297
+#: includes/reports/includes/class-ld-propanel-filtering.php:369
 #, php-format
 msgctxt "placeholder: email count"
 msgid "Email sent to %d destinations"
 msgstr ""
 
 #. translators: placeholder: error messages
-#: includes/reports/includes/class-ld-propanel-filtering.php:312
+#: includes/reports/includes/class-ld-propanel-filtering.php:384
 #, php-format
 msgctxt "placeholder: error messages"
 msgid ""
@@ -14207,8 +14218,8 @@ msgid ""
 "Error: %s"
 msgstr ""
 
-#: includes/reports/includes/class-ld-propanel-filtering.php:324
-#: includes/reports/includes/class-ld-propanel-reporting.php:308
+#: includes/reports/includes/class-ld-propanel-filtering.php:396
+#: includes/reports/includes/class-ld-propanel-reporting.php:332
 msgid "We do not have any email addresses to send your message to."
 msgstr ""
 
@@ -14275,14 +14286,14 @@ msgid "LearnDash Reporting"
 msgstr ""
 
 #. translators: placeholder: count users.
-#: includes/reports/includes/class-ld-propanel-reporting.php:281
+#: includes/reports/includes/class-ld-propanel-reporting.php:305
 #, php-format
 msgctxt "placeholder: count users."
 msgid "Email sent to %d destinations"
 msgstr ""
 
 #. translators: placeholder: error message
-#: includes/reports/includes/class-ld-propanel-reporting.php:296
+#: includes/reports/includes/class-ld-propanel-reporting.php:320
 #, php-format
 msgctxt "placeholder: error message"
 msgid ""
@@ -14421,7 +14432,7 @@ msgstr ""
 #. translators: Course status - All Statuses.
 #. translators: Course status - All Statuses
 #: includes/reports/includes/class-ld-tinymce-courseinfo.php:103
-#: includes/reports/templates/reporting-filters/status/ld-propanel-reporting-filter-status.php:45
+#: includes/reports/templates/reporting-filters/status/ld-propanel-reporting-filter-status.php:51
 msgctxt "Course status - All Statuses"
 msgid "All Statuses"
 msgstr ""
@@ -14703,22 +14714,22 @@ msgctxt "Number of completed course steps"
 msgid "%1$d of %2$d steps completed"
 msgstr ""
 
-#. translators: All Courses
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:114
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:118
+#. Translators: placeholder is the courses label.
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:198
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:202
 #, php-format
 msgctxt "All Courses"
 msgid "All %s"
 msgstr ""
 
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:282
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:289
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:295
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:419
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:426
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:432
 #: includes/settings/settings-sections/class-ld-settings-section-import-export.php:197
 msgid "Progress"
 msgstr ""
 
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:287
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:424
 #: includes/rest-api/v1/class-ld-rest-users-groups-controller.php:70
 #: includes/rest-api/v2/class-ld-rest-quiz-form-entries-controller.php:333
 #: includes/rest-api/v2/class-ld-rest-users-course-progress-controller.php:97
@@ -14775,7 +14786,7 @@ msgstr ""
 msgid "User ID"
 msgstr ""
 
-#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:290
+#: includes/reports/templates/reporting-filters/courses/ld-propanel-reporting-filter-course.php:427
 msgid "Completed On"
 msgstr ""
 
@@ -14794,42 +14805,43 @@ msgctxt "placeholder: User Email"
 msgid "Compose a new mail to %s"
 msgstr ""
 
-#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:17
+#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:32
 msgid "Search Groups"
 msgstr ""
 
-#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:116
+#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:215
 msgid "All Groups"
 msgstr ""
 
+#. Translators: Course Progress column label.
 #. translators: Course Progress.
-#. translators: Course Progress
-#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:277
-#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:289
-#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:297
-#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:350
-#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:358
-#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:366
+#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:443
+#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:455
+#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:463
+#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:390
+#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:398
+#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:406
 msgctxt "Course Progress"
 msgid "Progress"
 msgstr ""
 
+#. Translators: Course ID column label.
 #. translators: Course ID.
-#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:283
-#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:355
+#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:449
+#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:395
 #, php-format
 msgctxt "Course ID"
 msgid "%s ID"
 msgstr ""
 
-#. translators: User ID.
-#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:286
+#. Translators: User ID column label.
+#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:452
 msgctxt "User ID"
 msgid "U-ID"
 msgstr ""
 
-#. translators: Course Progress
-#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:291
+#. Translators: Course completion date column label.
+#: includes/reports/templates/reporting-filters/groups/ld-propanel-reporting-filter-group.php:457
 msgctxt "Course completion data"
 msgid "Completed On"
 msgstr ""
@@ -14842,18 +14854,18 @@ msgid "%s ID:"
 msgstr ""
 
 #. translators: Search Courses
-#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:19
+#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:22
 #, php-format
 msgctxt "Search Courses"
 msgid "Search %s"
 msgstr ""
 
-#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:163
+#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:193
 msgid "Select User"
 msgstr ""
 
 #. translators: Course completion date
-#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:360
+#: includes/reports/templates/reporting-filters/users/ld-propanel-reporting-filter-user.php:400
 msgctxt "Course completion date"
 msgid "Completed On"
 msgstr ""
@@ -22240,32 +22252,44 @@ msgstr ""
 msgid "Appearance"
 msgstr ""
 
+#. translators: placeholder: Course.
+#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:93
+#, php-format
+msgid "Tabs in Modern mode appear only when multiple sections have content. If just one section (%1$s, Materials, or Reviews) is populated, the tab navigation is hidden."
+msgstr ""
+
+#. translators: placeholder: Group.
+#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:108
+#, php-format
+msgid "Tabs in Modern mode appear only when multiple sections have content. If just one section (%1$s or Materials) is populated, the tab navigation is hidden."
+msgstr ""
+
 #. translators: placeholder: %1$s = Course custom label
 #. translators: placeholder: %1$s = Group custom label
-#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:124
-#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:138
+#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:136
+#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:150
 #, php-format
 msgid "%1$s Page"
 msgstr ""
 
 #. translators: placeholder: %1$s = course custom label
-#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:129
+#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:141
 #, php-format
 msgid "When active, Modern LearnDash Styles will be used for all %1$s, %2$s, and %3$s pages"
 msgstr ""
 
 #. translators: placeholder: %1$s = group custom label
-#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:143
+#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:155
 #, php-format
 msgid "When active, Modern LearnDash Styles will be used for all %1$s pages"
 msgstr ""
 
-#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:166
+#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:178
 #: themes/ld30/includes/class-ld-settings-section-theme-ld30.php:204
 msgid "Login & Registration"
 msgstr ""
 
-#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:167
+#: includes/settings/settings-sections/class-ld-settings-section-general-appearance.php:179
 msgid "When active, the Modern LearnDash Styles will be used for user login and registration pages"
 msgstr ""
 
@@ -30088,7 +30112,7 @@ msgid "Invalid hash."
 msgstr ""
 
 #. translators: %s: payment type.
-#: src/Core/Modules/Payments/Gateways/Paypal/Assets.php:523
+#: src/Core/Modules/Payments/Gateways/Paypal/Assets.php:531
 #, php-format
 msgid "Card (%s)"
 msgstr ""

@@ -24,4 +24,8 @@ var I360_ALLOWED_ITEMS = {
             allowedActions: ['viewFile'],
         },
     },
+    'cms-protection': {
+        incidents: {},
+        'disabled-rules': {},
+    },
 };

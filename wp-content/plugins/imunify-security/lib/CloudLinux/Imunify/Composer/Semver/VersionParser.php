@@ -36,7 +36,7 @@ class VersionParser
      *
      * @var string
      */
-    private static $modifierRegex = '[._-]?(?:(stable|beta|b|RC|alpha|a|patch|pl|p)((?:[.-]?\d+)*+)?)?([.-]?dev)?';
+    private static $modifierRegex = '[._-]?(?:(stable|beta|b|RC|alpha|a|patch|pl|p|dev)((?:[.-]?\d+)*+)?)?([.-]?dev)?';
 
     /** @var string */
     private static $stabilitiesRegex = 'stable|RC|beta|alpha|dev';
@@ -72,6 +72,9 @@ class VersionParser
             }
             if ('rc' === $match[1]) {
                 return 'RC';
+            }
+            if ('dev' === $match[1]) {
+                return 'dev';
             }
         }
 
@@ -139,12 +142,13 @@ class VersionParser
         }
 
         // match classical versioning
-        if (preg_match('{^v?(\d{1,5}+)(\.\d++)?(\.\d++)?(\.\d++)?' . self::$modifierRegex . '$}i', $version, $matches)) {
+        if (preg_match('{^v?(\d{1,5}+)(\.\d++)?(\.\d++)?(\.\d++)?(\.\d++)?' . self::$modifierRegex . '$}i', $version, $matches)) {
             $version = $matches[1]
                 . (!empty($matches[2]) ? $matches[2] : '.0')
                 . (!empty($matches[3]) ? $matches[3] : '.0')
-                . (!empty($matches[4]) ? $matches[4] : '.0');
-            $index = 5;
+                . (!empty($matches[4]) ? $matches[4] : '.0')
+                . (!empty($matches[5]) ? $matches[5] : '.0');
+            $index = 6;
         // match date(time) based versioning
         } elseif (preg_match('{^v?(\d{4}(?:[.:-]?\d{2}){1,6}(?:[.:-]?\d{1,3}){0,2})' . self::$modifierRegex . '$}i', $version, $matches)) {
             $version = (string) preg_replace('{\D}', '.', $matches[1]);
@@ -218,9 +222,9 @@ class VersionParser
     {
         $name = trim((string) $name);
 
-        if (preg_match('{^v?(\d++)(\.(?:\d++|[xX*]))?(\.(?:\d++|[xX*]))?(\.(?:\d++|[xX*]))?$}i', $name, $matches)) {
+        if (preg_match('{^v?(\d++)(\.(?:\d++|[xX*]))?(\.(?:\d++|[xX*]))?(\.(?:\d++|[xX*]))?(\.(?:\d++|[xX*]))?$}i', $name, $matches)) {
             $version = '';
-            for ($i = 1; $i < 5; ++$i) {
+            for ($i = 1; $i < 6; ++$i) {
                 $version .= isset($matches[$i]) ? str_replace(array('*', 'X'), 'x', $matches[$i]) : '.x';
             }
 
@@ -328,13 +332,13 @@ class VersionParser
 
         if (preg_match('{^(v)?[xX*](\.[xX*])*$}i', $constraint, $match)) {
             if (!empty($match[1]) || !empty($match[2])) {
-                return array(new Constraint('>=', '0.0.0.0-dev'));
+                return array(new Constraint('>=', '0.0.0.0.0-dev'));
             }
 
             return array(new MatchAllConstraint());
         }
 
-        $versionRegex = 'v?(\d++)(?:\.(\d++))?(?:\.(\d++))?(?:\.(\d++))?(?:' . self::$modifierRegex . '|\.([xX*][.-]?dev))(?:\+[^\s]+)?';
+        $versionRegex = 'v?(\d++)(?:\.(\d++))?(?:\.(\d++))?(?:\.(\d++))?(?:\.(\d++))?(?:' . self::$modifierRegex . '|\.([xX*][.-]?dev))(?:\+[^\s]+)?';
 
         // Tilde Range
         //
@@ -350,7 +354,9 @@ class VersionParser
             }
 
             // Work out which position in the version we are operating at
-            if (isset($matches[4]) && '' !== $matches[4] && null !== $matches[4]) {
+            if (isset($matches[5]) && '' !== $matches[5] && null !== $matches[5]) {
+                $position = 5;
+            } elseif (isset($matches[4]) && '' !== $matches[4] && null !== $matches[4]) {
                 $position = 4;
             } elseif (isset($matches[3]) && '' !== $matches[3] && null !== $matches[3]) {
                 $position = 3;
@@ -361,13 +367,13 @@ class VersionParser
             }
 
             // when matching 2.x-dev or 3.0.x-dev we have to shift the second or third number, despite no second/third number matching above
-            if (!empty($matches[8])) {
+            if (!empty($matches[9])) {
                 $position++;
             }
 
             // Calculate the stability suffix
             $stabilitySuffix = '';
-            if (empty($matches[5]) && empty($matches[7]) && empty($matches[8])) {
+            if (empty($matches[6]) && empty($matches[8]) && empty($matches[9])) {
                 $stabilitySuffix .= '-dev';
             }
 
@@ -403,7 +409,7 @@ class VersionParser
 
             // Calculate the stability suffix
             $stabilitySuffix = '';
-            if (empty($matches[5]) && empty($matches[7]) && empty($matches[8])) {
+            if (empty($matches[6]) && empty($matches[8]) && empty($matches[9])) {
                 $stabilitySuffix .= '-dev';
             }
 
@@ -425,8 +431,10 @@ class VersionParser
         //
         // Any of X, x, or * may be used to "stand in" for one of the numeric values in the [major, minor, patch] tuple.
         // A partial version range is treated as an X-Range, so the special character is in fact optional.
-        if (preg_match('{^v?(\d++)(?:\.(\d++))?(?:\.(\d++))?(?:\.[xX*])++$}', $constraint, $matches)) {
-            if (isset($matches[3]) && '' !== $matches[3] && null !== $matches[3]) {
+        if (preg_match('{^v?(\d++)(?:\.(\d++))?(?:\.(\d++))?(?:\.(\d++))?(?:\.[xX*])++$}', $constraint, $matches)) {
+            if (isset($matches[4]) && '' !== $matches[4] && null !== $matches[4]) {
+                $position = 4;
+            } elseif (isset($matches[3]) && '' !== $matches[3] && null !== $matches[3]) {
                 $position = 3;
             } elseif (isset($matches[2]) && '' !== $matches[2] && null !== $matches[2]) {
                 $position = 2;
@@ -437,7 +445,7 @@ class VersionParser
             $lowVersion = $this->manipulateVersionString($matches, $position) . '-dev';
             $highVersion = $this->manipulateVersionString($matches, $position, 1) . '-dev';
 
-            if ($lowVersion === '0.0.0.0-dev') {
+            if ($lowVersion === '0.0.0.0.0-dev') {
                 return array(new Constraint('<', $highVersion));
             }
 
@@ -456,7 +464,7 @@ class VersionParser
         if (preg_match('{^(?P<from>' . $versionRegex . ') +- +(?P<to>' . $versionRegex . ')($)}i', $constraint, $matches)) {
             // Calculate the stability suffix
             $lowStabilitySuffix = '';
-            if (empty($matches[6]) && empty($matches[8]) && empty($matches[9])) {
+            if (empty($matches[7]) && empty($matches[9]) && empty($matches[10])) {
                 $lowStabilitySuffix = '-dev';
             }
 
@@ -467,16 +475,16 @@ class VersionParser
                 return ($x === 0 || $x === '0') ? false : empty($x);
             };
 
-            if ((!$empty($matches[12]) && !$empty($matches[13])) || !empty($matches[15]) || !empty($matches[17]) || !empty($matches[18])) {
+            if ((!$empty($matches[13]) && !$empty($matches[14])) || !empty($matches[17]) || !empty($matches[19]) || !empty($matches[20])) {
                 $highVersion = $this->normalize($matches['to']);
                 $upperBound = new Constraint('<=', $highVersion);
             } else {
-                $highMatch = array('', $matches[11], $matches[12], $matches[13], $matches[14]);
+                $highMatch = array('', $matches[12], $matches[13], $matches[14], $matches[15], isset($matches[16]) ? $matches[16] : null);
 
                 // validate to version
                 $this->normalize($matches['to']);
 
-                $highVersion = $this->manipulateVersionString($highMatch, $empty($matches[12]) ? 1 : 2, 1) . '-dev';
+                $highVersion = $this->manipulateVersionString($highMatch, $empty($matches[13]) ? 1 : 2, 1) . '-dev';
                 $upperBound = new Constraint('<', $highVersion);
             }
 
@@ -542,7 +550,7 @@ class VersionParser
      */
     private function manipulateVersionString(array $matches, $position, $increment = 0, $pad = '0')
     {
-        for ($i = 4; $i > 0; --$i) {
+        for ($i = 5; $i > 0; --$i) {
             if ($i > $position) {
                 $matches[$i] = $pad;
             } elseif ($i === $position && $increment) {
@@ -560,7 +568,7 @@ class VersionParser
             }
         }
 
-        return $matches[1] . '.' . $matches[2] . '.' . $matches[3] . '.' . $matches[4];
+        return $matches[1] . '.' . $matches[2] . '.' . $matches[3] . '.' . $matches[4] . '.' . $matches[5];
     }
 
     /**

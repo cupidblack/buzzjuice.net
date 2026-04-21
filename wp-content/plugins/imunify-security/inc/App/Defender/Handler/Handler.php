@@ -11,8 +11,10 @@ namespace CloudLinux\Imunify\App\Defender\Handler;
 use CloudLinux\Imunify\App\Defender\ConditionEvaluator;
 use CloudLinux\Imunify\App\Defender\IncidentRecorder;
 use CloudLinux\Imunify\App\Defender\Model\Rule;
+use CloudLinux\Imunify\App\Defender\Model\RuleMode;
 use CloudLinux\Imunify\App\Defender\Model\TargetInfo;
 use CloudLinux\Imunify\App\Defender\Request;
+use CloudLinux\Imunify\App\Defender\RuleHitTracker;
 
 /**
  * Handler class for rule handlers in the Defender module.
@@ -44,6 +46,13 @@ class Handler implements HandlerInterface {
 	protected $incidentRecorder;
 
 	/**
+	 * Rule hit tracker.
+	 *
+	 * @var RuleHitTracker
+	 */
+	protected $hitTracker;
+
+	/**
 	 * Target information.
 	 *
 	 * @var TargetInfo
@@ -63,13 +72,15 @@ class Handler implements HandlerInterface {
 	 * @param Rule             $rule             Rule object.
 	 * @param Request          $request          Request object.
 	 * @param IncidentRecorder $incidentRecorder Incident recorder instance.
+	 * @param RuleHitTracker   $hitTracker       Rule hit tracker instance.
 	 * @param TargetInfo       $targetInfo       Target information.
 	 * @param string           $version          Ruleset version.
 	 */
-	public function __construct( $rule, $request, $incidentRecorder, $targetInfo, $version = '' ) {
+	public function __construct( $rule, $request, $incidentRecorder, $hitTracker, $targetInfo, $version = '' ) {
 		$this->rule             = $rule;
 		$this->request          = $request;
 		$this->incidentRecorder = $incidentRecorder;
+		$this->hitTracker       = $hitTracker;
 		$this->targetInfo       = $targetInfo;
 		$this->version          = $version;
 	}
@@ -136,6 +147,27 @@ class Handler implements HandlerInterface {
 		do_action( 'imunify_security_set_error_handler' );
 		$this->incidentRecorder->recordIncident( $this->rule, $this->rule->getMode(), $this->targetInfo, $this->request, $this->version );
 		do_action( 'imunify_security_restore_error_handler' );
+
+		// Record hit for the widget display.
+		$this->hitTracker->recordHit( $this->rule );
+
+		// Check the rule mode - if it's 'pass', don't block.
+		if ( $this->rule->getMode() === RuleMode::PASS ) {
+			return;
+		}
+
+		// Block the request.
+		$this->blockRequest();
+	}
+
+	/**
+	 * Block the request by sending a 403 response and terminating execution.
+	 *
+	 * @return void
+	 */
+	protected function blockRequest() {
+		nocache_headers();
+		status_header( 403 );
+		die;
 	}
 }
-

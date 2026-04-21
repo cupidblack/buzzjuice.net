@@ -65,6 +65,22 @@ class ConditionType {
 	const MISSING_CAPABILITY = 'missing_capability';
 
 	/**
+	 * Probabilistic trigger condition type.
+	 *
+	 * @var string
+	 */
+	const PROBABILISTIC = 'probabilistic';
+
+	/**
+	 * Not current user condition type.
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.2
+	 */
+	const NOT_CURRENT_USER = 'not_current_user';
+
+	/**
 	 * Get all available condition types.
 	 *
 	 * @return string[]
@@ -78,6 +94,8 @@ class ConditionType {
 			self::DETECT_XSS,
 			self::DETECT_SQLI,
 			self::MISSING_CAPABILITY,
+			self::PROBABILISTIC,
+			self::NOT_CURRENT_USER,
 		);
 	}
 
@@ -115,6 +133,10 @@ class ConditionType {
 				return esc_html__( 'SQL Injection Detection', 'imunify-security' );
 			case self::MISSING_CAPABILITY:
 				return esc_html__( 'Missing Capability', 'imunify-security' );
+			case self::PROBABILISTIC:
+				return esc_html__( 'Probabilistic Trigger', 'imunify-security' );
+			case self::NOT_CURRENT_USER:
+				return esc_html__( 'Not Current User', 'imunify-security' );
 			default:
 				return '';
 		}
@@ -143,6 +165,10 @@ class ConditionType {
 				return esc_html__( 'Detects SQL injection attacks in field data.', 'imunify-security' );
 			case self::MISSING_CAPABILITY:
 				return esc_html__( 'Check if user is missing a specific WordPress capability', 'imunify-security' );
+			case self::PROBABILISTIC:
+				return esc_html__( 'Triggers with a configurable probability per request.', 'imunify-security' );
+			case self::NOT_CURRENT_USER:
+				return esc_html__( 'Checks if a request parameter user ID does not match the currently logged-in user.', 'imunify-security' );
 			default:
 				return '';
 		}
@@ -167,6 +193,10 @@ class ConditionType {
 				return array( 'name', 'value' );
 			case self::MISSING_CAPABILITY:
 				return array( 'value' );
+			case self::PROBABILISTIC:
+				return array( 'value' );
+			case self::NOT_CURRENT_USER:
+				return array( 'name' );
 			default:
 				return array();
 		}

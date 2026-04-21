@@ -6357,9 +6357,15 @@ function Wo_RegisterPost($re_data = array('recipient_id' => 0))
         //Register point level system for createpost
         if (!empty($re_data['blog_id']) && $re_data['active'] == 1) {
             Wo_RegisterPoint($post_id, "createblog");
+            
+            bzj_log_activity($user_id, 'createblog', $blog_id, 'blog', $wo['config']['createblog_point'], 'Wo_Blog');
+            
         } else {
             if (isset($re_data['multi_image_post']) && $re_data['multi_image_post'] != 1 && empty($re_data['blog_id'])) {
                 Wo_RegisterPoint($post_id, "createpost");
+                
+                bzj_log_activity($user_id, 'createpost', $post_id, 'post', $wo['config']['createpost_point'], 'Wo_Posts');
+                
             }
         }
         return $post_id;
@@ -8278,6 +8284,9 @@ function Wo_AddReactions($post_id, $reaction)
         Wo_RegisterNotification($notification_data_array);
         //Register point level system for reaction
         Wo_RegisterPoint($post_id, "reaction");
+        
+        bzj_log_activity($user_id, 'reaction', $post_id, 'post', $wo['config']['reaction_point'], 'Wo_Reactions');
+        
         return 'reacted';
     }
 }
@@ -8696,6 +8705,9 @@ function Wo_AddLikes($post_id)
             Wo_RegisterNotification($notification_data_array);
             //Register point level system for likes
             Wo_RegisterPoint($post_id, "likes");
+            
+            bzj_log_activity($user_id, 'like', $post_id, 'post', $wo['config']['likes_point'], 'Wo_Likes');
+            
             return 'liked';
         }
     }
@@ -8858,9 +8870,15 @@ function Wo_AddWonders($post_id)
             if ($wo['config']['second_post_button'] == 'dislike') {
                 //Register point level system for dislikes +
                 Wo_RegisterPoint($post_id, "dislikes");
+                
+                bzj_log_activity($user_id, 'dislike', $blog_id, 'blog_movie', $wo['config']['dislikes_point'], 'Wo_Config.second_post_button');
+                
             } else if ($wo['config']['second_post_button'] == 'wonder') {
                 //Register point level system for wonders +
                 Wo_RegisterPoint($post_id, "wonders");
+                
+                bzj_log_activity($user_id, 'wonder', $post_id, 'post', $wo['config']['wonders_point'], 'Wo_Wonders');
+                
             }
             return 'wonder';
         }
@@ -9371,6 +9389,9 @@ function Wo_RegisterPostComment($data = array())
         //Register point level system for comments
         if ($getPost['user_id'] != $wo['user']['id']) {
             Wo_RegisterPoint(Wo_Secure($data['post_id']), "comments");
+            
+            bzj_log_activity($user_id, 'comment', $inserted_comment_id, 'comment', $wo['config']['comments_point'], 'Wo_Comments');
+            
         }
         return $inserted_comment_id;
     }

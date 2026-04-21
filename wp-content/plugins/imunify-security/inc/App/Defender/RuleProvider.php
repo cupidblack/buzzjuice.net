@@ -12,7 +12,6 @@ use CloudLinux\Imunify\App\DataStore;
 use CloudLinux\Imunify\App\Debug;
 use CloudLinux\Imunify\App\Defender\Model\Rule;
 use CloudLinux\Imunify\App\Defender\Model\RuleCollection;
-use CloudLinux\Imunify\App\Defender\Model\RuleMode;
 use CloudLinux\Imunify\App\Defender\Model\Target;
 use CloudLinux\Imunify\App\Defender\Model\TargetInfo;
 use CloudLinux\Imunify\Composer\Semver\Semver;
@@ -24,7 +23,7 @@ use CloudLinux\Imunify\Composer\Semver\Semver;
  *
  * @since 2.1.0
  */
-class RuleProvider {
+class RuleProvider extends CachedFileProvider {
 
 	/**
 	 * Rules file name.
@@ -35,18 +34,6 @@ class RuleProvider {
 	 * Transient name for caching rules.
 	 */
 	const RULES_TRANSIENT = 'imunify_security_rules';
-
-	/**
-	 * Transient lifetime in seconds (6 hours).
-	 */
-	const TRANSIENT_LIFETIME = 21600;
-
-	/**
-	 * Data store instance.
-	 *
-	 * @var DataStore
-	 */
-	private $dataStore;
 
 	/**
 	 * Debug instance.
@@ -96,6 +83,17 @@ class RuleProvider {
 
 		// Force reload rules when WordPress, plugins, or themes are updated.
 		add_action( 'upgrader_process_complete', array( $this, 'onUpgraderProcessComplete' ), 10, 2 );
+	}
+
+	/**
+	 * Get the filename for this provider.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @return string The filename.
+	 */
+	protected function getFileName() {
+		return self::RULES_FILE_NAME;
 	}
 
 	/**
@@ -185,18 +183,9 @@ class RuleProvider {
 					$cachedData = get_transient( $transientName );
 
 					if ( is_array( $cachedData ) && isset( $cachedData['rules'] ) ) {
-						// TEMPORARILY DISABLED: Force all cached rules to 'pass' mode.
-						$cachedRules = $cachedData['rules'];
-						if ( is_array( $cachedRules ) ) {
-							foreach ( $cachedRules as $id => $ruleData ) {
-								if ( is_array( $ruleData ) ) {
-									$cachedRules[ $id ]['mode'] = RuleMode::PASS;
-								}
-							}
-						}
 						// Return cached rules if available.
 						$this->rulesetVersion = isset( $cachedData['version'] ) ? $cachedData['version'] : '';
-						$result               = RuleCollection::fromArray( $cachedRules );
+						$result               = RuleCollection::fromArray( $cachedData['rules'] );
 						$this->rules          = $result;
 						return $result;
 					}
@@ -230,21 +219,8 @@ class RuleProvider {
 	 * @return array Array with 'version' and 'rules' keys, or empty array if file doesn't exist or is invalid.
 	 */
 	public function loadRulesFromFile() {
-		if ( ! $this->dataStore->isDataFileAvailable( self::RULES_FILE_NAME ) ) {
-			$this->rulesetVersion = '';
-			return array(
-				'version' => '',
-				'rules'   => array(),
-			);
-		}
+		$data = $this->loadDataFromFile();
 
-		// Invalidate OPcache to ensure we get the latest version of the rules file.
-		if ( function_exists( 'opcache_invalidate' ) ) {
-			$rulesFilePath = $this->getRulesFilePath();
-			$this->invalidateOpcache( $rulesFilePath );
-		}
-
-		$data = $this->dataStore->load( self::RULES_FILE_NAME );
 		if ( ! $data || ! is_array( $data ) ) {
 			$this->rulesetVersion = '';
 			return array(
@@ -264,23 +240,12 @@ class RuleProvider {
 	}
 
 	/**
-	 * Invalidate OPcache for a file.
-	 *
-	 * @param string $filePath The path to the file to invalidate.
-	 *
-	 * @return bool True if successful, false otherwise.
-	 */
-	protected function invalidateOpcache( $filePath ) {
-		return opcache_invalidate( $filePath, true );
-	}
-
-	/**
 	 * Get the rules file path.
 	 *
 	 * @return string The rules file path.
 	 */
 	public function getRulesFilePath() {
-		return $this->dataStore->getDataDirectory() . DIRECTORY_SEPARATOR . self::RULES_FILE_NAME;
+		return $this->getFilePath();
 	}
 
 	/**
@@ -297,12 +262,25 @@ class RuleProvider {
 	/**
 	 * Force reload rules from file and update cache.
 	 *
-	 * @return void
+	 * @return RuleCollection Collection of rules.
 	 */
 	public function forceRulesReload() {
 		$this->plugins = null;
 		$this->rules   = null;
-		$this->loadRules( true );
+		return $this->loadRules( true );
+	}
+
+	/**
+	 * Force reload data from file.
+	 *
+	 * Implementation of abstract method from CachedFileProvider.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @return RuleCollection Collection of rules.
+	 */
+	public function forceReload() {
+		return $this->forceRulesReload();
 	}
 
 	/**
@@ -453,6 +431,82 @@ class RuleProvider {
 	}
 
 	/**
+	 * Sanitize a version string before parsing.
+	 *
+	 * Handles common real-world quirks found in WordPress plugin/theme headers:
+	 * - URL-encoded characters (%0d, %c4%97, etc.)
+	 * - Control characters and non-ASCII bytes
+	 * - Build metadata (+v3api)
+	 * - Spaces in version strings (1.0.0 Alpha)
+	 * - Commas used as separators (1,6,8)
+	 * - Consecutive dots (3..1.27)
+	 * - Underscores as separators (4.2.4_2)
+	 * - Hyphen + bare number suffix (1.0.5-1 → 1.0.5.1)
+	 * - Hyphen + arbitrary text suffix (1.16.5-issue-598 → 1.16.5)
+	 * - Text-only segments (.unstable, .Test)
+	 * - Letters mixed into numeric segments (1dev2, 3bk, 1.6c)
+	 * - 6+ numeric segments (truncated to 5)
+	 *
+	 * @param string $version Raw version string.
+	 *
+	 * @return string Sanitized version string.
+	 */
+	private static function sanitizeVersion( $version ) {
+		// Decode percent-encoded characters. E.g. "2.0.10.8%0d" → "2.0.10.8\r".
+		$version = rawurldecode( $version );
+
+		// Strip control characters and non-ASCII bytes. E.g. "2.0.10.8\r" → "2.0.10.8".
+		$version = preg_replace( '/[^\x20-\x7E]/', '', $version );
+		$version = trim( $version );
+
+		// Strip semver build metadata. E.g. "3.0.13+v3api" → "3.0.13".
+		$version = preg_replace( '/\+.*$/', '', $version );
+
+		// Strip everything from the first space onward. E.g. "1.0.0 Alpha" → "1.0.0".
+		$version = preg_replace( '/\s.*$/', '', $version );
+
+		// Replace commas with dots. E.g. "1,6,8" → "1.6.8".
+		$version = str_replace( ',', '.', $version );
+
+		// Collapse consecutive dots. E.g. "3..1.27" → "3.1.27".
+		$version = preg_replace( '/\.{2,}/', '.', $version );
+
+		// Replace underscores with dots. E.g. "4.2.4_2" → "4.2.4.2".
+		$version = str_replace( '_', '.', $version );
+
+		// Handle hyphenated suffixes on numeric base versions.
+		if ( preg_match( '/^(v?\d+(?:\.\d+)*)-(.+)$/', $version, $m ) ) {
+			$base   = $m[1];
+			$suffix = $m[2];
+
+			// Keep known stability suffixes for the library. E.g. "1.0.0-beta1", "3.1.0-dev1".
+			if ( ! preg_match( '/^(stable|beta|b|rc|alpha|a|patch|pl|p|dev)(\d|[.-]|$)/i', $suffix ) ) {
+				if ( preg_match( '/^(\d+)/', $suffix, $numMatch ) ) {
+					// Leading digit becomes a dot-segment. E.g. "1.0.5-1" → "1.0.5.1", "9.3.1-2nd" → "9.3.1.2".
+					$version = $base . '.' . $numMatch[1];
+				} else {
+					// Arbitrary text suffix stripped. E.g. "1.16.5-issue-598" → "1.16.5".
+					$version = $base;
+				}
+			}
+		}
+
+		// Strip trailing text-only segments. E.g. "1.0.20.2.unstable" → "1.0.20.2".
+		$version = preg_replace( '/(\.[a-zA-Z]\w*)+$/', '', $version );
+
+		// Strip letters mixed into numeric segments. E.g. "1.0.8.1dev2" → "1.0.8.1", "1.6c" → "1.6".
+		$version = preg_replace( '/(?<=\d)[a-zA-Z]+\w*(?=\.|$)/', '', $version );
+
+		// Truncate 6+ numeric segments to 5. E.g. "2.1.4.6.2.1" → "2.1.4.6.2".
+		$version = preg_replace( '/^(v?\d+(?:\.\d+){4})\.\d+/', '$1', $version );
+
+		// Clean up any trailing dots left by prior rules.
+		$version = rtrim( $version, '.' );
+
+		return $version;
+	}
+
+	/**
 	 * Check if version satisfies constraint.
 	 *
 	 * @param string $currentVersion Current version of the plugin or theme.
@@ -461,7 +515,13 @@ class RuleProvider {
 	 * @return bool
 	 */
 	private function versionSatisfiesConstraint( $currentVersion, $constraint ) {
-		return Semver::satisfies( $currentVersion, $constraint );
+		try {
+			$currentVersion = self::sanitizeVersion( $currentVersion );
+
+			return Semver::satisfies( $currentVersion, $constraint );
+		} catch ( \UnexpectedValueException $e ) {
+			return false;
+		}
 	}
 
 	/**
@@ -478,9 +538,7 @@ class RuleProvider {
 		$result = new RuleCollection();
 		if ( ! empty( $rules ) ) {
 			foreach ( $rules as $id => $ruleData ) {
-				// TEMPORARILY DISABLED: Force all rules to 'pass' mode.
-				$ruleData['mode'] = RuleMode::PASS;
-				$rule             = Rule::fromArray( $id, $ruleData );
+				$rule = Rule::fromArray( $id, $ruleData );
 				if ( $this->isRuleValid( $rule ) && $this->getTargetInfo( $rule ) ) {
 					$result->addRule( $rule );
 				}

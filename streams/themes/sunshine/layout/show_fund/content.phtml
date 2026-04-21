@@ -1,3 +1,21 @@
+<script>
+    // Only execute this script on the wallet page
+    if ((window.location.pathname.includes('/show_fund') || 
+    event.target.matches('a[data-ajax^="?link1=show_fund"]')) && 
+    !window.location.href.includes('nocache')) {
+        const url = new URL(window.location.href);
+    
+        // Ensure trailing slash BEFORE query params
+        if (!url.pathname.endsWith('/')) {
+            url.pathname = url.pathname + '/';
+        }
+    
+        // Append the 'nocache' parameter to force reload
+        url.searchParams.set('nocache', new Date().getTime());
+        window.location.href = url.toString();
+    }
+</script>
+
 <style>@media (max-width: 990px) {footer .footer-wrapper {display: none;}}</style>
 
 <div class="page-margin">
@@ -142,15 +160,3 @@
 		</div>
 	</div>
 </div>
-
-<script>
-    // Only execute this script on the checkout page
-    if (window.location.pathname.includes('/show_fund/') && !window.location.href.includes('nocache')) {
-        const siteUrl = '<?php echo $wo["config"]["site_url"]; ?>'; // Get the site URL from the PHP configuration
-        const currentUrl = window.location.href;
-
-        // Append the 'nocache' parameter to force reload
-        const newUrl = currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'nocache=' + new Date().getTime();
-        window.location.href = newUrl;
-    }
-</script>

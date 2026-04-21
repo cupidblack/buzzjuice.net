@@ -1,6 +1,8 @@
 <script>
     // Force the page to reload with a unique query parameter and ensure the URL starts with the site URL and '/checkout/'
-    if (!window.location.href.includes('nocache')) {
+    if ((window.location.pathname.includes('/checkout') || 
+    event.target.matches('a[data-ajax^="?link1=checkout"]')) && 
+    !window.location.href.includes('nocache')) {
         const siteUrl = '<?php echo $wo["config"]["site_url"]; ?>'; // Get the site URL from the PHP configuration
         const baseUrl = siteUrl + '/checkout/'; // Ensure the URL includes the leading '/'
         const currentUrl = window.location.href;

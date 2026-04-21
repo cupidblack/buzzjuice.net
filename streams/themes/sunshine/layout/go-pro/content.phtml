@@ -1,20 +1,20 @@
 <script>
-    // Force the page to reload with a unique query parameter and ensure the URL starts with the site URL and '/go-pro/'
-    if (!window.location.href.includes('nocache')) {
-        const siteUrl = '<?php echo $wo["config"]["site_url"]; ?>'; // Get the site URL from the PHP configuration
-        const baseUrl = siteUrl + '/go-pro/'; // Ensure the URL includes the leading '/'
-        const currentUrl = window.location.href;
-
-        // Ensure the URL starts with the site URL and '/go-pro/'
-        const newUrl = currentUrl.includes('/go-pro/') 
-            ? currentUrl 
-            : baseUrl + (currentUrl.includes('?') ? currentUrl.split('?')[1] : '');
-
+    // Only execute this script on the wallet page
+    if ((window.location.pathname.includes('/go-pro') || 
+    event.target.matches('a[data-ajax^="?link1=go-pro"]')) && 
+    !window.location.href.includes('nocache')) {
+        const url = new URL(window.location.href);
+    
+        // Ensure trailing slash BEFORE query params
+        if (!url.pathname.endsWith('/')) {
+            url.pathname = url.pathname + '/';
+        }
+    
         // Append the 'nocache' parameter to force reload
-        window.location.href = newUrl + (newUrl.includes('?') ? '&' : '?') + 'nocache=' + new Date().getTime();
+        url.searchParams.set('nocache', new Date().getTime());
+        window.location.href = url.toString();
     }
 </script>
-<!-- rest of the template follows unchanged -->
 
 <div class="page-margin">
 	<div class="wow_content popular_posts_hdr movie">
@@ -308,6 +308,3 @@
 		<?php } ?>
 	</div>
 </div>
-
-
-

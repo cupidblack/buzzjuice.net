@@ -115,7 +115,7 @@ error_log( "
 */
 // Print the detailed WooCommerce Webhook responses for debugging
 error_log("WooCommerce Webhook Data Received. Processing Order....");
-error_log("WooCommerce Webhook Data: " . print_r($data, true));
+// error_log("WooCommerce Webhook Data: " . print_r($data, true));
 
 // Update WoWonder user balance on successful payment
 if (in_array($order_status, ["completed"])) {
@@ -244,7 +244,20 @@ if (in_array($order_status, ["completed"])) {
                 exit();
             }
             $_SESSION[ 'userEdited' ] = true;
-            error_log("Pro membership activated for user ID: $user_id with Pro Type: $pro_type");
+            
+            $order_id = $order_id ?? $qdw_order_id ?? $woo_order_id ?? null;
+            
+        	if ($total_paid == $wo['config']['weekly_price']) {
+                bzj_log_activity($user_id, 'Classic Lifestyle', $order_id, 'purchase', $amount, 'Wo_Payment_Transactions');
+            } elseif ($total_paid == $wo['config']['monthly_price']) {
+                bzj_log_activity($user_id, 'Silver Lifestyle', $order_id, 'purchase', $amount, 'Wo_Payment_Transactions');
+            } elseif ($total_paid == $wo['config']['yearly_price']) {
+                bzj_log_activity($user_id, 'RoskStar Lifestyle', $order_id, 'purchase', $amount, 'Wo_Payment_Transactions');
+            } elseif ($total_paid == $wo['config']['lifetime_price']) {
+                bzj_log_activity($user_id, 'Premium Lifestyle', $order_id, 'purchase', $amount, 'Wo_Payment_Transactions');
+            }
+            
+            error_log("Streams Pro membership activated for user ID: $user_id with Pro Type: $pro_type");
         }
         
         
@@ -295,7 +308,7 @@ if (in_array($order_status, ["completed"])) {
 
 
 
-include_once 'assets/wow-pgb/check_wp_role.php';
+// include_once 'assets/wow-pgb/check_wp_role.php';
 
 http_response_code(200);
 exit('Webhook processed successfully');

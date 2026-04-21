@@ -1883,7 +1883,7 @@ function Wo_PrepareWooCommerceLink(type, price, type2 = 'pro', type3 = 'show') {
     var product_name = window.location.href.includes('/wallet/') 
                         ? "Buzzjuice Wallet Topup" 
                         : window.location.href.includes('/checkout/') 
-                          ? "<?php echo isset($wo['product']) && is_array($wo['product']) && isset($wo['product']['name']) ? addslashes($wo['product']['name']) : ''; ?>" 
+                          ? "<?php echo isset($wo['product']) && isset($wo['product']['name']) ? addslashes($wo['product']['name']) : 'p'; ?>" 
                           : window.location.href.includes('/show_fund/') 
                             ? "<?php echo isset($wo['fund']['title']) ? addslashes(stripslashes($wo['fund']['title'])) : ''; ?>" 
                             : window.location.href.includes('/go-pro/') 

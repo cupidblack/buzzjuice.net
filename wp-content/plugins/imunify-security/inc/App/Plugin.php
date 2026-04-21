@@ -9,10 +9,13 @@
 namespace CloudLinux\Imunify\App;
 
 use CloudLinux\Imunify\App\Api\AjaxHandler;
+use CloudLinux\Imunify\App\Defender\ChangelogWriter;
 use CloudLinux\Imunify\App\Defender\Defender;
+use CloudLinux\Imunify\App\Defender\DisabledRulesManager;
 use CloudLinux\Imunify\App\Defender\IncidentRecorder;
 use CloudLinux\Imunify\App\Defender\RateLimiter;
 use CloudLinux\Imunify\App\Defender\Request;
+use CloudLinux\Imunify\App\Defender\RuleHitTracker;
 use CloudLinux\Imunify\App\Defender\RuleProvider;
 use CloudLinux\Imunify\App\Views\AdminPage;
 use CloudLinux\Imunify\App\Views\Widget;
@@ -77,49 +80,44 @@ class Plugin {
 	}
 
 	/**
-	 * Get environment
-	 *
-	 * @return string
-	 */
-	public function environment() {
-		$environment = 'production';
-		if (
-			$this->isStagingModeDefined()
-		) {
-			$environment = 'development';
-		}
-
-		return $environment;
-	}
-
-	/**
-	 * Check IMUNIFY_SECURITY_STAGING_MODE constant.
-	 *
-	 * @return bool
-	 */
-	public function isStagingModeDefined() {
-		return ( defined( 'IMUNIFY_SECURITY_STAGING_MODE' ) && IMUNIFY_SECURITY_STAGING_MODE );
-	}
-
-	/**
 	 * Setup container.
 	 *
 	 * @return void
 	 */
 	private function coreSetup() {
-		$this->container[ Debug::class ]         = new Debug( $this->environment() );
+		$environment                             = new Environment();
+		$this->container[ Environment::class ]   = $environment;
+		$this->container[ Debug::class ]         = new Debug( $environment );
 		$this->container[ DataStore::class ]     = new DataStore( $this->container[ Debug::class ] );
 		$this->container[ AccessManager::class ] = new AccessManager();
-		$this->container[ AjaxHandler::class ]   = new AjaxHandler( $this->container[ DataStore::class ] );
 
-		$ruleProvider = new RuleProvider( $this->container[ Debug::class ], $this->container[ DataStore::class ] );
-		$rules        = $ruleProvider->loadRules();
+		// Create ChangelogWriter and DisabledRulesManager for rule management.
+		$dataDirectory        = $this->container[ DataStore::class ]->getDataDirectory();
+		$changelogWriter      = new ChangelogWriter( $dataDirectory );
+		$disabledRulesManager = new DisabledRulesManager(
+			$this->container[ DataStore::class ],
+			$changelogWriter
+		);
+
+		$this->container[ ChangelogWriter::class ]      = $changelogWriter;
+		$this->container[ DisabledRulesManager::class ] = $disabledRulesManager;
+
+		// Create AjaxHandler with DisabledRulesManager for local rule management.
+		$this->container[ AjaxHandler::class ] = new AjaxHandler(
+			$this->container[ DataStore::class ],
+			$disabledRulesManager
+		);
+
+		$ruleProvider                             = new RuleProvider( $this->container[ Debug::class ], $this->container[ DataStore::class ] );
+		$this->container[ RuleProvider::class ]   = $ruleProvider;
+		$this->container[ RuleHitTracker::class ] = new RuleHitTracker();
+		$rules                                    = $ruleProvider->loadRules();
 
 		if ( ! empty( $rules ) ) {
 			$request          = new Request();
 			$rateLimiter      = new RateLimiter();
 			$incidentRecorder = new IncidentRecorder( $rateLimiter );
-			$defender         = new Defender( $ruleProvider, $incidentRecorder );
+			$defender         = new Defender( $ruleProvider, $incidentRecorder, $this->container[ RuleHitTracker::class ], $disabledRulesManager );
 			$defender->processRules( $request );
 
 			$this->container[ RateLimiter::class ]      = $rateLimiter;
@@ -139,7 +137,9 @@ class Plugin {
 		// Create widget first.
 		$this->container[ Widget::class ] = new Widget(
 			$this->container[ AccessManager::class ],
-			$this->container[ DataStore::class ]
+			$this->container[ DataStore::class ],
+			$this->container[ RuleProvider::class ],
+			$this->container[ RuleHitTracker::class ]
 		);
 
 		// Instantiate AdminPage.

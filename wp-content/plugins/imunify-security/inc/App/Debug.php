@@ -88,14 +88,14 @@ class Debug {
 	/**
 	 * Environment.
 	 *
-	 * @var string
+	 * @var Environment
 	 */
 	private $environment;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param string $environment Environment.
+	 * @param Environment $environment Environment instance.
 	 */
 	public function __construct( $environment ) {
 		$this->environment = $environment;
@@ -323,8 +323,14 @@ class Debug {
 	 * @return array
 	 */
 	public function data( $errno, $errstr, $errfile = null, $errline = null, $extra = array() ) {
+		$fingerprint = null;
+		if ( is_array( $extra ) && array_key_exists( 'fingerprint', $extra ) ) {
+			$fingerprint = $extra['fingerprint'];
+			unset( $extra['fingerprint'] );
+		}
+
 		$result = array(
-			'environment'                 => $this->environment,
+			'environment'                 => $this->environment->get(),
 			'release'                     => $this->release(),
 			'tags'                        => $this->tags(),
 			'extra'                       => array_merge(
@@ -347,8 +353,8 @@ class Debug {
 			),
 		);
 
-		if ( is_array( $extra ) && array_key_exists( 'fingerprint', $extra ) ) {
-			$result['fingerprint'] = $extra['fingerprint'];
+		if ( $fingerprint ) {
+			$result['fingerprint'] = $fingerprint;
 		}
 
 		return $result;
@@ -457,9 +463,9 @@ class Debug {
 	}
 
 	/**
-	 * Get environment name.
+	 * Get environment instance.
 	 *
-	 * @return string Environment name.
+	 * @return Environment
 	 */
 	public function environment() {
 		return $this->environment;

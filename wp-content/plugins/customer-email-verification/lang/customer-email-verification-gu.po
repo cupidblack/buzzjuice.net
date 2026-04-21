@@ -1,0 +1,1513 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Customer Verification pro\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-04-30 09:51+0000\n"
+"PO-Revision-Date: 2026-03-24 06:02+0000\n"
+"Last-Translator: Yash\n"
+"Language-Team: Gujarati\n"
+"Language: gu\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.8.0; wp-6.8.2; php-8.3.25\n"
+"X-Domain: customer-email-verification-pro"
+
+#: includes/customizer/cev-customizer-options.php:178
+#| msgid "Login now"
+msgid " Login now"
+msgstr "હવે લોગિન કરો"
+
+#. %1$d: Success count, %2$d: Failure count
+#: includes/admin/cev-pro-admin-user.php:371
+#, php-format
+msgid "%1$d deleted, %2$d failed."
+msgstr "%1$d કાઢી નાખ્યું, %2$d નિષ્ફળ થયું."
+
+#. %d: Number of deleted entries
+#: includes/admin/cev-pro-admin-user.php:364
+msgid "%d log entry deleted successfully."
+msgid_plural "%d log entries deleted successfully."
+msgstr[0] "%d લોગ એન્ટ્રી સફળતાપૂર્વક કાઢી નાખવામાં આવી."
+msgstr[1] "%d લોગ એન્ટ્રીઓ સફળતાપૂર્વક કાઢી નાખવામાં આવી."
+
+#. %s: Field name
+#: includes/class-cev-ajax-response.php:121
+#, php-format
+msgid "%s is required."
+msgstr "%s જરૂરી છે."
+
+#: includes/admin/cev-pro-admin-settings.php:327
+#| msgid "1 Hours"
+msgid "1 Hour"
+msgstr "1 કલાક"
+
+#: includes/admin/cev-pro-admin-settings.php:324
+msgid "10 min"
+msgstr "10 મિનિટ"
+
+#: includes/admin/cev-pro-admin-settings.php:471
+msgid "15 Days"
+msgstr "15 દિવસ"
+
+#: includes/admin/cev-pro-admin-settings.php:325
+msgid "15 min"
+msgstr "15 મિનિટ"
+
+#: includes/admin/cev-pro-admin-settings.php:328
+msgid "24 Hours"
+msgstr "24 કલાક"
+
+#: includes/admin/cev-pro-admin-settings.php:472
+msgid "30 Days"
+msgstr "30 દિવસ"
+
+#: includes/admin/cev-pro-admin-settings.php:326
+msgid "30 min"
+msgstr "30 મિનિટ"
+
+#: includes/admin/cev-pro-admin-settings.php:317
+#| msgid "4-digits"
+msgid "4-digit"
+msgstr "4-અંક"
+
+#: includes/edit-account/class-cev-edit-account-verification.php:151
+#: includes/login-authentication/views/popup-template.php:83
+#: includes/login-authentication/views/preview-popup.php:72
+#| msgid "4-digits code"
+msgid "4-digit code"
+msgstr "4-અંકનો કોડ"
+
+#: includes/admin/cev-pro-admin-settings.php:318
+#| msgid "6-digits"
+msgid "6-digit"
+msgstr "6-અંક"
+
+#: includes/login-authentication/views/popup-template.php:81
+msgid "6-digit code"
+msgstr "6-અંકનો કોડ"
+
+#: includes/admin/cev-pro-admin-settings.php:473
+msgid "60 Days"
+msgstr "60 દિવસ"
+
+#: includes/admin/cev-pro-admin-settings.php:329
+msgid "72 Hours"
+msgstr "72 કલાક"
+
+#. %1$s: Recipient email address, %2$s: Verification PIN code
+#: includes/edit-account/class-cev-edit-account-verification.php:353
+#, php-format
+msgid ""
+"<p> Please confirm <strong>%1$s</strong> as your new email address. The "
+"change will not take effect until you verify this email address.</p><p> Your "
+"verification code: <strong>%2$s</strong> </p>"
+msgstr ""
+"<p> કૃપા કરીને તમારા નવા ઇમેઇલ સરનામાં તરીકે <strong>%1$s</strong> ની પુષ્ટિ "
+"કરો. જ્યાં સુધી તમે આ ઇમેઇલ સરનામાંની ચકાસણી નહીં કરો ત્યાં સુધી આ ફેરફાર "
+"અમલમાં આવશે નહીં.</p><p> તમારો ચકાસણી કોડ: <strong>%2$s</strong> </p>"
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:281
+msgid "A new login OTP email has been sent."
+msgstr "એક નવો લોગિન OTP ઇમેઇલ મોકલવામાં આવ્યો છે."
+
+#: includes/login-authentication/class-cev-login-authentication.php:834
+msgid "A new login OTP email is sent."
+msgstr "એક નવો લોગિન OTP ઈમેલ મોકલવામાં આવ્યો છે."
+
+#: includes/admin/cev-pro-admin-user.php:830
+msgid "Action type is required."
+msgstr "ક્રિયાનો પ્રકાર જરૂરી છે."
+
+#: includes/admin/cev-pro-admin-user.php:405
+msgid "Actions"
+msgstr "ક્રિયાઓ"
+
+#: includes/customizer/cev-customizer-options.php:1069
+#: includes/customizer/cev-customizer-options.php:1083
+#: includes/customizer/cev-customizer-options.php:1097
+#: includes/customizer/cev-customizer-options.php:1111
+msgid "Addition Footer Content"
+msgstr "ફૂટર સામગ્રી ઉમેરો"
+
+#: includes/admin/views/user/user-profile-fields.php:48
+msgid "Admin"
+msgstr "એડમિન"
+
+#: includes/admin/cev-pro-admin-settings.php:334
+msgid "Allow 1 Attempt"
+msgstr "1 પ્રયાસ કરવાની મંજૂરી આપો"
+
+#: includes/admin/cev-pro-admin-settings.php:335
+#| msgid "Allow 3 Attempt"
+msgid "Allow 3 Attempts"
+msgstr "3 પ્રયાસ કરવાની મંજૂરી આપો"
+
+#: includes/customizer/cev-customizer-options.php:178
+msgid "Already have an account?"
+msgstr "પહેલેથી ખાતું છે?"
+
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:155
+#: includes/customizer/preview/verify_checkout_guest_user.php:101
+msgid "Already have verification code?"
+msgstr "પહેલેથી ચકાસણી કોડ છે?"
+
+#: includes/edit-account/class-cev-edit-account-verification.php:108
+msgid "An account is already registered with your email address."
+msgstr "તમારા ઇમેઇલ સરનામાં સાથે એક એકાઉન્ટ પહેલેથી જ નોંધાયેલું છે."
+
+#: includes/cev-pro-enqueue.php:164
+msgid ""
+"An account with this email address already exists. Please use a different "
+"email or log in to your existing account."
+msgstr ""
+"આ ઈમેલ એડ્રેસ ધરાવતું એકાઉન્ટ પહેલેથી જ અસ્તિત્વમાં છે. કૃપા કરીને કોઈ અલગ "
+"ઈમેલનો ઉપયોગ કરો અથવા તમારા હાલના એકાઉન્ટમાં લૉગ ઇન કરો."
+
+#: includes/cev-pro-enqueue.php:321
+msgid "An error occurred while verifying. Please try again."
+msgstr "ચકાસણી કરતી વખતે એક ભૂલ આવી. કૃપા કરીને ફરી પ્રયાસ કરો."
+
+#: includes/class-cev-ajax-response.php:225
+msgid "An unexpected error occurred. Please try again later."
+msgstr "એક અણધારી ભૂલ આવી. કૃપા કરીને પછીથી ફરી પ્રયાસ કરો."
+
+#: includes/admin/cev-pro-admin-notice.php:233
+msgid "Analytics for WooCommerce Subscriptions"
+msgstr "WooCommerce સબ્સ્ક્રિપ્શન્સ માટે એનાલિટિક્સ"
+
+#: includes/signup-verification/cev-pro-signup-ajax.php:333
+msgid "Another request is processing. Please wait a moment and try again."
+msgstr ""
+"બીજી વિનંતી પર પ્રક્રિયા થઈ રહી છે. કૃપા કરીને થોડી રાહ જુઓ અને ફરી પ્રયાસ "
+"કરો."
+
+#: includes/admin/views/cev_users_tab.php:69
+msgid "Apply"
+msgstr "અરજી કરો"
+
+#: includes/admin/views/cev_users_tab.php:67
+msgid "Apply bulk action"
+msgstr "બલ્ક ક્રિયા લાગુ કરો"
+
+#: includes/customizer/cev-customizer-options.php:627
+#: includes/customizer/cev-customizer-options.php:1051
+msgid "Available Variables"
+msgstr "ઉપલબ્ધ ચલો"
+
+#: includes/customizer/cev-customizer-options.php:705
+msgid "Background Color"
+msgstr "પૃષ્ઠભૂમિ રંગ"
+
+#: includes/customizer/cev-customizer-options.php:717
+msgid "Border Color"
+msgstr "બોર્ડર કલર"
+
+#: includes/admin/views/cev_users_tab.php:61
+msgid "Bulk Action"
+msgstr "બલ્ક એક્શન"
+
+#: includes/admin/views/cev_users_tab.php:60
+msgid "Bulk action"
+msgstr "બલ્ક ક્રિયા"
+
+#: includes/admin/views/cev_users_tab.php:55
+msgid "Bulk actions"
+msgstr "બલ્ક ક્રિયાઓ"
+
+#: includes/cev-pro-functions.php:618 includes/cev-pro-functions.php:764
+#: includes/cev-pro-enqueue.php:315
+#| msgid "Cancle Verification"
+msgid "Cancel Verification"
+msgstr "Cancle ચકાસણી"
+
+#: includes/signup-verification/cev-pro-signup-captcha.php:115
+msgid ""
+"CAPTCHA is not properly configured. Please contact the site administrator."
+msgstr ""
+"CAPTCHA યોગ્ય રીતે ગોઠવેલ નથી. કૃપા કરીને સાઇટ એડમિનિસ્ટ્રેટરનો સંપર્ક કરો."
+
+#: includes/signup-verification/cev-pro-signup-captcha.php:132
+msgid "CAPTCHA verification error. Please try again."
+msgstr "કેપ્ચા ચકાસણી ભૂલ. કૃપા કરીને ફરી પ્રયાસ કરો."
+
+#: includes/class-cev-ajax-response.php:161
+#: includes/signup-verification/cev-pro-signup-captcha.php:142
+msgid "CAPTCHA verification failed. Please try again."
+msgstr "કેપ્ચા ચકાસણી નિષ્ફળ ગઈ. કૃપા કરીને ફરી પ્રયાસ કરો."
+
+#: includes/customizer/cev-customizer-options.php:323
+#: includes/customizer/cev-customizer-options.php:679
+msgid "Center"
+msgstr "કેન્દ્ર"
+
+#: includes/cev-pro-functions.php:1088
+msgid "Change Password"
+msgstr "પાસવર્ડ બદલો"
+
+#: includes/cev-pro-functions.php:626
+msgid "Change Password Button"
+msgstr "પાસવર્ડ બદલો બટન"
+
+#: includes/customizer/cev-customizer-options.php:812
+msgid "Checkout"
+msgstr "ચેકઆઉટ"
+
+#: includes/customizer/cev-customizer-options.php:436
+msgid "Checkout Email Popup"
+msgstr "ઇમેઇલ પોપઅપ ચેકઆઉટ કરો"
+
+#: includes/customizer/cev-customizer-options.php:437
+msgid "Checkout OTP Popup"
+msgstr "OTP પોપઅપ ચેકઆઉટ કરો"
+
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:89
+msgid "Checkout verification is disabled."
+msgstr "ચેકઆઉટ ચકાસણી અક્ષમ છે."
+
+#: includes/admin/cev-pro-admin-settings.php:248
+#| msgid "Checkout Verification type"
+msgid "Checkout Verification Type"
+msgstr "ચેકઆઉટ ચકાસણી "
+
+#: includes/cev-pro-hooks.php:254
+msgid "Checkout via the Store API is disabled."
+msgstr "સ્ટોર API દ્વારા ચેકઆઉટ અક્ષમ કરેલ છે."
+
+#: includes/admin/cev-pro-admin-settings.php:355
+#| msgid "Choose if you wish to set expiry time to the OTP / link."
+msgid "Choose if you wish to set expiry time to the OTP."
+msgstr "જો તમે OTP / લિંક પર સમાપ્તિ સમય સેટ કરવા માંગો છો તો પસંદ કરો."
+
+#: includes/signup-verification/views/cev-signup-popup.php:92
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:182
+msgid "Close popup"
+msgstr "પોપઅપ બંધ કરો"
+
+#: includes/customizer/cev-customizer-options.php:318
+msgid "Content Align"
+msgstr "સામગ્રી સંરેખિત કરો"
+
+#: includes/customizer/cev-customizer-options.php:674
+msgid "Content align"
+msgstr "સામગ્રી સંરેખિત કરો"
+
+#: includes/customizer/cev-customizer-options.php:349
+#: includes/customizer/cev-customizer-options.php:690
+msgid "Content Padding"
+msgstr "સામગ્રી પેડિંગ"
+
+#: includes/customizer/cev-customizer-options.php:334
+msgid "Content Width"
+msgstr "સામગ્રી પહોળાઈ"
+
+#: includes/customizer/cev-customizer-options.php:659
+msgid "Content width"
+msgstr "સામગ્રી પહોળાઈ"
+
+#. Name of the plugin
+#: includes/admin/views/page-header.php:21
+msgid "Customer Email Verification"
+msgstr "ગ્રાહક ઇમેઇલ ચકાસણી"
+
+#. Parent menu slug.
+#: includes/admin/class-wc-customer-email-verification-admin.php:165
+msgid "Customer Verification"
+msgstr "ગ્રાહક ચકાસણી"
+
+#: includes/admin/views/user/user-profile-fields.php:25
+msgid "Customer verification"
+msgstr "ગ્રાહક ચકાસણી"
+
+#: includes/admin/class-wc-customer-email-verification-admin.php:267
+#: includes/admin/class-wc-customer-email-verification-admin.php:273
+msgid "Customize"
+msgstr "કસ્ટમાઇઝ કરો"
+
+#: includes/admin/views/cev_users_tab.php:62
+#: includes/admin/views/cev_users_tab.php:99
+#: includes/admin/views/cev_users_tab.php:154
+msgid "Delete"
+msgstr "કાઢી નાખો"
+
+#. %s: Email address
+#: includes/admin/views/cev_users_tab.php:148
+#, php-format
+msgid "Delete entry for %s"
+msgstr "%s માટે એન્ટ્રી કાઢી નાખો"
+
+#: includes/customizer/cev-customizer-options.php:236
+msgid "Design"
+msgstr "ડિઝાઇન"
+
+#. %s: search for footer customer resend link
+#: includes/login-authentication/views/preview-popup.php:118
+#, php-format
+#| msgid "Didn’t receive an email? <strong>%s</strong>"
+msgid "Didn't receive an email? <strong>%s</strong>"
+msgstr "ઇમેઇલ મળ્યો નથી? <strong>%s </ strong>"
+
+#: includes/customizer/cev-customizer-options.php:167
+#: includes/customizer/cev-customizer-options.php:172
+#: includes/customizer/cev-customizer-options.php:184
+msgid "Didn't receive an email? <strong>{cev_resend_verification}</strong>"
+msgstr "ઇમેઇલ મળ્યો નથી? <strong> {cev_resend_verifications ver </ strong>"
+
+#: includes/admin/cev-pro-admin-settings.php:336
+msgid "Disable Resend"
+msgstr "ફરીથી મોકલવું અક્ષમ કરો"
+
+#: includes/admin/cev-pro-admin-settings.php:294
+msgid "Disable WooCommerce Store API Checkout"
+msgstr "WooCommerce Store API ચેકઆઉટ અક્ષમ કરો"
+
+#: includes/admin/cev-pro-admin-notice.php:238
+msgid ""
+"Discover which products and customers drive the most value, reduce churn, "
+"and grow your subscription income with data-driven decisions."
+msgstr ""
+"ડેટા-આધારિત નિર્ણયો સાથે કયા ઉત્પાદનો અને ગ્રાહકો સૌથી વધુ મૂલ્ય ચલાવે છે તે "
+"શોધો, મંદી ઘટાડો અને તમારી સબ્સ્ક્રિપ્શન આવક વધારો."
+
+#: includes/admin/cev-pro-admin-notice.php:253
+msgid "Dismiss"
+msgstr "કાઢી નાખો"
+
+#: includes/admin/cev-pro-admin-notice.php:221
+msgid "Dismiss this notice."
+msgstr "આ નોટિસ કાઢી નાખો."
+
+#: includes/admin/views/activity_panel.php:46
+#: includes/admin/views/activity_panel.php:51
+msgid "Documentation"
+msgstr "દસ્તાવેજીકરણ"
+
+#: includes/customizer/cev-customizer-options.php:813
+msgid "Edit Account Email"
+msgstr "એકાઉન્ટ ઇમેઇલ સંપાદિત કરો"
+
+#: includes/admin/views/cev_users_tab.php:97
+msgid "Email"
+msgstr "ઇમેઇલ"
+
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:72
+#: includes/customizer/preview/verify_checkout_guest_user.php:52
+msgid "Email address"
+msgstr "ઈ - મેઈલ સરનામું"
+
+#: includes/cev-pro-enqueue.php:309
+msgid "Email address is already verified"
+msgstr "ઇમેઇલ સરનામું પહેલેથી જ ચકાસાયેલ છે."
+
+#: includes/cev-pro-enqueue.php:307
+msgid "Email address verified"
+msgstr "ઇમેઇલ સરનામું ચકાસાયેલ"
+
+#: includes/customizer/cev-customizer-options.php:266
+#: includes/customizer/cev-customizer-options.php:975
+#: includes/customizer/cev-customizer-options.php:978
+#: includes/customizer/cev-customizer-options.php:1016
+#: includes/customizer/cev-customizer-options.php:1019
+msgid "Email Content"
+msgstr "ઇમેઇલ સામગ્રી"
+
+#: includes/customizer/cev-customizer-options.php:851
+#: includes/customizer/cev-customizer-options.php:854
+#: includes/customizer/cev-customizer-options.php:865
+#: includes/customizer/cev-customizer-options.php:868
+#: includes/customizer/cev-customizer-options.php:920
+#: includes/customizer/cev-customizer-options.php:923
+#: includes/customizer/cev-customizer-options.php:961
+#: includes/customizer/cev-customizer-options.php:964
+#: includes/customizer/cev-customizer-options.php:1002
+#: includes/customizer/cev-customizer-options.php:1005
+msgid "Email Heading"
+msgstr "ઇમેઇલ મથાળું"
+
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:465
+msgid "Email is already verified in this session."
+msgstr "આ સત્રમાં ઇમેઇલ પહેલેથી જ ચકાસાયેલ છે."
+
+#: includes/signup-verification/cev-pro-signup-ajax.php:468
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:118
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:270
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:347
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:445
+msgid "Email is already verified."
+msgstr "ઇમેઇલ પહેલેથી જ ચકાસાયેલ છે."
+
+#: includes/cev-pro-enqueue.php:306
+msgid "Email is Invalid"
+msgstr "ઇમેઇલ અમાન્ય છે."
+
+#: includes/cev-pro-enqueue.php:305
+msgid "Email is required for verification"
+msgstr "ચકાસણી માટે ઇમેઇલ જરૂરી છે"
+
+#: includes/cev-pro-enqueue.php:163
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:411
+msgid "Email is required."
+msgstr "ઇમેઇલ આવશ્યક છે."
+
+#: includes/customizer/cev-customizer-options.php:258
+msgid "Email Style"
+msgstr "ઇમેઇલ પ્રકાર"
+
+#: includes/customizer/cev-customizer-options.php:825
+#: includes/customizer/cev-customizer-options.php:828
+#: includes/customizer/cev-customizer-options.php:838
+#: includes/customizer/cev-customizer-options.php:841
+#: includes/customizer/cev-customizer-options.php:907
+#: includes/customizer/cev-customizer-options.php:910
+#: includes/customizer/cev-customizer-options.php:948
+#: includes/customizer/cev-customizer-options.php:951
+#: includes/customizer/cev-customizer-options.php:989
+#: includes/customizer/cev-customizer-options.php:992
+msgid "Email Subject"
+msgstr "ઇમેઇલ વિષય"
+
+#: includes/customizer/cev-customizer-options.php:806
+msgid "Email Type"
+msgstr "ઈમેલનો પ્રકાર"
+
+#. Page title.
+#: includes/admin/cev-pro-admin-user.php:404
+#: includes/admin/class-wc-customer-email-verification-admin.php:166
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:124
+#| msgid "Email verification"
+msgid "Email Verification"
+msgstr "ઇમેઇલ ચકાસણી"
+
+#: templates/emails/cev-email-verification.php:45
+#: includes/signup-verification/views/cev-signup-popup.php:101
+#: includes/customizer/preview/verify_checkout_guest_user_otp.php:79
+#: includes/customizer/preview/verify_checkout_guest_user.php:78
+#: includes/customizer/preview/preview_cev_popup_page.php:38
+#: includes/customizer/preview/preview_cev_popup_login_auth.php:38
+#| msgid "Email Verification Link"
+msgid "Email verification"
+msgstr "ઇમેઇલ ચકાસણી લિંક"
+
+#: includes/cev-pro-enqueue.php:301
+#: includes/checkout-verification/class-cev-checkout-verification.php:540
+msgid "Email verification code"
+msgstr "ઇમેઇલ ચકાસણી કોડ"
+
+#: includes/admin/views/admin_options_settings.php:43
+msgid "Email verification settings"
+msgstr "ઇમેઇલ ચકાસણી સેટિંગ્સ"
+
+#: includes/admin/views/user/user-profile-fields.php:31
+msgid "Email verification status:"
+msgstr "ઇમેઇલ ચકાસણી સ્થિતિ:"
+
+#: includes/admin/cev-pro-admin-settings.php:388
+#| msgid "Email verification success message"
+msgid "Email Verification Success Message"
+msgstr "ઇમેઇલ ચકાસણી સફળતા સંદેશ"
+
+#: includes/cev-pro-enqueue.php:322
+msgid "Email verified successfully"
+msgstr "ઇમેઇલ સફળતાપૂર્વક ચકાસાયો"
+
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:229
+msgid "Email verified successfully."
+msgstr "ઇમેઇલ સફળતાપૂર્વક ચકાસાયો."
+
+#: includes/admin/cev-pro-admin-settings.php:237
+msgid "Enable Checkout Verification"
+msgstr "ચેકઆઉટ ચકાસણી સક્ષમ કરો"
+
+#: includes/admin/cev-pro-admin-settings.php:415
+msgid "Enable Login Authentication"
+msgstr "લૉગિન પ્રમાણીકરણ સક્ષમ કરો"
+
+#: includes/admin/cev-pro-admin-settings.php:219
+msgid "Enable Signup Verification"
+msgstr "સાઇનઅપ ચકાસણી સક્ષમ કરો"
+
+#: includes/admin/cev-pro-admin-settings.php:270
+msgid "Enable the email verification on the cart page"
+msgstr "કાર્ટ પૃષ્ઠ પર ઇમેઇલ ચકાસણી સક્ષમ કરો"
+
+#: includes/cev-pro-enqueue.php:165
+msgid "Enter a valid email address."
+msgstr "માન્ય ઇમેઇલ સરનામું દાખલ કરો."
+
+#: includes/signup-verification/views/cev-signup-popup.php:116
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:237
+#: includes/customizer/preview/verify_checkout_guest_user_otp.php:95
+#: includes/customizer/preview/preview_cev_popup_page.php:80
+#: includes/customizer/preview/preview_cev_popup_login_auth.php:83
+msgid "Enter verification code"
+msgstr "ચકાસણી કોડ દાખલ કરો"
+
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:152
+#: includes/customizer/preview/verify_checkout_guest_user.php:98
+msgid "Enter your email address"
+msgstr "તમારુ ઇમેઇલ એડ્રેસ દાખલ કરો"
+
+#. %d: Log entry ID
+#: includes/admin/cev-pro-admin-user.php:345
+msgid "Failed to delete ID: %d"
+msgstr "ID કાઢી નાખવામાં નિષ્ફળ: %d"
+
+#: includes/admin/cev-pro-admin-user.php:377
+msgid "Failed to delete log entries."
+msgstr "લોગ એન્ટ્રીઓ કાઢી નાખવામાં નિષ્ફળ."
+
+#: includes/admin/cev-pro-admin-user.php:267
+msgid "Failed to delete user log."
+msgstr "વપરાશકર્તા લોગ કાઢી નાખવામાં નિષ્ફળ."
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:265
+msgid "Failed to send OTP email. Please try again later."
+msgstr "OTP ઇમેઇલ મોકલવામાં નિષ્ફળ. કૃપા કરીને પછીથી ફરી પ્રયાસ કરો."
+
+#: includes/class-cev-ajax-response.php:183
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:531
+msgid "Failed to send verification email. Please try again later."
+msgstr "ચકાસણી ઇમેઇલ મોકલવામાં નિષ્ફળ. કૃપા કરીને પછીથી ફરી પ્રયાસ કરો."
+
+#: includes/admin/views/user/user-filter-dropdown.php:36
+msgid "Filter"
+msgstr "ફિલ્ટર"
+
+#: includes/customizer/cev-customizer-options.php:729
+msgid "Font Color"
+msgstr "ફontન્ટ રંગ"
+
+#: includes/customizer/cev-customizer-options.php:475
+#: includes/customizer/cev-customizer-options.php:478
+#: includes/customizer/cev-customizer-options.php:517
+#: includes/customizer/cev-customizer-options.php:520
+#: includes/customizer/cev-customizer-options.php:559
+#: includes/customizer/cev-customizer-options.php:562
+#: includes/customizer/cev-customizer-options.php:601
+#: includes/customizer/cev-customizer-options.php:604
+#: includes/customizer/cev-customizer-options.php:1061
+msgid "Footer Content"
+msgstr "ફૂટર સામગ્રી"
+
+#: includes/admin/views/admin_options_settings.php:66
+msgid "General Settings"
+msgstr "સામાન્ય સેટિંગ્સ"
+
+#. %s: Link to Analytics for WooCommerce Subscriptions product page
+#: includes/admin/cev-pro-admin-notice.php:232
+#, php-format
+msgid ""
+"Get powerful insights with %s — the all-in-one dashboard to track signups, "
+"renewals, cancellations, and recurring revenue."
+msgstr ""
+"સાઇનઅપ્સ, રિન્યુઅલ્સ, કેન્સલેશન્સ અને રિકરિંગ રેવન્યુને ટ્રેક કરવા માટે ઓલ-"
+"ઇન-વન ડેશબોર્ડ — %s સાથે શક્તિશાળી આંતરદૃષ્ટિ મેળવો."
+
+#: includes/admin/views/activity_panel.php:35
+#: includes/admin/views/activity_panel.php:40
+msgid "Get Support"
+msgstr "સપોર્ટ મેળવો"
+
+#: includes/admin/class-wc-customer-email-verification-admin.php:237
+msgid "Go Pro"
+msgstr "ગો પ્રો"
+
+#: includes/customizer/cev-customizer-options.php:400
+msgid "Header Font Size"
+msgstr "હેડર ફોન્ટનું કદ"
+
+#: includes/customizer/cev-customizer-options.php:777
+msgid "Header font size"
+msgstr "હેડર ફોન્ટ કદ"
+
+#: includes/customizer/cev-customizer-options.php:372
+msgid "Header Image"
+msgstr "હેડર છબી"
+
+#: includes/customizer/cev-customizer-options.php:749
+msgid "Header image"
+msgstr "હેડર ઇમેજ"
+
+#: includes/customizer/cev-customizer-options.php:447
+#: includes/customizer/cev-customizer-options.php:450
+#: includes/customizer/cev-customizer-options.php:489
+#: includes/customizer/cev-customizer-options.php:492
+#: includes/customizer/cev-customizer-options.php:531
+#: includes/customizer/cev-customizer-options.php:534
+#: includes/customizer/cev-customizer-options.php:573
+#: includes/customizer/cev-customizer-options.php:576
+msgid "Header Text"
+msgstr "હેડર ટેક્સ્ટ"
+
+#: includes/customizer/cev-customizer-options.php:189
+#| msgid ""
+#| "Hi {cev_display_name},\n"
+#| "\n"
+#| "There was a new login to your {site_title} account from {login_browser} "
+#| "on {login_device}\n"
+#| "\t\t\t\n"
+#| "We wanted to make sure it was you. Please check the details below:\n"
+#| "\t\t\t\n"
+#| "<strong>Device:</strong> {login_browser}, {login_device}\n"
+#| "<strong>Date:</strong> {login_time}\n"
+#| "<strong>IP:</strong> {login_ip}\n"
+#| "\n"
+#| "If you don't recognize this activity, click the button below to change "
+#| "your password right away.\n"
+#| "\n"
+#| "{cev_change_pw_btn}\n"
+#| "\n"
+#| "Thanks"
+msgid ""
+"Hi {cev_display_name},\n"
+"\n"
+"There was a new login to your {site_title} account from {login_browser} on "
+"{login_device}\n"
+"\t\t\t\n"
+"We wanted to make sure it was you. Please check the details below:\n"
+"\t\t\t\n"
+"<strong>Device:</strong> {login_browser}, {login_device}\n"
+"<strong>Date:</strong> {login_time}\n"
+"<strong>IP:</strong> {login_ip}\n"
+"\n"
+"If you don't recognize this activity, please change your password right away."
+"\n"
+"\n"
+"Thanks"
+msgstr ""
+"હાય {cev_display_name},\n"
+"\n"
+"{login_device} પર {login_browser} થી તમારા {site_title} એકાઉન્ટમાં નવું "
+"લૉગિન હતું\n"
+"\t\t\t\n"
+"અમે ખાતરી કરવા માગીએ છીએ કે તે તમે જ છો. કૃપા કરીને નીચેની વિગતો તપાસો:\n"
+"\t\t\t\n"
+"<strong>ઉપકરણ:</strong> {login_browser}, {login_device}\n"
+"<strong>તારીખ:</strong> {login_time}\n"
+"<strong>IP:</strong> {login_ip}\n"
+"\n"
+"જો તમે આ પ્રવૃત્તિને ઓળખતા નથી, તો તરત જ તમારો પાસવર્ડ બદલવા માટે નીચેના "
+"બટનને ક્લિક કરો.\n"
+"\n"
+"{cev_change_pw_btn}\n"
+"\n"
+"આભાર"
+
+#: includes/customizer/cev-customizer-options.php:207
+#| msgid ""
+#| "Hi {cev_display_name},\n"
+#| "\n"
+#| "There was a new login to your {site_title} account from {login_browser} "
+#| "on {login_device}\n"
+#| "\n"
+#| "We wanted to make sure it was you. Please verify your account using this "
+#| "OTP: <strong>{login_otp}</strong>\n"
+#| "\n"
+#| "If you don't recognize this activity, click the button below to change "
+#| "your password right away.\n"
+#| "\n"
+#| "{cev_change_pw_btn}\n"
+#| "\n"
+#| "Thanks"
+msgid ""
+"Hi {cev_display_name},\n"
+"\n"
+"There was a new login to your {site_title} account from {login_browser} on "
+"{login_device}\n"
+"\n"
+"We wanted to make sure it was you. Please verify your account using this OTP:"
+" <strong>{login_otp}</strong>\n"
+"\n"
+"If you don't recognize this activity, please change your password right away."
+"\n"
+"\n"
+"Thanks"
+msgstr ""
+"હાય {cev_display_name},\n"
+"\n"
+"{login_device} પર {login_browser} થી તમારા {site_title} એકાઉન્ટમાં નવું "
+"લૉગિન હતું\n"
+"\n"
+"અમે ખાતરી કરવા માગીએ છીએ કે તે તમે જ છો. કૃપા કરીને આ OTP નો ઉપયોગ કરીને "
+"તમારું એકાઉન્ટ ચકાસો: <strong>{login_otp}</strong>\n"
+"\n"
+"જો તમે આ પ્રવૃત્તિને ઓળખતા નથી, તો તરત જ તમારો પાસવર્ડ બદલવા માટે નીચેના "
+"બટનને ક્લિક કરો.\n"
+"\n"
+"{cev_change_pw_btn}\n"
+"\n"
+"આભાર"
+
+#. URI of the plugin
+msgid "http://woocommerce.com/products/customer-email-verification/"
+msgstr "http://woocommerce.com/products/customer-email-verification/"
+
+#. Author URI of the plugin
+msgid "https://www.zorem.com"
+msgstr "https://www.zorem.com"
+
+#: includes/customizer/cev-customizer-options.php:385
+#: includes/customizer/cev-customizer-options.php:762
+msgid "Image Width"
+msgstr "છબી પહોળાઈ"
+
+#: includes/admin/cev-pro-admin-settings.php:211
+msgid "Inline"
+msgstr "ઇનલાઇન"
+
+#: includes/admin/cev-pro-admin-user.php:864
+msgid "Invalid action type."
+msgstr "અમાન્ય ક્રિયા પ્રકાર."
+
+#: includes/class-cev-ajax-response.php:105
+#: includes/signup-verification/cev-pro-signup-ajax.php:446
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:423
+msgid "Invalid email address."
+msgstr "અમાન્ય ઇમેઇલ સરનામું."
+
+#. %d: Log entry ID
+#: includes/admin/cev-pro-admin-user.php:324
+msgid "Invalid ID: %d"
+msgstr "અમાન્ય ID: %d"
+
+#: includes/admin/cev-pro-admin-user.php:308
+msgid "Invalid or missing IDs."
+msgstr "અમાન્ય અથવા ખૂટતા ID."
+
+#: includes/edit-account/class-cev-edit-account-verification.php:163
+msgid "Invalid PIN Code"
+msgstr "અમાન્ય પિન કોડ"
+
+#: includes/admin/cev-pro-admin-user.php:228
+msgid "Invalid request. Missing user ID."
+msgstr "અમાન્ય વિનંતી. વપરાશકર્તા ID ખૂટે છે."
+
+#: includes/cev-pro-enqueue.php:320
+msgid "Invalid response from server"
+msgstr "સર્વર તરફથી અમાન્ય પ્રતિભાવ"
+
+#: includes/admin/cev-pro-admin-user.php:244
+#: includes/admin/cev-pro-admin-user.php:821
+msgid "Invalid user ID provided."
+msgstr "અમાન્ય વપરાશકર્તા ID પ્રદાન કરેલ છે."
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:195
+msgid "Invalid user."
+msgstr "અમાન્ય વપરાશકર્તા."
+
+#: includes/cev-pro-enqueue.php:317
+msgid "Invalid verification code"
+msgstr "અમાન્ય ચકાસણી કોડ"
+
+#: includes/class-cev-ajax-response.php:197
+msgid "Invalid verification code. Please check your email and try again."
+msgstr "અમાન્ય ચકાસણી કોડ. કૃપા કરીને તમારો ઇમેઇલ તપાસો અને ફરી પ્રયાસ કરો."
+
+#: includes/admin/cev-pro-admin-settings.php:468
+#| msgid "Last login more then"
+msgid "Last login more than"
+msgstr "છેલ્લું લોગિન પછી વધુ"
+
+#: includes/admin/views/cev_users_tab.php:98
+msgid "Last Updated"
+msgstr "છેલ્લે અપડેટ કરેલ"
+
+#: includes/customizer/cev-customizer-options.php:324
+#: includes/customizer/cev-customizer-options.php:680
+msgid "Left"
+msgstr "ડાબે"
+
+#: includes/admin/cev-pro-admin-settings.php:379
+msgid "Limit the number of resend attempts."
+msgstr "ફરીથી મોકલવાના પ્રયાસોની સંખ્યા મર્યાદિત કરો."
+
+#: includes/cev-pro-hooks.php:124
+#: includes/admin/views/admin_options_settings.php:89
+msgid "Login Authentication"
+msgstr "લૉગિન પ્રમાણીકરણ"
+
+#: includes/customizer/cev-customizer-options.php:435
+msgid "Login Authentication Popup"
+msgstr "લોગિન પ્રમાણીકરણ પોપઅપ"
+
+#: includes/cev-pro-functions.php:610
+msgid "Login Browser"
+msgstr "લૉગિન બ્રાઉઝર"
+
+#: includes/cev-pro-functions.php:614
+msgid "Login Device"
+msgstr "લૉગિન ઉપકરણ"
+
+#: includes/admin/cev-pro-admin-settings.php:450
+msgid "Login from a new device"
+msgstr "નવા ઉપકરણથી લોગિન કરો"
+
+#: includes/admin/cev-pro-admin-settings.php:459
+msgid "Login from a new location"
+msgstr "નવા સ્થાનથી લોગિન કરો"
+
+#: includes/cev-pro-functions.php:602
+msgid "Login IP"
+msgstr "લોગિન આઇપી"
+
+#: includes/cev-pro-functions.php:622
+msgid "Login OTP"
+msgstr "લોગિન OTP"
+
+#: includes/login-authentication/views/popup-template.php:120
+msgid "Login OTP does not match"
+msgstr "લોગિન OTP મેળ ખાતો નથી"
+
+#: includes/cev-pro-functions.php:606
+msgid "Login Time"
+msgstr "લૉગિન સમય"
+
+#: includes/customizer/cev-customizer-options.php:461
+#: includes/customizer/cev-customizer-options.php:464
+#: includes/customizer/cev-customizer-options.php:503
+#: includes/customizer/cev-customizer-options.php:506
+msgid "Message"
+msgstr "સંદેશ"
+
+#: includes/admin/cev-pro-admin-settings.php:390
+msgid "Message shown after successful verification."
+msgstr "સફળ ચકાસણી પછી સંદેશ દેખાય છે."
+
+#: includes/admin/views/cev_users_tab.php:111
+#: includes/admin/views/cev_users_tab.php:118
+msgid "N/A"
+msgstr "લાગુ નથી"
+
+#: includes/cev-pro-enqueue.php:318
+msgid "Network error. Please check your connection and try again."
+msgstr "નેટવર્ક ભૂલ. કૃપા કરીને તમારું કનેક્શન તપાસો અને ફરી પ્રયાસ કરો."
+
+#: includes/admin/cev-pro-admin-settings.php:323
+msgid "Never"
+msgstr "ક્યારેય"
+
+#: includes/customizer/cev-customizer-options.php:815
+msgid "New Login Authentication"
+msgstr "નવું લૉગિન પ્રમાણીકરણ"
+
+#: includes/customizer/cev-customizer-options.php:814
+msgid "New Login OTP"
+msgstr "નવું લોગિન OTP"
+
+#: includes/customizer/cev-customizer-options.php:187
+#: includes/customizer/cev-customizer-options.php:188
+#: includes/customizer/cev-customizer-options.php:205
+#: includes/customizer/cev-customizer-options.php:206
+msgid "New sign-in from {login_browser} on {login_device}"
+msgstr "{login_device} પર {login_browser} થી નવું સાઇન-ઇન"
+
+#: includes/customizer/cev-customizer.php:532
+msgid "No data provided."
+msgstr "કોઈ ડેટા આપવામાં આવ્યો નથી."
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:85
+msgid "No OTP code found. Please request a new code."
+msgstr "કોઈ OTP કોડ મળ્યો નથી. કૃપા કરીને એક નવો કોડ વિનંતી કરો."
+
+#: includes/edit-account/cev-pro-edit-account-ajax.php:188
+msgid "No pending email verification found."
+msgstr "કોઈ બાકી ઇમેઇલ ચકાસણી મળી નથી."
+
+#: includes/admin/views/cev_users_tab.php:181
+msgid "No user found!"
+msgstr "કોઈ વપરાશકર્તા મળ્યો નથી!"
+
+#: includes/admin/views/cev_users_tab.php:177
+msgid "No users found"
+msgstr "કોઈ વપરાશકર્તાઓ મળ્યા નથી"
+
+#: includes/signup-verification/cev-pro-signup-captcha.php:40
+msgid "Nonce verification failed."
+msgstr "બિન ચકાસણી નિષ્ફળ."
+
+#: includes/admin/views/activity_panel.php:25
+msgid "Open support menu"
+msgstr "સપોર્ટ મેનૂ ખોલો"
+
+#. %d: OTP digit position number
+#: includes/signup-verification/views/cev-signup-popup.php:120
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:241
+#: includes/customizer/preview/verify_checkout_guest_user_otp.php:99
+#: includes/customizer/preview/preview_cev_popup_page.php:84
+#: includes/customizer/preview/preview_cev_popup_login_auth.php:87
+msgid "OTP digit %d"
+msgstr "OTP અંક %d"
+
+#: includes/admin/cev-pro-admin-settings.php:352
+#| msgid "OTP expiration"
+msgid "OTP Expiration"
+msgstr "OTP સમાપ્તિ"
+
+#: includes/admin/cev-pro-admin-settings.php:344
+#| msgid "OTP length"
+msgid "OTP Length"
+msgstr "OTP લંબાઈ"
+
+#: includes/signup-verification/views/cev-signup-popup.php:148
+#| msgid "Otp Send Sucsessfully"
+msgid "OTP sent successfully"
+msgstr "Otp સફળતાપૂર્વક મોકલો"
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:215
+msgid "OTP verification is not required for your account."
+msgstr "તમારા એકાઉન્ટ માટે OTP ચકાસણી જરૂરી નથી."
+
+#: includes/customizer/cev-customizer-options.php:294
+msgid "Overlay Background Color"
+msgstr "ઓવરલે પૃષ્ઠભૂમિ રંગ"
+
+#: includes/cev-pro-enqueue.php:162
+msgid "Password is required."
+msgstr "પાસવર્ડ જરૂરી છે."
+
+#: includes/signup-verification/cev-pro-signup-captcha.php:106
+msgid "Please complete the CAPTCHA."
+msgstr "કૃપા કરીને કેપ્ચા પૂર્ણ કરો."
+
+#: includes/cev-pro-enqueue.php:316
+msgid "Please enter the verification code"
+msgstr "કૃપા કરીને ચકાસણી કોડ દાખલ કરો."
+
+#. %s: search WooCommerce plugin link
+#: customer-email-verification.php:223
+#, php-format
+msgid ""
+"Please install and activate %1$sWooCommerce%2$s plugin for the Customer "
+"Email Verification PRO to work."
+msgstr ""
+"ગ્રાહક ઈમેઈલ વેરિફિકેશન PRO કામ કરવા માટે કૃપા કરીને %1$sWooCommerce%2$s "
+"પ્લગઈન ઇન્સ્ટોલ અને સક્રિય કરો."
+
+#: includes/customizer/cev-customizer-options.php:125
+#: includes/customizer/cev-customizer-options.php:130
+#: includes/customizer/cev-customizer-options.php:135
+msgid "Please Verify Your Email Address on {site_title}"
+msgstr "કૃપા કરીને તમારા ઇમેઇલ સરનામાંને {site_title on પર ચકાસો"
+
+#: includes/customizer/cev-customizer-options.php:177
+msgid "Please verify your email address to proceed to checkout."
+msgstr "કૃપા કરીને ચેકઆઉટ આગળ વધવા માટે તમારું ઇમેઇલ સરનામું ચકાસો."
+
+#: includes/checkout-verification/cev-pro-checkout-validation.php:80
+#: includes/checkout-verification/cev-pro-checkout-validation.php:93
+msgid "Please verify your email address."
+msgstr "કૃપા કરીને તમારું ઇમેઇલ સરનામું ચકાસો."
+
+#: includes/cev-pro-enqueue.php:308
+msgid "Please verify your email to enable the Place Order button."
+msgstr "ઓર્ડર આપો બટન સક્ષમ કરવા માટે કૃપા કરીને તમારા ઇમેઇલની ચકાસણી કરો."
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:253
+msgid "Please wait a few minutes before requesting another OTP email."
+msgstr "બીજા OTP ઇમેઇલની વિનંતી કરતા પહેલા કૃપા કરીને થોડીવાર રાહ જુઓ."
+
+#: includes/admin/cev-pro-admin-settings.php:210
+msgid "Popup"
+msgstr "પ્રગટ થવું"
+
+#: includes/customizer/cev-customizer-options.php:251
+msgid "Popup Content"
+msgstr "પ Popપઅપ સામગ્રી"
+
+#: includes/customizer/cev-customizer-options.php:364
+msgid "Popup Header"
+msgstr "પોપઅપ મથાળું"
+
+#: includes/customizer/cev-customizer-options.php:243
+msgid "Popup Style"
+msgstr "પ Popપઅપ પ્રકાર"
+
+#: includes/customizer/cev-customizer-options.php:429
+msgid "Popup Type"
+msgstr "પોપઅપ પ્રકાર"
+
+#: includes/customizer/cev-customizer-options.php:811
+msgid "Registration"
+msgstr "નોંધણી"
+
+#: includes/signup-verification/cev-pro-signup-ajax.php:253
+msgid "Registration and verification successful"
+msgstr "નોંધણી અને ચકાસણી સફળ"
+
+#: includes/customizer/cev-customizer-options.php:434
+msgid "Registration Popup"
+msgstr "નોંધણી પોપઅપ"
+
+#: includes/admin/cev-pro-admin-settings.php:278
+msgid "Require checkout verification only for free orders"
+msgstr "ફક્ત મફત ઓર્ડર માટે ચેકઆઉટ ચકાસણી આવશ્યક છે"
+
+#: includes/admin/cev-pro-admin-settings.php:258
+msgid ""
+"Require email verification only when Create an account during checkout is "
+"selected"
+msgstr ""
+"ચેકઆઉટ દરમિયાન એકાઉન્ટ બનાવો પસંદ કરેલ હોય ત્યારે જ ઇમેઇલ ચકાસણીની જરૂર છે"
+
+#: includes/admin/cev-pro-admin-settings.php:426
+msgid "Require OTP verification for unrecognized login"
+msgstr "અજાણ્યા લૉગિન માટે OTP ચકાસણી જરૂરી છે"
+
+#: includes/admin/cev-pro-admin-settings.php:377
+#| msgid "Resend limit message"
+msgid "Resend Limit Message"
+msgstr "મર્યાદા સંદેશ ફરીથી મોકલો"
+
+#: includes/cev-pro-enqueue.php:304
+#: includes/edit-account/class-cev-edit-account-verification.php:179
+#: includes/edit-account/class-cev-edit-account-verification.php:181
+#: includes/checkout-verification/class-cev-checkout-verification.php:543
+#: includes/login-authentication/views/popup-template.php:158
+msgid "Resend verification code"
+msgstr "ચકાસણી કોડ ફરીથી મોકલો"
+
+#: includes/admin/views/login-form-resend-link.php:17
+#: includes/login-authentication/views/login-form-resend-link.php:17
+#: includes/admin/views/user/user-profile-fields.php:71
+msgid "Resend verification email"
+msgstr "ચકાસણી ઇમેઇલ ફરીથી મોકલો"
+
+#: includes/admin/views/admin_options_settings.php:117
+msgid "Save"
+msgstr "સાચવો"
+
+#: includes/admin/views/admin_options_settings.php:115
+msgid "Save all settings"
+msgstr "બધી સેટિંગ્સ સાચવો"
+
+#: includes/class-cev-ajax-response.php:86
+msgid "Security check failed. Please refresh the page and try again."
+msgstr "સુરક્ષા તપાસ નિષ્ફળ ગઈ. કૃપા કરીને પૃષ્ઠ તાજું કરો અને ફરી પ્રયાસ કરો."
+
+#: includes/customizer/cev-customizer-options.php:287
+#: includes/customizer/cev-customizer-options.php:652
+msgid "Select"
+msgstr "પસંદ કરો"
+
+#: includes/admin/views/cev_users_tab.php:89
+#: includes/admin/views/cev_users_tab.php:94
+msgid "Select all entries"
+msgstr "બધી એન્ટ્રીઓ પસંદ કરો"
+
+#: includes/admin/views/cev_users_tab.php:58
+msgid "Select bulk action"
+msgstr "બલ્ક ક્રિયા પસંદ કરો"
+
+#. %s: Email address
+#: includes/admin/views/cev_users_tab.php:127
+#, php-format
+msgid "Select entry for %s"
+msgstr "%s માટે એન્ટ્રી પસંદ કરો"
+
+#: includes/admin/views/cev_users_tab.php:135
+msgid "Select this entry"
+msgstr "આ એન્ટ્રી પસંદ કરો"
+
+#: includes/checkout-verification/class-cev-checkout-verification.php:418
+msgid "Send Verification Code"
+msgstr "ચકાસણી કોડ મોકલો"
+
+#: includes/admin/cev-pro-admin-user.php:720
+msgid "Send verification email"
+msgstr "ચકાસણી ઇમેઇલ મોકલો"
+
+#: includes/cev-pro-enqueue.php:319
+msgid "Server error. Please try again later."
+msgstr "સર્વર ભૂલ. કૃપા કરીને પછીથી ફરી પ્રયાસ કરો."
+
+#: includes/admin/class-wc-customer-email-verification-admin.php:240
+#: includes/admin/class-wc-customer-email-verification-admin.php:257
+#: includes/admin/class-wc-customer-email-verification-admin.php:261
+msgid "Settings"
+msgstr "સેટિંગ્સ"
+
+#: includes/admin/cev-pro-admin-settings.php:776
+#: includes/customizer/cev-customizer.php:569
+msgid "Settings saved successfully."
+msgstr "સેટિંગ્સ સફળતાપૂર્વક સાચવવામાં આવી."
+
+#: includes/cev-pro-functions.php:569 includes/cev-pro-functions.php:594
+msgid "Site Title"
+msgstr "સાઇટ શીર્ષક"
+
+#: includes/admin/class-wc-customer-email-verification-admin.php:402
+#: includes/admin/class-wc-customer-email-verification-admin.php:406
+#: includes/admin/cev-pro-admin-settings.php:955
+#: includes/admin/cev-pro-admin-settings.php:959
+#: includes/customizer/cev-customizer-options.php:126
+msgid ""
+"Thank you for signing up for {site_title}, to activate your account, we need "
+"to verify your email address.<p>Your verification code: <strong>"
+"{cev_user_verification_pin}</strong></p>"
+msgstr ""
+"{site_title} માટે સાઇન અપ કરવા બદલ આભાર, તમારું એકાઉન્ટ સક્રિય કરવા માટે, "
+"અમારે તમારું ઇમેઇલ સરનામું ચકાસવું પડશે.<p>તમારો વેરિફિકેશન કોડ: <strong>"
+"{cev_user_verification_pin}</strong></p>"
+
+#. Description of the plugin
+msgid ""
+"The Customer Email Verification helps WooCommerce store owners to reduce "
+"registration and orders spam by requiring customers to verify their email "
+"address when they register an account or before they can checkout on your "
+"store."
+msgstr ""
+"ગ્રાહક ઇમેઇલ ચકાસણી WooCommerce સ્ટોર માલિકોને નોંધણી ઘટાડવામાં મદદ કરે છે "
+"અને જ્યારે તેઓ એકાઉન્ટ રજીસ્ટર કરે છે ત્યારે અથવા તેઓ તમારા સ્ટોર પર ચેકઆઉટ "
+"કરી શકે તે પહેલાં તેમના ઇમેઇલ સરનામાંને ચકાસવા માટે સ્પામનો ઓર્ડર આપે છે."
+
+#: includes/class-cev-ajax-response.php:196
+msgid "The verification code has expired. Please request a new code."
+msgstr "ચકાસણી કોડ સમાપ્ત થઈ ગયો છે. કૃપા કરીને એક નવા કોડની વિનંતી કરો."
+
+#: includes/signup-verification/cev-pro-signup-ajax.php:203
+msgid "This email has already been verified."
+msgstr "આ ઇમેઇલ પહેલાથી જ ચકાસાયેલ છે."
+
+#: includes/customizer/cev-customizer-options.php:131
+#: includes/customizer/cev-customizer-options.php:136
+msgid ""
+"To complete your order on {site_title}, please confirm your email address. "
+"This ensures we have the right email in case we need to contact you.<p>Your "
+"verification code: {cev_user_verification_pin}</p>"
+msgstr ""
+"{site_title} પર તમારો ઓર્ડર પૂર્ણ કરવા માટે, કૃપા કરીને તમારા ઇમેઇલ "
+"સરનામાંની પુષ્ટિ કરો. આ ખાતરી કરે છે કે જો અમને તમારો સંપર્ક કરવાની જરૂર હોય "
+"તો અમારી પાસે યોગ્ય ઇમેઇલ છે.<p>તમારો ચકાસણી કોડ: {cev_user_verification_pin}"
+"</p>"
+
+#: includes/cev-pro-enqueue.php:151 includes/class-cev-ajax-response.php:136
+#: includes/admin/cev-pro-admin-settings.php:380
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:497
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:228
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:172
+#: includes/customizer/preview/verify_checkout_guest_user.php:116
+#| msgid "Too many attempts, please contact us</a> for further assistance"
+msgid "Too many attempts, please contact us for further assistance"
+msgstr "વધુ સહાય માટે ઘણા પ્રયત્નો, કૃપા કરીને અમારો સંપર્ક કરો </a>"
+
+#: includes/class-cev-ajax-response.php:199
+msgid "Too many incorrect attempts. Please request a new verification code."
+msgstr ""
+"ઘણા બધા ખોટા પ્રયાસો થયા છે. કૃપા કરીને એક નવા ચકાસણી કોડની વિનંતી કરો."
+
+#: includes/cev-pro-functions.php:598 includes/cev-pro-functions.php:881
+#: includes/cev-pro-functions.php:890 includes/cev-pro-functions.php:897
+msgid "Try Again"
+msgstr "ફરીથી પ્રયત્ન કરો"
+
+#: includes/login-authentication/views/preview-popup.php:16
+#: includes/customizer/preview/preview_cev_popup_page.php:7
+#: includes/customizer/preview/preview_cev_popup_login_auth.php:7
+msgid "Try again"
+msgstr "ફરીથી પ્રયત્ન કરો"
+
+#: includes/admin/views/user/user-profile-fields.php:78
+msgid "Un-verify email"
+msgstr "ઇમેઇલને અન-વેરિફાઇ કરો"
+
+#: includes/admin/cev-pro-admin-settings.php:442
+msgid "Unrecognized Login Conditions:"
+msgstr "અજાણ્યા લોગિન શરતો:"
+
+#: includes/admin/class-wc-customer-email-verification-admin.php:236
+#: includes/admin/class-wc-customer-email-verification-admin.php:279
+#: includes/admin/class-wc-customer-email-verification-admin.php:283
+msgid "Unverified Users"
+msgstr "ચકાસાયેલ વપરાશકર્તાઓ"
+
+#: includes/admin/views/user/verification-status-column.php:24
+#: includes/admin/views/user/user-profile-fields.php:45
+msgid "Unverify"
+msgstr "ચકાસવાનું રદ કરો"
+
+#: includes/cev-pro-functions.php:582
+msgid "User display name"
+msgstr "વપરાશકર્તા પ્રદર્શન નામ"
+
+#: includes/cev-pro-functions.php:586
+msgid "User email"
+msgstr "વપરાશકર્તા ઇમેઇલ"
+
+#: includes/admin/cev-pro-admin-user.php:261
+msgid "User log deleted successfully."
+msgstr "વપરાશકર્તા લોગ સફળતાપૂર્વક કાઢી નાખ્યો."
+
+#: includes/admin/views/cev_users_tab.php:84
+msgid "User log entries"
+msgstr "વપરાશકર્તા લોગ એન્ટ્રીઓ"
+
+#: includes/cev-pro-functions.php:578
+msgid "User login"
+msgstr "વપરાશકર્તા પ્રવેશ"
+
+#: includes/admin/cev-pro-admin-user.php:841
+msgid "User not found."
+msgstr "વપરાશકર્તા મળ્યો નથી."
+
+#: includes/admin/cev-pro-admin-user.php:891
+msgid "User unverified successfully."
+msgstr "વપરાશકર્તાની ચકાસણી સફળતાપૂર્વક રદ કરવામાં આવી."
+
+#: includes/admin/cev-pro-admin-user.php:1004
+msgid "User unverified."
+msgstr "વપરાશકર્તા ચકાસેલું નથી."
+
+#: includes/admin/cev-pro-admin-user.php:913
+#: includes/admin/cev-pro-admin-user.php:994
+msgid "User verified successfully."
+msgstr "વપરાશકર્તાની સફળતાપૂર્વક ચકાસણી થઈ."
+
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:484
+msgid "Verification code already sent. Please check your email."
+msgstr "ચકાસણી કોડ પહેલેથી જ મોકલવામાં આવ્યો છે. કૃપા કરીને તમારો ઇમેઇલ તપાસો."
+
+#: includes/cev-pro-enqueue.php:302
+#: includes/checkout-verification/class-cev-checkout-verification.php:541
+#: includes/login-authentication/views/preview-popup.php:95
+msgid "Verification code does not match"
+msgstr "ચકાસણી કોડ મેળ ખાતો નથી"
+
+#: includes/edit-account/cev-pro-edit-account-ajax.php:208
+msgid "Verification code has been resent to your email."
+msgstr "ચકાસણી કોડ તમારા ઇમેઇલ પર ફરીથી મોકલવામાં આવ્યો છે."
+
+#: includes/signup-verification/cev-pro-signup-ajax.php:123
+msgid "Verification email has been sent."
+msgstr "ચકાસણી ઇમેઇલ મોકલવામાં આવ્યો છે."
+
+#: includes/admin/cev-pro-admin-settings.php:368
+#| msgid "Verification email resend limit"
+msgid "Verification Email Resend Limit"
+msgstr "ચકાસણી ઇમેઇલ ફરીથી મોકલવાની મર્યાદા"
+
+#: includes/cev-pro-enqueue.php:171
+#: includes/signup-verification/cev-pro-signup-ajax.php:388
+msgid "Verification email sent successfully"
+msgstr "ચકાસણી ઇમેઇલ સફળતાપૂર્વક મોકલવામાં આવ્યો"
+
+#: includes/admin/cev-pro-admin-user.php:931
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:147
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:301
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:373
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:523
+msgid "Verification email sent successfully."
+msgstr "ચકાસણી ઇમેઇલ સફળતાપૂર્વક મોકલવામાં આવ્યો."
+
+#. %s: Number of users to whom verification emails were sent
+#: includes/admin/views/user/bulk-action-notices.php:48
+#, php-format
+#| msgid "Varification email sent to %s user."
+#| msgid_plural "Varification email sent to %s users."
+msgid "Verification email sent to %s user."
+msgid_plural "Verification email sent to %s users."
+msgstr[0] "%s વપરાશકર્તાને ચકાસણી ઈમેલ મોકલવામાં આવ્યો."
+msgstr[1] "%s વપરાશકર્તાઓને ચકાસણી ઈમેલ મોકલવામાં આવ્યો."
+
+#: includes/admin/cev-pro-admin-user.php:984
+msgid "Verification email successfully sent."
+msgstr "ચકાસણી ઇમેઇલ સફળતાપૂર્વક મોકલાયો."
+
+#: includes/customizer/cev-customizer-options.php:879
+#: includes/customizer/cev-customizer-options.php:882
+#: includes/customizer/cev-customizer-options.php:893
+#: includes/customizer/cev-customizer-options.php:896
+#: includes/customizer/cev-customizer-options.php:934
+#: includes/customizer/cev-customizer-options.php:937
+msgid "Verification Message"
+msgstr "ચકાસણી સંદેશ"
+
+#: includes/cev-pro-functions.php:565 includes/cev-pro-functions.php:590
+msgid "Verification Pin"
+msgstr "ચકાસણી પિન"
+
+#: includes/class-cev-ajax-response.php:198
+msgid "Verification session expired. Please request a new code."
+msgstr "ચકાસણી સત્ર સમાપ્ત થયું. કૃપા કરીને એક નવા કોડની વિનંતી કરો."
+
+#. %s: Number of users whose verification status was updated
+#: includes/admin/views/user/bulk-action-notices.php:23
+#, php-format
+#| msgid "Verification Status updated for %s user."
+#| msgid_plural "Verification Status updated for %s users."
+msgid "Verification status updated for %s user."
+msgid_plural "Verification status updated for %s users."
+msgstr[0] "%s વપરાશકર્તા માટે ચકાસણી સ્થિતિ અપડેટ કરી."
+msgstr[1] "%s વપરાશકર્તાઓ માટે ચકાસણી સ્થિતિ અપડેટ કરી."
+
+#: includes/admin/views/user/verification-status-column.php:23
+#: includes/admin/views/user/user-profile-fields.php:41
+msgid "Verified"
+msgstr "ચકાસાયેલ"
+
+#: includes/cev-pro-enqueue.php:303
+#: includes/edit-account/class-cev-edit-account-verification.php:171
+#: includes/edit-account/class-cev-edit-account-verification.php:173
+#: includes/checkout-verification/class-cev-checkout-verification.php:542
+#: includes/signup-verification/views/cev-signup-popup.php:143
+msgid "Verify"
+msgstr "ચકાસો"
+
+#: includes/customizer/cev-customizer-options.php:173
+#: includes/customizer/cev-customizer-options.php:179
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:261
+#: includes/login-authentication/views/popup-template.php:141
+#: includes/login-authentication/views/preview-popup.php:103
+msgid "Verify Code"
+msgstr "કોડ ચકાસો"
+
+#: includes/admin/views/user/user-profile-fields.php:64
+msgid "Verify email manually"
+msgstr "ઇમેઇલ જાતે ચકાસો"
+
+#: includes/customizer/cev-customizer-options.php:165
+#: includes/customizer/cev-customizer-options.php:170
+#: includes/customizer/cev-customizer-options.php:176
+#: includes/customizer/cev-customizer-options.php:182
+#: includes/signup-verification/views/cev-signup-popup.php:41
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:55
+#: includes/login-authentication/views/popup-template.php:53
+#: includes/login-authentication/views/preview-popup.php:48
+#: includes/customizer/preview/verify_checkout_guest_user_otp.php:21
+#: includes/customizer/preview/verify_checkout_guest_user.php:21
+#: includes/customizer/preview/preview_cev_popup_page.php:44
+#: includes/customizer/preview/preview_cev_popup_login_auth.php:44
+msgid "Verify its you."
+msgstr "તેને તમે ચકાસી લો."
+
+#: includes/signup-verification/views/cev-signup-popup.php:142
+msgid "Verify OTP code"
+msgstr "OTP કોડ ચકાસો"
+
+#: includes/admin/cev-pro-admin-user.php:719
+msgid "Verify users email"
+msgstr "વપરાશકર્તાઓ ઇમેઇલ ચકાસો"
+
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:77
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:165
+#: includes/customizer/preview/verify_checkout_guest_user.php:47
+#: includes/customizer/preview/verify_checkout_guest_user.php:110
+msgid "Verify Your Email"
+msgstr "તમારું ઇમેઇલ ચકાસો"
+
+#: includes/edit-account/class-cev-edit-account-verification.php:153
+#: includes/customizer/cev-customizer-options.php:124
+#: includes/customizer/cev-customizer-options.php:129
+msgid "Verify Your Email Address"
+msgstr "તમારું ઇમેઇલ સરનામું ચકાસી લો"
+
+#: includes/edit-account/class-cev-edit-account-verification.php:125
+msgid "We have sent a verification email, please verify your email address."
+msgstr "અમે એક ચકાસણી ઇમેઇલ મોકલ્યો છે, કૃપા કરીને તમારું ઇમેઇલ સરનામું ચકાસો."
+
+#: includes/cev-pro-enqueue.php:300
+msgid "We sent a verification code to your email"
+msgstr "અમે તમારા ઇમેઇલ પર ચકાસણી કોડ મોકલ્યો છે"
+
+#: includes/customizer/cev-customizer-options.php:166
+#: includes/customizer/cev-customizer-options.php:171
+msgid ""
+"We sent verification code to  {customer_email}. To verify your email address,"
+" please check your inbox and enter the code below."
+msgstr ""
+"અમે verification ગ્રાહક_મેઇલ} પર ચકાસણી કોડ મોકલ્યો છે. તમારા ઇમેઇલ "
+"સરનામાંને ચકાસવા માટે, કૃપા કરીને તમારું ઇનબોક્સ તપાસો અને નીચેનો કોડ દાખલ "
+"કરો."
+
+#. %s: search send verification code
+#. %s: search customer email
+#: includes/login-authentication/views/popup-template.php:65
+#: includes/login-authentication/views/preview-popup.php:60
+#, php-format
+msgid ""
+"We sent verification code to <strong>%s</strong>. To verify your email "
+"address, please check your inbox and enter the code below."
+msgstr ""
+"અમે <strong>%s </strong> પર ચકાસણી કોડ મોકલ્યો છે. તમારા ઇમેઇલ સરનામાંને "
+"ચકાસવા માટે, કૃપા કરીને તમારું ઇનબોક્સ તપાસો અને નીચેનો કોડ દાખલ કરો."
+
+#: includes/customizer/cev-customizer-options.php:183
+#: includes/signup-verification/views/cev-signup-popup.php:47
+#: includes/customizer/preview/preview_cev_popup_page.php:58
+#| msgid ""
+#| "We sent verification code to <span>%s</span>. To verify your email "
+#| "address, please check your inbox and enter the code below."
+msgid ""
+"We sent verification code to {customer_email}. To verify your email address, "
+"please check your inbox and enter the code below."
+msgstr ""
+"અમે <span>% s </span> પર ચકાસણી કોડ મોકલ્યો છે. તમારા ઇમેઇલ સરનામાંને ચકાસવા "
+"માટે, કૃપા કરીને તમારું ઇનબોક્સ તપાસો અને નીચેનો કોડ દાખલ કરો."
+
+#: includes/customizer/cev-customizer-options.php:306
+msgid "Widget Background Color"
+msgstr "વિજેટ પૃષ્ઠભૂમિ રંગ"
+
+#: includes/customizer/cev-customizer-options.php:545
+#: includes/customizer/cev-customizer-options.php:548
+#: includes/customizer/cev-customizer-options.php:587
+#: includes/customizer/cev-customizer-options.php:590
+msgid "Widget Content"
+msgstr "વિજેટ સામગ્રી"
+
+#: includes/customizer/cev-customizer-options.php:741
+msgid "Widget Header"
+msgstr "વિજેટ મથાળું"
+
+#: includes/cev-pro-enqueue.php:167 includes/cev-pro-enqueue.php:294
+#: includes/cev-pro-enqueue.php:314
+msgid "You can resend the code in"
+msgstr "તમે કોડ ફરીથી મોકલી શકો છો"
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:184
+msgid "You must be logged in to resend OTP."
+msgstr "OTP ફરીથી મોકલવા માટે તમારે લોગ ઇન થવું આવશ્યક છે."
+
+#: includes/edit-account/cev-pro-edit-account-ajax.php:168
+msgid "You must be logged in to resend verification code."
+msgstr "ચકાસણી કોડ ફરીથી મોકલવા માટે તમારે લૉગ ઇન થવું આવશ્યક છે."
+
+#: includes/edit-account/cev-pro-edit-account-ajax.php:71
+msgid "You must be logged in to verify your email."
+msgstr "તમારા ઇમેઇલને ચકાસવા માટે તમારે લૉગ ઇન થવું આવશ્યક છે."
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:70
+msgid "You must be logged in to verify your OTP."
+msgstr "તમારા OTP ને ચકાસવા માટે તમારે લોગ ઇન થવું આવશ્યક છે."
+
+#: includes/customizer/cev-customizer-options.php:134
+msgid "You recently changed the email address {site_title}"
+msgstr "તમે તાજેતરમાં email site_title the ઇમેઇલ સરનામું બદલ્યું છે"
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:150
+msgid "Your Email is verified!"
+msgstr "તમારું ઇમેઇલ ચકાસાયેલ છે!"
+
+#: includes/cev-pro-enqueue.php:148
+#: includes/admin/cev-pro-admin-settings.php:391
+#: includes/edit-account/cev-pro-edit-account-ajax.php:135
+#: includes/edit-account/class-cev-edit-account-verification.php:504
+msgid "Your email is verified!"
+msgstr "તમારું ઇમેઇલ ચકાસ્યું છે!"
+
+#. Author of the plugin
+msgid "zorem"
+msgstr "ઝોરેમ"
+
+#: includes/admin/views/page-header.php:31
+msgid "Zorem Logo"
+msgstr "ઝોરેમ લોગો"
+
+#: includes/admin/cev-pro-admin-notice.php:247
+msgid "👉 Learn More on WooCommerce"
+msgstr "👉 WooCommerce પર વધુ જાણો"
+
+#: includes/admin/cev-pro-admin-notice.php:226
+msgid "🚀 Introducing Analytics for WooCommerce Subscriptions"
+msgstr "🚀 WooCommerce સબ્સ્ક્રિપ્શન્સ માટે એનાલિટિક્સનો પરિચય"

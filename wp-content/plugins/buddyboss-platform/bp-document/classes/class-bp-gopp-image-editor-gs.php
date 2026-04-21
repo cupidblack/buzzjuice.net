@@ -372,7 +372,7 @@ class BP_GOPP_Image_Editor_GS extends WP_Image_Editor {
 		if ( 0 === $return_var && is_array( $output ) ) {
 			// Might work.
 			$products = array(
-'OYLITE',
+				'GPL Ghostscript',
 				'GNU Ghostscript',
 				'AFPL Ghostscript',
 				'Aladdin Ghostscript',

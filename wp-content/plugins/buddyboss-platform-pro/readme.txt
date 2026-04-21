@@ -3,7 +3,7 @@ Contributors: buddyboss
 Requires at least: 4.9.1
 Tested up to: 6.8.1
 Requires PHP: 5.6.20
-Stable tag: 2.13.0
+Stable tag: 2.13.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -31,6 +31,9 @@ To run BuddyBoss Platform Pro, we recommend your host supports:
 5. Activate 'BuddyBoss Platform Pro' from your Plugins page.
 
 == Changelog ==
+
+= 2.13.1 =
+* Bug: Notifications - Fixed a PHP 8 fatal error on the Notifications settings page caused by improper handling of OneSignal API error responses
 
 = 2.13.0 =
 * Bug: MemberPress - Fixed UI inconsistencies in MemberPress Courses by aligning icons, colors, and spacing with the BuddyBoss Platform design

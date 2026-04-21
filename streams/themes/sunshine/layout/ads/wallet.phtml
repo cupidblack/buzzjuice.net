@@ -1,3 +1,21 @@
+<script>
+    // Only execute this script on the wallet page
+    if ((window.location.pathname.includes('/wallet') || 
+    event.target.matches('a[data-ajax^="?link1=wallet"]')) && 
+    !window.location.href.includes('nocache')) {
+        const url = new URL(window.location.href);
+    
+        // Ensure trailing slash BEFORE query params
+        if (!url.pathname.endsWith('/')) {
+            url.pathname = url.pathname + '/';
+        }
+    
+        // Append the 'nocache' parameter to force reload
+        url.searchParams.set('nocache', new Date().getTime());
+        window.location.href = url.toString();
+    }
+</script>
+
 <!-- <script src="https://checkout.stripe.com/checkout.js"></script> -->
 <?php if ($wo['config']['credit_card'] == 'yes') { ?>
 <script src="https://js.stripe.com/v3/"></script>
@@ -1214,7 +1232,7 @@ jQuery(document).ready(function($) {
         var amount = $('#amount').val();
         console.log("Entered amount:", amount);
 
-        if (amount.indexOf(',') > -1 || amount < 10 || amount == 0) {
+        if (amount.indexOf(',') > -1 || amount < 1 || amount == 0) {
             console.error("Invalid amount entered:", amount);
             $('.please-check').removeClass("hidden");
             return false;
@@ -1321,16 +1339,4 @@ jQuery(document).ready(function($) {
         alert("An unexpected error occurred. Please check the console for details.");
     };
 });
-</script>
-
-<script>
-    // Only execute this script on the wallet page
-    if (window.location.pathname.includes('/wallet/') && !window.location.href.includes('nocache')) {
-        const siteUrl = '<?php echo $wo["config"]["site_url"]; ?>'; // Get the site URL from the PHP configuration
-        const currentUrl = window.location.href;
-
-        // Append the 'nocache' parameter to force reload
-        const newUrl = currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'nocache=' + new Date().getTime();
-        window.location.href = newUrl;
-    }
 </script>

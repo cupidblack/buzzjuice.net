@@ -17,6 +17,8 @@ defined( 'ABSPATH' ) || exit;
  * @return bool License is valid then true otherwise false.
  */
 function bbp_pro_is_license_valid() {
+	return true;
+
 	if ( bb_pro_check_staging_server() ) {
 		return true;
 	}

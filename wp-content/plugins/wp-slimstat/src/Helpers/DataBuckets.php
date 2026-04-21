@@ -11,35 +11,37 @@ if (! defined('ABSPATH')) {
 
 class DataBuckets
 {
-    private array $labels = [];
+    private const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-    private array $prev_labels = [];
+    private $labels = [];
 
-    private array $datasets = ['v1' => [], 'v2' => []];
+    private $prev_labels = [];
 
-    private array $datasetsPrev = ['v1' => [], 'v2' => []];
+    private $datasets = ['v1' => [], 'v2' => []];
 
-    private array $totals;
+    private $datasetsPrev = ['v1' => [], 'v2' => []];
 
-    private string $labelFormat;
+    private $totals;
 
-    private string $gran;
+    private $labelFormat;
 
-    private string $tzOffset;
+    private $gran;
 
-    private int $start;
+    private $tzOffset;
 
-    private int $end;
+    private $start;
 
-    private int $prevStart;
+    private $end;
 
-    private int $prevEnd;
+    private $prevStart;
 
-    private int $points;
+    private $prevEnd;
+
+    private $points;
 
     public function __construct(string $labelFormat, string $gran, int $start, int $end, int $prevStart, int $prevEnd, array $totals = [])
     {
-        global $wpdb;
+        $wpdb = \wp_slimstat::$wpdb ?? $GLOBALS['wpdb'];
 
         $this->labelFormat = $labelFormat;
         $this->gran        = $gran;
@@ -104,7 +106,7 @@ class DataBuckets
     {
         $start       = (new \DateTime())->setTimestamp($this->start);
         $end         = (new \DateTime())->setTimestamp($this->end);
-        $startOfWeek = get_option('start_of_week', 1);
+        $startOfWeek = (int) get_option('start_of_week', 1);
 
         // Adjust start to the first day of the week
         $firstLabel     = $start->format($this->labelFormat);
@@ -115,7 +117,7 @@ class DataBuckets
         }
 
         // Move start to the next week if it is not the start of the week
-        $start->modify('next ' . jddayofweek($startOfWeek - 1, 1));
+        $start->modify('next ' . (self::DAY_NAMES[$startOfWeek] ?? 'Monday'));
         if ($start->getTimestamp() <= $this->start) {
             $start->modify('+1 week');
         }
@@ -184,7 +186,7 @@ class DataBuckets
             $start  = new \DateTime('@' . $base);
             $start  = $start->modify('first day of this month')->modify('midnight');
             // Guard against invalid/empty $dt
-            $safeDt = is_numeric($dt) ? (int) $dt : 0;
+            $safeDt = is_numeric($dt) ? $dt : 0;
             $target = new \DateTime('@' . $safeDt);
             if ($target->getTimestamp() < $start->getTimestamp()) {
                 $offset = -1;
@@ -193,7 +195,14 @@ class DataBuckets
                 $offset = $diff->y * 12 + $diff->m;
             }
         } elseif ('WEEK' === $this->gran) {
-            $offset = date('W', $dt) - date('W', $base) + (date('Y', $dt) - date('Y', $base)) * 52;
+            // Calculate the start-of-week date for both base and dt
+            // This respects WordPress start_of_week setting instead of using ISO weeks
+            $baseWeekStart = $this->getWeekStartTimestamp($base);
+            $dtWeekStart = $this->getWeekStartTimestamp($dt);
+
+            // Calculate weeks between the two week start dates
+            $offset = (int) round(($dtWeekStart - $baseWeekStart) / (7 * 86400));
+
             if ($offset < 0) {
                 $offset = -1;
             }
@@ -204,7 +213,7 @@ class DataBuckets
         }
 
         // Ensure offset is within bounds
-        if ($offset <= $this->points) {
+        if ($offset >= 0 && $offset < $this->points) {
             $target = 'current' === $period ? 'datasets' : 'datasetsPrev';
             if (!isset($this->{$target}['v1'][$offset])) {
                 $this->{$target}['v1'][$offset] = 0;
@@ -229,11 +238,23 @@ class DataBuckets
         }, $labels, array_keys($labels));
     }
 
+    /**
+     * Get the start-of-week timestamp for a given timestamp.
+     * Respects WordPress start_of_week setting.
+     */
+    private function getWeekStartTimestamp(int $timestamp): int
+    {
+        $startOfWeek = (int) get_option('start_of_week', 1);
+        $dayOfWeek = (int) date('w', $timestamp); // 0=Sun, 6=Sat
+        $diff = ($dayOfWeek - $startOfWeek + 7) % 7;
+        return strtotime(date('Y-m-d', strtotime("-{$diff} days", $timestamp)));
+    }
+
     private function shiftDatasets(): void
     {
         foreach (['v1', 'v2'] as $k) {
             if (isset($this->datasets[$k][-1])) {
-                $newKeys            = array_map(fn ($key) => $key + 1, array_keys($this->datasets[$k]));
+                $newKeys            = array_map(fn($key) => $key + 1, array_keys($this->datasets[$k]));
                 $this->datasets[$k] = array_combine($newKeys, array_values($this->datasets[$k]));
                 ksort($this->datasets[$k]);
                 if (empty(end($this->datasets[$k]))) {
@@ -242,7 +263,7 @@ class DataBuckets
             }
 
             if (isset($this->datasetsPrev[$k][-1])) {
-                $newKeys                = array_map(fn ($key) => $key + 1, array_keys($this->datasetsPrev[$k]));
+                $newKeys                = array_map(fn($key) => $key + 1, array_keys($this->datasetsPrev[$k]));
                 $this->datasetsPrev[$k] = array_combine($newKeys, array_values($this->datasetsPrev[$k]));
                 ksort($this->datasetsPrev[$k]);
                 if (empty(end($this->datasetsPrev[$k]))) {
@@ -268,7 +289,7 @@ class DataBuckets
             'prev_labels'   => $this->prev_labels,
             'datasets'      => $this->datasets,
             'datasets_prev' => $this->datasetsPrev,
-            'today'         => 'WEEK' === $this->gran && wp_date('YW', $this->end, wp_timezone()) === wp_date('YW', time(), wp_timezone()) ? str_replace("'", '', $this->labels[count($this->labels) - 1]) : wp_date($this->labelFormat, time(), wp_timezone()),
+            'today'         => 'WEEK' === $this->gran && $this->getWeekStartTimestamp($this->end) === $this->getWeekStartTimestamp(time()) ? str_replace("'", '', $this->labels[count($this->labels) - 1]) : wp_date($this->labelFormat, time(), wp_timezone()),
             'granularity'   => $this->gran,
         ];
     }

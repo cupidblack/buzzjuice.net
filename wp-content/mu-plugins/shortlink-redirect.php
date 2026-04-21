@@ -39,7 +39,7 @@ add_action('template_redirect', function () {
         'hs1'           => 'https://buzzjuice.net/course/registration-orientation/?utm_source=telegram&utm_medium=pdf&utm_campaign=hs_diploma_launch',
         'dry80'         => 'https://docs.google.com/forms/d/e/1FAIpQLSdIENspBqltfxUq4uawzQS7gm_wWkSTcLimeIhMR7j0qPMKaw/viewform',
         'telegram'      => 'https://t.me/+IuV7FS16Xjw5NDdk', // Telegram invite
-        'subscribe'     => 'https://buzzjuice.net/streams/go-pro/',
+        'subscribe'     => 'https://buzzjuice.net/streams/ww-sso-bridge.php?redirect_to=go-pro',
         'signup'        => 'https://buzzjuice.net/register/',
         'tlearn'        => 'https://t.me/+RBmeWLwfrEY2NDRk',
     ];

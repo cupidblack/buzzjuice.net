@@ -78,12 +78,6 @@ msgstr "Следующее сканирование:"
 msgid "No malware found"
 msgstr "Вредоносные программы не найдены"
 
-msgid "Show more results"
-msgstr "Показать больше результатов"
-
-msgid "Hide notifications"
-msgstr "Скрыть уведомления"
-
 msgid "Snooze for:"
 msgstr "Отложить на:"
 
@@ -144,4 +138,152 @@ msgid "Unknown"
 msgstr "Неизвестно"
 
 msgid "Get protected"
+msgstr ""
+
+msgid "Insufficient permissions."
+msgstr ""
+
+msgid "Invalid security token."
+msgstr ""
+
+msgid "Invalid input data."
+msgstr ""
+
+msgid "Field Exists"
+msgstr ""
+
+msgid "Field Equals"
+msgstr ""
+
+msgid "Field Contains"
+msgstr ""
+
+msgid "Field Regex"
+msgstr ""
+
+msgid "XSS Detection"
+msgstr ""
+
+msgid "SQL Injection Detection"
+msgstr ""
+
+msgid "Missing Capability"
+msgstr ""
+
+msgid "Checks if a field exists in GET or POST data."
+msgstr ""
+
+msgid "Checks if a field equals a specific value after sanitization."
+msgstr ""
+
+msgid "Checks if a field contains a specific value."
+msgstr ""
+
+msgid "Checks if a field matches a regular expression pattern."
+msgstr ""
+
+msgid "Detects XSS (Cross-Site Scripting) attacks in field data."
+msgstr ""
+
+msgid "Detects SQL injection attacks in field data."
+msgstr ""
+
+msgid "Check if user is missing a specific WordPress capability"
+msgstr ""
+
+msgid "Pass"
+msgstr ""
+
+msgid "Block"
+msgstr ""
+
+msgid "Allows the action to proceed normally."
+msgstr ""
+
+msgid "Blocks the action and returns a 403 response."
+msgstr ""
+
+#. translators: %d: number of seconds
+#, php-format
+msgid "%d sec ago"
+msgid_plural "%d secs ago"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#. translators: %d: number of minutes
+#, php-format
+msgid "%d min ago"
+msgid_plural "%d mins ago"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#. translators: %d: number of hours
+#, php-format
+msgid "%d hr ago"
+msgid_plural "%d hrs ago"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+msgid "Malware Protection"
+msgstr ""
+
+msgid "Web Application Firewall"
+msgstr ""
+
+msgid "Latest incidents (7 days)"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Component"
+msgstr ""
+
+msgid "CVE"
+msgstr ""
+
+msgid "Severity"
+msgstr ""
+
+msgid "Count"
+msgstr ""
+
+msgid "Attacks are logged but not blocked. Upgrade to Imunify360 to enable full WAF protection."
+msgstr ""
+
+msgid "Upgrade now"
+msgstr ""
+
+msgid "Monitoring"
+msgstr ""
+
+msgid "Hide notifications"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Rule ID is required."
+msgstr ""
+
+msgid "Show more results"
+msgstr ""
+
+#. translators: %d: number of malware items
+#, php-format
+msgid "Malware Protection (%d)"
+msgstr ""
+
+#. translators: %d: number of WAF incidents
+#, php-format
+msgid "Web Application Firewall (%d)"
+msgstr ""
+
+msgid "Probabilistic Trigger"
+msgstr ""
+
+msgid "Triggers with a configurable probability per request."
 msgstr ""

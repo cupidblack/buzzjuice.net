@@ -715,6 +715,9 @@ function Wo_AddCommentWonders($comment_id, $text = "") {
                 "url" => "index.php?link1=post&id=" . $post_id . "&ref=" . $comment_id
             );
             Wo_RegisterNotification($notification_data_array);
+            
+            bzj_log_activity($user_id, 'wonder', $comment_id, 'comment', $wo['config']['wonders_point'], 'Wo_CommentWonders');
+            
             return "wonder";
         }
     }
@@ -2134,6 +2137,9 @@ function Wo_RegisterPageLike($page_id = 0, $user_id = 0) {
             "url" => "index.php?link1=timeline&u=" . $page_data["page_name"]
         );
         Wo_RegisterNotification($notification_data);
+        
+        bzj_log_activity($user_id, 'like', $page_id, 'page', $wo['config']['likes_point'], 'Wo_Page_Likes');
+        
     }
     return true;
 }
@@ -4603,6 +4609,9 @@ function Wo_AddCommentReplyWonders($reply_id, $text = "") {
                 "url" => "index.php?link1=post&id=" . $post_id . "&ref=" . $comment
             );
             Wo_RegisterNotification($notification_data_array);
+            
+            bzj_log_activity($user_id, 'wonder', $reply_id, 'comment_reply', $wo['config']['wonders_point'], 'Wo_Comment_Replies_Wonders');
+            
             return "wonder";
         }
     }
@@ -4716,6 +4725,9 @@ function Wo_AddCommentReplyLikes($reply_id, $text = "") {
                 "url" => "index.php?link1=post&id=" . $post_id . "&ref=" . $comment
             );
             Wo_RegisterNotification($notification_data_array);
+            
+            bzj_log_activity($user_id, 'like', $reply_id, 'comment_reply', $wo['config']['comments_point'], 'Wo_Comment_Replies_Likes');
+            
             return "liked";
         }
     }

@@ -16,6 +16,11 @@ namespace CloudLinux\Imunify\App\Defender\Model;
  * @since 2.1.0
  */
 class Condition {
+	const REGEX_FIELD_PATTERN          = '#^/(.+)/$#';
+	const PARTIAL_REGEX_SPLIT_PATTERN  = '#(/[^/]+/)#';
+	const TRAILING_BRACKET_PATTERN     = '/^(.+)\[([^\]]*)\]$/';
+	const MAX_FIELD_LENGTH_FOR_BRACKET = 1024;
+
 	/**
 	 * Condition name (e.g., REQUEST_URI, ARGS:page, FILES:fileToUpload).
 	 *
@@ -126,27 +131,122 @@ class Condition {
 	}
 
 	/**
-	 * Parse a condition name string to extract source and specific field.
+	 * Parse a condition name string to extract source, field, and optional field regex.
 	 *
-	 * @param string $name Condition name string (e.g., 'ARGS:page', 'REQUEST_URI').
+	 * Supports:
+	 * - Full regex for field names: ARGS:/field_a|field_b/
+	 * - Partial regex embedded in field names: REQUEST_HEADERS:headername/\d+/
+	 * - PHP bracket notation for nested array access: ARGS:param[key][subkey]
+	 * - Regex combined with brackets: ARGS:/field_a|field_b/[key]
+	 * - Partial regex combined with brackets: ARGS:param/\d+/[key]
+	 * - Regex inside bracket segments: ARGS:param[/\d+/]
 	 *
-	 * @return array Array with 'source' and 'field' keys.
+	 * Bracket notation is only parsed when the field portion (after SOURCE:) does not
+	 * exceed MAX_FIELD_LENGTH_FOR_BRACKET (1024) characters. Fields exceeding this
+	 * limit are treated as literal names.
+	 *
+	 * Parsing order: brackets are extracted first (right-to-left), then the remaining
+	 * base field is checked for full regex, partial regex, or treated as literal.
+	 * This allows field_regex and bracket_path to coexist.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param string $name Condition name string.
+	 *
+	 * @return array {
+	 *     @type string      $source       Source prefix (e.g. ARGS, REQUEST_URI).
+	 *     @type string|null $field        Root field name (null when field_regex is set).
+	 *     @type string|null $field_regex  Regex pattern for field name matching.
+	 *     @type array|null  $bracket_path Path segments from bracket notation.
+	 *     @type string|null $raw_field    Original unparsed field (set only when bracket_path is present).
+	 * }
 	 */
 	public static function parseNameString( $name ) {
 		$parts = explode( ':', $name, 2 );
 
 		if ( count( $parts ) === 1 ) {
-			// Simple source like REQUEST_URI.
 			return array(
-				'source' => $parts[0],
-				'field'  => null,
+				'source'       => $parts[0],
+				'field'        => null,
+				'field_regex'  => null,
+				'bracket_path' => null,
+				'raw_field'    => null,
 			);
 		}
 
-		// Source with specific field like ARGS:page.
+		$field       = $parts[1];
+		$fieldRegex  = null;
+		$bracketPath = null;
+		$rawField    = null;
+
+		// Step 1: Extract trailing bracket segments (right-to-left).
+		$baseField = $field;
+		if ( strlen( $field ) <= self::MAX_FIELD_LENGTH_FOR_BRACKET ) {
+			$segments  = array();
+			$remaining = $field;
+			while ( preg_match( self::TRAILING_BRACKET_PATTERN, $remaining, $bm ) ) {
+				array_unshift( $segments, $bm[2] );
+				$remaining = $bm[1];
+			}
+			if ( ! empty( $segments ) ) {
+				$baseField   = $remaining;
+				$bracketPath = $segments;
+				$rawField    = $field;
+			}
+		}
+
+		// Step 2: Check base field for full regex, then partial regex, then literal.
+		if ( preg_match( self::REGEX_FIELD_PATTERN, $baseField, $matches ) ) {
+			$fieldRegex = $matches[1];
+			$field      = null;
+		} else {
+			$partialRegex = self::buildFieldRegexFromPartial( $baseField );
+			if ( null !== $partialRegex ) {
+				$fieldRegex = $partialRegex;
+				$field      = null;
+			} else {
+				$field = $baseField;
+			}
+		}
+
 		return array(
-			'source' => $parts[0],
-			'field'  => $parts[1],
+			'source'       => $parts[0],
+			'field'        => $field,
+			'field_regex'  => $fieldRegex,
+			'bracket_path' => $bracketPath,
+			'raw_field'    => $rawField,
 		);
+	}
+
+	/**
+	 * Build a full field regex from a field containing embedded /regex/ segments.
+	 *
+	 * Splits the field on paired slash-delimited regex segments. Literal parts
+	 * are escaped with preg_quote, regex parts are kept verbatim. Returns null
+	 * when the field contains no embedded regex (e.g. plain literal or single slash).
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param string $field The base field string (brackets already stripped).
+	 *
+	 * @return string|null The combined regex, or null if no partial regex was found.
+	 */
+	private static function buildFieldRegexFromPartial( $field ) {
+		$splitParts = preg_split( self::PARTIAL_REGEX_SPLIT_PATTERN, $field, -1, PREG_SPLIT_DELIM_CAPTURE );
+
+		if ( count( $splitParts ) <= 1 ) {
+			return null;
+		}
+
+		$regex = '';
+		foreach ( $splitParts as $i => $part ) {
+			if ( 0 === $i % 2 ) {
+				$regex .= preg_quote( $part, '#' );
+			} else {
+				$regex .= substr( $part, 1, -1 );
+			}
+		}
+
+		return $regex;
 	}
 }

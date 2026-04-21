@@ -50,7 +50,12 @@ function bz_marketplace_snapshot_shortcode() {
     }
     // -- LATEST ORDER (SELLER)
     $order = null;
-    $q_order = mysqli_query($conn,"SELECT * FROM Wo_UserOrders WHERE product_owner_id = $user_id_ww ORDER BY id DESC LIMIT 1");
+    $q_order = mysqli_query($conn,"SELECT o.*, p.name AS product_name
+        FROM Wo_UserOrders o
+        LEFT JOIN Wo_Products p ON o.product_id = p.id
+        WHERE o.product_owner_id = $user_id_ww
+        ORDER BY o.id DESC
+        LIMIT 1");
     if ($q_order && mysqli_num_rows($q_order)) {
         $o = mysqli_fetch_assoc($q_order);
         $order = [
@@ -61,11 +66,19 @@ function bz_marketplace_snapshot_shortcode() {
     }
     // -- LATEST PURCHASE (BUYER)
     $purchase = null;
-    $q_purchase = mysqli_query($conn, "SELECT * FROM Wo_UserOrders WHERE user_id = $user_id_ww ORDER BY id DESC LIMIT 1");
+    $q_purchase = mysqli_query($conn, "
+        SELECT o.*, p.name AS product_name
+        FROM Wo_UserOrders o
+        LEFT JOIN Wo_Products p ON o.product_id = p.id
+        WHERE o.user_id = $user_id_ww
+        ORDER BY o.id DESC
+        LIMIT 1
+    ");
     if ($q_purchase && mysqli_num_rows($q_purchase)) {
         $p = mysqli_fetch_assoc($q_purchase);
+    
         $purchase = [
-            'title'  => $p['product_name'],
+            'title'  => $p['product_name'] ?: 'Unknown Product',
             'status' => ucfirst($p['status']),
             'url'    => '/streams/order/' . $p['hash_id']
         ];

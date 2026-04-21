@@ -512,6 +512,18 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Bulk_Message' ) ):
             require_once( ABSPATH . 'wp-admin/includes/file.php' );
             require_once( ABSPATH . 'wp-admin/includes/media.php' );
 
+            // Restore original filename if sent via safe upload, and enforce byte limit
+            $decoded_name = '';
+            $original_name = $request->get_param( 'original_name' );
+            if ( ! empty( $original_name ) && class_exists( 'Better_Messages_Files' ) ) {
+                $decoded_name = Better_Messages_Files()->decode_original_name( $original_name );
+                if ( ! empty( $decoded_name ) ) {
+                    $_FILES['file']['name'] = Better_Messages_Files()->limit_filename_bytes( sanitize_file_name( $decoded_name ) );
+                }
+            } else if ( class_exists( 'Better_Messages_Files' ) ) {
+                $_FILES['file']['name'] = Better_Messages_Files()->limit_filename_bytes( sanitize_file_name( $_FILES['file']['name'] ) );
+            }
+
             $attachment_id = media_handle_upload( 'file', 0 );
 
             if ( is_wp_error( $attachment_id ) ) {
@@ -523,6 +535,9 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Bulk_Message' ) ):
             update_post_meta( $attachment_id, 'bp-better-messages-bulk-attachment', 1 );
             update_post_meta( $attachment_id, 'bp-better-messages-uploader-user-id', get_current_user_id() );
             update_post_meta( $attachment_id, 'bp-better-messages-upload-time', time() );
+            if ( ! empty( $decoded_name ) ) {
+                update_post_meta( $attachment_id, 'bp-better-messages-original-name', $decoded_name );
+            }
 
             $file_path = get_attached_file( $attachment_id );
 
@@ -936,22 +951,28 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Bulk_Message' ) ):
                 case 'users':
                     $usersIds = isset( $selectors['userIds'] ) ? array_map( 'intval', (array) $selectors['userIds'] ) : [];
                     $usersIds = array_filter( $usersIds, function( $uid ) use ( $exclude_id ) {
-                        return $uid > 0 && $uid !== (int) $exclude_id;
+                        return $uid !== 0 && $uid !== (int) $exclude_id;
                     });
                     $usersIds = array_values( $usersIds );
 
-                    if ( $activity_sql !== '' && ! empty( $usersIds ) ) {
-                        $id_placeholders = implode( ',', array_fill( 0, count( $usersIds ), '%d' ) );
-                        $usersIds = $wpdb->get_col( $wpdb->prepare(
+                    // Split into registered users (positive) and guests (negative)
+                    $registered_ids = array_values( array_filter( $usersIds, function( $uid ) { return $uid > 0; } ) );
+                    $guest_ids      = array_values( array_filter( $usersIds, function( $uid ) { return $uid < 0; } ) );
+
+                    if ( $activity_sql !== '' && ! empty( $registered_ids ) ) {
+                        $id_placeholders = implode( ',', array_fill( 0, count( $registered_ids ), '%d' ) );
+                        $registered_ids = $wpdb->get_col( $wpdb->prepare(
                             "SELECT `ID` FROM `{$users_table}` WHERE `ID` IN ({$id_placeholders})" . $activity_sql,
-                            ...array_map( 'intval', $usersIds )
+                            ...array_map( 'intval', $registered_ids )
                         ));
                     }
+
+                    $usersIds = array_values( array_merge( $registered_ids, $guest_ids ) );
 
                     // Exclude users already in parent job chain
                     if ( $exclude_job_id > 0 && ! empty( $usersIds ) ) {
                         $already_sent = $wpdb->get_col( $wpdb->prepare(
-                            "SELECT DISTINCT `bt2`.`user_id` FROM `{$threads_table}` AS `bt1` INNER JOIN `{$threads_table}` AS `bt2` ON `bt2`.`thread_id` = `bt1`.`thread_id` AND `bt2`.`user_id` > 0 WHERE `bt1`.`job_id` = %d",
+                            "SELECT DISTINCT `bt2`.`user_id` FROM `{$threads_table}` AS `bt1` INNER JOIN `{$threads_table}` AS `bt2` ON `bt2`.`thread_id` = `bt1`.`thread_id` WHERE `bt1`.`job_id` = %d",
                             $exclude_job_id
                         ) );
                         $already_sent = array_map( 'intval', $already_sent );

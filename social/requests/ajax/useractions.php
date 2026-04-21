@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../../shared/palmier/palmier_logger.php';
+
 Class UserActions extends Aj {
     function register() {
         global $config, $db;
@@ -1743,6 +1745,13 @@ Class UserActions extends Aj {
             ));
             if ($saved) {
                 $_SESSION[ 'userEdited' ] = true;
+                
+                if ($_cost == intval($config->pro_boost_me_credits_price)) {
+                    bzj_log_activity($user_id, 'pro_boost_me_credits_price', null, 'boost', $_cost, 'QD_live');
+                } elseif ($_cost == intval($config->normal_boost_me_credits_price)) {
+                    bzj_log_activity($user_id, 'normal_boost_me_credits_price', null, 'boost', $_cost, 'QD_live');
+                }
+                
                 return array(
                     'status' => 200,
                     'current_credit' => self::ActiveUser()->balance - $_cost,

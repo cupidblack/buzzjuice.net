@@ -35,6 +35,8 @@ function bz_safe_session_start() {
 }
 SessionStart();
 
+require_once __DIR__ . '/../shared/palmier/palmier_logger.php';
+
 $config = new stdClass();
 function LoadConfig() {
     global $db,$config,$site_url;
@@ -2478,6 +2480,9 @@ function IsGotCredit()
             $db->where('id', $user_id)->update('users', [
                 "balance" => $db->inc($day_amount)
             ]);
+
+            $daily_credits_id = date('Y-m-d H:i:s'); //mysqli_insert_id($conn);
+            bzj_log_activity($user_id, 'credit_earn_day_amount', $daily_credits_id, 'daily_credits', $day_amount, 'QD_daily_credits');
 
             return true; // Credit successfully added
         }

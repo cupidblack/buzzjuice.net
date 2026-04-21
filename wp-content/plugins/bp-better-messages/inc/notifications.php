@@ -282,9 +282,17 @@ if ( !class_exists( 'Better_Messages_Notifications' ) ):
                 $where[] = "`user_index`.`last_activity` < " . $wpdb->prepare('%s', $time);
                 $where[] = "AND `recipients`.`unread_count` > 0";
                 $where[] = "AND `recipients`.`is_deleted` = 0";
-                $where[] = "AND `recipients`.`is_muted` = 0";
+                if ( Better_Messages()->settings['mentionsForceNotifications'] === '1' ) {
+                    $where[] = "AND (`recipients`.`is_muted` = 0 OR `recipients`.`user_id` IN (SELECT `m`.`user_id` FROM `" . bm_get_table('mentions') . "` `m` WHERE `m`.`thread_id` = `recipients`.`thread_id` AND `m`.`user_id` = `recipients`.`user_id` AND `m`.`type` = 'mention'))";
+                } else {
+                    $where[] = "AND `recipients`.`is_muted` = 0";
+                }
                 $where[] = "AND `recipients`.`user_id` > 0";
-                $where[] = "AND `recipients`.`thread_id` NOT IN( SELECT `bm_thread_id` FROM `" . bm_get_table('threadsmeta') . "` WHERE `meta_key` = 'email_disabled' AND `meta_value` = '1' )";
+                if ( Better_Messages()->settings['mentionsForceNotifications'] === '1' ) {
+                    $where[] = "AND (`recipients`.`thread_id` NOT IN( SELECT `bm_thread_id` FROM `" . bm_get_table('threadsmeta') . "` WHERE `meta_key` = 'email_disabled' AND `meta_value` = '1' ) OR `recipients`.`user_id` IN (SELECT `m`.`user_id` FROM `" . bm_get_table('mentions') . "` `m` WHERE `m`.`thread_id` = `recipients`.`thread_id` AND `m`.`user_id` = `recipients`.`user_id` AND `m`.`type` = 'mention'))";
+                } else {
+                    $where[] = "AND `recipients`.`thread_id` NOT IN( SELECT `bm_thread_id` FROM `" . bm_get_table('threadsmeta') . "` WHERE `meta_key` = 'email_disabled' AND `meta_value` = '1' )";
+                }
 
                 $group_by[] = "`user_index`.`ID`";
                 $group_by[] = "`recipients`.`thread_id`";
@@ -318,6 +326,16 @@ if ( !class_exists( 'Better_Messages_Notifications' ) ):
                         $this->sending_thread_id = $thread_id;
 
                         $chat_id = null;
+                        $mention_override = false;
+
+                        // Check if user has unread mentions in this thread
+                        $user_has_mentions = false;
+                        if ( Better_Messages()->settings['mentionsForceNotifications'] === '1' ) {
+                            $user_has_mentions = (bool) $wpdb->get_var( $wpdb->prepare(
+                                "SELECT COUNT(*) FROM `" . bm_get_table('mentions') . "` WHERE `thread_id` = %d AND `user_id` = %d AND `type` = 'mention'",
+                                $thread_id, $user_id
+                            ) );
+                        }
 
                         $type = Better_Messages()->functions->get_thread_type( $thread_id );
 
@@ -326,8 +344,12 @@ if ( !class_exists( 'Better_Messages_Notifications' ) ):
                                 $group_id = Better_Messages()->functions->get_thread_meta($thread_id, 'group_id');
 
                                 if (!empty($group_id)) {
-                                    $this->update_last_email( $user_id, $thread_id, $thread->last_date );
-                                    continue;
+                                    if ( $user_has_mentions ) {
+                                        $mention_override = true;
+                                    } else {
+                                        $this->update_last_email( $user_id, $thread_id, $thread->last_date );
+                                        continue;
+                                    }
                                 }
                             }
 
@@ -335,8 +357,12 @@ if ( !class_exists( 'Better_Messages_Notifications' ) ):
                                 $group_id = Better_Messages()->functions->get_thread_meta($thread_id, 'peepso_group_id');
 
                                 if (!empty($group_id)) {
-                                    $this->update_last_email( $user_id, $thread_id, $thread->last_date );
-                                    continue;
+                                    if ( $user_has_mentions ) {
+                                        $mention_override = true;
+                                    } else {
+                                        $this->update_last_email( $user_id, $thread_id, $thread->last_date );
+                                        continue;
+                                    }
                                 }
                             }
 
@@ -344,8 +370,12 @@ if ( !class_exists( 'Better_Messages_Notifications' ) ):
                                 $group_id = Better_Messages()->functions->get_thread_meta($thread_id, 'um_group_id');
 
                                 if (!empty($group_id)) {
-                                    $this->update_last_email( $user_id, $thread_id, $thread->last_date );
-                                    continue;
+                                    if ( $user_has_mentions ) {
+                                        $mention_override = true;
+                                    } else {
+                                        $this->update_last_email( $user_id, $thread_id, $thread->last_date );
+                                        continue;
+                                    }
                                 }
                             }
 
@@ -353,8 +383,12 @@ if ( !class_exists( 'Better_Messages_Notifications' ) ):
                                 $group_id = Better_Messages()->functions->get_thread_meta($thread_id, 'fluentcommunity_group_id');
 
                                 if ( ! empty( $group_id) ) {
-                                    $this->update_last_email( $user_id, $thread_id, $thread->last_date );
-                                    continue;
+                                    if ( $user_has_mentions ) {
+                                        $mention_override = true;
+                                    } else {
+                                        $this->update_last_email( $user_id, $thread_id, $thread->last_date );
+                                        continue;
+                                    }
                                 }
                             }
                         }
@@ -365,23 +399,46 @@ if ( !class_exists( 'Better_Messages_Notifications' ) ):
                             if (!empty($chat_id)) {
                                 $is_excluded_from_threads_list = Better_Messages()->functions->get_thread_meta($thread_id, 'exclude_from_threads_list');
                                 if ($is_excluded_from_threads_list === '1') {
-                                    Better_Messages()->functions->update_thread_meta($thread_id, 'email_disabled', '1');
-                                    $this->update_last_email( $user_id, $thread_id, $thread->last_date );
-                                    continue;
+                                    if ( $user_has_mentions ) {
+                                        $mention_override = true;
+                                    } else {
+                                        Better_Messages()->functions->update_thread_meta($thread_id, 'email_disabled', '1');
+                                        $this->update_last_email( $user_id, $thread_id, $thread->last_date );
+                                        continue;
+                                    }
                                 }
 
                                 $notifications_enabled = Better_Messages()->functions->get_thread_meta($thread_id, 'enable_notifications');
                                 if ($notifications_enabled !== '1') {
-                                    Better_Messages()->functions->update_thread_meta($thread_id, 'email_disabled', '1');
-                                    $this->update_last_email( $user_id, $thread_id, $thread->last_date );
-                                    continue;
+                                    if ( $user_has_mentions ) {
+                                        $mention_override = true;
+                                    } else {
+                                        Better_Messages()->functions->update_thread_meta($thread_id, 'email_disabled', '1');
+                                        $this->update_last_email( $user_id, $thread_id, $thread->last_date );
+                                        continue;
+                                    }
                                 }
                             }
                         }
 
                         if ( ! $this->is_user_emails_enabled( $user_id )  ) {
-                            $this->update_last_email( $user_id, $thread_id, $thread->last_date );
-                            continue;
+                            if ( $user_has_mentions ) {
+                                $mention_override = true;
+                            } else {
+                                $this->update_last_email( $user_id, $thread_id, $thread->last_date );
+                                continue;
+                            }
+                        }
+
+                        // If thread was included due to muted override, treat as mention override
+                        if ( $user_has_mentions && ! $mention_override ) {
+                            $is_thread_muted = (bool) $wpdb->get_var( $wpdb->prepare(
+                                "SELECT is_muted FROM `" . bm_get_table('recipients') . "` WHERE `thread_id` = %d AND `user_id` = %d",
+                                $thread_id, $user_id
+                            ) );
+                            if ( $is_thread_muted ) {
+                                $mention_override = true;
+                            }
                         }
 
                         if ( ! $last_notified || ( $last_date > $last_notified ) ) {
@@ -389,6 +446,14 @@ if ( !class_exists( 'Better_Messages_Notifications' ) ):
                             if( ! $last_notified ) $last_notified = gmdate('Y-m-d H:i:s', 0 );
 
                             $ud = get_userdata( $user_id );
+
+                            $mention_filter = '';
+                            if ( $mention_override ) {
+                                $mention_filter = $wpdb->prepare(
+                                    "AND `messages`.`id` IN (SELECT `message_id` FROM `" . bm_get_table('mentions') . "` WHERE `thread_id` = %d AND `user_id` = %d AND `type` = 'mention')",
+                                    $thread->thread_id, $user_id
+                                );
+                            }
 
                             $query = $wpdb->prepare( "
                                 SELECT
@@ -408,6 +473,7 @@ if ( !class_exists( 'Better_Messages_Notifications' ) ):
                                 AND `messages`.sender_id != %d
                                 AND `messages`.is_pending = 0
                                 AND ( messagesmeta.meta_id IS NULL )
+                                {$mention_filter}
                                 ORDER BY id DESC
                                 LIMIT 0, %d
                             ", $thread->thread_id, $last_notified, $user_id, $thread->unread_count );
@@ -646,11 +712,11 @@ if ( !class_exists( 'Better_Messages_Notifications' ) ):
                 if( count( $rows ) > 0 ){
                     foreach ( $rows as $row ){
                         $user_id = $row->user_id;
-                        $threads = unserialize($row->meta_value);
+                        $threads = maybe_unserialize($row->meta_value);
 
                         if( is_array( $threads ) && count( $threads ) > 0 ){
                             foreach( $threads as $thread_id => $last_id ){
-                                $last_time = $wpdb->get_var( $wpdb->prepare(  "SELECT created_at FROM `" . bm_get_table('messages') . "'` WHERE `thread_id` = %d AND `id` = %d", $thread_id, $last_id ) );
+                                $last_time = $wpdb->get_var( $wpdb->prepare(  "SELECT created_at FROM `" . bm_get_table('messages') . "` WHERE `thread_id` = %d AND `id` = %d", $thread_id, $last_id ) );
                                 if( $last_time ) {
                                     $last_time = gmdate( 'Y-m-d H:i:s', substr( $last_time, 0, 10 ) );
                                 }
@@ -999,7 +1065,7 @@ if ( !class_exists( 'Better_Messages_Notifications' ) ):
             // Get logo HTML if logo is set
             $logo_html = '';
             if ( ! empty( $settings['emailLogoUrl'] ) ) {
-                $logo_html = '<tr><td style="text-align: center; padding: 20px 0 10px;"><img src="' . esc_url( $settings['emailLogoUrl'] ) . '" style="max-width: 200px; max-height: 60px;" alt="' . esc_attr( get_bloginfo( 'name' ) ) . '"></td></tr>';
+                $logo_html = '<tr><td style="text-align: center; padding: 20px 0 10px;"><img src="' . esc_url( $settings['emailLogoUrl'] ) . '" style="max-width: 100%; height: auto;" alt="' . esc_attr( get_bloginfo( 'name' ) ) . '"></td></tr>';
             }
 
             // Build the email HTML
@@ -1115,21 +1181,57 @@ if ( !class_exists( 'Better_Messages_Notifications' ) ):
             $text_color       = ! empty( $settings['emailTextColor'] ) ? $settings['emailTextColor'] : '#333333';
             $button_text      = ! empty( $settings['emailButtonText'] ) ? $settings['emailButtonText'] : __( 'View Conversation', 'bp-better-messages' );
 
+            // Process header text
+            $header_text = ! empty( $settings['emailHeaderText'] ) ? $settings['emailHeaderText'] : '';
+            if ( empty( $header_text ) ) {
+                $header_text = sprintf( __( 'Hi %s,', 'bp-better-messages' ), $data['user_name'] );
+            } else {
+                $header_text = str_replace( '{{user_name}}', $data['user_name'], $header_text );
+            }
+
+            // Process footer text
+            $footer_text = ! empty( $settings['emailFooterText'] ) ? $settings['emailFooterText'] : '';
+            if ( empty( $footer_text ) ) {
+                $footer_text = get_bloginfo( 'name' );
+            } else {
+                $footer_text = str_replace(
+                    array( '{{site_name}}', '{{site_url}}' ),
+                    array( get_bloginfo( 'name' ), home_url() ),
+                    $footer_text
+                );
+            }
+
+            // Logo HTML
+            $logo_html = '';
+            if ( ! empty( $settings['emailLogoUrl'] ) ) {
+                $logo_html = '<tr><td style="text-align: center; padding: 20px 0 10px;"><img src="' . esc_url( $settings['emailLogoUrl'] ) . '" style="max-width: 100%; height: auto;" alt="' . esc_attr( get_bloginfo( 'name' ) ) . '"></td></tr>';
+            }
+
+            // Unsubscribe HTML
+            $unsubscribe_html = '';
+            if ( ! empty( $data['unsubscribe_url'] ) ) {
+                $unsubscribe_html = '<br><a href="' . esc_url( $data['unsubscribe_url'] ) . '" style="color: #999999; font-size: 11px; text-decoration: underline;">' . esc_html_x( 'Unsubscribe from email notifications about unread messages', 'Email footer', 'bp-better-messages' ) . '</a>';
+            }
+
             // Replace all placeholders
             $replacements = array(
-                '{{site_name}}'       => get_bloginfo( 'name' ),
-                '{{site_url}}'        => home_url(),
-                '{{user_name}}'       => $data['user_name'],
-                '{{subject}}'         => $data['subject'],
-                '{{email_subject}}'   => $data['email_subject'],
-                '{{messages_html}}'   => $data['messages_html'],
-                '{{thread_url}}'      => $data['thread_url'],
-                '{{unsubscribe_url}}' => isset( $data['unsubscribe_url'] ) ? $data['unsubscribe_url'] : '',
-                '{{primary_color}}'   => $primary_color,
+                '{{site_name}}'        => get_bloginfo( 'name' ),
+                '{{site_url}}'         => home_url(),
+                '{{user_name}}'        => $data['user_name'],
+                '{{subject}}'          => $data['subject'],
+                '{{email_subject}}'    => $data['email_subject'],
+                '{{messages_html}}'    => $data['messages_html'],
+                '{{thread_url}}'       => $data['thread_url'],
+                '{{unsubscribe_url}}'  => isset( $data['unsubscribe_url'] ) ? $data['unsubscribe_url'] : '',
+                '{{primary_color}}'    => $primary_color,
                 '{{background_color}}' => $background_color,
                 '{{content_bg_color}}' => $content_bg_color,
-                '{{text_color}}'      => $text_color,
-                '{{button_text}}'     => $button_text,
+                '{{text_color}}'       => $text_color,
+                '{{button_text}}'      => $button_text,
+                '{{header_text}}'      => $header_text,
+                '{{footer_text}}'      => $footer_text,
+                '{{logo_html}}'        => $logo_html,
+                '{{unsubscribe_html}}' => $unsubscribe_html,
             );
 
             return str_replace( array_keys( $replacements ), array_values( $replacements ), $template );

@@ -30,6 +30,7 @@ $_UPLOAD        = $_BASEPATH . '/../streams/upload' . $_DS;
 
 $_CACHE         = $_BASEPATH . 'cache' . $_DS;
 //require_once $_LIBS . 'vendor' . $_DS . 'autoload.php';
+
 require $_LIBS . 'db.php';
 require $_LIBS . 'cache.php';
 require $_LIBS . 'imagethumbnail.php';
@@ -37,13 +38,6 @@ require $_LIBS . 'theme.php';
 require_once $_LIBS . 'webtopay.php';
 require $_BASEPATH . 'core.php';
 require $_LIBS . 'dataset.php';
-
-
-
-
-
-
-
 
 
 

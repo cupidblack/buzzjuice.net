@@ -984,8 +984,21 @@ if ($f == "admin_setting" && (auth()->admin == '1' || CheckUserPermission(auth()
                         $Notification->createNotification(auth()->web_device_id, auth()->id, $receipt['user_id'], 'approve_receipt', $wo['config']['currency_symbol'] . $realprice, '/#');
                     }
 
+                    $payment_id = mysqli_insert_id($conn);
+
                     if($receipt['mode'] == 'credits'){
                         $query_one = mysqli_query($conn, "UPDATE `users` SET `balance` = `balance` + {$amount} WHERE `id` = {$receipt['user_id']}");
+                        
+                        if ($receipt['mode'] == 'credits') {
+                            if ($realprice == (int)$wo['config']['bag_of_credits_price']) {
+                                bzj_log_activity($receipt['user_id'], 'bag_of_credits', $payment_id, 'purchase', (int)$wo['config']['bag_of_credits_amount'], 'QD_payments');
+                            } elseif ($realprice == (int)$wo['config']['box_of_credits_price']) {
+                                bzj_log_activity($receipt['user_id'], 'box_of_credits', $payment_id, 'purchase', (int)$wo['config']['box_of_credits_amount'], 'QD_payments');
+                            } elseif ($realprice == (int)$wo['config']['chest_of_credits_price']) {
+                                bzj_log_activity($receipt['user_id'], 'chest_of_credits', $payment_id, 'purchase', (int)$wo['config']['chest_of_credits_amount'], 'QD_payments');
+                            }
+                        }
+                        
                     }
                     if($receipt['mode'] == 'membership'){
                         $query_one = mysqli_query($conn, "UPDATE `users` SET `pro_time` = '".time()."', `is_pro` = '1', `pro_type` = '".$membershipType."' WHERE `id` = ".$receipt['user_id']);

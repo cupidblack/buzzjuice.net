@@ -2,6 +2,7 @@ var slimstatClosestPoint = false;
 document.addEventListener("DOMContentLoaded", function () {
     var chartElements = document.querySelectorAll('[id^="slimstat_chart_data_"]');
     var charts = {};
+    var GRANULARITY_STORAGE_KEY = "slimstat_chart_granularity";
 
     function reinitializeCharts(id) {
         var updatedChartElements = document.querySelectorAll('[id^="slimstat_chart_data_' + id + '"]');
@@ -25,21 +26,39 @@ document.addEventListener("DOMContentLoaded", function () {
         setupGranularitySelect(chartId);
     });
 
+    // Migrate old per-chart sessionStorage keys to shared localStorage
+    try {
+        var keys = [];
+        for (var i = 0; i < sessionStorage.length; i++) {
+            var key = sessionStorage.key(i);
+            if (key && key.indexOf("slimstat_chart_granularity_") === 0) {
+                keys.push(key);
+            }
+        }
+        if (keys.length > 0 && !localStorage.getItem(GRANULARITY_STORAGE_KEY)) {
+            localStorage.setItem(GRANULARITY_STORAGE_KEY, sessionStorage.getItem(keys[0]));
+        }
+        for (var j = 0; j < keys.length; j++) {
+            sessionStorage.removeItem(keys[j]);
+        }
+    } catch (e) {}
+
     function initializeChart(element, chartId) {
         var args = JSON.parse(element.getAttribute("data-args"));
         var data = JSON.parse(element.getAttribute("data-data"));
         var prevData = JSON.parse(element.getAttribute("data-prev-data"));
-        var daysBetween = parseInt(element.getAttribute("data-days-between"));
+        var daysBetween = parseInt(element.getAttribute("data-days-between"), 10);
         var chartLabels = JSON.parse(element.getAttribute("data-chart-labels"));
         var translations = JSON.parse(element.getAttribute("data-translations"));
         var totals = JSON.parse(element.getAttribute("data-totals") || "{}");
+        var chartType = element.getAttribute("data-chart-type") || "line";
 
         var labels = data.labels;
         var prevLabels = data.prev_labels;
 
         // Fix: Check for null/undefined datasets before using them
-        var datasets = prepareDatasets(data.datasets, chartLabels, labels, data.today);
-        var prevDatasets = prepareDatasets(prevData.datasets, chartLabels, prevData.labels, null, true);
+        var datasets = prepareDatasets(data.datasets, chartLabels, labels, data.today, false, chartType);
+        var prevDatasets = prepareDatasets(prevData.datasets, chartLabels, prevData.labels, null, true, chartType);
         prevDatasets = prevDatasets.filter(function (ds) {
             return (
                 Array.isArray(ds.data) &&
@@ -57,7 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
             chartCanvas.style.minHeight = "180px";
         }
         var ctx = chartCanvas.getContext("2d");
-        var chart = createChart(ctx, labels, prevLabels, datasets, prevDatasets, totals, args.granularity, data.today, translations, daysBetween, chartId);
+        var chart = createChart(ctx, labels, prevLabels, datasets, prevDatasets, totals, args.granularity, data.today, translations, daysBetween, chartId, chartType);
         charts[chartId] = chart;
         renderCustomLegend(chart, chartId, datasets, prevDatasets, totals, translations);
     }
@@ -65,13 +84,41 @@ document.addEventListener("DOMContentLoaded", function () {
     function setupGranularitySelect(chartId) {
         var select = document.getElementById("slimstat_granularity_" + chartId);
         if (!select) return;
+        // Guard against duplicate bindings (reinitializeCharts calls this again)
+        if (select.dataset.slimstatGranularityBound === "1") return;
+        select.dataset.slimstatGranularityBound = "1";
 
-        // Debounce the event listener to reduce server requests
+        // Restore persisted granularity from localStorage (shared across all charts)
+        var saved = null;
+        try { saved = localStorage.getItem(GRANULARITY_STORAGE_KEY); } catch (e) {}
+        if (saved && saved !== select.value) {
+            var option = select.querySelector('option[value="' + saved + '"]');
+            if (option && !option.disabled) {
+                select.value = saved;
+                fetchChartData(chartId, saved);
+            }
+        }
+
         var debounceTimeout;
         select.addEventListener("change", function () {
+            var granularity = select.value;
+            try { localStorage.setItem(GRANULARITY_STORAGE_KEY, granularity); } catch (e) {}
+
+            // Sync all other chart dropdowns on the page
+            var allSelects = document.querySelectorAll(".slimstat-granularity-select");
+            for (var i = 0; i < allSelects.length; i++) {
+                var otherSelect = allSelects[i];
+                if (otherSelect === select) continue;
+                var otherOption = otherSelect.querySelector('option[value="' + granularity + '"]');
+                if (otherOption && !otherOption.disabled && otherSelect.value !== granularity) {
+                    otherSelect.value = granularity;
+                    var otherId = otherSelect.id.replace("slimstat_granularity_", "");
+                    fetchChartData(otherId, granularity);
+                }
+            }
+
             clearTimeout(debounceTimeout);
             debounceTimeout = setTimeout(function () {
-                var granularity = select.value;
                 fetchChartData(chartId, granularity);
             }, 300);
         });
@@ -79,15 +126,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function fetchChartData(chartId, granularity) {
         var element = document.getElementById("slimstat_chart_data_" + chartId);
+        var chartCanvas = document.getElementById("slimstat_chart_" + chartId);
+        var inside = chartCanvas ? chartCanvas.closest(".inside") : null;
+        var chartWrap = chartCanvas ? chartCanvas.closest(".slimstat-chart-wrap") : null;
+
+        if (!element || !chartCanvas || !inside || !chartWrap) {
+            console.warn("SlimStat: Could not find chart elements for chart " + chartId);
+            return;
+        }
+
         var args = JSON.parse(element.getAttribute("data-args"));
-        var inside = document.querySelector(".inside:has(#slimstat_chart_" + chartId + ")");
+
         var loadingIndicator = document.createElement("p");
         loadingIndicator.classList.add("loading");
         var spinner = document.createElement("i");
         spinner.classList.add("slimstat-font-spin4", "animate-spin");
         loadingIndicator.appendChild(spinner);
         inside.appendChild(loadingIndicator);
-        document.querySelector(".slimstat-chart-wrap:has(#slimstat_chart_" + chartId + ")").style.display = "none";
+        chartWrap.style.display = "none";
 
         var xhr = new XMLHttpRequest();
         xhr.open("POST", slimstat_chart_vars.ajax_url, true);
@@ -117,15 +173,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     var translations2 = result.data.translations;
 
                     var labels = data2.labels;
-                    var datasets = prepareDatasets(data2.datasets, chart_labels2, labels, data2.today);
-                    var prevDatasets = prepareDatasets(prev_data2.datasets, chart_labels2, prev_data2.labels, null, true);
+                    var chartType2 = element.dataset.chartType || "line";
+                    var datasets = prepareDatasets(data2.datasets, chart_labels2, labels, data2.today, false, chartType2);
+                    var prevDatasets = prepareDatasets(prev_data2.datasets, chart_labels2, prev_data2.labels, null, true, chartType2);
 
                     // Destroy previous chart and create a new one to ensure correct tick callback
                     var chartCanvas = document.getElementById("slimstat_chart_" + chartId);
                     var prevChart = charts[chartId];
                     if (prevChart) prevChart.destroy();
                     var ctx = chartCanvas.getContext("2d");
-                    var chart = createChart(ctx, labels, data2.prev_labels, datasets, prevDatasets, totals2, granularity, data2.today, translations2, days_between2, chartId);
+                    var chart = createChart(ctx, labels, data2.prev_labels, datasets, prevDatasets, totals2, granularity, data2.today, translations2, days_between2, chartId, chartType2);
                     charts[chartId] = chart;
 
                     renderCustomLegend(chart, chartId, datasets, prevDatasets, totals2, translations2);
@@ -138,7 +195,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     element.dataset.translations = JSON.stringify(translations2);
 
                     inside.removeChild(loadingIndicator);
-                    document.querySelector(".slimstat-chart-wrap:has(#slimstat_chart_" + chartId + ")").style.display = "block";
+                    chartWrap.style.display = "block";
                 } else {
                     console.error("XHR error:", xhr.statusText);
                 }
@@ -148,9 +205,12 @@ document.addEventListener("DOMContentLoaded", function () {
         xhr.send(params);
     }
 
-    function prepareDatasets(rawDatasets, chartLabels, labels, today, isPrevious) {
+    function prepareDatasets(rawDatasets, chartLabels, labels, today, isPrevious, chartType) {
         if (typeof isPrevious === "undefined") {
             isPrevious = false;
+        }
+        if (typeof chartType === "undefined") {
+            chartType = "line";
         }
         if (rawDatasets === undefined || rawDatasets === null) {
             return [];
@@ -191,23 +251,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
             (function (iCopy, labelTextCopy, valuesCopy, keyCopy) {
                 var color = colors[iCopy % colors.length];
-                result.push({
+                var dataset = {
                     label: isPrevious ? "Previous " + labelTextCopy : labelTextCopy,
                     key: keyCopy,
                     data: valuesCopy,
                     borderColor: color,
+                    backgroundColor: chartType === "bar" ? color + "40" : "transparent",
                     borderWidth: isPrevious ? 1 : 2,
-                    fill: false,
-                    tension: 0.3,
+                    fill: chartType === "bar" ? true : false,
+                    tension: chartType === "line" ? 0.3 : 0,
                     pointBorderColor: "transparent",
                     pointBackgroundColor: color,
                     pointBorderWidth: 2,
-                    pointRadius: 0,
+                    pointRadius: chartType === "bar" ? 0 : 0,
                     pointHoverRadius: 4,
                     pointHoverBorderWidth: 2,
                     hitRadius: 10,
                     pointHitRadius: 10,
-                    segment: {
+                };
+
+                // Add segment configuration only for line charts
+                if (chartType === "line") {
+                    dataset.segment = {
                         borderDash: (function (isPrev) {
                             return function (ctx) {
                                 if (isPrev) {
@@ -216,15 +281,54 @@ document.addEventListener("DOMContentLoaded", function () {
                                 return labels[ctx.p1DataIndex] === "'" + today + "'" ? [5, 3] : [];
                             };
                         })(isPrevious),
-                    },
-                });
+                    };
+                }
+
+                // Add bar-specific properties
+                if (chartType === "bar") {
+                    dataset.borderRadius = 6;
+                    dataset.borderSkipped = false;
+                    dataset.categoryPercentage = 0.8;
+                    dataset.barPercentage = 0.9;
+
+                    // Add peak highlighting for bar charts
+                    dataset.backgroundColor = function (context) {
+                        var value = context.parsed.y;
+                        var maxValue = Math.max.apply(Math, context.dataset.data);
+                        if (value === maxValue && value > 0) {
+                            return color + "CC";
+                        }
+                        return color + "40";
+                    };
+                }
+
+                result.push(dataset);
             })(i, labelText, values, key);
             i++;
         }
         return result;
     }
 
-    function createChart(ctx, labels, prevLabels, datasets, prevDatasets, total, unitTime, today, translations, daysBetween, chartId) {
+    function isAllZeroDatasets(datasets) {
+        if (!Array.isArray(datasets) || datasets.length === 0) {
+            return true;
+        }
+        for (var i = 0; i < datasets.length; i++) {
+            var ds = datasets[i];
+            if (!ds || !Array.isArray(ds.data)) {
+                continue;
+            }
+            for (var j = 0; j < ds.data.length; j++) {
+                var v = ds.data[j];
+                if (typeof v === "number" && v > 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function createChart(ctx, labels, prevLabels, datasets, prevDatasets, total, unitTime, today, translations, daysBetween, chartId, chartType) {
         var isRTL = document.documentElement.dir === "rtl" || document.body.classList.contains("rtl");
 
         var customCrosshair = {
@@ -250,6 +354,25 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx2.beginPath();
                 ctx2.moveTo(pt.x, top);
                 ctx2.lineTo(pt.x, bottom);
+                ctx2.stroke();
+                ctx2.restore();
+            },
+        };
+        var emptyLine = {
+            id: "emptyLine",
+            afterDraw: function (chart) {
+                var opts = chart.options && chart.options.plugins && chart.options.plugins.emptyLine;
+                if (!opts || !opts.enabled) return;
+                var area = chart.chartArea;
+                if (!area) return;
+                var ctx2 = chart.ctx;
+                var y = (area.top + area.bottom) / 2;
+                ctx2.save();
+                ctx2.strokeStyle = opts.color || "#e8294c";
+                ctx2.lineWidth = 2;
+                ctx2.beginPath();
+                ctx2.moveTo(area.left, y);
+                ctx2.lineTo(area.right, y);
                 ctx2.stroke();
                 ctx2.restore();
             },
@@ -339,17 +462,85 @@ document.addEventListener("DOMContentLoaded", function () {
                     return slimstatGetLabel(label, false, unitTime, translations);
                 } catch (e) {
                     console.warn("SlimStat: Error processing label:", label, e);
-                    return label; // Return original label if processing fails
+                    return label;
                 }
             }
             return "";
         }
 
+        // Prepare datasets with chart type
+        var preparedDatasets = datasets.concat(prevDatasets);
+        var isEmptyCurrent = isAllZeroDatasets(datasets);
+
+        if (isEmptyCurrent && labels.length === 0) {
+            labels = [""];
+            for (var ed = 0; ed < preparedDatasets.length; ed++) {
+                if (!Array.isArray(preparedDatasets[ed].data)) {
+                    preparedDatasets[ed].data = [0];
+                } else if (preparedDatasets[ed].data.length === 0) {
+                    preparedDatasets[ed].data = [0];
+                }
+            }
+        }
+
+        if (isEmptyCurrent) {
+            preparedDatasets.unshift({
+                label: "",
+                key: "__empty__",
+                skipLegend: true,
+                type: "line",
+                data: labels.map(function () {
+                    return 0;
+                }),
+                borderColor: "#e8294c",
+                backgroundColor: "transparent",
+                borderWidth: 2,
+                fill: false,
+                tension: 0,
+                pointRadius: 0,
+                pointHoverRadius: 0,
+                pointHitRadius: 0,
+                hitRadius: 0,
+            });
+        }
+
+        for (var d = 0; d < preparedDatasets.length; d++) {
+            var ds = preparedDatasets[d];
+            if (chartType === "bar") {
+                // Only set backgroundColor if it's not already a function (for peak highlighting)
+                if (typeof ds.backgroundColor !== "function") {
+                    ds.backgroundColor = ds.backgroundColor || ds.borderColor + "40";
+                }
+                ds.borderRadius = 6;
+                ds.borderSkipped = false;
+                ds.categoryPercentage = 0.8;
+                ds.barPercentage = 0.9;
+            }
+        }
+
+        var yScale = {
+            ticks: {
+                font: {
+                    family: "Open Sans, sans-serif",
+                },
+                color: "#222",
+            },
+            grid: {
+                display: false,
+            },
+        };
+
+        if (isEmptyCurrent) {
+            yScale.min = -1;
+            yScale.max = 1;
+            yScale.ticks.stepSize = 1;
+        }
+
         return new Chart(ctx, {
-            type: "line",
+            type: chartType || "line",
             data: {
                 labels: labels,
-                datasets: datasets.concat(prevDatasets),
+                datasets: preparedDatasets,
             },
             options: {
                 layout: { padding: 20 },
@@ -388,6 +579,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         titleColor: "#222",
                         bodyColor: "#222",
                     },
+                    emptyLine: {
+                        enabled: isEmptyCurrent,
+                        color: "#e8294c",
+                    },
                 },
                 scales: {
                     x: {
@@ -409,15 +604,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         },
                     },
                     y: {
-                        ticks: {
-                            font: {
-                                family: "Open Sans, sans-serif",
-                            },
-                            color: "#222",
-                        },
-                        grid: {
-                            display: false,
-                        },
+                        ticks: yScale.ticks,
+                        grid: yScale.grid,
+                        min: yScale.min,
+                        max: yScale.max,
                     },
                 },
                 maintainAspectRatio: false,
@@ -433,7 +623,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     mode: "index",
                 },
             },
-            plugins: [customCrosshair],
+            plugins: [customCrosshair, emptyLine],
         });
     }
 
@@ -443,6 +633,9 @@ document.addEventListener("DOMContentLoaded", function () {
         for (var di = 0; di < chart.data.datasets.length; di++) {
             (function (index) {
                 var dataset = chart.data.datasets[index];
+                if (dataset.skipLegend) {
+                    return;
+                }
                 var isPrevious = dataset.label.indexOf("Previous") !== -1;
                 if (isPrevious) {
                     return;
@@ -459,7 +652,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 html += '<span class="slimstat-postbox-chart--item-label">' + dataset.label + "</span>";
                 html += '<span class="slimstat-postbox-chart--item--color" style="background-color: ' + dataset.borderColor + '"></span>';
                 html += '<span class="slimstat-postbox-chart--item-value">' + currentValue.toLocaleString() + "</span>";
-                if (previousValue && previousValue !== currentValue) {
+                if (totals.previous && totals.previous[key] != null) {
                     html += '<span class="slimstat-postbox-chart--item--color" style="background-image: repeating-linear-gradient(to right, ' + dataset.borderColor + ", " + dataset.borderColor + ' 4px, transparent 0px, transparent 6px); background-size: auto 6px; height: 2px; margin-bottom: 0px; margin-left: 10px;"></span>';
                     html += '<span class="slimstat-postbox-chart--item-value">' + previousValue.toLocaleString() + "</span>";
                 }
@@ -627,7 +820,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 } catch (e) {
                     console.warn("SlimStat: Error processing monthly label:", label, e);
-                    return label; // Return original label if processing fails
+                    return label;
                 }
             }
             // Debug: Log labels that don't match the expected format
@@ -762,20 +955,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 innerHtml += "</td></tr>";
             }
             innerHtml += "</tbody>";
-            innerHtml +=
-                '<div class="align-indicator" style="\
-                width: 15px;\
-                height: 15px;\
-                background-color: #fff;\
-                border-bottom-left-radius: 5px;\
-                display: inline-block;\
-                position: absolute;\
-                bottom: -8px;\
-                border-bottom: solid 1px #e0e0e0;\
-                border-left: solid 1px #e0e0e0;\
-                transform: rotate(-45deg);\
-                transition: left 0.1s ease;\
-            "></div>';
+            innerHtml += '<div class="align-indicator" style="' + "width: 15px;" + "height: 15px;" + "background-color: #fff;" + "border-bottom-left-radius: 5px;" + "display: inline-block;" + "position: absolute;" + "bottom: -8px;" + "border-bottom: solid 1px #e0e0e0;" + "border-left: solid 1px #e0e0e0;" + "transform: rotate(-45deg);" + "transition: left 0.1s ease;" + '"></div>';
 
             tooltipEl.querySelector("table").innerHTML = innerHtml;
 

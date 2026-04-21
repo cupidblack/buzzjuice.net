@@ -1,5 +1,0 @@
-[28-Mar-2026 00:55:54 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "WOWONDER_SITE_URL" in /home/koware/public_html/buzzjuice.net/streams/assets/init.php:63
-Stack trace:
-#0 /home/koware/public_html/buzzjuice.net/streams/index.php(11): require_once()
-#1 {main}
-  thrown in /home/koware/public_html/buzzjuice.net/streams/assets/init.php on line 63

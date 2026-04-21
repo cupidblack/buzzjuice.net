@@ -54,7 +54,7 @@ class Bound
      */
     public function isZero()
     {
-        return $this->getVersion() === '0.0.0.0-dev' && $this->isInclusive();
+        return $this->getVersion() === '0.0.0.0.0-dev' && $this->isInclusive();
     }
 
     /**
@@ -62,7 +62,7 @@ class Bound
      */
     public function isPositiveInfinity()
     {
-        return $this->getVersion() === PHP_INT_MAX.'.0.0.0' && !$this->isInclusive();
+        return $this->getVersion() === PHP_INT_MAX.'.0.0.0.0' && !$this->isInclusive();
     }
 
     /**
@@ -109,7 +109,7 @@ class Bound
      */
     public static function zero()
     {
-        return new Bound('0.0.0.0-dev', true);
+        return new Bound('0.0.0.0.0-dev', true);
     }
 
     /**
@@ -117,6 +117,6 @@ class Bound
      */
     public static function positiveInfinity()
     {
-        return new Bound(PHP_INT_MAX.'.0.0.0', false);
+        return new Bound(PHP_INT_MAX.'.0.0.0.0', false);
     }
 }

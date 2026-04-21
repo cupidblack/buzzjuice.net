@@ -69,8 +69,9 @@ class AssetLoader {
 				self::WIDGET_HANDLE,
 				'imunifyWidget',
 				array(
-					'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
-					'snoozeNonce' => wp_create_nonce( Widget::WIDGET_SNOOZE_NONCE_NAME ),
+					'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
+					'snoozeNonce'          => wp_create_nonce( Widget::WIDGET_SNOOZE_NONCE_NAME ),
+					'wafMonitoringTooltip' => $this->widget->getWafMonitoringTooltipData(),
 				)
 			);
 		}

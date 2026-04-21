@@ -644,7 +644,7 @@ if ($transaction_kind == 'PRODUCT' || $transaction_kind == 'SALE' || $transactio
             'wow_currency_code' => $wow_currency_code,
             'wow_post_id' => $wow_post_id,
             'wow_order_id' => $wow_order_id,
-            'variation_id' => $transaction_kind === 'PRO' ? $wow_product_kind : null,
+            'variation_id' => $transaction_kind === 'PRO' ? $wow_product_kind : 'null',
             'subscription_period' => $subscription_period,
             'subscription_interval' => $subscription_interval,
             'subscription_length' => $subscription_length,

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../../shared/wwqd_bridge.php';
+require_once __DIR__ . '/../../../shared/palmier/palmier_logger.php';
 $wpDb = get_wp_db();
 Class Profile extends Aj {
     public function add_invitation_links()
@@ -2958,6 +2959,9 @@ Class Profile extends Aj {
                 if ($Notification) {
                     $Notification->createNotification(self::ActiveUser()->web_device_id, self::ActiveUser()->id, $to, 'send_gift', '', '/@' . self::ActiveUser()->username . '/opengift/' . $save);
                 }
+                
+                bzj_log_activity($user_id, 'cost_per_gift', null, 'gift', $config->cost_per_gift, 'QD_live');
+                
                 return array(
                     'status' => 200,
                     'current_credit' => self::ActiveUser()->balance - (int) $config->cost_per_gift,
@@ -3047,6 +3051,9 @@ Class Profile extends Aj {
             ));
             if ($saved) {
                 $_SESSION[ 'userEdited' ] = true;
+                
+                bzj_log_activity($user_id, 'cost_per_xvisits', null, 'xvisit', $_cost, 'QD_live');
+                
                 return array(
                     'status' => 200,
                     'current_credit' => self::ActiveUser()->balance - $_cost,
@@ -3096,6 +3103,9 @@ Class Profile extends Aj {
             ));
             if ($saved) {
                 $_SESSION[ 'userEdited' ] = true;
+                
+                bzj_log_activity($user_id, 'cost_per_xmatche', null, 'xmatche', $_cost, 'QD_live');
+                
                 return array(
                     'status' => 200,
                     'current_credit' => self::ActiveUser()->balance - $_cost,
@@ -3173,6 +3183,9 @@ Class Profile extends Aj {
             ));
             if ($saved) {
                 $_SESSION[ 'userEdited' ] = true;
+                
+                bzj_log_activity($user_id, 'cost_per_xlike', null, 'xlike', $_cost, 'QD_live');
+                
                 return array(
                     'status' => 200,
                     'current_credit' => self::ActiveUser()->balance - $_cost,

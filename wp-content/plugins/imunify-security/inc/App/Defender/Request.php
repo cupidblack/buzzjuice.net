@@ -18,6 +18,9 @@ namespace CloudLinux\Imunify\App\Defender;
  */
 class Request {
 
+	const MAX_KEY_DEPTH = 5;
+	const MAX_KEY_COUNT = 200;
+
 	/**
 	 * Request method.
 	 *
@@ -76,8 +79,75 @@ class Request {
 		$this->post    = null !== $post ? $post : $_POST;
 		$this->cookies = null !== $cookies ? $cookies : $_COOKIE;
 		$this->files   = null !== $files ? $files : $_FILES;
-		$this->method  = $this->extractMethod( $this->server );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended
+
+		// Extract method before parsing JSON body so that a JSON _method key
+		// cannot override the real HTTP method detected from $_POST/_SERVER.
+		$this->method = $this->extractMethod( $this->server );
+
+		if ( empty( $this->post ) ) {
+			$this->maybeParseJsonBody();
+		}
+	}
+
+	/**
+	 * Parse JSON request body into $this->post when $_POST is empty.
+	 *
+	 * PHP only populates $_POST for application/x-www-form-urlencoded and
+	 * multipart/form-data. For application/json requests (used by WordPress
+	 * REST API), $_POST is empty and the body is only available via
+	 * php://input. This method bridges that gap so ARGS:field conditions
+	 * work on JSON request bodies.
+	 *
+	 * Guards:
+	 * - Only runs when $_POST is empty (avoids double-parsing form submissions).
+	 * - Only for application/json content type.
+	 * - Caps raw input at 1 MB.
+	 * - Rejects non-array decoded results.
+	 *
+	 * @since 3.0.2
+	 */
+	private function maybeParseJsonBody() {
+		$content_type = isset( $this->server['CONTENT_TYPE'] )
+			? $this->server['CONTENT_TYPE']
+			: ( isset( $this->server['HTTP_CONTENT_TYPE'] ) ? $this->server['HTTP_CONTENT_TYPE'] : '' );
+
+		$parts     = explode( ';', $content_type, 2 );
+		$mime_type = strtolower( trim( $parts[0] ) );
+		if ( 'application/json' !== $mime_type ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reading php://input stream, not a filesystem file.
+		$raw = $this->readInput( 1048576 );
+		if ( empty( $raw ) ) {
+			return;
+		}
+
+		// Note: on PHP 5.6, json_decode() may return null without setting
+		// json_last_error() when the depth limit is exceeded. The is_array()
+		// guard below handles this correctly — null fails the check.
+		$decoded = json_decode( $raw, true, 64 );
+		if ( is_array( $decoded ) && ! empty( $decoded ) ) {
+			$this->post = $decoded;
+		}
+	}
+
+	/**
+	 * Read raw request body from php://input.
+	 *
+	 * Extracted as a method so unit tests can override the input source
+	 * without requiring a real php://input stream.
+	 *
+	 * @since 3.0.2
+	 *
+	 * @param int $max_length Maximum bytes to read.
+	 *
+	 * @return string|false Raw body content, or false on failure.
+	 */
+	protected function readInput( $max_length ) {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reading php://input stream.
+		return file_get_contents( 'php://input', false, null, 0, $max_length );
 	}
 
 	/**
@@ -188,6 +258,30 @@ class Request {
 	}
 
 	/**
+	 * Get all GET and POST parameters merged.
+	 *
+	 * POST values take precedence over GET when keys overlap.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @return array All GET and POST parameters.
+	 */
+	public function getAllArgs() {
+		return array_merge( $this->get, $this->post );
+	}
+
+	/**
+	 * Check if any GET or POST parameters exist.
+	 *
+	 * @since 3.0.2
+	 *
+	 * @return bool True if at least one parameter exists.
+	 */
+	public function hasAnyArgs() {
+		return ! empty( $this->get ) || ! empty( $this->post );
+	}
+
+	/**
 	 * Get all cookies.
 	 *
 	 * @return array All cookies.
@@ -246,6 +340,278 @@ class Request {
 	}
 
 	/**
+	 * Get the original filename of an uploaded file.
+	 *
+	 * @since 3.0.2
+	 *
+	 * @param string $key The file field name.
+	 *
+	 * @return string|null Original filename, or null if not found.
+	 */
+	public function getFileName( $key ) {
+		$file = $this->getFile( $key );
+		if ( ! isset( $file['name'] ) ) {
+			return null;
+		}
+		// Strip null bytes that could cause regex matching to silently truncate.
+		return str_replace( "\0", '', $file['name'] );
+	}
+
+	/**
+	 * Get the client-provided MIME type of an uploaded file.
+	 *
+	 * WARNING: This value comes directly from $_FILES['type'] and is trivially
+	 * spoofable by the client. WAF rules should use :name as the primary gate
+	 * and treat :type only as a supplementary signal.
+	 *
+	 * @since 3.0.2
+	 *
+	 * @param string $key The file field name.
+	 *
+	 * @return string|null MIME type, or null if not found.
+	 */
+	public function getFileType( $key ) {
+		$file = $this->getFile( $key );
+		if ( ! isset( $file['type'] ) ) {
+			return null;
+		}
+		// Strip null bytes that could cause regex matching to silently truncate.
+		return str_replace( "\0", '', $file['type'] );
+	}
+
+	/**
+	 * Read the first N bytes of an uploaded file's content.
+	 *
+	 * Validates that the file was genuinely uploaded via HTTP POST
+	 * before reading, to prevent path-traversal attacks.
+	 *
+	 * @since 3.0.2
+	 *
+	 * @param string $key   The file field name.
+	 * @param int    $limit Max bytes to read (default 8192).
+	 *
+	 * @return string|null File content, or null if not found/unreadable.
+	 */
+	public function getFileContent( $key, $limit = 8192 ) {
+		$file = $this->getFile( $key );
+		if ( ! isset( $file['tmp_name'] ) ) {
+			return null;
+		}
+
+		if ( isset( $file['error'] ) && UPLOAD_ERR_OK !== (int) $file['error'] ) {
+			return null;
+		}
+
+		$tmpPath = $file['tmp_name'];
+		if ( ! $this->isUploadedFile( $tmpPath ) ) {
+			return null;
+		}
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen -- reading uploaded temp file, not a WP filesystem operation.
+		$fh = fopen( $tmpPath, 'rb' );
+		if ( false === $fh ) {
+			return null;
+		}
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fread -- reading uploaded temp file.
+		$content = fread( $fh, $limit );
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose -- reading uploaded temp file.
+		fclose( $fh );
+
+		if ( false === $content ) {
+			return null;
+		}
+
+		return $content;
+	}
+
+	/**
+	 * Check whether a file path points to a genuinely uploaded file.
+	 *
+	 * Wraps is_uploaded_file() so that unit tests can override this
+	 * method to allow reading non-uploaded temp files.
+	 *
+	 * @since 3.0.2
+	 *
+	 * @param string $path Temporary file path.
+	 *
+	 * @return bool True if the file was uploaded via HTTP POST.
+	 */
+	protected function isUploadedFile( $path ) {
+		return is_uploaded_file( $path );
+	}
+
+	/**
+	 * Resolve a nested GET parameter value using bracket-path segments.
+	 *
+	 * Navigates $this->get[$rootKey][$path[0]][$path[1]]... to the leaf value.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param string $rootKey Root parameter key.
+	 * @param array  $path    Array of bracket-path segments.
+	 *
+	 * @return mixed|null The leaf value, or null if the path doesn't exist.
+	 */
+	public function resolveNestedGet( $rootKey, array $path ) {
+		return self::resolveNestedPath( $this->get, $rootKey, $path );
+	}
+
+	/**
+	 * Resolve a nested POST parameter value using bracket-path segments.
+	 *
+	 * Navigates $this->post[$rootKey][$path[0]][$path[1]]... to the leaf value.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param string $rootKey Root parameter key.
+	 * @param array  $path    Array of bracket-path segments.
+	 *
+	 * @return mixed|null The leaf value, or null if the path doesn't exist.
+	 */
+	public function resolveNestedPost( $rootKey, array $path ) {
+		return self::resolveNestedPath( $this->post, $rootKey, $path );
+	}
+
+	/**
+	 * Navigate a nested array by root key and path segments.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param array  $data    The source array ($_GET or $_POST).
+	 * @param string $rootKey Root key in $data.
+	 * @param array  $path    Ordered path segments to traverse.
+	 *
+	 * @return mixed|null The leaf value, or null if any segment is missing.
+	 */
+	private static function resolveNestedPath( array $data, $rootKey, array $path ) {
+		if ( ! isset( $data[ $rootKey ] ) ) {
+			return null;
+		}
+
+		$current = $data[ $rootKey ];
+
+		foreach ( $path as $segment ) {
+			if ( ! is_array( $current ) || ! isset( $current[ $segment ] ) ) {
+				return null;
+			}
+			$current = $current[ $segment ];
+		}
+
+		return $current;
+	}
+
+	/**
+	 * Recursively extract all leaf string values from a (possibly nested) array.
+	 *
+	 * Used for scan-all ARGS evaluation when parameter values may be PHP arrays
+	 * produced by bracket-notation form fields (e.g., param[key]=val).
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param array $data     The array to walk.
+	 * @param int   $maxDepth Maximum recursion depth (default 5).
+	 * @param int   $maxCount Maximum number of leaf values to return (default 100).
+	 *
+	 * @return string[] Flat array of leaf string values.
+	 */
+	public static function extractLeafValues( array $data, $maxDepth = 5, $maxCount = 100 ) {
+		$leaves = array();
+		self::walkLeaves( $data, $maxDepth, $maxCount, $leaves, 0 );
+		return $leaves;
+	}
+
+	/**
+	 * Recursive helper for extractLeafValues().
+	 *
+	 * @param array $data     Current array level.
+	 * @param int   $maxDepth Maximum recursion depth.
+	 * @param int   $maxCount Maximum leaf count.
+	 * @param array $leaves   Collected leaves (passed by reference).
+	 * @param int   $depth    Current depth.
+	 */
+	private static function walkLeaves( array $data, $maxDepth, $maxCount, array &$leaves, $depth ) {
+		if ( $depth >= $maxDepth ) {
+			return;
+		}
+
+		foreach ( $data as $value ) {
+			if ( count( $leaves ) >= $maxCount ) {
+				return;
+			}
+
+			if ( is_array( $value ) ) {
+				self::walkLeaves( $value, $maxDepth, $maxCount, $leaves, $depth + 1 );
+			} elseif ( is_string( $value ) ) {
+				$leaves[] = $value;
+			}
+		}
+	}
+
+	/**
+	 * Get all GET/POST parameter values whose names match a regex pattern.
+	 *
+	 * Used with ModSecurity-style field name regex (e.g., ARGS:/field_a|field_b/).
+	 * POST parameters take precedence over GET when keys overlap.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param string $pattern Regex pattern to match against parameter names (without delimiters/anchors).
+	 *
+	 * @return array<string, mixed> Associative array of matching parameter name => value pairs.
+	 */
+	public function getMatchingArgs( $pattern ) {
+		$regex = '#^(?:' . str_replace( '#', '\\#', $pattern ) . ')$#';
+
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentional; invalid regex must be silently skipped.
+		if ( false === @preg_match( $regex, '' ) ) {
+			return array();
+		}
+
+		$results = array();
+
+		foreach ( $this->get as $key => $value ) {
+			if ( is_string( $key ) && preg_match( $regex, $key ) ) {
+				$results[ $key ] = $value;
+			}
+		}
+
+		foreach ( $this->post as $key => $value ) {
+			if ( is_string( $key ) && preg_match( $regex, $key ) ) {
+				$results[ $key ] = $value;
+			}
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Get all cookie values whose names match a regex pattern.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param string $pattern Regex pattern to match against cookie names (without delimiters/anchors).
+	 *
+	 * @return array<string, mixed> Associative array of matching cookie name => value pairs.
+	 */
+	public function getMatchingCookies( $pattern ) {
+		$regex = '#^(?:' . str_replace( '#', '\\#', $pattern ) . ')$#';
+
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentional; invalid regex must be silently skipped.
+		if ( false === @preg_match( $regex, '' ) ) {
+			return array();
+		}
+
+		$results = array();
+
+		foreach ( $this->cookies as $key => $value ) {
+			if ( is_string( $key ) && preg_match( $regex, $key ) ) {
+				$results[ $key ] = $value;
+			}
+		}
+
+		return $results;
+	}
+
+	/**
 	 * Get a request header.
 	 *
 	 * @param string $key The header key.
@@ -255,6 +621,123 @@ class Request {
 	public function getHeader( $key ) {
 		$header_key = 'HTTP_' . strtoupper( str_replace( '-', '_', $key ) );
 		return isset( $this->server[ $header_key ] ) ? $this->server[ $header_key ] : null;
+	}
+
+	/**
+	 * Check if a request header exists.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param string $key The header key (e.g. 'User-Agent', 'X-Custom').
+	 *
+	 * @return bool True if the header exists, false otherwise.
+	 */
+	public function hasHeader( $key ) {
+		return null !== $this->getHeader( $key );
+	}
+
+	/**
+	 * Get all header values whose names match a regex pattern.
+	 *
+	 * PHP normalises header names to HTTP_UPPER_CASE in $_SERVER, so this
+	 * method converts them back to Title-Case (e.g. HTTP_USER_AGENT → User-Agent)
+	 * and applies a case-insensitive regex match because HTTP header names are
+	 * case-insensitive per RFC 7230.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param string $pattern Regex pattern to match against header names (without delimiters/anchors).
+	 *
+	 * @return array<string, string> Associative array of matching header name => value pairs.
+	 */
+	public function getMatchingHeaders( $pattern ) {
+		$regex = '#^(?:' . str_replace( '#', '\\#', $pattern ) . ')$#i';
+
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentional; invalid regex must be silently skipped.
+		if ( false === @preg_match( $regex, '' ) ) {
+			return array();
+		}
+
+		$results = array();
+
+		foreach ( $this->server as $key => $value ) {
+			if ( 0 !== strpos( $key, 'HTTP_' ) || ! is_string( $value ) ) {
+				continue;
+			}
+			$headerName = str_replace( ' ', '-', ucwords( strtolower( str_replace( '_', ' ', substr( $key, 5 ) ) ) ) );
+			if ( preg_match( $regex, $headerName ) ) {
+				$results[ $headerName ] = $value;
+			}
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Get all HTTP request headers as an associative array.
+	 *
+	 * Extracts headers from $_SERVER entries with HTTP_ prefix and
+	 * returns them with normalised Title-Case names.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @return array<string, string> Header name => value pairs.
+	 */
+	public function getAllHeaders() {
+		$headers = array();
+
+		foreach ( $this->server as $key => $value ) {
+			if ( 0 !== strpos( $key, 'HTTP_' ) || ! is_string( $value ) ) {
+				continue;
+			}
+			$headerName             = str_replace( ' ', '-', ucwords( strtolower( str_replace( '_', ' ', substr( $key, 5 ) ) ) ) );
+			$headers[ $headerName ] = $value;
+		}
+
+		return $headers;
+	}
+
+	/**
+	 * Get all parameter key names from GET and POST as a flat list.
+	 *
+	 * Recursively flattens nested arrays into bracket-path keys matching
+	 * PHP's $_POST structure (e.g., param[key][subkey]).
+	 *
+	 * @since 3.0.2
+	 *
+	 * @return string[] Unique array of all parameter key names.
+	 */
+	public function getArgNames() {
+		$keys = array();
+		$this->collectKeys( $this->get, '', $keys );
+		$this->collectKeys( $this->post, '', $keys );
+		return array_values( array_unique( $keys ) );
+	}
+
+	/**
+	 * Recursively collect all array keys as bracket-path strings.
+	 *
+	 * @since 3.0.2
+	 *
+	 * @param array  $arr    Array to walk.
+	 * @param string $prefix Current bracket-path prefix.
+	 * @param array  $keys   Collected keys (passed by reference).
+	 * @param int    $depth  Current recursion depth.
+	 */
+	private function collectKeys( $arr, $prefix, &$keys, $depth = 0 ) {
+		if ( ! is_array( $arr ) || $depth >= self::MAX_KEY_DEPTH || count( $keys ) >= self::MAX_KEY_COUNT ) {
+			return;
+		}
+		foreach ( $arr as $k => $v ) {
+			if ( count( $keys ) >= self::MAX_KEY_COUNT ) {
+				return;
+			}
+			$full   = '' === $prefix ? (string) $k : $prefix . '[' . $k . ']';
+			$keys[] = $full;
+			if ( is_array( $v ) ) {
+				$this->collectKeys( $v, $full, $keys, $depth + 1 );
+			}
+		}
 	}
 
 	/**

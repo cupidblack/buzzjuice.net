@@ -1468,7 +1468,16 @@
     <?php
     if ($wo['loggedin'] == true) {
     $wo['user']['notification_settings'] = (Array) json_decode(html_entity_decode($wo['user']['notification_settings']));
-     if ($wo['loggedin'] == true && $wo['config']['memories_system'] != 0 && $wo['user']['notification_settings']['e_memory'] == 1 && empty($_COOKIE['memory'])) { ?>
+    
+    $e_memory = $wo['user']['notification_settings']['e_memory'] ?? 0;
+        if (
+        !empty($wo['loggedin']) &&
+        !empty($wo['config']['memories_system']) &&
+        $e_memory == 1 &&
+        empty($_COOKIE['memory'])
+    ) {
+    ?>
+    
       <script type="text/javascript">
         $.post(Wo_Ajax_Requests_File() + '?f=notify_memories', function(data, textStatus, xhr) {});
       </script>

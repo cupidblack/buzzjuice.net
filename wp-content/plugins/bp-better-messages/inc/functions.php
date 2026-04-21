@@ -588,7 +588,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
 
             $current_user_id = Better_Messages()->functions->get_current_user_id();
 
-            $pending_sql = user_can( $current_user_id, 'bm_can_administrate' ) ? "" : $wpdb->prepare(" AND ( `messages`.`is_pending` = 0 OR `messages`.`sender_id` = %d ) ", $current_user_id );
+            $pending_sql = user_can( $current_user_id, 'bm_can_administrate' ) ? "" : $wpdb->prepare(" AND ( `messages`.`is_pending` != 1 OR `messages`.`sender_id` = %d ) ", $current_user_id );
 
             switch ($action){
                 case 'last_messages':
@@ -773,7 +773,8 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 }
 
                 if (class_exists('WooCommerce') && Better_Messages()->settings['chatPage'] === 'woocommerce') {
-                    $link = trailingslashit(get_permalink(get_option('woocommerce_myaccount_page_id'))) . $slug . '/';
+                    $woo_slug = Better_Messages()->settings['wooCommerceMessagesSlug'];
+                    $link = trailingslashit(get_permalink(get_option('woocommerce_myaccount_page_id'))) . $woo_slug . '/';
                     return $link;
                 }
 
@@ -1049,6 +1050,13 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 return false;
             }
 
+            // Prevent adding AI bots to E2E encrypted threads
+            if ( $user_id < 0 && class_exists( 'Better_Messages_E2E_Encryption' ) && Better_Messages_E2E_Encryption::is_e2e_thread( $thread_id ) ) {
+                if ( isset( Better_Messages()->ai ) && Better_Messages()->ai->get_bot_id_from_user( $user_id ) ) {
+                    return false;
+                }
+            }
+
             global $wpdb;
 
             $userIsParticipant = $this->is_user_participant( $thread_id, $user_id );
@@ -1132,12 +1140,30 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 $threads_excluded = '0';
             }
 
+            $bulk_excluded = $wpdb->get_col("
+                SELECT bjt.thread_id
+                FROM " . bm_get_table('bulk_job_threads') . " AS bjt
+                INNER JOIN " . bm_get_table('bulk_jobs') . " AS bj ON bj.id = bjt.job_id
+                WHERE bj.disable_reply = 1
+            ");
+
+            if ( ! empty( $bulk_excluded ) ) {
+                $threads_excluded .= ',' . implode( ',', array_map( 'intval', $bulk_excluded ) );
+            }
+
             if( $exclude_deleted === null ){
                 $exclude_deleted = Better_Messages()->settings['deletedBehaviour'] !== 'include';
             }
 
             $exclude_deleted_sql = '';
             if( $exclude_deleted ) $exclude_deleted_sql = 'AND recipients.is_deleted = 0';
+
+            $exclude_e2e_join = '';
+            $exclude_e2e_where = '';
+            if ( Better_Messages()->settings['e2eEncryption'] !== '1' ) {
+                $exclude_e2e_join  = "LEFT JOIN " . bm_get_table('threadsmeta') . " e2emeta ON ( e2emeta.`bm_thread_id` = threads.`id` AND e2emeta.meta_key = 'bm_e2e' )";
+                $exclude_e2e_where = "AND e2emeta.`meta_value` IS NULL";
+            }
 
             $threads_between_users = $wpdb->prepare("
             SELECT recipients.thread_id
@@ -1146,10 +1172,12 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 ON recipients.thread_id = threads.id
             LEFT JOIN " . bm_get_table('threadsmeta') . " threadsmeta ON
                 ( threadsmeta.`bm_thread_id` = threads.`id` AND threadsmeta.meta_key = 'unique_tag' )
+            {$exclude_e2e_join}
             WHERE recipients.user_id IN (%d, %d)
             {$exclude_deleted_sql}
             AND threads.type = 'thread'
             AND `threadsmeta`.`meta_value` IS NULL
+            {$exclude_e2e_where}
             AND threads.id NOT IN (" . $threads_excluded . ")
             GROUP BY recipients.thread_id
             HAVING COUNT(recipients.thread_id) = 2", $from, $to);
@@ -1209,6 +1237,13 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             }
 
             if( ! $from ) $from = Better_Messages()->functions->get_current_user_id();
+
+            if( $from === $to ) {
+                return [
+                    'result' => 'not_allowed',
+                    'errors' => [ _x('You can not start a conversation with yourself', 'Shortcode error', 'bp-better-messages') ]
+                ];
+            }
 
             if( ! $uniqueKey ){
                 $existing_threads = $this->find_existing_threads( $from, $to );
@@ -1367,7 +1402,16 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 $thread = $this->get_thread( $thread_id );
 
                 if( $thread ) {
-                    return $thread_id;
+                    // Skip E2E threads when E2E is disabled globally,
+                    // so users can create a new non-encrypted conversation
+                    if ( Better_Messages()->settings['e2eEncryption'] !== '1'
+                        && class_exists( 'Better_Messages_E2E_Encryption' )
+                        && Better_Messages_E2E_Encryption::is_e2e_thread( $thread_id )
+                    ) {
+                        // Fall through to create new conversation below
+                    } else {
+                        return $thread_id;
+                    }
                 }
             }
 
@@ -1682,6 +1726,11 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
 
             $thread_type = 'thread';
 
+            if( ! $thread ) {
+                wp_cache_set('thread_' . $thread_id . '_type', $thread_type, 'bm_messages');
+                return $thread_type;
+            }
+
             if( $thread->type === 'group' ) {
                 $is_valid_group = apply_filters( 'better_messages_is_valid_group', false, $thread_id );
 
@@ -1800,7 +1849,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 'id'         => (string) $user_id,
                 'user_id'    => (int) $user_id,
                 'name'       => html_entity_decode( Better_Messages()->functions->get_name( $user_id ) ),
-                'avatar'     => Better_Messages()->functions->get_avatar( $user_id, 50, ['html' => false] ),
+                'avatar'     => Better_Messages()->functions->get_avatar( $user_id, 100, ['html' => false] ),
                 'url'        => $url,
                 'verified'   => (int) $this->is_verified( $user_id ),
                 'lastActive' => Better_Messages()->functions->get_last_activity( $user_id )
@@ -1832,6 +1881,47 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             }
 
             return apply_filters( 'better_messages_rest_user_item', $item, $user_id, $include_personal );
+        }
+
+        /**
+         * Build encrypted and HMAC-signed user profile for WebSocket server caching.
+         * The server stores the encrypted data opaquely and verifies the signature
+         * before caching to prevent client-side tampering.
+         */
+        public function build_ws_profile( $user_id, $user_data = null ) {
+            if ( ! $user_data ) {
+                $user_data = $this->rest_user_item( $user_id, false );
+            }
+
+            $plaintext = [
+                'user_id'  => (int) $user_id,
+                'name'     => $user_data['name'],
+                'avatar'   => $user_data['avatar'],
+                'url'      => $user_data['url'] ?? '',
+                'verified' => (int) ( $user_data['verified'] ?? 0 ),
+            ];
+
+            $hash = md5( json_encode( $plaintext ) );
+
+            $encrypted = [
+                'user_id'  => (int) $user_id,
+                'name'     => Better_Messages_WebSocket()->encrypt_message_for_website( $user_data['name'] ),
+                'avatar'   => Better_Messages_WebSocket()->encrypt_message_for_website( $user_data['avatar'] ),
+                'url'      => $user_data['url'] ? Better_Messages_WebSocket()->encrypt_message_for_website( $user_data['url'] ) : '',
+                'verified' => (int) ( $user_data['verified'] ?? 0 ),
+            ];
+
+            if ( isset( $user_data['status'] ) ) {
+                $encrypted['status'] = $user_data['status'];
+            }
+
+            $sig = hash_hmac( 'sha256', $hash, Better_Messages_WebSocket()->secret_key );
+
+            return [
+                'pd'  => $encrypted,
+                'pdh' => $hash,
+                'pds' => $sig,
+            ];
         }
 
         public function get_message_by_order( $thread_id, $message_number = 1 ){
@@ -2357,35 +2447,171 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
         }
 
         public function render_login_form(){
+            Better_Messages()->enqueue_css();
+
             ob_start();
             ?>
             <style type="text/css">
                 .bm-login-form{
-                    background: white;
-                    border: 1px solid #ccc;
-                    color: black;
-                    padding: 15px 25px;
-                    margin: 15px auto;
+                    background: rgba(var(--bm-bg-color), 1);
+                    border: 1px solid rgba(var(--bm-border-color), 1);
+                    border-radius: var(--bm-border-radius);
+                    color: rgba(var(--bm-text-color), 1);
+                    font-family: var(--bm-font-family);
+                    padding: 28px 32px;
+                    margin: 20px auto;
                     width: 100%;
-                    max-width: 600px;
+                    max-width: 420px;
+                    box-sizing: border-box;
+                    font-size: 14px;
+                    line-height: 1.5;
+                }
+
+                .bm-login-form *,
+                .bm-login-form *::before,
+                .bm-login-form *::after{
+                    box-sizing: border-box;
                 }
 
                 .bm-login-form .bm-login-text{
-                    color: black;
-                    font-size: 16px;
-                    margin: 10px 0 20px;
-                    font-weight: bold;
+                    color: rgba(var(--bm-text-color), 1);
+                    font-size: 18px;
+                    line-height: 1.3;
+                    margin: 0 0 22px;
+                    padding: 0;
+                    font-weight: 600;
+                    text-align: center;
+                }
+
+                .bm-login-form form p{
+                    margin: 0 0 14px;
+                    padding: 0;
                 }
 
                 .bm-login-form form label{
                     display: block;
                     width: 100%;
-                    margin-bottom: 10px;
+                    margin: 0 0 6px;
+                    padding: 0;
+                    color: rgba(var(--bm-text-color), 0.85);
+                    font-size: 13px;
+                    font-weight: 500;
+                    line-height: 1.4;
                 }
+
                 .bm-login-form form input[type="text"],
-                .bm-login-form form input[type="password"]{
+                .bm-login-form form input[type="password"],
+                .bm-login-form form input[type="email"]{
                     display: block;
                     width: 100%;
+                    height: auto;
+                    margin: 0;
+                    padding: 9px 12px;
+                    background: rgba(var(--bm-bg-secondary), 1);
+                    border: 1px solid rgba(var(--bm-border-color), 1);
+                    border-radius: var(--bm-border-radius);
+                    color: rgba(var(--bm-text-color), 1);
+                    font-family: inherit;
+                    font-size: 14px;
+                    line-height: 1.4;
+                    outline: none;
+                    box-shadow: none;
+                    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+                    -webkit-appearance: none;
+                    appearance: none;
+                }
+
+                .bm-login-form form input[type="text"]:focus,
+                .bm-login-form form input[type="password"]:focus,
+                .bm-login-form form input[type="email"]:focus{
+                    border-color: rgba(var(--main-bm-color), 1);
+                    box-shadow: 0 0 0 3px rgba(var(--main-bm-color), 0.15);
+                }
+
+                .bm-login-form form .login-remember{
+                    margin: 4px 0 18px;
+                }
+
+                .bm-login-form form .login-remember label{
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin: 0;
+                    font-size: 13px;
+                    color: rgba(var(--bm-text-color), 0.8);
+                    cursor: pointer;
+                }
+
+                .bm-login-form form .login-remember input[type="checkbox"]{
+                    margin: 0;
+                    width: 16px;
+                    height: 16px;
+                    flex-shrink: 0;
+                    accent-color: rgba(var(--main-bm-color), 1);
+                }
+
+                .bm-login-form form .login-submit{
+                    margin: 0;
+                }
+
+                .bm-login-form form input[type="submit"],
+                .bm-login-form form button[type="submit"]{
+                    display: block;
+                    width: 100%;
+                    margin: 0;
+                    padding: 10px 16px;
+                    background: rgba(var(--main-bm-color), 1);
+                    border: 1px solid rgba(var(--main-bm-color), 1);
+                    border-radius: var(--bm-border-radius);
+                    color: #ffffff;
+                    font-family: inherit;
+                    font-size: 14px;
+                    font-weight: 500;
+                    line-height: 1.4;
+                    text-align: center;
+                    cursor: pointer;
+                    outline: none;
+                    box-shadow: none;
+                    text-shadow: none;
+                    transition: filter 0.15s ease, box-shadow 0.15s ease;
+                    -webkit-appearance: none;
+                    appearance: none;
+                }
+
+                .bm-login-form form input[type="submit"]:hover,
+                .bm-login-form form button[type="submit"]:hover{
+                    filter: brightness(1.1);
+                }
+
+                .bm-login-form form input[type="submit"]:focus,
+                .bm-login-form form button[type="submit"]:focus{
+                    box-shadow: 0 0 0 3px rgba(var(--main-bm-color), 0.3);
+                }
+
+                body.bm-messages-dark .bm-login-form form input[type="text"],
+                body.bm-messages-dark .bm-login-form form input[type="password"],
+                body.bm-messages-dark .bm-login-form form input[type="email"]{
+                    background: rgba(var(--bm-bg-color), 1);
+                    border-color: rgba(var(--bm-border-color), 0.5);
+                }
+
+                body.bm-messages-dark .bm-login-form form input[type="text"]:focus,
+                body.bm-messages-dark .bm-login-form form input[type="password"]:focus,
+                body.bm-messages-dark .bm-login-form form input[type="email"]:focus{
+                    border-color: rgba(var(--bm-border-color), 1);
+                    box-shadow: 0 0 0 3px rgba(var(--bm-border-color), 0.4);
+                }
+
+                body.bm-messages-dark .bm-login-form form input[type="submit"],
+                body.bm-messages-dark .bm-login-form form button[type="submit"]{
+                    background: rgba(var(--bm-bg-secondary), 1);
+                    border: 1px solid rgba(var(--bm-border-color), 0.5);
+                    color: rgba(var(--bm-text-color), 1);
+                }
+
+                body.bm-messages-dark .bm-login-form form input[type="submit"]:focus,
+                body.bm-messages-dark .bm-login-form form button[type="submit"]:focus{
+                    box-shadow: 0 0 0 3px rgba(var(--bm-border-color), 0.5);
                 }
             </style>
             <div class="bm-login-form">
@@ -2483,6 +2709,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                 'error_type'       => 'bool',
                 'is_update'        => false,
                 'ai_moderation_result' => null,
+                'ai_moderation_provider' => null,
                 'ai_moderation_deferred' => false
             ), 'bm_new_message' );
 
@@ -2525,6 +2752,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             $message->notification  = $r['notification'];
             $message->is_update     = $r['is_update'];
             $message->ai_moderation_result = $r['ai_moderation_result'];
+            $message->ai_moderation_provider = $r['ai_moderation_provider'];
             $message->ai_moderation_deferred = $r['ai_moderation_deferred'];
 
             $is_pending = $message->is_pending;
@@ -2715,6 +2943,25 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
 
             Better_Messages()->mentions->process_mentions( $message->thread_id, $message->id, $message->message );
 
+            // Force push notifications for mentioned users even when push was suppressed
+            if ( Better_Messages()->settings['mentionsForceNotifications'] === '1' ) {
+                $mentioned_users = Better_Messages()->mentions->get_mentions_for_message( $message->thread_id, $message->id );
+                if ( ! empty( $mentioned_users ) ) {
+                    if ( ! $message->send_push ) {
+                        $message->send_push = true;
+                        $message->mentions_only_push = true;
+                    }
+                    if ( ! $message->mobile_push ) {
+                        $message->mobile_push = true;
+                        $message->mentions_only_mobile_push = true;
+                    }
+                    if ( ! isset( $message->send_global ) || ! $message->send_global ) {
+                        $message->send_global = true;
+                        $message->mentions_only_push = true;
+                    }
+                }
+            }
+
             //do_action( 'better_messages_thread_updated', $message->thread_id );
 
             /**
@@ -2725,8 +2972,27 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
              * @param BP_Messages_Message $message Message object. Passed by reference.
              */
 
-            if( $is_pending === 0 ){
+            if( $is_pending !== 1 ){
+                // is_pending=2: waiting for AI moderation — deliver via websocket but suppress push notifications
+                if( $is_pending === 2 ){
+                    $message->send_push = false;
+                }
+
                 do_action_ref_array( 'better_messages_message_sent', array( &$message ) );
+
+                // Fire reply hook when message is a reply to another message
+                if( isset( $args['meta_data']['reply_to'] ) && ! empty( $args['meta_data']['reply_to'] ) ){
+                    $replied_to_message_id = (int) $args['meta_data']['reply_to'];
+                    $replied_to_message = $this->get_message( $replied_to_message_id );
+
+                    if( $replied_to_message ){
+                        do_action( 'better_messages_message_reply', $message, $replied_to_message );
+                    }
+                }
+
+                if( $is_pending === 2 ){
+                    Better_Messages()->functions->update_message_meta( $message->id, 'pending_args', $message );
+                }
             } else {
                 Better_Messages()->functions->update_message_meta( $message->id, 'pending_args', $message );
                 do_action_ref_array( 'better_messages_message_pending', array( &$message ) );
@@ -2828,6 +3094,10 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             ], ['%s'], ['%d']);
 
             $this->update_message_update_time( $message->id );
+
+            if ( $r['is_update'] ) {
+                do_action( 'better_messages_message_edited', $message->id, $message->thread_id );
+            }
 
             do_action( 'better_messages_thread_updated', $message->thread_id );
 
@@ -3337,7 +3607,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             $charactersLength = strlen($characters);
             $randomString = '';
             for ($i = 0; $i < $length; $i++) {
-                $randomString .= $characters[rand(0, $charactersLength - 1)];
+                $randomString .= $characters[random_int(0, $charactersLength - 1)];
             }
             return $randomString;
         }
@@ -3420,6 +3690,15 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             }
         }
 
+        public function is_ai_bot_user( $user_id ){
+            if( $user_id >= 0 ) return false;
+
+            $guest = Better_Messages()->guests->get_guest_user( $user_id );
+            if( ! $guest || empty( $guest->ip ) ) return false;
+
+            return str_starts_with( $guest->ip, 'ai-chat-bot-' );
+        }
+
         public function is_valid_user_id( $user_id ){
             if( $user_id > 0 ){
                 $user = get_userdata( $user_id );
@@ -3499,7 +3778,7 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
         public function get_pending_messages_count(): int
         {
             global $wpdb;
-            return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `" . bm_get_table('messages') . "` WHERE `is_pending` != 0" );
+            return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `" . bm_get_table('messages') . "` WHERE `is_pending` = 1" );
         }
 
         public function get_user_secret_key( $user_id ){

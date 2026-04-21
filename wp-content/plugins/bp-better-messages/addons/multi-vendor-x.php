@@ -34,10 +34,10 @@ if ( ! class_exists( 'Better_Messages_MultiVendorX' ) ) {
             add_action( 'mvx_vendor_dashboard_bm-messages_endpoint', array( $this, 'vendor_messages' ) );
             add_action( 'mvx_frontend_enqueue_scripts', array( $this, 'dashboard_scripts'), 20, 1 );
 
-            add_action( 'woocommerce_single_product_summary',   array( &$this, 'product_page_contact_button' ), 35 );
             add_shortcode( 'better_messages_multivendorx_product_button',   array( &$this, 'product_page_contact_button_shortcode' ) );
             add_shortcode( 'better_messages_multivendorx_store_button',   array( &$this, 'store_page_contact_button_shortcode' ) );
 
+            add_action( 'woocommerce_single_product_summary',   array( &$this, 'product_page_contact_button' ), 35 );
             add_action( 'mvx_additional_button_at_banner', array( $this, 'display_store_button' ), 10, 1 );
 
         }
@@ -273,7 +273,7 @@ if ( ! class_exists( 'Better_Messages_MultiVendorX' ) ) {
         public function vendor_dashboard_nav( $nav_items ){
             if( $this->is_livechat_enabled( get_current_user_id() ) ) {
                 $nav_items['bm-messages'] = [
-                    'label' => 'Messages',
+                    'label' => _x('Messages', 'MultiVendorX vendor dashboard nav', 'bp-better-messages'),
                     'url' => mvx_get_vendor_dashboard_endpoint_url('messages'),
                     'capability' => true,
                     'position' => 29,

@@ -68,15 +68,24 @@
 				</div>
 			<?php } ?>
 			
-			<div class="wo_post_prod_full_user">
-				<a href="<?php echo $wo['story']['publisher']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['story']['publisher']['username']?>" class="avatar wow_post_usr_ava">
-					<img src="<?php echo $wo['story']['publisher']['avatar']; ?>" alt="<?php echo $wo['story']['publisher']['name']; ?> profile picture">
-				</a>&nbsp;&nbsp;
-				<h5 class="user-popover" data-type="<?php echo $wo['story']['publisher']['type']; ?>" data-id="<?php echo $wo['story']['publisher']['id']; ?>">
-					<b><?php echo $wo['lang']['published']; ?> <?php echo $wo['lang']['by']; ?></b>
-					<a href="<?php echo $wo['story']['publisher']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['story']['publisher']['username']; ?>"><?php echo $wo['story']['publisher']['name']; ?></a>
-				</h5>
-			</div>
+			<ul class="wo_post_prod_full_info">
+			    <div class="wo_post_prod_full_user">
+    				<a href="<?php echo $wo['story']['publisher']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['story']['publisher']['username']?>" class="avatar wow_post_usr_ava">
+    					<img src="<?php echo $wo['story']['publisher']['avatar']; ?>" alt="<?php echo $wo['story']['publisher']['name']; ?> profile picture">
+    				</a>&nbsp;&nbsp;
+    				<h5 class="user-popover" data-type="<?php echo $wo['story']['publisher']['type']; ?>" data-id="<?php echo $wo['story']['publisher']['id']; ?>">
+    					<b><?php echo $wo['lang']['published']; ?> <?php echo $wo['lang']['by']; ?></b>
+    					<a href="<?php echo $wo['story']['publisher']['url']; ?>" data-ajax="?link1=timeline&u=<?php echo $wo['story']['publisher']['username']; ?>"><?php echo $wo['story']['publisher']['name']; ?></a>
+    				</h5>
+    			</div>
+    			
+    			<?php
+					echo '<li><span><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.42533 10.2702C5.06343 8.72733 5.06343 7.12169 5.42533 5.57886C5.92644 3.44254 7.5945 1.77449 9.73082 1.27338C11.2736 0.911479 12.8793 0.911479 14.4221 1.27338C16.5584 1.77449 18.2265 3.44255 18.7276 5.57887C19.0895 7.12169 19.0895 8.72733 18.7276 10.2702C18.2265 12.4065 16.5584 14.0745 14.4221 14.5756C12.8793 14.9375 11.2736 14.9375 9.73082 14.5756M5.42533 10.2702C5.92644 12.4065 7.5945 14.0745 9.73082 14.5756M5.42533 10.2702C5.19746 9.29873 5.11307 8.3024 5.17215 7.31253C5.0886 7.32958 5.00524 7.34785 4.92209 7.36736C3.09096 7.79688 1.6612 9.22665 1.23167 11.0578C0.921474 12.3802 0.921474 13.7565 1.23167 15.0789C1.6612 16.91 3.09096 18.3398 4.92209 18.7693C6.24451 19.0795 7.62078 19.0795 8.9432 18.7693C10.7743 18.3398 12.2041 16.91 12.6336 15.0789C12.6531 14.9957 12.6714 14.9124 12.6884 14.8288C11.6986 14.8879 10.7022 14.8035 9.73082 14.5756" class="icon_main" stroke-width="1.5"/><path d="M5.42572 10.2702C5.06382 8.72733 5.06382 7.12169 5.42572 5.57886C5.92683 3.44254 7.59489 1.77449 9.73121 1.27338C11.274 0.911479 12.8797 0.911479 14.4225 1.27338C16.5588 1.77449 18.2269 3.44255 18.728 5.57887C19.0899 7.12169 19.0899 8.72733 18.728 10.2702C18.2269 12.4065 16.5588 14.0745 14.4225 14.5756C12.8797 14.9375 11.274 14.9375 9.73121 14.5756M5.42572 10.2702C5.92683 12.4065 7.59489 14.0745 9.73121 14.5756M5.42572 10.2702C5.19785 9.29873 5.11346 8.3024 5.17254 7.31253M9.73121 14.5756C10.7026 14.8035 11.699 14.8879 12.6888 14.8288" class="icon_main" stroke-width="1.5"/></svg>&nbsp;' . 'Contact' . ':</span>&nbsp;&nbsp;<span class="main">' . "##Seller's Contact/Chat with seller TODO##" . '</span></li>';
+				?>
+    			
+			</ul>
+		   
+
 		   
 			<?php
 				echo '<div class="wo_post_prod_full_price">' . $symbol . $wo['story']['product']['price_format'] . ' (' . $text . ')</div>';
@@ -97,7 +106,7 @@
 				<div class="wo_store_post_btns wo_post_prod_full_btns">
 					<?php if ($wo['config']['store_system'] == 'on') { ?>
 					<?php if (!empty($wo['story']['product']['units']) && $wo['story']['product']['units'] > 0) { ?>
-						<button class="contact btn btn-main btn-mat" onclick="AddProductToCart(this,'<?php echo($wo['story']['product']['id']); ?>','add')"><?php echo($wo['lang']['buy_now']) ?></button>&nbsp;&nbsp;
+						<button class="contact btn btn-main btn-mat" onclick="AddProductToCart(this,'<?php echo($wo['story']['product']['id']); ?>','add')"><?php echo('Secure Buy') ?></button>&nbsp;&nbsp;
 					<?php }else{ ?>
 						<p><?php echo($wo['lang']['currently_unavailable']) ?></p>&nbsp;&nbsp;
 					<?php } ?> 
@@ -116,7 +125,7 @@
 				<div class="wo_store_post_btns wo_post_prod_full_btns">
 					<?php if ($wo['config']['store_system'] == 'on') { ?>
 					<?php if (!empty($wo['story']['product']['units']) && $wo['story']['product']['units'] > 0) { ?>
-						<button class="contact btn btn-main btn-mat" onclick="window.location.href='<?php echo($wo['config']['site_url']) ?>'"><?php echo($wo['lang']['buy_now']) ?></button>&nbsp;&nbsp;
+						<button class="contact btn btn-main btn-mat" onclick="window.location.href='<?php echo($wo['config']['site_url']) ?>'"><?php echo('Secure Buy') ?></button>&nbsp;&nbsp;
 					<?php }else{ ?>
 						<p><?php echo($wo['lang']['currently_unavailable']) ?></p>&nbsp;&nbsp;
 					<?php } ?> 

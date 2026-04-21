@@ -1,0 +1,1552 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Customer Verification pro\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-04-12 05:32+0000\n"
+"PO-Revision-Date: 2026-03-24 06:01+0000\n"
+"Last-Translator: Yash\n"
+"Language-Team: French (France)\n"
+"Language: fr_FR\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.8.0; wp-6.8.2; php-8.3.25\n"
+"X-Domain: customer-email-verification-pro"
+
+#: includes/customizer/cev-customizer-options.php:178
+#| msgid "Login now"
+msgid " Login now"
+msgstr "Connecte-toi maintenant"
+
+#. %1$d: Success count, %2$d: Failure count
+#: includes/admin/cev-pro-admin-user.php:371
+#, php-format
+msgid "%1$d deleted, %2$d failed."
+msgstr "%1$d supprimé, %2$d a échoué."
+
+#. %d: Number of deleted entries
+#: includes/admin/cev-pro-admin-user.php:364
+msgid "%d log entry deleted successfully."
+msgid_plural "%d log entries deleted successfully."
+msgstr[0] "%d entrée de journal supprimée avec succès."
+msgstr[1] "%d entrées de journal supprimées avec succès."
+
+#. %s: Field name
+#: includes/class-cev-ajax-response.php:121
+#, php-format
+msgid "%s is required."
+msgstr "%s est requis."
+
+#: includes/admin/cev-pro-admin-settings.php:327
+#| msgid "1 Hours"
+msgid "1 Hour"
+msgstr "1 heure"
+
+#: includes/admin/cev-pro-admin-settings.php:324
+msgid "10 min"
+msgstr "10 minutes"
+
+#: includes/admin/cev-pro-admin-settings.php:471
+msgid "15 Days"
+msgstr "15 jours"
+
+#: includes/admin/cev-pro-admin-settings.php:325
+msgid "15 min"
+msgstr "15 minutes"
+
+#: includes/admin/cev-pro-admin-settings.php:328
+msgid "24 Hours"
+msgstr "24 heures"
+
+#: includes/admin/cev-pro-admin-settings.php:472
+msgid "30 Days"
+msgstr "30 jours"
+
+#: includes/admin/cev-pro-admin-settings.php:326
+msgid "30 min"
+msgstr "30 minutes"
+
+#: includes/admin/cev-pro-admin-settings.php:317
+#| msgid "4-digits"
+msgid "4-digit"
+msgstr "4 chiffres"
+
+#: includes/edit-account/class-cev-edit-account-verification.php:151
+#: includes/login-authentication/views/popup-template.php:83
+#: includes/login-authentication/views/preview-popup.php:72
+#| msgid "4-digits code"
+msgid "4-digit code"
+msgstr "4 chiffres"
+
+#: includes/admin/cev-pro-admin-settings.php:318
+#| msgid "6-digits"
+msgid "6-digit"
+msgstr "6 chiffres"
+
+#: includes/login-authentication/views/popup-template.php:81
+msgid "6-digit code"
+msgstr "Code à 6 chiffres"
+
+#: includes/admin/cev-pro-admin-settings.php:473
+msgid "60 Days"
+msgstr "60 jours"
+
+#: includes/admin/cev-pro-admin-settings.php:329
+msgid "72 Hours"
+msgstr "72 heures"
+
+#. %1$s: Recipient email address, %2$s: Verification PIN code
+#: includes/edit-account/class-cev-edit-account-verification.php:353
+#, php-format
+msgid ""
+"<p> Please confirm <strong>%1$s</strong> as your new email address. The "
+"change will not take effect until you verify this email address.</p><p> Your "
+"verification code: <strong>%2$s</strong> </p>"
+msgstr ""
+"<p>Veuillez confirmer <strong>%1$s</strong> comme nouvelle adresse e-mail. "
+"La modification ne sera effective qu'après vérification de cette adresse.</p>"
+"<p>Votre code de vérification : <strong>%2$s</strong> </p>"
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:281
+msgid "A new login OTP email has been sent."
+msgstr "Un nouvel e-mail contenant le code OTP de connexion a été envoyé."
+
+#: includes/login-authentication/class-cev-login-authentication.php:834
+msgid "A new login OTP email is sent."
+msgstr "Un nouvel e-mail OTP de connexion est envoyé."
+
+#: includes/admin/cev-pro-admin-user.php:830
+msgid "Action type is required."
+msgstr "Le type d'action est requis."
+
+#: includes/admin/cev-pro-admin-user.php:405
+msgid "Actions"
+msgstr "Actions"
+
+#: includes/customizer/cev-customizer-options.php:1069
+#: includes/customizer/cev-customizer-options.php:1083
+#: includes/customizer/cev-customizer-options.php:1097
+#: includes/customizer/cev-customizer-options.php:1111
+#| msgid "Addition footer content"
+msgid "Addition Footer Content"
+msgstr "Contenu du pied de page supplémentaire"
+
+#: includes/admin/views/user/user-profile-fields.php:48
+msgid "Admin"
+msgstr "Administrateur"
+
+#: includes/admin/cev-pro-admin-settings.php:334
+msgid "Allow 1 Attempt"
+msgstr "Autoriser 1 tentative"
+
+#: includes/admin/cev-pro-admin-settings.php:335
+#| msgid "Allow 3 Attempt"
+msgid "Allow 3 Attempts"
+msgstr "Allow 3 Attempt"
+
+#: includes/customizer/cev-customizer-options.php:178
+msgid "Already have an account?"
+msgstr "Vous avez déjà un compte?"
+
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:155
+#: includes/customizer/preview/verify_checkout_guest_user.php:101
+msgid "Already have verification code?"
+msgstr "Vous avez déjà un compte?"
+
+#: includes/edit-account/class-cev-edit-account-verification.php:108
+msgid "An account is already registered with your email address."
+msgstr "Un compte est déjà enregistré avec votre adresse e-mail."
+
+#: includes/cev-pro-enqueue.php:164
+msgid ""
+"An account with this email address already exists. Please use a different "
+"email or log in to your existing account."
+msgstr ""
+"Un compte avec cette adresse e-mail existe déjà. Veuillez utiliser une autre "
+"adresse e-mail ou vous connecter à votre compte existant."
+
+#: includes/cev-pro-enqueue.php:321
+msgid "An error occurred while verifying. Please try again."
+msgstr "Une erreur s'est produite lors de la vérification. Veuillez réessayer."
+
+#: includes/class-cev-ajax-response.php:225
+msgid "An unexpected error occurred. Please try again later."
+msgstr "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
+
+#: includes/admin/cev-pro-admin-notice.php:233
+msgid "Analytics for WooCommerce Subscriptions"
+msgstr "Analyse des abonnements WooCommerce"
+
+#: includes/signup-verification/cev-pro-signup-ajax.php:333
+msgid "Another request is processing. Please wait a moment and try again."
+msgstr ""
+"Une autre requête est en cours de traitement. Veuillez patienter un instant "
+"et réessayer."
+
+#: includes/admin/views/cev_users_tab.php:69
+msgid "Apply"
+msgstr "Appliquer"
+
+#: includes/admin/views/cev_users_tab.php:67
+msgid "Apply bulk action"
+msgstr "Appliquer une action groupée"
+
+#: includes/customizer/cev-customizer-options.php:627
+#: includes/customizer/cev-customizer-options.php:1051
+#| msgid "Available variables"
+msgid "Available Variables"
+msgstr "Variables disponibles"
+
+#: includes/customizer/cev-customizer-options.php:705
+#| msgid "background Color"
+msgid "Background Color"
+msgstr "Couleur d'arrière-plan"
+
+#: includes/customizer/cev-customizer-options.php:717
+msgid "Border Color"
+msgstr "Couleur de la bordure"
+
+#: includes/admin/views/cev_users_tab.php:61
+msgid "Bulk Action"
+msgstr "Action en masse"
+
+#: includes/admin/views/cev_users_tab.php:60
+msgid "Bulk action"
+msgstr "Action en masse"
+
+#: includes/admin/views/cev_users_tab.php:55
+msgid "Bulk actions"
+msgstr "Actions en masse"
+
+#: includes/cev-pro-functions.php:618 includes/cev-pro-functions.php:764
+#: includes/cev-pro-enqueue.php:315
+#| msgid "Cancle Verification"
+msgid "Cancel Verification"
+msgstr "Annuler la vérification"
+
+#: includes/signup-verification/cev-pro-signup-captcha.php:115
+msgid ""
+"CAPTCHA is not properly configured. Please contact the site administrator."
+msgstr ""
+"Le CAPTCHA n'est pas correctement configuré. Veuillez contacter "
+"l'administrateur du site."
+
+#: includes/signup-verification/cev-pro-signup-captcha.php:132
+msgid "CAPTCHA verification error. Please try again."
+msgstr "Erreur de vérification CAPTCHA. Veuillez réessayer."
+
+#: includes/class-cev-ajax-response.php:161
+#: includes/signup-verification/cev-pro-signup-captcha.php:142
+msgid "CAPTCHA verification failed. Please try again."
+msgstr "La vérification CAPTCHA a échoué. Veuillez réessayer."
+
+#: includes/customizer/cev-customizer-options.php:323
+#: includes/customizer/cev-customizer-options.php:679
+msgid "Center"
+msgstr "Centre"
+
+#: includes/cev-pro-functions.php:1088
+msgid "Change Password"
+msgstr "Changer le mot de passe"
+
+#: includes/cev-pro-functions.php:626
+msgid "Change Password Button"
+msgstr "Bouton de changement de mot de passe"
+
+#: includes/customizer/cev-customizer-options.php:812
+msgid "Checkout"
+msgstr "Vérifier"
+
+#: includes/customizer/cev-customizer-options.php:436
+msgid "Checkout Email Popup"
+msgstr "Fenêtre contextuelle d'e-mail de paiement"
+
+#: includes/customizer/cev-customizer-options.php:437
+msgid "Checkout OTP Popup"
+msgstr "Fenêtre contextuelle de vérification du code OTP"
+
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:89
+msgid "Checkout verification is disabled."
+msgstr "La vérification à la caisse est désactivée."
+
+#: includes/admin/cev-pro-admin-settings.php:248
+#| msgid "Checkout Verification type"
+msgid "Checkout Verification Type"
+msgstr "Type de vérification de paiement"
+
+#: includes/cev-pro-hooks.php:254
+msgid "Checkout via the Store API is disabled."
+msgstr "Le paiement via l'API de la boutique est désactivé."
+
+#: includes/admin/cev-pro-admin-settings.php:355
+#| msgid "Choose if you wish to set expiry time to the OTP / link."
+msgid "Choose if you wish to set expiry time to the OTP."
+msgstr ""
+"Choisissez si vous souhaitez définir un délai d'expiration pour l'OTP / le "
+"lien."
+
+#: includes/signup-verification/views/cev-signup-popup.php:92
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:182
+msgid "Close popup"
+msgstr "Fermer la fenêtre contextuelle"
+
+#: includes/customizer/cev-customizer-options.php:318
+msgid "Content Align"
+msgstr "Alignement du contenu"
+
+#: includes/customizer/cev-customizer-options.php:674
+msgid "Content align"
+msgstr "Alignement du contenu"
+
+#: includes/customizer/cev-customizer-options.php:349
+#: includes/customizer/cev-customizer-options.php:690
+msgid "Content Padding"
+msgstr "Remplissage de contenu"
+
+#: includes/customizer/cev-customizer-options.php:334
+msgid "Content Width"
+msgstr "Largeur du contenu"
+
+#: includes/customizer/cev-customizer-options.php:659
+msgid "Content width"
+msgstr "Largeur du contenu"
+
+#. Name of the plugin
+#: includes/admin/views/page-header.php:21
+#| msgid "Customer Email Verification PRO"
+msgid "Customer Email Verification"
+msgstr "Vérification des e-mails du client PRO"
+
+#. Parent menu slug.
+#: includes/admin/class-wc-customer-email-verification-admin.php:165
+msgid "Customer Verification"
+msgstr "Vérification du client"
+
+#: includes/admin/views/user/user-profile-fields.php:25
+#| msgid ""
+#| "Customer verification\n"
+msgid "Customer verification"
+msgstr "Vérification du client"
+
+#: includes/admin/class-wc-customer-email-verification-admin.php:267
+#: includes/admin/class-wc-customer-email-verification-admin.php:273
+msgid "Customize"
+msgstr "Personnaliser"
+
+#: includes/admin/views/cev_users_tab.php:62
+#: includes/admin/views/cev_users_tab.php:99
+#: includes/admin/views/cev_users_tab.php:154
+msgid "Delete"
+msgstr "Supprimer"
+
+#. %s: Email address
+#: includes/admin/views/cev_users_tab.php:148
+#, php-format
+msgid "Delete entry for %s"
+msgstr "Supprimer l'entrée pour %s"
+
+#: includes/customizer/cev-customizer-options.php:236
+msgid "Design"
+msgstr "Conception"
+
+#. %s: search for footer customer resend link
+#: includes/login-authentication/views/preview-popup.php:118
+#, php-format
+#| msgid "Didn’t receive an email? <strong>%s</strong>"
+msgid "Didn't receive an email? <strong>%s</strong>"
+msgstr "Vous n'avez pas reçu d'e-mail? % s"
+
+#: includes/customizer/cev-customizer-options.php:167
+#: includes/customizer/cev-customizer-options.php:172
+#: includes/customizer/cev-customizer-options.php:184
+msgid "Didn't receive an email? <strong>{cev_resend_verification}</strong>"
+msgstr ""
+"Vous n'avez pas reçu d'e-mail ? <strong>{cev_resend_verification}</strong>"
+
+#: includes/admin/cev-pro-admin-settings.php:336
+msgid "Disable Resend"
+msgstr "Désactiver le renvoi"
+
+#: includes/admin/cev-pro-admin-settings.php:294
+msgid "Disable WooCommerce Store API Checkout"
+msgstr "Désactiver le paiement via l'API de la boutique WooCommerce"
+
+#: includes/admin/cev-pro-admin-notice.php:238
+msgid ""
+"Discover which products and customers drive the most value, reduce churn, "
+"and grow your subscription income with data-driven decisions."
+msgstr ""
+"Découvrez quels produits et clients génèrent le plus de valeur, réduisez le "
+"taux de désabonnement et augmentez vos revenus d'abonnement grâce à des "
+"décisions basées sur les données."
+
+#: includes/admin/cev-pro-admin-notice.php:253
+msgid "Dismiss"
+msgstr "Rejeter"
+
+#: includes/admin/cev-pro-admin-notice.php:221
+msgid "Dismiss this notice."
+msgstr "Ignorez cet avis."
+
+#: includes/admin/views/activity_panel.php:46
+#: includes/admin/views/activity_panel.php:51
+msgid "Documentation"
+msgstr "Documentation"
+
+#: includes/customizer/cev-customizer-options.php:813
+msgid "Edit Account Email"
+msgstr "Modifier l'e-mail du compte"
+
+#: includes/admin/views/cev_users_tab.php:97
+msgid "Email"
+msgstr "E-mail"
+
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:72
+#: includes/customizer/preview/verify_checkout_guest_user.php:52
+msgid "Email address"
+msgstr "Adresse e-mail"
+
+#: includes/cev-pro-enqueue.php:309
+msgid "Email address is already verified"
+msgstr "L'adresse e-mail est déjà vérifiée"
+
+#: includes/cev-pro-enqueue.php:307
+msgid "Email address verified"
+msgstr "Adresse e-mail vérifiée"
+
+#: includes/customizer/cev-customizer-options.php:266
+#: includes/customizer/cev-customizer-options.php:975
+#: includes/customizer/cev-customizer-options.php:978
+#: includes/customizer/cev-customizer-options.php:1016
+#: includes/customizer/cev-customizer-options.php:1019
+msgid "Email Content"
+msgstr "Contenu de l'e-mail"
+
+#: includes/customizer/cev-customizer-options.php:851
+#: includes/customizer/cev-customizer-options.php:854
+#: includes/customizer/cev-customizer-options.php:865
+#: includes/customizer/cev-customizer-options.php:868
+#: includes/customizer/cev-customizer-options.php:920
+#: includes/customizer/cev-customizer-options.php:923
+#: includes/customizer/cev-customizer-options.php:961
+#: includes/customizer/cev-customizer-options.php:964
+#: includes/customizer/cev-customizer-options.php:1002
+#: includes/customizer/cev-customizer-options.php:1005
+msgid "Email Heading"
+msgstr "Adresse e-mail"
+
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:465
+msgid "Email is already verified in this session."
+msgstr "Votre adresse e-mail a déjà été vérifiée dans cette session."
+
+#: includes/signup-verification/cev-pro-signup-ajax.php:468
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:118
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:270
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:347
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:445
+msgid "Email is already verified."
+msgstr "L'e-mail est déjà vérifié."
+
+#: includes/cev-pro-enqueue.php:306
+msgid "Email is Invalid"
+msgstr "L'e-mail est invalide"
+
+#: includes/cev-pro-enqueue.php:305
+msgid "Email is required for verification"
+msgstr "L'e-mail est requis pour la vérification"
+
+#: includes/cev-pro-enqueue.php:163
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:411
+msgid "Email is required."
+msgstr "L'e-mail est obligatoire."
+
+#: includes/customizer/cev-customizer-options.php:258
+msgid "Email Style"
+msgstr "Style d'e-mail"
+
+#: includes/customizer/cev-customizer-options.php:825
+#: includes/customizer/cev-customizer-options.php:828
+#: includes/customizer/cev-customizer-options.php:838
+#: includes/customizer/cev-customizer-options.php:841
+#: includes/customizer/cev-customizer-options.php:907
+#: includes/customizer/cev-customizer-options.php:910
+#: includes/customizer/cev-customizer-options.php:948
+#: includes/customizer/cev-customizer-options.php:951
+#: includes/customizer/cev-customizer-options.php:989
+#: includes/customizer/cev-customizer-options.php:992
+msgid "Email Subject"
+msgstr "Objet du courrier électronique"
+
+#: includes/customizer/cev-customizer-options.php:806
+msgid "Email Type"
+msgstr "Type de courrier électronique"
+
+#. Page title.
+#: includes/admin/cev-pro-admin-user.php:404
+#: includes/admin/class-wc-customer-email-verification-admin.php:166
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:124
+#| msgid "Email verification"
+msgid "Email Verification"
+msgstr "Vérification de l'E-mail"
+
+#: templates/emails/cev-email-verification.php:45
+#: includes/signup-verification/views/cev-signup-popup.php:101
+#: includes/customizer/preview/verify_checkout_guest_user_otp.php:79
+#: includes/customizer/preview/verify_checkout_guest_user.php:78
+#: includes/customizer/preview/preview_cev_popup_page.php:38
+#: includes/customizer/preview/preview_cev_popup_login_auth.php:38
+#| msgid "Email Verification Link"
+msgid "Email verification"
+msgstr "Vérification de l'E-mail"
+
+#: includes/cev-pro-enqueue.php:301
+#: includes/checkout-verification/class-cev-checkout-verification.php:540
+msgid "Email verification code"
+msgstr "Code de vérification de l'e-mail"
+
+#: includes/admin/views/admin_options_settings.php:43
+msgid "Email verification settings"
+msgstr "Lien de vérification des e-mails"
+
+#: includes/admin/views/user/user-profile-fields.php:31
+msgid "Email verification status:"
+msgstr "État de vérification des e-mails:"
+
+#: includes/admin/cev-pro-admin-settings.php:388
+#| msgid "Email verification success message"
+msgid "Email Verification Success Message"
+msgstr "Message de réussite de vérification par e-mail"
+
+#: includes/cev-pro-enqueue.php:322
+msgid "Email verified successfully"
+msgstr "Adresse e-mail vérifiée avec succès"
+
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:229
+msgid "Email verified successfully."
+msgstr "Adresse électronique vérifiée avec succès."
+
+#: includes/admin/cev-pro-admin-settings.php:237
+msgid "Enable Checkout Verification"
+msgstr "Activer la vérification du paiement"
+
+#: includes/admin/cev-pro-admin-settings.php:415
+msgid "Enable Login Authentication"
+msgstr "Activer l'authentification de connexion"
+
+#: includes/admin/cev-pro-admin-settings.php:219
+msgid "Enable Signup Verification"
+msgstr "Activer la vérification d'inscription"
+
+#: includes/admin/cev-pro-admin-settings.php:270
+msgid "Enable the email verification on the cart page"
+msgstr "Activer la vérification des e-mails sur la page du panier"
+
+#: includes/cev-pro-enqueue.php:165
+msgid "Enter a valid email address."
+msgstr "Entrez une adresse email valide."
+
+#: includes/signup-verification/views/cev-signup-popup.php:116
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:237
+#: includes/customizer/preview/verify_checkout_guest_user_otp.php:95
+#: includes/customizer/preview/preview_cev_popup_page.php:80
+#: includes/customizer/preview/preview_cev_popup_login_auth.php:83
+msgid "Enter verification code"
+msgstr "Saisissez le code de vérification"
+
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:152
+#: includes/customizer/preview/verify_checkout_guest_user.php:98
+msgid "Enter your email address"
+msgstr "Entrez votre adresse email"
+
+#. %d: Log entry ID
+#: includes/admin/cev-pro-admin-user.php:345
+msgid "Failed to delete ID: %d"
+msgstr "Échec de la suppression de l'ID : %d"
+
+#: includes/admin/cev-pro-admin-user.php:377
+msgid "Failed to delete log entries."
+msgstr "Échec de la suppression des entrées de journal."
+
+#: includes/admin/cev-pro-admin-user.php:267
+msgid "Failed to delete user log."
+msgstr "Échec de la suppression du journal utilisateur."
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:265
+msgid "Failed to send OTP email. Please try again later."
+msgstr ""
+"L'envoi du courriel contenant le code OTP a échoué. Veuillez réessayer plus "
+"tard."
+
+#: includes/class-cev-ajax-response.php:183
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:531
+msgid "Failed to send verification email. Please try again later."
+msgstr ""
+"L'envoi de l'e-mail de vérification a échoué. Veuillez réessayer plus tard."
+
+#: includes/admin/views/user/user-filter-dropdown.php:36
+msgid "Filter"
+msgstr "Filtre"
+
+#: includes/customizer/cev-customizer-options.php:729
+msgid "Font Color"
+msgstr "Couleur de la police"
+
+#: includes/customizer/cev-customizer-options.php:475
+#: includes/customizer/cev-customizer-options.php:478
+#: includes/customizer/cev-customizer-options.php:517
+#: includes/customizer/cev-customizer-options.php:520
+#: includes/customizer/cev-customizer-options.php:559
+#: includes/customizer/cev-customizer-options.php:562
+#: includes/customizer/cev-customizer-options.php:601
+#: includes/customizer/cev-customizer-options.php:604
+#: includes/customizer/cev-customizer-options.php:1061
+#| msgid "Footer content"
+msgid "Footer Content"
+msgstr "Contenu du pied de page"
+
+#: includes/admin/views/admin_options_settings.php:66
+msgid "General Settings"
+msgstr "Paramètres généraux"
+
+#. %s: Link to Analytics for WooCommerce Subscriptions product page
+#: includes/admin/cev-pro-admin-notice.php:232
+#, php-format
+msgid ""
+"Get powerful insights with %s — the all-in-one dashboard to track signups, "
+"renewals, cancellations, and recurring revenue."
+msgstr ""
+"Obtenez des informations précieuses avec %s — le tableau de bord tout-en-un "
+"pour suivre les inscriptions, les renouvellements, les annulations et les "
+"revenus récurrents."
+
+#: includes/admin/views/activity_panel.php:35
+#: includes/admin/views/activity_panel.php:40
+msgid "Get Support"
+msgstr "Obtenez de l'aide"
+
+#: includes/admin/class-wc-customer-email-verification-admin.php:237
+msgid "Go Pro"
+msgstr "Passez Pro"
+
+#: includes/customizer/cev-customizer-options.php:400
+msgid "Header Font Size"
+msgstr "Taille de la police de l'en-tête"
+
+#: includes/customizer/cev-customizer-options.php:777
+msgid "Header font size"
+msgstr "Taille de la police de l'en-tête"
+
+#: includes/customizer/cev-customizer-options.php:372
+msgid "Header Image"
+msgstr "Image d'en-tête"
+
+#: includes/customizer/cev-customizer-options.php:749
+msgid "Header image"
+msgstr "Image d'en-tête"
+
+#: includes/customizer/cev-customizer-options.php:447
+#: includes/customizer/cev-customizer-options.php:450
+#: includes/customizer/cev-customizer-options.php:489
+#: includes/customizer/cev-customizer-options.php:492
+#: includes/customizer/cev-customizer-options.php:531
+#: includes/customizer/cev-customizer-options.php:534
+#: includes/customizer/cev-customizer-options.php:573
+#: includes/customizer/cev-customizer-options.php:576
+#| msgid "Header text"
+msgid "Header Text"
+msgstr "Texte d'en-tête"
+
+#: includes/customizer/cev-customizer-options.php:189
+#| msgid ""
+#| "Hi {cev_display_name},\n"
+#| "\n"
+#| "There was a new login to your {site_title} account from {login_browser} "
+#| "on {login_device}\n"
+#| "\t\t\t\n"
+#| "We wanted to make sure it was you. Please check the details below:\n"
+#| "\t\t\t\n"
+#| "<strong>Device:</strong> {login_browser}, {login_device}\n"
+#| "<strong>Date:</strong> {login_time}\n"
+#| "<strong>IP:</strong> {login_ip}\n"
+#| "\n"
+#| "If you don't recognize this activity, click the button below to change "
+#| "your password right away.\n"
+#| "\n"
+#| "{cev_change_pw_btn}\n"
+#| "\n"
+#| "Thanks"
+msgid ""
+"Hi {cev_display_name},\n"
+"\n"
+"There was a new login to your {site_title} account from {login_browser} on "
+"{login_device}\n"
+"\t\t\t\n"
+"We wanted to make sure it was you. Please check the details below:\n"
+"\t\t\t\n"
+"<strong>Device:</strong> {login_browser}, {login_device}\n"
+"<strong>Date:</strong> {login_time}\n"
+"<strong>IP:</strong> {login_ip}\n"
+"\n"
+"If you don't recognize this activity, please change your password right away."
+"\n"
+"\n"
+"Thanks"
+msgstr ""
+"Bonjour {cev_display_name},\n"
+"\n"
+"Une nouvelle connexion à votre compte {site_title} a été effectuée depuis "
+"{login_browser} sur {login_device}\n"
+"\n"
+"Nous voulions nous assurer qu'il s'agissait bien de vous. Veuillez vérifier "
+"les informations ci-dessous :\n"
+"\n"
+"<strong>Appareil :</strong> {login_browser}, {login_device}\n"
+"<strong>Date :</strong> {login_time}\n"
+"<strong>IP :</strong> {login_ip}\n"
+"\n"
+"Si vous ne reconnaissez pas cette activité, cliquez sur le bouton ci-dessous "
+"pour modifier immédiatement votre mot de passe.\n"
+"\n"
+"{cev_change_pw_btn}\n"
+"\n"
+"Merci"
+
+#: includes/customizer/cev-customizer-options.php:207
+#| msgid ""
+#| "Hi {cev_display_name},\n"
+#| "\n"
+#| "There was a new login to your {site_title} account from {login_browser} "
+#| "on {login_device}\n"
+#| "\n"
+#| "We wanted to make sure it was you. Please verify your account using this "
+#| "OTP: <strong>{login_otp}</strong>\n"
+#| "\n"
+#| "If you don't recognize this activity, click the button below to change "
+#| "your password right away.\n"
+#| "\n"
+#| "{cev_change_pw_btn}\n"
+#| "\n"
+#| "Thanks"
+msgid ""
+"Hi {cev_display_name},\n"
+"\n"
+"There was a new login to your {site_title} account from {login_browser} on "
+"{login_device}\n"
+"\n"
+"We wanted to make sure it was you. Please verify your account using this OTP:"
+" <strong>{login_otp}</strong>\n"
+"\n"
+"If you don't recognize this activity, please change your password right away."
+"\n"
+"\n"
+"Thanks"
+msgstr ""
+"Bonjour {cev_display_name},\n"
+"\n"
+"Une nouvelle connexion à votre compte {site_title} a été effectuée depuis "
+"{login_browser} sur {login_device}\n"
+"\n"
+"Nous voulions nous assurer qu'il s'agissait bien de vous. Veuillez vérifier "
+"votre compte à l'aide de cet OTP : <strong>{login_otp}</strong>\n"
+"\n"
+"Si vous ne reconnaissez pas cette activité, cliquez sur le bouton ci-dessous "
+"pour modifier immédiatement votre mot de passe.\n"
+"\n"
+"{cev_change_pw_btn}\n"
+"\n"
+"Merci"
+
+#. URI of the plugin
+msgid "http://woocommerce.com/products/customer-email-verification/"
+msgstr "http://woocommerce.com/products/customer-email-verification/"
+
+#. Author URI of the plugin
+msgid "https://www.zorem.com"
+msgstr "https://www.zorem.com"
+
+#: includes/customizer/cev-customizer-options.php:385
+#: includes/customizer/cev-customizer-options.php:762
+msgid "Image Width"
+msgstr "Largeur de l'image"
+
+#: includes/admin/cev-pro-admin-settings.php:211
+msgid "Inline"
+msgstr "En ligne"
+
+#: includes/admin/cev-pro-admin-user.php:864
+msgid "Invalid action type."
+msgstr "Type d'action invalide."
+
+#: includes/class-cev-ajax-response.php:105
+#: includes/signup-verification/cev-pro-signup-ajax.php:446
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:423
+msgid "Invalid email address."
+msgstr "Adresse email invalide."
+
+#. %d: Log entry ID
+#: includes/admin/cev-pro-admin-user.php:324
+msgid "Invalid ID: %d"
+msgstr "ID invalide : %d"
+
+#: includes/admin/cev-pro-admin-user.php:308
+msgid "Invalid or missing IDs."
+msgstr "Identifiants invalides ou manquants."
+
+#: includes/edit-account/class-cev-edit-account-verification.php:163
+msgid "Invalid PIN Code"
+msgstr "Code PIN invalide"
+
+#: includes/admin/cev-pro-admin-user.php:228
+msgid "Invalid request. Missing user ID."
+msgstr "Requête invalide. Identifiant utilisateur manquant."
+
+#: includes/cev-pro-enqueue.php:320
+msgid "Invalid response from server"
+msgstr "Réponse invalide du serveur"
+
+#: includes/admin/cev-pro-admin-user.php:244
+#: includes/admin/cev-pro-admin-user.php:821
+msgid "Invalid user ID provided."
+msgstr "Identifiant utilisateur invalide."
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:195
+msgid "Invalid user."
+msgstr "Utilisateur invalide."
+
+#: includes/cev-pro-enqueue.php:317
+msgid "Invalid verification code"
+msgstr "Code de vérification invalide"
+
+#: includes/class-cev-ajax-response.php:197
+msgid "Invalid verification code. Please check your email and try again."
+msgstr ""
+"Code de vérification invalide. Veuillez consulter votre messagerie et "
+"réessayer."
+
+#: includes/admin/cev-pro-admin-settings.php:468
+#| msgid "Last login more then"
+msgid "Last login more than"
+msgstr "Dernière connexion plus de"
+
+#: includes/admin/views/cev_users_tab.php:98
+msgid "Last Updated"
+msgstr "Dernière mise à jour"
+
+#: includes/customizer/cev-customizer-options.php:324
+#: includes/customizer/cev-customizer-options.php:680
+msgid "Left"
+msgstr "La gauche"
+
+#: includes/admin/cev-pro-admin-settings.php:379
+msgid "Limit the number of resend attempts."
+msgstr "Limitez le nombre de tentatives de renvoi."
+
+#: includes/cev-pro-hooks.php:124
+#: includes/admin/views/admin_options_settings.php:89
+msgid "Login Authentication"
+msgstr "Authentification de connexion"
+
+#: includes/customizer/cev-customizer-options.php:435
+msgid "Login Authentication Popup"
+msgstr "Fenêtre contextuelle d'authentification de connexion"
+
+#: includes/cev-pro-functions.php:610
+msgid "Login Browser"
+msgstr "Navigateur de connexion"
+
+#: includes/cev-pro-functions.php:614
+msgid "Login Device"
+msgstr "Appareil de connexion"
+
+#: includes/admin/cev-pro-admin-settings.php:450
+msgid "Login from a new device"
+msgstr "Se connecter à partir d'un nouvel appareil"
+
+#: includes/admin/cev-pro-admin-settings.php:459
+msgid "Login from a new location"
+msgstr "Se connecter à partir d'un nouvel emplacement"
+
+#: includes/cev-pro-functions.php:602
+msgid "Login IP"
+msgstr "IP de connexion"
+
+#: includes/cev-pro-functions.php:622
+msgid "Login OTP"
+msgstr "Code de connexion OTP"
+
+#: includes/login-authentication/views/popup-template.php:120
+msgid "Login OTP does not match"
+msgstr "Le mot de passe de connexion à usage unique ne correspond pas"
+
+#: includes/cev-pro-functions.php:606
+msgid "Login Time"
+msgstr "Heure de connexion"
+
+#: includes/customizer/cev-customizer-options.php:461
+#: includes/customizer/cev-customizer-options.php:464
+#: includes/customizer/cev-customizer-options.php:503
+#: includes/customizer/cev-customizer-options.php:506
+msgid "Message"
+msgstr "Un message"
+
+#: includes/admin/cev-pro-admin-settings.php:390
+msgid "Message shown after successful verification."
+msgstr "Message affiché après une vérification réussie."
+
+#: includes/admin/views/cev_users_tab.php:111
+#: includes/admin/views/cev_users_tab.php:118
+msgid "N/A"
+msgstr "N / A"
+
+#: includes/cev-pro-enqueue.php:318
+msgid "Network error. Please check your connection and try again."
+msgstr "Erreur réseau. Veuillez vérifier votre connexion et réessayer."
+
+#: includes/admin/cev-pro-admin-settings.php:323
+msgid "Never"
+msgstr "Jamais"
+
+#: includes/customizer/cev-customizer-options.php:815
+msgid "New Login Authentication"
+msgstr "Nouvelle authentification de connexion"
+
+#: includes/customizer/cev-customizer-options.php:814
+msgid "New Login OTP"
+msgstr "Nouveau mot de passe de connexion à usage unique"
+
+#: includes/customizer/cev-customizer-options.php:187
+#: includes/customizer/cev-customizer-options.php:188
+#: includes/customizer/cev-customizer-options.php:205
+#: includes/customizer/cev-customizer-options.php:206
+msgid "New sign-in from {login_browser} on {login_device}"
+msgstr "Nouvelle connexion depuis {login_browser} sur {login_device}"
+
+#: includes/customizer/cev-customizer.php:532
+msgid "No data provided."
+msgstr "Aucune donnée fournie."
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:85
+msgid "No OTP code found. Please request a new code."
+msgstr "Aucun code OTP trouvé. Veuillez demander un nouveau code."
+
+#: includes/edit-account/cev-pro-edit-account-ajax.php:188
+msgid "No pending email verification found."
+msgstr "Aucune vérification d'email en attente n'a été trouvée."
+
+#: includes/admin/views/cev_users_tab.php:181
+msgid "No user found!"
+msgstr "Aucun utilisateur trouvé !"
+
+#: includes/admin/views/cev_users_tab.php:177
+msgid "No users found"
+msgstr "Aucun utilisateur trouvé"
+
+#: includes/signup-verification/cev-pro-signup-captcha.php:40
+msgid "Nonce verification failed."
+msgstr "La vérification du nonce a échoué."
+
+#: includes/admin/views/activity_panel.php:25
+msgid "Open support menu"
+msgstr "Ouvrir le menu d'assistance"
+
+#. %d: OTP digit position number
+#: includes/signup-verification/views/cev-signup-popup.php:120
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:241
+#: includes/customizer/preview/verify_checkout_guest_user_otp.php:99
+#: includes/customizer/preview/preview_cev_popup_page.php:84
+#: includes/customizer/preview/preview_cev_popup_login_auth.php:87
+msgid "OTP digit %d"
+msgstr "chiffre OTP %d"
+
+#: includes/admin/cev-pro-admin-settings.php:352
+#| msgid "OTP expiration"
+msgid "OTP Expiration"
+msgstr "Expiration du mot de passe à usage unique"
+
+#: includes/admin/cev-pro-admin-settings.php:344
+#| msgid "OTP length"
+msgid "OTP Length"
+msgstr "Longueur de l'OTP"
+
+#: includes/signup-verification/views/cev-signup-popup.php:148
+#| msgid "Otp Send Sucsessfully"
+msgid "OTP sent successfully"
+msgstr "OTP envoyé avec succès"
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:215
+msgid "OTP verification is not required for your account."
+msgstr "La vérification par code OTP n'est pas requise pour votre compte."
+
+#: includes/customizer/cev-customizer-options.php:294
+#| msgid "Overlay background Color"
+msgid "Overlay Background Color"
+msgstr "Couleur d'arrière-plan de superposition"
+
+#: includes/cev-pro-enqueue.php:162
+msgid "Password is required."
+msgstr "Le mot de passe est requis."
+
+#: includes/signup-verification/cev-pro-signup-captcha.php:106
+msgid "Please complete the CAPTCHA."
+msgstr "Veuillez compléter le CAPTCHA."
+
+#: includes/cev-pro-enqueue.php:316
+msgid "Please enter the verification code"
+msgstr "Veuillez saisir le code de vérification"
+
+#. %s: search WooCommerce plugin link
+#: customer-email-verification.php:223
+#, php-format
+#| msgid ""
+#| "Please install and activate %sWooCommerce%s plugin for the Customer Email "
+#| "Verification PRO to work."
+msgid ""
+"Please install and activate %1$sWooCommerce%2$s plugin for the Customer "
+"Email Verification PRO to work."
+msgstr ""
+"Veuillez installer et activer le plugin %1$sWooCommerce%2$s pour que "
+"Customer Email Verification PRO fonctionne."
+
+#: includes/customizer/cev-customizer-options.php:125
+#: includes/customizer/cev-customizer-options.php:130
+#: includes/customizer/cev-customizer-options.php:135
+msgid "Please Verify Your Email Address on {site_title}"
+msgstr "Veuillez vérifier votre adresse e-mail"
+
+#: includes/customizer/cev-customizer-options.php:177
+msgid "Please verify your email address to proceed to checkout."
+msgstr "Veuillez vérifier votre adresse e-mail pour procéder au paiement."
+
+#: includes/checkout-verification/cev-pro-checkout-validation.php:80
+#: includes/checkout-verification/cev-pro-checkout-validation.php:93
+msgid "Please verify your email address."
+msgstr "Veuillez vérifier votre adresse email."
+
+#: includes/cev-pro-enqueue.php:308
+msgid "Please verify your email to enable the Place Order button."
+msgstr ""
+"Veuillez vérifier votre adresse e-mail pour activer le bouton « Passer la "
+"commande »."
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:253
+msgid "Please wait a few minutes before requesting another OTP email."
+msgstr ""
+"Veuillez patienter quelques minutes avant de demander un autre courriel "
+"contenant le code OTP."
+
+#: includes/admin/cev-pro-admin-settings.php:210
+msgid "Popup"
+msgstr "Veuillez vérifier votre adresse e-mail sur {site_title}"
+
+#: includes/customizer/cev-customizer-options.php:251
+msgid "Popup Content"
+msgstr "Contenu contextuel"
+
+#: includes/customizer/cev-customizer-options.php:364
+msgid "Popup Header"
+msgstr "En-tête contextuel"
+
+#: includes/customizer/cev-customizer-options.php:243
+msgid "Popup Style"
+msgstr "Style de fenêtre contextuelle"
+
+#: includes/customizer/cev-customizer-options.php:429
+msgid "Popup Type"
+msgstr "Type de fenêtre contextuelle"
+
+#: includes/customizer/cev-customizer-options.php:811
+msgid "Registration"
+msgstr "Inscription"
+
+#: includes/signup-verification/cev-pro-signup-ajax.php:253
+msgid "Registration and verification successful"
+msgstr "Inscription et vérification réussies"
+
+#: includes/customizer/cev-customizer-options.php:434
+msgid "Registration Popup"
+msgstr "Fenêtre contextuelle d'inscription"
+
+#: includes/admin/cev-pro-admin-settings.php:278
+msgid "Require checkout verification only for free orders"
+msgstr ""
+"Exiger la vérification du paiement uniquement pour les commandes gratuites"
+
+#: includes/admin/cev-pro-admin-settings.php:258
+msgid ""
+"Require email verification only when Create an account during checkout is "
+"selected"
+msgstr ""
+"Exiger la vérification par e-mail uniquement lorsque l'option Créer un "
+"compte lors du paiement est sélectionnée"
+
+#: includes/admin/cev-pro-admin-settings.php:426
+msgid "Require OTP verification for unrecognized login"
+msgstr "Exiger une vérification OTP pour une connexion non reconnue"
+
+#: includes/admin/cev-pro-admin-settings.php:377
+#| msgid "Resend limit message"
+msgid "Resend Limit Message"
+msgstr "Renvoyer le message de limite"
+
+#: includes/cev-pro-enqueue.php:304
+#: includes/edit-account/class-cev-edit-account-verification.php:179
+#: includes/edit-account/class-cev-edit-account-verification.php:181
+#: includes/checkout-verification/class-cev-checkout-verification.php:543
+#: includes/login-authentication/views/popup-template.php:158
+msgid "Resend verification code"
+msgstr "Renvoyer le code de vérification"
+
+#: includes/admin/views/login-form-resend-link.php:17
+#: includes/login-authentication/views/login-form-resend-link.php:17
+#: includes/admin/views/user/user-profile-fields.php:71
+msgid "Resend verification email"
+msgstr "Renvoyer l'e-mail de vérification"
+
+#: includes/admin/views/admin_options_settings.php:117
+msgid "Save"
+msgstr "Sauvegarder"
+
+#: includes/admin/views/admin_options_settings.php:115
+msgid "Save all settings"
+msgstr "Enregistrer tous les paramètres"
+
+#: includes/class-cev-ajax-response.php:86
+msgid "Security check failed. Please refresh the page and try again."
+msgstr ""
+"Le contrôle de sécurité a échoué. Veuillez actualiser la page et réessayer."
+
+#: includes/customizer/cev-customizer-options.php:287
+#: includes/customizer/cev-customizer-options.php:652
+msgid "Select"
+msgstr "Sélectionner"
+
+#: includes/admin/views/cev_users_tab.php:89
+#: includes/admin/views/cev_users_tab.php:94
+msgid "Select all entries"
+msgstr "Sélectionnez toutes les entrées"
+
+#: includes/admin/views/cev_users_tab.php:58
+msgid "Select bulk action"
+msgstr "Sélectionner l'action groupée"
+
+#. %s: Email address
+#: includes/admin/views/cev_users_tab.php:127
+#, php-format
+msgid "Select entry for %s"
+msgstr "Sélectionnez l'entrée pour %s"
+
+#: includes/admin/views/cev_users_tab.php:135
+msgid "Select this entry"
+msgstr "Sélectionnez cette entrée"
+
+#: includes/checkout-verification/class-cev-checkout-verification.php:418
+msgid "Send Verification Code"
+msgstr "Envoyer le code de vérification"
+
+#: includes/admin/cev-pro-admin-user.php:720
+msgid "Send verification email"
+msgstr "Envoyer email de vérification"
+
+#: includes/cev-pro-enqueue.php:319
+msgid "Server error. Please try again later."
+msgstr "Erreur serveur. Veuillez réessayer plus tard."
+
+#: includes/admin/class-wc-customer-email-verification-admin.php:240
+#: includes/admin/class-wc-customer-email-verification-admin.php:257
+#: includes/admin/class-wc-customer-email-verification-admin.php:261
+msgid "Settings"
+msgstr "Paramètres"
+
+#: includes/admin/cev-pro-admin-settings.php:776
+#: includes/customizer/cev-customizer.php:569
+msgid "Settings saved successfully."
+msgstr "Paramètres enregistrés avec succès."
+
+#: includes/cev-pro-functions.php:569 includes/cev-pro-functions.php:594
+msgid "Site Title"
+msgstr "Titre du site"
+
+#: includes/admin/class-wc-customer-email-verification-admin.php:402
+#: includes/admin/class-wc-customer-email-verification-admin.php:406
+#: includes/admin/cev-pro-admin-settings.php:955
+#: includes/admin/cev-pro-admin-settings.php:959
+#: includes/customizer/cev-customizer-options.php:126
+msgid ""
+"Thank you for signing up for {site_title}, to activate your account, we need "
+"to verify your email address.<p>Your verification code: <strong>"
+"{cev_user_verification_pin}</strong></p>"
+msgstr ""
+"Merci de vous être inscrit sur {site_title}. Pour activer votre compte, nous "
+"devons vérifier votre adresse e-mail.<p>Votre code de vérification : <strong>"
+"{cev_user_verification_pin}</strong></p>"
+
+#. Description of the plugin
+msgid ""
+"The Customer Email Verification helps WooCommerce store owners to reduce "
+"registration and orders spam by requiring customers to verify their email "
+"address when they register an account or before they can checkout on your "
+"store."
+msgstr ""
+"La vérification des e-mails du client aide les propriétaires de magasins "
+"WooCommerce à réduire les inscriptions et les commandes de spam en obligeant "
+"les clients à vérifier leur adresse e-mail lorsqu'ils créent un compte ou "
+"avant de pouvoir payer sur votre boutique."
+
+#: includes/class-cev-ajax-response.php:196
+msgid "The verification code has expired. Please request a new code."
+msgstr "Le code de vérification a expiré. Veuillez demander un nouveau code."
+
+#: includes/signup-verification/cev-pro-signup-ajax.php:203
+msgid "This email has already been verified."
+msgstr "Cette adresse e-mail a déjà été vérifiée."
+
+#: includes/customizer/cev-customizer-options.php:131
+#: includes/customizer/cev-customizer-options.php:136
+msgid ""
+"To complete your order on {site_title}, please confirm your email address. "
+"This ensures we have the right email in case we need to contact you.<p>Your "
+"verification code: {cev_user_verification_pin}</p>"
+msgstr ""
+"Pour finaliser votre commande sur {site_title}, veuillez confirmer votre "
+"adresse e-mail. Cela nous permet de vous contacter si nécessaire.<p>Votre "
+"code de vérification : {cev_user_verification_pin}</p>"
+
+#: includes/cev-pro-enqueue.php:151 includes/class-cev-ajax-response.php:136
+#: includes/admin/cev-pro-admin-settings.php:380
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:497
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:228
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:172
+#: includes/customizer/preview/verify_checkout_guest_user.php:116
+#| msgid "Too many attempts, please contact us</a> for further assistance"
+msgid "Too many attempts, please contact us for further assistance"
+msgstr "Trop de tentatives, veuillez nous contacter pour obtenir de l'aide"
+
+#: includes/class-cev-ajax-response.php:199
+msgid "Too many incorrect attempts. Please request a new verification code."
+msgstr ""
+"Trop de tentatives infructueuses. Veuillez demander un nouveau code de "
+"vérification."
+
+#: includes/cev-pro-functions.php:598 includes/cev-pro-functions.php:881
+#: includes/cev-pro-functions.php:890 includes/cev-pro-functions.php:897
+msgid "Try Again"
+msgstr "Réessayer"
+
+#: includes/login-authentication/views/preview-popup.php:16
+#: includes/customizer/preview/preview_cev_popup_page.php:7
+#: includes/customizer/preview/preview_cev_popup_login_auth.php:7
+msgid "Try again"
+msgstr "Réessayer"
+
+#: includes/admin/views/user/user-profile-fields.php:78
+msgid "Un-verify email"
+msgstr "Annuler la vérification de l'e-mail"
+
+#: includes/admin/cev-pro-admin-settings.php:442
+msgid "Unrecognized Login Conditions:"
+msgstr "Conditions de connexion non reconnues :"
+
+#: includes/admin/class-wc-customer-email-verification-admin.php:236
+#: includes/admin/class-wc-customer-email-verification-admin.php:279
+#: includes/admin/class-wc-customer-email-verification-admin.php:283
+msgid "Unverified Users"
+msgstr "Utilisateurs non vérifiés"
+
+#: includes/admin/views/user/verification-status-column.php:24
+#: includes/admin/views/user/user-profile-fields.php:45
+msgid "Unverify"
+msgstr "Annuler la vérification"
+
+#: includes/cev-pro-functions.php:582
+msgid "User display name"
+msgstr "Nom d'affichage de l'utilisateur"
+
+#: includes/cev-pro-functions.php:586
+msgid "User email"
+msgstr "E-mail de l'utilisateur"
+
+#: includes/admin/cev-pro-admin-user.php:261
+msgid "User log deleted successfully."
+msgstr "Journal utilisateur supprimé avec succès."
+
+#: includes/admin/views/cev_users_tab.php:84
+msgid "User log entries"
+msgstr "Entrées du journal utilisateur"
+
+#: includes/cev-pro-functions.php:578
+msgid "User login"
+msgstr "Utilisateur en ligne"
+
+#: includes/admin/cev-pro-admin-user.php:841
+msgid "User not found."
+msgstr "Utilisateur introuvable."
+
+#: includes/admin/cev-pro-admin-user.php:891
+msgid "User unverified successfully."
+msgstr "Utilisateur non vérifié avec succès."
+
+#: includes/admin/cev-pro-admin-user.php:1004
+msgid "User unverified."
+msgstr "Utilisateur non vérifié."
+
+#: includes/admin/cev-pro-admin-user.php:913
+#: includes/admin/cev-pro-admin-user.php:994
+msgid "User verified successfully."
+msgstr "L'utilisateur a été vérifié avec succès."
+
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:484
+msgid "Verification code already sent. Please check your email."
+msgstr "Code de vérification déjà envoyé. Veuillez consulter votre boîte mail."
+
+#: includes/cev-pro-enqueue.php:302
+#: includes/checkout-verification/class-cev-checkout-verification.php:541
+#: includes/login-authentication/views/preview-popup.php:95
+msgid "Verification code does not match"
+msgstr "Le code de vérification ne correspond pas"
+
+#: includes/edit-account/cev-pro-edit-account-ajax.php:208
+msgid "Verification code has been resent to your email."
+msgstr "Un code de vérification a été renvoyé à votre adresse électronique."
+
+#: includes/signup-verification/cev-pro-signup-ajax.php:123
+msgid "Verification email has been sent."
+msgstr "Un e-mail de vérification a été envoyé."
+
+#: includes/admin/cev-pro-admin-settings.php:368
+#| msgid "Verification email resend limit"
+msgid "Verification Email Resend Limit"
+msgstr "Limite de renvoi des e-mails de vérification"
+
+#: includes/cev-pro-enqueue.php:171
+#: includes/signup-verification/cev-pro-signup-ajax.php:388
+msgid "Verification email sent successfully"
+msgstr "Courriel de vérification envoyé avec succès"
+
+#: includes/admin/cev-pro-admin-user.php:931
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:147
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:301
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:373
+#: includes/checkout-verification/cev-pro-checkout-ajax.php:523
+msgid "Verification email sent successfully."
+msgstr "Courriel de vérification envoyé avec succès."
+
+#. %s: Number of users to whom verification emails were sent
+#: includes/admin/views/user/bulk-action-notices.php:48
+#, php-format
+#| msgid "Varification email sent to %s user."
+#| msgid_plural "Varification email sent to %s users."
+msgid "Verification email sent to %s user."
+msgid_plural "Verification email sent to %s users."
+msgstr[0] "E-mail de vérification envoyé à l'utilisateur %s."
+msgstr[1] "E-mail de vérification envoyé à %s utilisateurs."
+
+#: includes/admin/cev-pro-admin-user.php:984
+msgid "Verification email successfully sent."
+msgstr "L'e-mail de vérification a bien été envoyé."
+
+#: includes/customizer/cev-customizer-options.php:879
+#: includes/customizer/cev-customizer-options.php:882
+#: includes/customizer/cev-customizer-options.php:893
+#: includes/customizer/cev-customizer-options.php:896
+#: includes/customizer/cev-customizer-options.php:934
+#: includes/customizer/cev-customizer-options.php:937
+msgid "Verification Message"
+msgstr "Message de vérification"
+
+#: includes/cev-pro-functions.php:565 includes/cev-pro-functions.php:590
+msgid "Verification Pin"
+msgstr "Pin de vérification"
+
+#: includes/class-cev-ajax-response.php:198
+msgid "Verification session expired. Please request a new code."
+msgstr ""
+"La session de vérification a expiré. Veuillez demander un nouveau code."
+
+#. %s: Number of users whose verification status was updated
+#: includes/admin/views/user/bulk-action-notices.php:23
+#, php-format
+#| msgid "Verification Status updated for %s user."
+#| msgid_plural "Verification Status updated for %s users."
+msgid "Verification status updated for %s user."
+msgid_plural "Verification status updated for %s users."
+msgstr[0] "Statut de vérification mis à jour pour l'utilisateur %s."
+msgstr[1] "État de la vérification mis à jour pour %s utilisateurs."
+
+#: includes/admin/views/user/verification-status-column.php:23
+#: includes/admin/views/user/user-profile-fields.php:41
+msgid "Verified"
+msgstr "Vérifié"
+
+#: includes/cev-pro-enqueue.php:303
+#: includes/edit-account/class-cev-edit-account-verification.php:171
+#: includes/edit-account/class-cev-edit-account-verification.php:173
+#: includes/checkout-verification/class-cev-checkout-verification.php:542
+#: includes/signup-verification/views/cev-signup-popup.php:143
+msgid "Verify"
+msgstr "Vérifier"
+
+#: includes/customizer/cev-customizer-options.php:173
+#: includes/customizer/cev-customizer-options.php:179
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:261
+#: includes/login-authentication/views/popup-template.php:141
+#: includes/login-authentication/views/preview-popup.php:103
+msgid "Verify Code"
+msgstr "Vérifier le code"
+
+#: includes/admin/views/user/user-profile-fields.php:64
+msgid "Verify email manually"
+msgstr "Vérifier les e-mails manuellement"
+
+#: includes/customizer/cev-customizer-options.php:165
+#: includes/customizer/cev-customizer-options.php:170
+#: includes/customizer/cev-customizer-options.php:176
+#: includes/customizer/cev-customizer-options.php:182
+#: includes/signup-verification/views/cev-signup-popup.php:41
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:55
+#: includes/login-authentication/views/popup-template.php:53
+#: includes/login-authentication/views/preview-popup.php:48
+#: includes/customizer/preview/verify_checkout_guest_user_otp.php:21
+#: includes/customizer/preview/verify_checkout_guest_user.php:21
+#: includes/customizer/preview/preview_cev_popup_page.php:44
+#: includes/customizer/preview/preview_cev_popup_login_auth.php:44
+msgid "Verify its you."
+msgstr "Vérifiez que c'est vous."
+
+#: includes/signup-verification/views/cev-signup-popup.php:142
+msgid "Verify OTP code"
+msgstr "Vérifier le code OTP"
+
+#: includes/admin/cev-pro-admin-user.php:719
+msgid "Verify users email"
+msgstr ""
+"Verify users email\n"
+
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:77
+#: includes/checkout-verification/views/verify_checkout_guest_user.php:165
+#: includes/customizer/preview/verify_checkout_guest_user.php:47
+#: includes/customizer/preview/verify_checkout_guest_user.php:110
+msgid "Verify Your Email"
+msgstr "Vérifiez votre e-mail"
+
+#: includes/edit-account/class-cev-edit-account-verification.php:153
+#: includes/customizer/cev-customizer-options.php:124
+#: includes/customizer/cev-customizer-options.php:129
+msgid "Verify Your Email Address"
+msgstr "Vérifiez votre adresse e-mail"
+
+#: includes/edit-account/class-cev-edit-account-verification.php:125
+msgid "We have sent a verification email, please verify your email address."
+msgstr ""
+"Nous vous avons envoyé un courriel de vérification, veuillez vérifier votre "
+"adresse courriel."
+
+#: includes/cev-pro-enqueue.php:300
+msgid "We sent a verification code to your email"
+msgstr "Nous avons envoyé un code de vérification à votre adresse e-mail"
+
+#: includes/customizer/cev-customizer-options.php:166
+#: includes/customizer/cev-customizer-options.php:171
+msgid ""
+"We sent verification code to  {customer_email}. To verify your email address,"
+" please check your inbox and enter the code below."
+msgstr ""
+"Nous avons envoyé le code de vérification à {customer_email}. Pour vérifier "
+"votre adresse e-mail, veuillez vérifier votre boîte de réception et saisir "
+"le code ci-dessous."
+
+#. %s: search send verification code
+#. %s: search customer email
+#: includes/login-authentication/views/popup-template.php:65
+#: includes/login-authentication/views/preview-popup.php:60
+#, php-format
+msgid ""
+"We sent verification code to <strong>%s</strong>. To verify your email "
+"address, please check your inbox and enter the code below."
+msgstr ""
+"Nous avons envoyé le code de vérification à% s. Pour vérifier votre adresse "
+"e-mail, veuillez vérifier votre boîte de réception et saisir le code ci-"
+"dessous."
+
+#: includes/customizer/cev-customizer-options.php:183
+#: includes/signup-verification/views/cev-signup-popup.php:47
+#: includes/customizer/preview/preview_cev_popup_page.php:58
+#| msgid ""
+#| "We sent verification code to <span>%s</span>. To verify your email "
+#| "address, please check your inbox and enter the code below."
+msgid ""
+"We sent verification code to {customer_email}. To verify your email address, "
+"please check your inbox and enter the code below."
+msgstr ""
+"Nous avons envoyé le code de vérification à <span>%s</span>. Pour vérifier "
+"votre adresse e-mail, veuillez vérifier votre boîte de réception et entrez "
+"le code ci-dessous."
+
+#: includes/customizer/cev-customizer-options.php:306
+#| msgid "Widget background Color"
+msgid "Widget Background Color"
+msgstr "Couleur d'arrière-plan du widget"
+
+#: includes/customizer/cev-customizer-options.php:545
+#: includes/customizer/cev-customizer-options.php:548
+#: includes/customizer/cev-customizer-options.php:587
+#: includes/customizer/cev-customizer-options.php:590
+msgid "Widget Content"
+msgstr "Contenu du widget"
+
+#: includes/customizer/cev-customizer-options.php:741
+msgid "Widget Header"
+msgstr "En-tête de widget"
+
+#: includes/cev-pro-enqueue.php:167 includes/cev-pro-enqueue.php:294
+#: includes/cev-pro-enqueue.php:314
+msgid "You can resend the code in"
+msgstr "Vous pouvez renvoyer le code dans"
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:184
+msgid "You must be logged in to resend OTP."
+msgstr "Vous devez être connecté pour renvoyer le code OTP."
+
+#: includes/edit-account/cev-pro-edit-account-ajax.php:168
+msgid "You must be logged in to resend verification code."
+msgstr "Vous devez être connecté pour renvoyer le code de vérification."
+
+#: includes/edit-account/cev-pro-edit-account-ajax.php:71
+msgid "You must be logged in to verify your email."
+msgstr "Vous devez être connecté pour vérifier votre adresse e-mail."
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:70
+msgid "You must be logged in to verify your OTP."
+msgstr "Vous devez être connecté pour vérifier votre code OTP."
+
+#: includes/customizer/cev-customizer-options.php:134
+msgid "You recently changed the email address {site_title}"
+msgstr "Vous avez récemment modifié l'adresse e-mail {site_title}"
+
+#: includes/login-authentication/class-cev-login-authentication-ajax.php:150
+msgid "Your Email is verified!"
+msgstr "Votre adresse e-mail est vérifiée !"
+
+#: includes/cev-pro-enqueue.php:148
+#: includes/admin/cev-pro-admin-settings.php:391
+#: includes/edit-account/cev-pro-edit-account-ajax.php:135
+#: includes/edit-account/class-cev-edit-account-verification.php:504
+msgid "Your email is verified!"
+msgstr "Votre email est vérifié!"
+
+#. Author of the plugin
+msgid "zorem"
+msgstr "zorem"
+
+#: includes/admin/views/page-header.php:31
+msgid "Zorem Logo"
+msgstr "Logo Zorem"
+
+#: includes/admin/cev-pro-admin-notice.php:247
+msgid "👉 Learn More on WooCommerce"
+msgstr "👉 En savoir plus sur WooCommerce"
+
+#: includes/admin/cev-pro-admin-notice.php:226
+msgid "🚀 Introducing Analytics for WooCommerce Subscriptions"
+msgstr "🚀 Présentation des analyses pour les abonnements WooCommerce"

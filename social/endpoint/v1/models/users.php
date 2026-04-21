@@ -3114,6 +3114,23 @@ class Users {
 
             $saved = $db->where('id', $user_id)->update('users', $data);
             if ($saved) {
+                
+                if ( $type == 'visits' ) {
+                    bzj_log_activity($user_id, 'cost_per_xvisits', null, 'xvisit', $amount, 'QD_live');
+                }
+                
+                if ( $type == 'likes' ) {
+                    bzj_log_activity($user_id, 'cost_per_xlike', null, 'xlike', $amount, 'QD_live');
+                }
+                
+                if ( $type == 'boost' || $type == 'matches' ) {
+                    if ($amount == intval($config->pro_boost_me_credits_price)) {
+                        bzj_log_activity($user_id, 'pro_boost_me_credits_price', null, 'boost', $amount, 'QD_live');
+                    } elseif ($amount == intval($config->normal_boost_me_credits_price)) {
+                        bzj_log_activity($user_id, 'normal_boost_me_credits_price', null, 'boost', $amount, 'QD_live');
+                    }
+                }
+                
                 return array(
                     'status' => 200,
                     'credit_amount' => $balance - $amount,

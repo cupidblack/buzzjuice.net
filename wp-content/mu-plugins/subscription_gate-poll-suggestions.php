@@ -81,8 +81,8 @@ add_action( 'wp_footer', function () {
 					cta.innerHTML = `
 						<div class="totalpoll-choice-content" style="padding:14px 16px;border:2px dashed #ff8c00;border-radius:8px;background:#fff7ed;text-align:center;font-family:inherit;">
 							<strong>Want to add your own suggestion?</strong><br>
-							Custom suggestions are available to active subscribers.<br>
-							<a href="/streams/ww-sso-bridge.php?redirect_to=go-pro"
+							Active subscribers can add sugestions<br>
+							<a href="/subscribe"
 								class="bzj-poll-cta-link"
 								style="display:inline-block;margin-top:10px;padding:10px 22px;background:#ff8c00;color:#111;border-radius:6px;text-decoration:none;font-weight:700;border:2px dashed #ff8c00;">
 								Tap here to subscribe and suggest!

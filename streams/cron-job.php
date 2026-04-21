@@ -2,6 +2,7 @@
 require_once('assets/init.php');
 
 mysqli_query($sqlConnect, "UPDATE " . T_CONFIG . " SET `value` = '" . time() . "' WHERE `name` = 'cronjob_last_run'");
+
 // ********** Pro Users **********
 $users = $db->where('is_pro', '1')->where('admin', '0')->ArrayBuilder()->get(T_USERS);
 foreach ($users as $key => $value) {
@@ -141,7 +142,6 @@ if ($wo["config"]["last_notification_delete_run"] <= time() - 60 * 60 * 24) {
 // ********** Typing **********
 Wo_GetOfflineTyping();
 // ********** Typing **********
-
 
 // ********** Live **********
 if ($wo['config']['live_video'] == 1) {

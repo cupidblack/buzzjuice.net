@@ -52,7 +52,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             add_action( 'wp_ajax_better_messages_new_nonce_token', array( $this, 'rest_nonce' ) );
             add_action( 'wp_ajax_nopriv_better_messages_new_nonce_token', array( $this, 'rest_nonce' ) );
 
-            add_filter('rest_post_dispatch', array( $this, 'catch_unauthorized'), 10 , 3 );
+            add_filter('rest_post_dispatch', array( $this, 'rest_post_dispatch'), 10 , 3 );
             //add_filter('rest_pre_serve_request', array( $this, 'serve_request' ), 10 , 4 );
         }
 
@@ -86,15 +86,20 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             return $served;
         } */
 
-        public function catch_unauthorized( $result, $server, WP_REST_Request $request ){
+        public function rest_post_dispatch( $result, $server, WP_REST_Request $request ){
             $route = $request->get_route();
 
-            if( str_starts_with( $route, '/better-messages/') && str_ends_with( $route, '/send' ) ){
-                if( isset( $result->data ) ){
-                    if( isset( $result->data['code'] ) && $result->data['code'] === 'rest_cookie_invalid_nonce' ){
+            if ( ! str_starts_with( $route, '/better-messages/' ) ) {
+                return $result;
+            }
+
+            // Catch unauthorized send attempts
+            if ( str_ends_with( $route, '/send' ) ) {
+                if ( isset( $result->data ) ) {
+                    if ( isset( $result->data['code'] ) && $result->data['code'] === 'rest_cookie_invalid_nonce' ) {
                         $temp_id = $request->get_param('temp_id');
 
-                        if( $temp_id ){
+                        if ( $temp_id ) {
                             $temp_id_explode = explode('_', $temp_id);
                             $thread_id = (int) $temp_id_explode[1];
 
@@ -102,6 +107,19 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                         }
                     }
                 }
+            }
+
+            /**
+             * Filter to add custom headers to all Better Messages REST API responses.
+             *
+             * @param array           $headers  Associative array of header name => value.
+             * @param WP_REST_Response $result   The response object.
+             * @param WP_REST_Request  $request  The request object.
+             */
+            $headers = apply_filters( 'better_messages_rest_response_headers', [], $result, $request );
+
+            foreach ( $headers as $name => $value ) {
+                $result->header( $name, $value );
             }
 
             return $result;
@@ -359,6 +377,15 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
 
         public function get_unique_conversation( WP_REST_Request $request ){
             $thread_id = apply_filters('better_messages_get_unique_conversation', 0, sanitize_text_field( $request->get_param('key') ), Better_Messages()->functions->get_current_user_id() );
+
+            // Skip E2E threads when E2E is disabled globally
+            if ( $thread_id
+                && Better_Messages()->settings['e2eEncryption'] !== '1'
+                && class_exists( 'Better_Messages_E2E_Encryption' )
+                && Better_Messages_E2E_Encryption::is_e2e_thread( $thread_id )
+            ) {
+                $thread_id = 0;
+            }
 
             if( $thread_id ){
                 $return = $this->get_threads([ $thread_id ]);
@@ -917,7 +944,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             Better_Messages()->functions->before_message_send_filter( $args, $errors );
 
             // Re-read $is_pending from $args, as filters (e.g. AI moderation) may have changed it
-            $is_pending = ! empty( $args['is_pending'] ) ? 1 : 0;
+            $is_pending = (int) ( $args['is_pending'] ?? 0 );
 
             if( empty( $errors ) ){
                 $message_id = Better_Messages()->functions->new_message( $args );
@@ -954,6 +981,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
 
                 if( $include_updated_data ) {
                     $update = $this->get_messages($thread_id, [$message_id]);
+
                     $get_threads = Better_Messages()->api->get_threads([$thread_id], false, false, true);
 
                     if (isset($get_threads['threads'][0])) {
@@ -1349,6 +1377,13 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
 
             $suggestions = Better_Messages_Search()->get_users_results( $search, $current_user_id, $exclude, $exclude_current_user, $count );
 
+            // Hide AI bots from suggestions in E2E encrypted threads
+            if ( $thread_id > 0 && class_exists( 'Better_Messages_E2E_Encryption' ) && Better_Messages_E2E_Encryption::is_e2e_thread( $thread_id ) ) {
+                $suggestions = array_filter( $suggestions, function( $uid ) {
+                    return ! ( $uid < 0 && isset( Better_Messages()->ai ) && Better_Messages()->ai->get_bot_id_from_user( $uid ) );
+                } );
+            }
+
             $users = [];
 
             if ( count( $suggestions ) > 0 ) {
@@ -1381,7 +1416,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 }
             }
 
-            $pending_sql = user_can( $current_user_id, 'bm_can_administrate' ) ? "" : $wpdb->prepare(" AND ( `messages`.`is_pending` = 0 OR `messages`.`sender_id` = %d ) ", $current_user_id );
+            $pending_sql = user_can( $current_user_id, 'bm_can_administrate' ) ? "" : $wpdb->prepare(" AND ( `messages`.`is_pending` != 1 OR `messages`.`sender_id` = %d )", $current_user_id );
 
             if( $mode === 'from_message' ){
                 $messages = Better_Messages()->functions->get_messages( $thread_id, $message_ids, 'from_message', $count );
@@ -1446,7 +1481,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 $messages[ $key ]->thread_id  = $_thread_id;
 
                 $meta = [];
-                if( $is_pending ){
+                if( $is_pending === 1 ){
                     $meta['isPending'] = true;
                 }
 
@@ -1810,7 +1845,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             $return['messages'] = $get_messages['messages'];
             $return['users']    = array_merge($return['users'], $get_messages['users']);
 
-            $pending_sql = user_can( $current_user_id, 'bm_can_administrate' ) ? "" : $wpdb->prepare(" AND ( `messages`.`is_pending` = 0 OR `messages`.`sender_id` = %d ) ", $current_user_id );
+            $pending_sql = user_can( $current_user_id, 'bm_can_administrate' ) ? "" : $wpdb->prepare(" AND ( `messages`.`is_pending` != 1 OR `messages`.`sender_id` = %d )", $current_user_id );
 
             if( count( $message_ids ) > 0 ){
                 $sql = $wpdb->prepare("SELECT id
@@ -1964,6 +1999,8 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             $user_ids = [ $current_user_id ];
             $added_users = [];
 
+            $prevent_voice_messages = Better_Messages()->functions->user_has_role( $current_user_id, (array) Better_Messages()->settings['restrictVoiceMessages'] );
+
             foreach ( $get_threads as $thread ){
                 /**
                  * Cache thread so child functions do not access database again
@@ -2071,6 +2108,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                         'canReply'             => (bool) $can_reply,
                         'canReplyMsg'          => $bp_better_messages_restrict_send_message,
                         'requireModeration'    => Better_Messages()->moderation->is_moderation_enabled( $current_user_id, $thread_id, false ),
+                        'preventVoiceMessages' => $prevent_voice_messages,
                     ];
 
                     $mentions = [];
@@ -2363,7 +2401,13 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 $error = new WP_Error();
 
                 $temp_id = sanitize_text_field( $request->get_param('temp_id') );
-                do_action('better_messages_on_message_not_sent', $thread_id, $temp_id, $errors );
+
+                global $bp_better_messages_restrict_send_message;
+                $skip_abort = is_array( $bp_better_messages_restrict_send_message ) && isset( $bp_better_messages_restrict_send_message['waiting_for_ai_response'] );
+
+                if( ! $skip_abort ) {
+                    do_action('better_messages_on_message_not_sent', $thread_id, $temp_id, $errors );
+                }
 
                 $thread = $this->get_threads( [$thread_id] );
 

@@ -9,6 +9,7 @@
 namespace CloudLinux\Imunify\App\Api;
 
 use CloudLinux\Imunify\App\DataStore;
+use CloudLinux\Imunify\App\Defender\DisabledRulesManager;
 use CloudLinux\Imunify\App\Exception\ApiException;
 
 /**
@@ -36,12 +37,21 @@ class AjaxHandler {
 	private $dataStore;
 
 	/**
+	 * DisabledRulesManager instance.
+	 *
+	 * @var DisabledRulesManager
+	 */
+	private $disabledRulesManager;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param DataStore $dataStore Data store instance.
+	 * @param DataStore            $dataStore            Data store instance.
+	 * @param DisabledRulesManager $disabledRulesManager Disabled rules manager instance.
 	 */
-	public function __construct( DataStore $dataStore ) {
-		$this->dataStore = $dataStore;
+	public function __construct( DataStore $dataStore, DisabledRulesManager $disabledRulesManager ) {
+		$this->dataStore            = $dataStore;
+		$this->disabledRulesManager = $disabledRulesManager;
 		add_action( 'wp_ajax_' . self::AJAX_ACTION, array( $this, 'handleAjaxRequest' ) );
 	}
 
@@ -93,8 +103,13 @@ class AjaxHandler {
 				$method = $data['method'];
 				$params = $data['params'];
 
-				// Get the data from the data store.
-				$response = $this->dataStore->loadData( $method, $params );
+				// Check if this is a WordPress rules command to handle locally.
+				if ( $this->isWordpressRulesCommand( $method ) ) {
+					$response = $this->handleWordpressRulesCommand( $method, $params );
+				} else {
+					// Get the data from the data store.
+					$response = $this->dataStore->loadData( $method, $params );
+				}
 			} catch ( ApiException $exception ) {
 				$response['messages'][] = $exception->getMessage();
 			}
@@ -103,5 +118,66 @@ class AjaxHandler {
 		}
 
 		return array( 200, $response );
+	}
+
+	/**
+	 * Check if the method is a WordPress rules command that should be handled locally.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param array $method The method array.
+	 *
+	 * @return bool True if the command should be handled locally.
+	 */
+	private function isWordpressRulesCommand( $method ) {
+		// Check for wordpress-plugin rules enable/disable commands.
+		if ( count( $method ) < 3 ) {
+			return false;
+		}
+
+		if ( 'wordpress-plugin' !== $method[0] || 'rules' !== $method[1] ) {
+			return false;
+		}
+
+		return in_array( $method[2], array( 'disable', 'enable' ), true );
+	}
+
+	/**
+	 * Handle WordPress rules commands locally.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param array $method The method array.
+	 * @param array $params The request parameters.
+	 *
+	 * @return array Response array with 'data', 'messages', and 'result' keys.
+	 */
+	private function handleWordpressRulesCommand( $method, $params ) {
+		$response = array(
+			'data'     => array(),
+			'messages' => array(),
+			'result'   => 'error',
+		);
+
+		// Get the rule ID from params.
+		$ruleId = isset( $params['rule'] ) ? sanitize_text_field( $params['rule'] ) : '';
+		if ( empty( $ruleId ) ) {
+			$response['messages'][] = esc_html__( 'Rule ID is required.', 'imunify-security' );
+			return $response;
+		}
+
+		// Get the current user ID.
+		$userId = get_current_user_id();
+
+		$action = $method[2];
+		if ( 'disable' === $action ) {
+			$this->disabledRulesManager->disableRule( $ruleId, $userId );
+			$response['result'] = 'success';
+		} elseif ( 'enable' === $action ) {
+			$this->disabledRulesManager->enableRule( $ruleId, $userId );
+			$response['result'] = 'success';
+		}
+
+		return $response;
 	}
 }

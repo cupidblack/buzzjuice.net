@@ -4,10 +4,10 @@
  * Plugin URI: http://www.learndash.com
  * Update URI: learndash
  * Description: LearnDash LMS Plugin - Turn your WordPress site into a learning management system.
- * Version: 5.0.1.1
+ * Version: 5.0.5
  * Requires PHP: 7.4
  * Requires at least: 6.7
- * Tested up to: 6.9.1
+ * Tested up to: 6.9.4
  * Author: LearnDash
  * Author URI: http://www.learndash.com
  * Text Domain: learndash
@@ -21,10 +21,8 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-
-update_option('nss_plugin_license_sfwd_lms','B5E0B5F8DD8689E6ACA49DD6E6E1A930');
-update_option('nss_plugin_license_email_sfwd_lms','noreply@gmail.com');
+update_option('nss_plugin_license_sfwd_lms','OYLITE0000000005603B1EBE56D0D7F8');
+update_option('nss_plugin_license_email_sfwd_lms','noreply@oylite.com');
 update_option('nss_plugin_remote_license_sfwd_lms',['value'=>'active']);
 
 add_filter('pre_http_request',function($pre,$args,$url){
@@ -52,7 +50,7 @@ add_filter('pre_http_request',function($pre,$r,$url){
         return ['headers'=>[],'body'=>json_encode(['learndash'=>[['variation'=>'plus','status'=>'active','expiry'=>2524591861],['variation'=>'plus','status'=>'active','expiry'=>2524591861]]]),'response'=>['code'=>200,'message'=>'OK']];
     }
     if(strpos($url,'https://checkout.learndash.com/wp-json/learndash/v2/site/auth')!==false&&$r['method']==='POST'){
-        return ['headers'=>[],'body'=>json_encode(['subscription_type'=>'learndash_legacy','plan_code'=>'plus','site_limit'=>100,'expiry'=>2524591861,'token'=>'B5E0B5F8DD8689E6ACA49DD6E6E1A930','product'=>'learndash']),'response'=>['code'=>200,'message'=>'OK']];
+return ['headers'=>[],'body'=>json_encode(['subscription_type'=>'learndash_legacy','plan_code'=>'plus','site_limit'=>100,'expiry'=>2524591861,'token'=>'OYLITE0000000005603B1EBE59708542','product'=>'learndash']),'response'=>['code'=>200,'message'=>'OK']];
     }
     if(strpos($url,'https://checkout.learndash.com/wp-json/learndash/v2/repo/plugins')!==false){
         $json_data=wp_remote_get('https://dl.gpltimes.com/file/gpltimes/learndash/final-learndashrepo.json');
@@ -63,7 +61,6 @@ add_filter('pre_http_request',function($pre,$r,$url){
     }
     return $pre;
 },10,3);
-
 
 require_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
 require_once plugin_dir_path( __FILE__ ) . 'vendor-prefixed/autoload.php';
@@ -87,7 +84,7 @@ use StellarWP\Learndash\StellarWP\Validation\Config as ValidationConfig;
 *
 * @internal Will be set by LearnDash LMS. Semantic versioning is used.
 */
-define( 'LEARNDASH_VERSION', '5.0.1.1' );
+define( 'LEARNDASH_VERSION', '5.0.5' );
 
 if ( ! defined( 'LEARNDASH_LMS_PLUGIN_DIR' ) ) {
 	/**

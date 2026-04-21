@@ -2,7 +2,6 @@
 Add here your JavaScript Code. 
 Note. the code entered here will be added in <head> tag 
 
-
 	Example: 
 
 	var x, y, z; 
@@ -12,9 +11,15 @@ Note. the code entered here will be added in <head> tag
 
 */
 
+/**
+ * CLICK HANDLER (for WoWonder AJAX links)
+
 document.addEventListener('click', function (event) {
     // Check if the clicked element is a link with ?link1=wallet or ?link1=show_fund
-    if (event.target.matches('a[data-ajax^="?link1=wallet"]') || event.target.matches('a[data-ajax^="?link1=show_fund"]')) {
+    if (event.target.matches('a[data-ajax^="?link1=wallet"]') || 
+        event.target.matches('a[data-ajax^="?link1=show_fund"]') ||
+        event.target.matches('a[data-ajax^="?link1=go-pro"]') ||
+        event.target.matches('a[data-ajax^="?link1=checkout"]')) {
         event.preventDefault(); // Prevent the default link behavior
 
         // Get the current href of the link
@@ -32,3 +37,4 @@ document.addEventListener('click', function (event) {
         window.location.href = freshUrl;
     }
 });
+*/

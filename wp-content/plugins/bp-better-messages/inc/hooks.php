@@ -37,6 +37,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
             }
 
             add_action( 'admin_notices', array( $this, 'admin_notice') );
+            add_action( 'in_admin_header', array( $this, 'hide_admin_notices_on_bm_pages' ) );
 
             //if( Better_Messages()->settings['fastStart'] == '1' ) {
             add_action( 'template_redirect', array($this, 'catch_fast_thread'), 0 );
@@ -204,7 +205,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                 add_action( 'init', array( $this, 'woocommerce_add_messages_endpoint' ) );
                 add_filter( 'query_vars', array( $this, 'woocommerce_messages_query_vars' ), 0 );
 
-                $slug = Better_Messages()->settings['bpProfileSlug'];
+                $slug = Better_Messages()->settings['wooCommerceMessagesSlug'];
                 add_filter( 'woocommerce_account_menu_items', array( $this, 'woocommerce_add_messages_link_my_account' ) );
                 add_action( 'woocommerce_account_' . $slug . '_endpoint', array( $this, 'woocommerce_messages_content' ) );
             }
@@ -234,15 +235,8 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
             }
 
 
-            if ( class_exists( 'myCRED_Core' ) ){
-                require_once Better_Messages()->path . 'addons/mycred.php';
-                Better_Messages_MyCred::instance();
-            }
-
-            if ( class_exists( 'GamiPress' ) ) {
-                require_once Better_Messages()->path . 'addons/gamipress.php';
-                Better_Messages_GamiPress::instance();
-            }
+            require_once Better_Messages()->path . 'addons/points/points.php';
+            Better_Messages_Points();
 
             if( Better_Messages()->settings['pinnedMessages'] === '1' ) {
                 require_once Better_Messages()->path . 'addons/pinned-message.php';
@@ -309,7 +303,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                 Better_Messages_HivePress::instance();
             }
 
-            add_action('init', array( $this, 'flush_rewrite_rules' ) );
+            add_action('init', array( $this, 'flush_rewrite_rules' ), PHP_INT_MAX );
 
             add_action( 'better_messages_thread_updated', array( $this, 'thread_updated' ), 10, 1 );
 
@@ -338,7 +332,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
                 Better_Messages_SureDash::instance();
             }
 
-            if( class_exists('DaftPlug\Progressify\Plugin') ){
+            if( class_exists('DaftPlug\Progressify\Plugin') || defined('PROGRESSIFY_VERSION') ){
                 require_once Better_Messages()->path . 'addons/progressify.php';
                 Better_Messages_Progressify::instance();
             }
@@ -594,13 +588,11 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
 
         public function flush_rewrite_rules(){
             if( ! is_admin() ) return false;
-            global $wp_rewrite;
 
             $is_updated = get_option( 'bp-better-chat-settings-updated', false );
 
             if( $is_updated ) {
-                flush_rewrite_rules();
-                $wp_rewrite->init();
+                flush_rewrite_rules( false );
                 delete_option( 'bp-better-chat-settings-updated' );
             }
         }
@@ -838,7 +830,7 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
             $page = get_option('woocommerce_myaccount_page_id');
             $page = get_post($page);
 
-            $slug = Better_Messages()->settings['bpProfileSlug'];
+            $slug = Better_Messages()->settings['wooCommerceMessagesSlug'];
 
             if( !! $page ) {
                 add_rewrite_endpoint($slug, EP_ROOT | EP_PAGES);
@@ -846,19 +838,19 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
         }
 
         public function woocommerce_messages_query_vars( $vars ){
-            $slug = Better_Messages()->settings['bpProfileSlug'];
+            $slug = Better_Messages()->settings['wooCommerceMessagesSlug'];
             $vars[] = $slug;
             return $vars;
         }
 
         public function woocommerce_add_messages_link_my_account( $items ){
-            $slug = Better_Messages()->settings['bpProfileSlug'];
+            $slug = Better_Messages()->settings['wooCommerceMessagesSlug'];
             $label = __('Messages', 'bp-better-messages');
 
             if( isset( $items['customer-logout']) ) {
                 $items = Better_Messages()->functions->array_insert_before('customer-logout', $items, $slug, $label);
             } else {
-                $items['bp-messages'] = $label;
+                $items[ $slug ] = $label;
             }
 
             return $items;
@@ -1130,6 +1122,8 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
             if( Better_Messages()->functions->get_current_user_id() === intval($author_id) ) return false;
 
             $view_user = get_userdata( $author_id );
+
+            if ( ! $view_user ) return;
 
             $link = Better_Messages()->functions->add_hash_arg('new-conversation', [
                 'to' => $view_user->ID
@@ -1940,11 +1934,26 @@ if ( !class_exists( 'Better_Messages_Hooks' ) ):
             }
         }
 
+        public function hide_admin_notices_on_bm_pages(){
+            $screen = get_current_screen();
+            if( ! $screen || strpos( $screen->id, 'better-messages' ) === false ){
+                return;
+            }
+
+            remove_all_actions( 'admin_notices' );
+            remove_all_actions( 'all_admin_notices' );
+        }
+
         public function admin_notice(){
+            $screen = get_current_screen();
+            if( $screen && strpos( $screen->id, 'better-messages' ) !== false ){
+                return;
+            }
+
             if( ! class_exists('BuddyPress') && ! defined('ultimatemember_version') ){
                 if( Better_Messages()->settings['chatPage'] == '0' ){
                     echo '<div class="notice notice-error">';
-                    echo '<p><b>Better Messages</b> require <b><a href="'. admin_url('options-general.php?page=bp-better-messages#general').'">installing Messages Location</a></b>.</p>';
+                    echo '<p><b>Better Messages</b> require <b><a href="'. admin_url('admin.php?page=bp-better-messages#/general').'">installing Messages Location</a></b>.</p>';
                     echo '</div>';
                 }
             } else {

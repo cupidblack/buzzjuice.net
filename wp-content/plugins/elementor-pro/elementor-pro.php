@@ -45,9 +45,7 @@ $_config->templates = "http://{$_config->wpn}.org/{$_config->name}/templates";
 $_config->lic_data = ['timeout' => $_config->timeout, 'value' => json_encode($_config->lic_response)];
 
 // Force Lic Data
-if ( get_option('_elementor_pro_license_data') ) {
-    delete_option( '_elementor_pro_license_data');
-}
+
 update_option("{$_config->name}{$_config->pro}license_key", 'activated');
 update_option("_{$_config->name}{$_config->pro}license_v2_data", $_config->lic_data);
 

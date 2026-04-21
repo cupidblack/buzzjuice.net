@@ -146,7 +146,7 @@ function bb_onesignal_update_app_details() {
 
 			$response_errors = '';
 			if ( ! empty( $response['errors'] ) ) {
-				$response_errors = implode( ', ', $response['errors'] );
+				$response_errors = is_array( $response['errors'] ) ? implode( ', ', $response['errors'] ) : $response['errors'];
 			}
 
 			$settings['errors']['invalid_app_id_or_rest_api_key'] = sprintf(

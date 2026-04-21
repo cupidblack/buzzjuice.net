@@ -6,13 +6,14 @@
  */
 
 // 1. Custom REST endpoint for registration (forces BuddyBoss activation flow)
-add_action('rest_api_init', function () {
+/* add_action('rest_api_init', function () {
     register_rest_route('custom/v1', '/register', [
         'methods'  => 'POST',
         'callback' => 'custom_api_register_user',
         'permission_callback' => '__return_true', // Secure this in production!
     ]);
 });
+*/
 
 /**
  * Force all registrations (API or otherwise) to go through BuddyBoss/BuddyPress activation.

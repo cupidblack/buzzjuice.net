@@ -30,8 +30,6 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
             add_filter( 'bp_better_messages_script_variable', array( $this, 'attachments_script_vars' ), 10, 1 );
 
             if ( Better_Messages()->settings['attachmentsEnable'] === '1' ) {
-                add_action( 'wp_enqueue_scripts', array( $this, 'load_scripts' ), 9 );
-                add_action( 'better_messages_register_script_dependencies', array($this, 'load_scripts'), 10, 1);
 
                 if ( Better_Messages()->settings['attachmentsUploadMethod'] === 'tus' ) {
                     add_filter( 'rest_pre_dispatch', array( $this, 'intercept_tus_requests' ), 10, 3 );
@@ -47,9 +45,6 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
             add_action( 'bp_better_chat_settings_updated', array($this, 'create_index_file') );
             add_action( 'bp_better_chat_settings_updated', array( $this, 'update_htaccess_protection' ) );
 
-            add_action( 'wp_ajax_bm_download_ffmpeg', array( __CLASS__, 'ajax_download_ffmpeg' ) );
-            add_action( 'wp_ajax_bm_remove_ffmpeg', array( __CLASS__, 'ajax_remove_ffmpeg' ) );
-
             // WASM fallback file serving for hosts that block .wasm files
             add_action( 'wp_ajax_bm_ffmpeg_wasm', array( __CLASS__, 'serve_ffmpeg_wasm' ) );
             add_action( 'wp_ajax_nopriv_bm_ffmpeg_wasm', array( __CLASS__, 'serve_ffmpeg_wasm' ) );
@@ -63,70 +58,6 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
         const HTACCESS_CONTENT = "Options -Indexes\n";
         const INDEX_CONTENT = "<?php\n// Silence is golden.";
 
-        public bool $scripts_loaded = false;
-
-        public function load_scripts( $context ){
-            if( $this->scripts_loaded ) return;
-            $this->scripts_loaded = true;
-
-            $is_dev = defined( 'BM_DEV' );
-
-            $version = Better_Messages()->version;
-            $suffix = ( $is_dev ? '' : '.min' );
-
-            $deps = [
-                'better-messages-files-image-editor',
-                'better-messages-files-react'
-            ];
-
-            if( Better_Messages()->settings['attachmentsAllowPhoto'] == '1' ) {
-                wp_register_script(
-                    'better-messages-files-webcam',
-                    Better_Messages()->url . "assets/js/addons/files/webcam{$suffix}.js",
-                    [],
-                    $version
-                );
-
-                $deps[] = 'better-messages-files-webcam';
-            }
-
-            wp_register_script(
-                'better-messages-files-image-editor',
-                Better_Messages()->url . "assets/js/addons/files/image-editor{$suffix}.js",
-                [],
-                $version
-            );
-
-            wp_register_script(
-                'better-messages-files-react',
-                Better_Messages()->url . "assets/js/addons/files/react{$suffix}.js",
-                [],
-                $version
-            );
-
-            if ( Better_Messages()->settings['attachmentsUploadMethod'] === 'tus' ) {
-                wp_register_script(
-                    'better-messages-files-tus',
-                    Better_Messages()->url . "assets/js/addons/files/tus{$suffix}.js",
-                    [],
-                    $version
-                );
-
-                $deps[] = 'better-messages-files-tus';
-            }
-
-            wp_register_script(
-                'better-messages-files-core',
-                Better_Messages()->url . "assets/js/addons/files/core{$suffix}.js",
-                $deps,
-                $version
-            );
-
-            add_filter('better_messages_script_dependencies', function( $deps ) {
-                $deps[] = 'better-messages-files-core';
-                return $deps;
-            } );
-        }
 
         public function files_message_meta( $meta, $message_id, $thread_id, $content ){
             if( $content === '<!-- BM-DELETED-MESSAGE -->' ){
@@ -201,7 +132,10 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
         public function attachments_script_vars( $vars ){
             $vars['attachmentsBrowserEnable'] = Better_Messages()->settings['attachmentsBrowserEnable'] === '1';
 
-            if ( Better_Messages()->settings['attachmentsEnable'] === '1' ) {
+            $attachments_enabled = Better_Messages()->settings['attachmentsEnable'] === '1';
+            $has_voice_messages  = class_exists( 'BP_Better_Messages_Voice_Messages' );
+
+            if ( $attachments_enabled || $has_voice_messages ) {
                 $vars['attachments'] = [
                     'maxSize'        => intval(Better_Messages()->settings['attachmentsMaxSize']),
                     'maxItems'       => intval(Better_Messages()->settings['attachmentsMaxNumber']),
@@ -209,6 +143,8 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                     'allowPhoto'     => (int) ( Better_Messages()->settings['attachmentsAllowPhoto'] == '1' ? '1' : '0' ),
                     'tusEndpoint'    => esc_url_raw( get_rest_url( null, '/better-messages/v1/tus/' ) ),
                     'uploadMethod'   => Better_Messages()->settings['attachmentsUploadMethod'],
+                    'randomizeFilenames'   => Better_Messages()->settings['attachmentsRandomizeFilenames'] === '1',
+                    'voiceOnly'      => ! $attachments_enabled && $has_voice_messages,
                 ];
             }
 
@@ -220,7 +156,7 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
 
             $ffmpeg_url = self::get_ffmpeg_wasm_url();
             if ( $ffmpeg_url ) {
-                $vars['transcodingFfmpegUrl'] = $ffmpeg_url;
+                $vars['transcodingFFmpegUrl'] = $ffmpeg_url;
             }
 
             $vars['transcodingLibheifUrl'] = self::get_libheif_wasm_url();
@@ -260,7 +196,33 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                 ),
             ));
 
-            if ( Better_Messages()->settings['attachmentsEnable'] !== '1' ) {
+            register_rest_route( 'better-messages/v1/admin', '/testProxyMethod', array(
+                'methods'             => 'POST',
+                'callback'            => array( $this, 'test_proxy_method' ),
+                'permission_callback' => function() {
+                    return current_user_can( 'manage_options' );
+                },
+            ) );
+
+            register_rest_route( 'better-messages/v1/admin', '/downloadFFmpeg', array(
+                'methods'             => 'POST',
+                'callback'            => array( $this, 'rest_download_ffmpeg' ),
+                'permission_callback' => function() {
+                    return current_user_can( 'manage_options' );
+                },
+            ) );
+
+            register_rest_route( 'better-messages/v1/admin', '/removeFFmpeg', array(
+                'methods'             => 'POST',
+                'callback'            => array( $this, 'rest_remove_ffmpeg' ),
+                'permission_callback' => function() {
+                    return current_user_can( 'manage_options' );
+                },
+            ) );
+
+            $has_voice_messages = class_exists( 'BP_Better_Messages_Voice_Messages' );
+
+            if ( Better_Messages()->settings['attachmentsEnable'] !== '1' && ! $has_voice_messages ) {
                 return;
             }
 
@@ -326,13 +288,6 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                 ));
             }
 
-            register_rest_route( 'better-messages/v1/admin', '/testProxyMethod', array(
-                'methods'             => 'POST',
-                'callback'            => array( $this, 'test_proxy_method' ),
-                'permission_callback' => function() {
-                    return current_user_can( 'manage_options' );
-                },
-            ) );
         }
 
         public function get_thread_attachments( WP_REST_Request $request ) {
@@ -968,8 +923,22 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
 
         public function upload_mimes($mimes, $user){
             $allowedExtensions = Better_Messages()->settings['attachmentsFormats'];
-            $allowed = array();
 
+            // Force-accept output formats when optimization is enabled
+            if ( Better_Messages()->settings['transcodingImageFormat'] !== 'original' ) {
+                foreach ( array( 'jpg', 'jpeg', 'webp', 'avif' ) as $fmt ) {
+                    if ( ! in_array( $fmt, $allowedExtensions ) ) {
+                        $allowedExtensions[] = $fmt;
+                    }
+                }
+            }
+            if ( Better_Messages()->settings['transcodingVideoFormat'] !== 'original' ) {
+                if ( ! in_array( 'mp4', $allowedExtensions ) ) {
+                    $allowedExtensions[] = 'mp4';
+                }
+            }
+
+            $allowed = array();
 
             foreach( wp_get_mime_types() as $extensions => $mime_type ){
                 $key = array();
@@ -981,10 +950,6 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                 if( ! empty($key) ){
                     $key = implode('|', $key);
                     $allowed[$key] = $mime_type;
-
-                    if( str_contains( $key, 'jpg' ) || str_contains( $key, 'jpe' ) ){
-                        $allowed['webp'] = 'image/webp';
-                    }
                 }
             }
 
@@ -1014,7 +979,7 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
 
                 $name = wp_basename($file['name']);
 
-                $file['name'] = sanitize_file_name( $name );
+                $file['name'] = $this->limit_filename_bytes( sanitize_file_name( $name ) );
 
                 add_filter('intermediate_image_sizes', '__return_empty_array');
                 add_filter('big_image_size_threshold', '__return_false');
@@ -1067,7 +1032,10 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                 $extensions = apply_filters( 'bp_better_messages_attachment_allowed_extensions', Better_Messages()->settings['attachmentsFormats'], $thread_id, $user_id );
                 $extensions = self::get_expanded_extensions( $extensions );
 
-                $is_e2e_upload = class_exists( 'Better_Messages_E2E_Encryption' ) && Better_Messages_E2E_Encryption::is_e2e_thread( $thread_id );
+                $is_e2e_upload = class_exists( 'Better_Messages_E2E_Encryption' ) && (
+                    Better_Messages_E2E_Encryption::is_e2e_thread( $thread_id )
+                    || ( $thread_id === 0 && ! empty( $request->get_param( 'e2e_encrypted' ) ) )
+                );
 
                 $extension = pathinfo( $file['name'], PATHINFO_EXTENSION );
 
@@ -1098,9 +1066,9 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                     }
                 }
 
-                $name = wp_basename($file['name']);
+                $name = wp_basename( $file['name'] );
 
-                $_FILES['file']['name'] = sanitize_file_name( $name );
+                $_FILES['file']['name'] = $this->limit_filename_bytes( sanitize_file_name( $name ) );
 
                 $maxSizeMb = apply_filters( 'bp_better_messages_attachment_max_size', Better_Messages()->settings['attachmentsMaxSize'], $thread_id, $user_id );
 
@@ -1174,10 +1142,16 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                             $mime_type = get_post_mime_type( $attachment_id );
                             // Only strip metadata for formats the server can reliably re-encode
                             // without converting to a different format (e.g. AVIF/WebP → PNG)
-                            $safe_mimes = array( 'image/jpeg', 'image/png', 'image/gif' );
+                            // GIF excluded: wp_get_image_editor destroys animation (only keeps first frame)
+                            $safe_mimes = array( 'image/jpeg', 'image/png' );
                             if ( in_array( $mime_type, $safe_mimes, true ) ) {
                                 $editor = wp_get_image_editor( $file_path );
                                 if ( ! is_wp_error( $editor ) ) {
+                                    // Apply EXIF orientation before stripping metadata,
+                                    // since big_image_size_threshold is disabled and WP skips its own rotation
+                                    if ( method_exists( $editor, 'maybe_exif_rotate' ) ) {
+                                        $editor->maybe_exif_rotate();
+                                    }
                                     $editor->set_quality( 100 );
                                     $editor->save( $file_path );
                                 }
@@ -1212,7 +1186,7 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
         }
 
         public function user_can_upload( $user_id, $thread_id ) {
-            if ( Better_Messages()->settings['attachmentsEnable'] !== '1' ) return false;
+            if ( Better_Messages()->settings['attachmentsEnable'] !== '1' && ! class_exists( 'BP_Better_Messages_Voice_Messages' ) ) return false;
 
             if( $thread_id === 0 ) return true;
 
@@ -1220,7 +1194,7 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
         }
 
         public function user_can_upload_callback(WP_REST_Request $request) {
-            if ( Better_Messages()->settings['attachmentsEnable'] !== '1' ) return false;
+            if ( Better_Messages()->settings['attachmentsEnable'] !== '1' && ! class_exists( 'BP_Better_Messages_Voice_Messages' ) ) return false;
 
             if( ! Better_Messages_Rest_Api()->is_user_authorized( $request ) ){
                 return false;
@@ -1243,6 +1217,23 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
             }
 
             return $can_upload;
+        }
+
+        /**
+         * Truncate a filename to fit within the filesystem byte limit (255 bytes for ext4).
+         * Preserves the file extension and avoids splitting multibyte characters.
+         */
+        public function limit_filename_bytes( $filename, $max_bytes = 255 ) {
+            if ( strlen( $filename ) <= $max_bytes ) {
+                return $filename;
+            }
+
+            $extension    = pathinfo( $filename, PATHINFO_EXTENSION );
+            $ext_with_dot = ! empty( $extension ) ? '.' . $extension : '';
+            $base         = mb_strcut( $filename, 0, $max_bytes - strlen( $ext_with_dot ), 'UTF-8' );
+            $base         = rtrim( $base, '.' );
+
+            return $base . $ext_with_dot;
         }
 
         /**
@@ -1745,7 +1736,7 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
             $user_id   = Better_Messages()->functions->get_current_user_id();
             $thread_id = intval( $request->get_param( 'thread_id' ) );
 
-            $is_e2e_upload = class_exists( 'Better_Messages_E2E_Encryption' ) && Better_Messages_E2E_Encryption::is_e2e_thread( $thread_id );
+            $is_e2e_upload = false;
 
             $upload_length = $request->get_header( 'upload_length' );
             if ( $upload_length === null || ! is_numeric( $upload_length ) ) {
@@ -1773,7 +1764,6 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
 
             $filename = isset( $metadata['filename'] ) ? $metadata['filename'] : '';
             $filetype = isset( $metadata['filetype'] ) ? $metadata['filetype'] : '';
-
             if ( empty( $filename ) ) {
                 return new WP_Error(
                     'tus_missing_filename',
@@ -1781,6 +1771,11 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                     array( 'status' => 400 )
                 );
             }
+
+            $is_e2e_upload = class_exists( 'Better_Messages_E2E_Encryption' ) && (
+                Better_Messages_E2E_Encryption::is_e2e_thread( $thread_id )
+                || ( $thread_id === 0 && ! empty( $metadata['e2e_encrypted'] ) )
+            );
 
             if ( $is_e2e_upload ) {
                 // E2E: require e2e_encrypted flag and .enc extension
@@ -1828,7 +1823,7 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                 'upload_id'  => $upload_id,
                 'thread_id'  => $thread_id,
                 'user_id'    => $user_id,
-                'filename'   => sanitize_file_name( $filename ),
+                'filename'   => $this->limit_filename_bytes( sanitize_file_name( $filename ) ),
                 'filetype'   => sanitize_mime_type( $filetype ),
                 'filesize'   => $upload_length,
                 'offset'     => 0,
@@ -2077,7 +2072,7 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                 require_once ABSPATH . 'wp-admin/includes/media.php';
 
                 $file_array = array(
-                    'name'     => sanitize_file_name( $filename ),
+                    'name'     => $this->limit_filename_bytes( sanitize_file_name( $filename ) ),
                     'type'     => $filetype,
                     'tmp_name' => $part_file,
                     'error'    => 0,
@@ -2106,11 +2101,33 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                 add_post_meta( $attachment_id, 'bp-better-messages-thread-id', $thread_id, true );
                 add_post_meta( $attachment_id, 'bp-better-messages-uploader-user-id', $user_id, true );
                 add_post_meta( $attachment_id, 'bp-better-messages-upload-time', time(), true );
-                add_post_meta( $attachment_id, 'bp-better-messages-original-name', $meta['filename'], true );
+                add_post_meta( $attachment_id, 'bp-better-messages-original-name', $filename, true );
                 add_post_meta( $attachment_id, 'better-messages-waiting-for-message', time(), true );
 
                 if ( $is_e2e && ! empty( $meta['e2e_original_mime'] ) ) {
                     add_post_meta( $attachment_id, 'bm-e2e-original-mime', $meta['e2e_original_mime'], true );
+                }
+
+                // Server-side metadata strip fallback (catches images not processed client-side)
+                if ( Better_Messages()->settings['transcodingStripMetadata'] === '1' ) {
+                    $file_path = get_attached_file( $attachment_id );
+                    if ( $file_path && wp_attachment_is_image( $attachment_id ) ) {
+                        $mime_type = get_post_mime_type( $attachment_id );
+                        // GIF excluded: wp_get_image_editor destroys animation
+                        $safe_mimes = array( 'image/jpeg', 'image/png' );
+                        if ( in_array( $mime_type, $safe_mimes, true ) ) {
+                            $editor = wp_get_image_editor( $file_path );
+                            if ( ! is_wp_error( $editor ) ) {
+                                // Apply EXIF orientation before stripping metadata,
+                                // since big_image_size_threshold is disabled and WP skips its own rotation
+                                if ( method_exists( $editor, 'maybe_exif_rotate' ) ) {
+                                    $editor->maybe_exif_rotate();
+                                }
+                                $editor->set_quality( 100 );
+                                $editor->save( $file_path );
+                            }
+                        }
+                    }
                 }
 
                 return $attachment_id;
@@ -2282,30 +2299,19 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
             }
 
             if ( $imageFormat !== 'original' ) {
-                $imageExts = array( 'jpg', 'jpeg', 'jpe', 'png', 'gif', 'webp', 'heic', 'heif', 'tiff', 'tif', 'bmp', 'ico', 'avif' );
-                if ( ! empty( array_intersect( $extensions, $imageExts ) ) ) {
-                    $targetMap = array(
-                        'webp' => array( 'webp' ),
-                        'avif' => array( 'avif' ),
-                        'jpeg' => array( 'jpg', 'jpeg' ),
-                    );
-                    $targets = isset( $targetMap[ $imageFormat ] ) ? $targetMap[ $imageFormat ] : array();
-                    foreach ( $targets as $t ) {
-                        if ( ! in_array( $t, $extensions ) ) {
-                            $extensions[] = $t;
-                        }
+                // Force-accept all possible output formats when image optimization is enabled
+                $force_accept = array( 'jpg', 'jpeg', 'webp', 'avif' );
+                foreach ( $force_accept as $t ) {
+                    if ( ! in_array( $t, $extensions ) ) {
+                        $extensions[] = $t;
                     }
                 }
             }
 
             if ( $videoFormat !== 'original' ) {
-                $videoExts = array( 'mov', 'avi', 'wmv', 'mkv' );
-                if ( ! empty( array_intersect( $extensions, $videoExts ) ) ) {
-                    foreach ( array( 'mp4', 'm4v' ) as $t ) {
-                        if ( ! in_array( $t, $extensions ) ) {
-                            $extensions[] = $t;
-                        }
-                    }
+                // Force-accept mp4 when video optimization is enabled
+                if ( ! in_array( 'mp4', $extensions ) ) {
+                    $extensions[] = 'mp4';
                 }
             }
 
@@ -2359,91 +2365,52 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
         }
 
         /**
-         * AJAX handler: Download FFmpeg WASM files from npm registry.
+         * REST handler: Download FFmpeg WASM files.
          */
-        public static function ajax_download_ffmpeg() {
-            check_ajax_referer( 'bm_ffmpeg_action' );
-
-            if ( ! current_user_can( 'manage_options' ) ) {
-                wp_send_json_error( 'Unauthorized' );
+        public function rest_download_ffmpeg( WP_REST_Request $request ) {
+            if ( ! function_exists( 'download_url' ) ) {
+                require_once ABSPATH . 'wp-admin/includes/file.php';
+            }
+            if ( ! function_exists( 'unzip_file' ) ) {
+                require_once ABSPATH . 'wp-admin/includes/file.php';
             }
 
             $version = '0.12.10';
-            $tgz_url = 'https://registry.npmjs.org/@ffmpeg/core/-/core-' . $version . '.tgz';
+            $zip_url = 'https://www.better-messages.com/downloads/ffmpeg-core-' . $version . '.zip';
 
             $dir = self::get_ffmpeg_wasm_dir();
             wp_mkdir_p( $dir );
 
-            // Download the tarball
-            $tmp_file = download_url( $tgz_url, 300 );
+            $tmp_file = download_url( $zip_url, 300 );
             if ( is_wp_error( $tmp_file ) ) {
-                wp_send_json_error( $tmp_file->get_error_message() );
+                return new WP_Error( 'download_failed', $tmp_file->get_error_message(), array( 'status' => 500 ) );
             }
 
-            // Extract the needed files from the tgz
-            try {
-                $phar = new PharData( $tmp_file );
-                $extracted = false;
+            WP_Filesystem();
+            $result = unzip_file( $tmp_file, $dir );
+            @unlink( $tmp_file );
 
-                $files_to_extract = array(
-                    'package/dist/umd/ffmpeg-core.js',
-                    'package/dist/umd/ffmpeg-core.wasm',
-                );
-
-                foreach ( $phar as $entry ) {
-                    // PharData iterator for tgz needs decompression first
-                }
-
-                // Decompress .tgz to .tar
-                $tar_file = $tmp_file . '.tar';
-                $phar->decompress();
-                $tar_file = str_replace( '.tgz', '.tar', $tmp_file );
-                if ( ! file_exists( $tar_file ) ) {
-                    $tar_file = preg_replace( '/\.tmp$/', '.tar', $tmp_file );
-                }
-
-                $tar = new PharData( $tar_file );
-
-                foreach ( $files_to_extract as $path ) {
-                    $content = file_get_contents( 'phar://' . $tar_file . '/' . $path );
-                    if ( $content !== false ) {
-                        $filename = basename( $path );
-                        file_put_contents( $dir . '/' . $filename, $content );
-                        $extracted = true;
-                    }
-                }
-
-                @unlink( $tmp_file );
-                @unlink( $tar_file );
-
-                if ( ! $extracted || ! file_exists( $dir . '/ffmpeg-core.wasm' ) ) {
-                    wp_send_json_error( 'Failed to extract FFmpeg files' );
-                }
-
-                // Write .htaccess to set correct WASM Content-Type header
-                self::write_wasm_htaccess( $dir );
-
-                wp_send_json_success( array(
-                    'version' => $version,
-                    'size'    => size_format( filesize( $dir . '/ffmpeg-core.wasm' ) ),
-                ) );
-
-            } catch ( Exception $e ) {
-                @unlink( $tmp_file );
-                wp_send_json_error( $e->getMessage() );
+            if ( is_wp_error( $result ) ) {
+                return new WP_Error( 'extract_failed', $result->get_error_message(), array( 'status' => 500 ) );
             }
+
+            if ( ! file_exists( $dir . '/ffmpeg-core.wasm' ) || ! file_exists( $dir . '/ffmpeg-core.js' ) ) {
+                return new WP_Error( 'extract_failed', 'Failed to extract FFmpeg files', array( 'status' => 500 ) );
+            }
+
+            self::write_wasm_htaccess( $dir );
+
+            return rest_ensure_response( array(
+                'success' => true,
+                'version' => $version,
+                'size'    => size_format( filesize( $dir . '/ffmpeg-core.wasm' ) ),
+            ) );
         }
 
         /**
-         * AJAX handler: Remove FFmpeg WASM files.
+         * REST handler: Remove FFmpeg WASM files.
          */
-        public static function ajax_remove_ffmpeg() {
-            check_ajax_referer( 'bm_ffmpeg_action' );
-
-            if ( ! current_user_can( 'manage_options' ) ) {
-                wp_send_json_error( 'Unauthorized' );
-            }
-
+        public function rest_remove_ffmpeg( WP_REST_Request $request ) {
             $dir = self::get_ffmpeg_wasm_dir();
 
             $files = array( 'ffmpeg-core.wasm', 'ffmpeg-core.js', 'ffmpeg-core.worker.js', '.htaccess' );
@@ -2454,16 +2421,14 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                 }
             }
 
-            // Remove empty directories
             @rmdir( $dir );
             @rmdir( dirname( $dir ) );
 
-            // Reset video transcoding setting to original
             $settings = Better_Messages()->settings;
             $settings['transcodingVideoFormat'] = 'original';
             Better_Messages_Options::instance()->update_settings( $settings );
 
-            wp_send_json_success();
+            return rest_ensure_response( array( 'success' => true ) );
         }
 
         /**
@@ -2532,7 +2497,7 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                 return admin_url( 'admin-ajax.php' ) . '?action=bm_libheif_wasm&file=' . $filename;
             }
 
-            return Better_Messages()->url . 'assets/js/addons/transcode/' . $filename;
+            return Better_Messages()->url . 'assets/js/modules/transcode/' . $filename;
         }
 
         /**
@@ -2550,7 +2515,7 @@ if ( !class_exists( 'Better_Messages_Files' ) ):
                 wp_die( 'Invalid file', '', array( 'response' => 404 ) );
             }
 
-            $path = Better_Messages()->path . 'assets/js/addons/transcode/' . $file;
+            $path = Better_Messages()->path . 'assets/js/modules/transcode/' . $file;
 
             if ( ! file_exists( $path ) ) {
                 wp_die( 'File not found', '', array( 'response' => 404 ) );

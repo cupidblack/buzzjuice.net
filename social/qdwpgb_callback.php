@@ -1,5 +1,6 @@
 <?php
 require_once realpath(dirname(__FILE__)) . DIRECTORY_SEPARATOR . 'bootstrap.php';
+require_once __DIR__ . '/../shared/palmier/palmier_logger.php';
 
 // Initialize the database connection (ensure $db is properly set)
 global $db, $config;
@@ -46,6 +47,7 @@ $payment_method = $data['payment_method'] ?? null;
 $total_paid = floatval($data['total'] ?? 0);
 $customer_email = $data['billing']['email'] ?? null;
 $woo_product_id = $data['line_items'][0]['product_id'] ?? null;
+$date_completed = $data['date_completed'] ?? null;
 
 // Extract `_wow_order_id`
 $order_id = null;
@@ -79,7 +81,7 @@ error_log("
             Customer Email: $customer_email");
 
 // Print the detailed WooCommerce Webhook responses for debugging
-//error_log("WooCommerce Webhook Data: " . print_r($data, true));
+// error_log("WooCommerce Webhook Data: " . print_r($data, true));
 
 // Ensure `order_id` exists
 if (!$order_id) {
@@ -135,9 +137,18 @@ if (in_array($order_status, ['completed'])) {
                         'pro_plan' => '0',
                         'credit_amount' => $amount,
                         'via' => 'WooCommerce',
-                        'date' => time(),
+                        'date' => $date_completed,
                         'status' => 'complete'
                     ]);
+
+                    if ($total_paid == $config->bag_of_credits_price) {
+                        bzj_log_activity($user_id, 'bag_of_credits', $order_id, 'purchase', $amount, 'QD_payments');
+                    } elseif ($total_paid == $config->box_of_credits_price) {
+                        bzj_log_activity($user_id, 'box_of_credits', $order_id, 'purchase', $amount, 'QD_payments');
+                    } elseif ($config->chest_of_credits_price) {
+                        bzj_log_activity($user_id, 'chest_of_credits', $order_id, 'purchase', $amount, 'QD_payments');
+                    }
+                    
                     error_log("Credits successfully added to user ID: $user_id. New Balance: $new_balance");
                 } else {
                     error_log("Failed to update balance for user ID: $user_id");
@@ -159,7 +170,7 @@ if (in_array($order_status, ['completed'])) {
 
                 if (!empty($pro_type) && in_array($pro_type, array(1,2,3,4)) && $pro_type > 0) {
     				$membershipType = Secure($pro_type);
-	    			$protime                = time();
+	    			$protime                = $date_completed;
 			        $is_pro                 = "1";
 			        $pro_type               = $membershipType;
 			        $updated                = $db->where('id', $user_id)->update('users', array(
@@ -177,12 +188,23 @@ if (in_array($order_status, ['completed'])) {
                             'pro_plan' => $pro_type,
                             'credit_amount' => '0',
                             'via' => 'WooCommerce',
-                            'date' => time(),
+                            'date' => $date_completed,
                             'status' => 'complete'
                         ]);
                         $_SESSION[ 'userEdited' ] = true;
 			            SuperCache::cache('pro_users')->destroy();
-                        error_log("QuickDate Pro membership activated for user ID: $user_id with Pro Type: $pro_type");
+			            
+			            if ($total_paid == $config->weekly_pro_plan) {
+                            bzj_log_activity($user_id, 'Classic Lifestyle', $woo_order_id, 'purchase', $total_paid, 'QD_payments');
+                        } elseif ($total_paid == $config->monthly_pro_plan) {
+                            bzj_log_activity($user_id, 'Silver Lifestyle', $woo_order_id, 'purchase', $total_paid, 'QD_payments');
+                        } elseif ($total_paid == $config->yearly_pro_plan) {
+                            bzj_log_activity($user_id, 'RoskStar Lifestyle', $woo_order_id, 'purchase', $total_paid, 'QD_payments');
+                        } elseif ($total_paid == $config->lifetime_pro_plan) {
+                            bzj_log_activity($user_id, 'Premium Lifestyle', $woo_order_id, 'purchase', $total_paid, 'QD_payments');
+                        }
+			            
+                        error_log("Social Pro membership activated for user ID: $user_id with Pro Type: $pro_type");
                     } elseif ($updated && empty($order_id)) {
                         RegisterAffRevenue($user_id,$total_paid);
                         $db->insert('payments', [ //insert a new order entry into the QuickDate database payments table
@@ -193,12 +215,23 @@ if (in_array($order_status, ['completed'])) {
                             'pro_plan' => $pro_type,
                             'credit_amount' => '0',
                             'via' => 'WooCommerce',
-                            'date' => time(),
+                            'date' => $date_completed,
                             'status' => 'complete'
                         ]);
                         $_SESSION[ 'userEdited' ] = true;
 			            SuperCache::cache('pro_users')->destroy();
-                        error_log("Wowonder Pro membership activated for user ID: $user_id with Pro Type: $pro_type");
+			            
+        	            if ($total_paid == $config->weekly_pro_plan) {
+                            bzj_log_activity($user_id, 'Classic Lifestyle', $woo_order_id, 'purchase', $total_paid, 'QD_payments');
+                        } elseif ($total_paid == $config->monthly_pro_plan) {
+                            bzj_log_activity($user_id, 'Silver Lifestyle', $woo_order_id, 'purchase', $total_paid, 'QD_payments');
+                        } elseif ($total_paid == $config->yearly_pro_plan) {
+                            bzj_log_activity($user_id, 'RoskStar Lifestyle', $woo_order_id, 'purchase', $total_paid, 'QD_payments');
+                        } elseif ($total_paid == $config->lifetime_pro_plan) {
+                            bzj_log_activity($user_id, 'Premium Lifestyle', $woo_order_id, 'purchase', $total_paid, 'QD_payments');
+                        }
+			            
+                        error_log("Streams Pro membership activated for user ID: $user_id with Pro Type: $pro_type");
                     } else {
                         error_log("Failed to activate Pro membership for user ID: $user_id");
                     }

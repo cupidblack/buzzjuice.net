@@ -262,6 +262,11 @@ class IncidentRecorder {
 	/**
 	 * Get files information.
 	 *
+	 * Handles both single-file and multi-file upload structures from PHP's
+	 * $_FILES superglobal. Multi-file uploads (e.g. name="files[]") produce
+	 * arrays for 'name', 'type', 'size' — these are expanded into individual
+	 * entries keyed as "{fieldName}_0", "{fieldName}_1", etc.
+	 *
 	 * @param Request $request Request object.
 	 *
 	 * @return array Detailed file information, limited to 10 kB JSON-encoded size.
@@ -271,8 +276,24 @@ class IncidentRecorder {
 		$files  = $request->getAllFiles();
 
 		foreach ( $files as $fieldName => $fileInfo ) {
-			// Only include files that have a name field present (even if empty).
-			if ( isset( $fileInfo['name'] ) ) {
+			if ( ! isset( $fileInfo['name'] ) ) {
+				continue;
+			}
+
+			if ( is_array( $fileInfo['name'] ) ) {
+				$names = $fileInfo['name'];
+				$types = isset( $fileInfo['type'] ) && is_array( $fileInfo['type'] ) ? $fileInfo['type'] : array();
+				$sizes = isset( $fileInfo['size'] ) && is_array( $fileInfo['size'] ) ? $fileInfo['size'] : array();
+
+				foreach ( $names as $index => $name ) {
+					$key            = $fieldName . '_' . $index;
+					$result[ $key ] = array(
+						'name' => $name,
+						'type' => isset( $types[ $index ] ) ? $types[ $index ] : '',
+						'size' => isset( $sizes[ $index ] ) ? $sizes[ $index ] : 0,
+					);
+				}
+			} else {
 				$result[ $fieldName ] = array(
 					'name' => $fileInfo['name'],
 					'type' => isset( $fileInfo['type'] ) ? $fileInfo['type'] : '',
@@ -368,7 +389,9 @@ class IncidentRecorder {
 				$first_inner  = true;
 				foreach ( $value as $k => $v ) {
 					$keyLen        = strlen( (string) $k );
-					$valLen        = strlen( (string) $v );
+					$valLen        = is_array( $v )
+						? strlen( (string) wp_json_encode( $v ) )
+						: strlen( (string) $v );
 					$fileInfoSize += $keyLen + $valLen + 5;
 					if ( ! $first_inner ) {
 						$fileInfoSize++;

@@ -11,15 +11,24 @@ namespace CloudLinux\Imunify\App\Views;
 use CloudLinux\Imunify\App\AccessManager;
 use CloudLinux\Imunify\App\DataStore;
 use CloudLinux\Imunify\App\View;
+use CloudLinux\Imunify\App\Defender\Model\RuleMode;
+use CloudLinux\Imunify\App\Defender\RuleHitTracker;
+use CloudLinux\Imunify\App\Defender\RuleProvider;
+use CloudLinux\Imunify\App\Views\Display\RuleDisplay;
 
 /**
  * Dashboard widget view.
  */
 class Widget extends View {
 	/**
-	 * Maximum number of items to show in widget view.
+	 * Maximum number of malware items to show in widget view.
 	 */
 	const MAX_WIDGET_ITEMS = 5;
+
+	/**
+	 * Maximum number of WAF incidents to show in widget view.
+	 */
+	const MAX_WAF_INCIDENTS = 10;
 
 	/**
 	 * User meta key for storing widget snooze state.
@@ -43,6 +52,20 @@ class Widget extends View {
 	const UPGRADE_URI_FRAGMENT = '/AV/client/upgrade';
 
 	/**
+	 * URI path for the malware page in the admin interface.
+	 *
+	 * @var string
+	 */
+	const MALWARE_URI_PATH = '/client/malware';
+
+	/**
+	 * URI path for the WAF/incidents page in the admin interface.
+	 *
+	 * @var string
+	 */
+	const WAF_URI_PATH = '/client/cms-protection/incidents';
+
+	/**
 	 * Data store instance.
 	 *
 	 * @var DataStore
@@ -57,14 +80,33 @@ class Widget extends View {
 	private $accessManager;
 
 	/**
+	 * Rule provider instance.
+	 *
+	 * @var RuleProvider
+	 */
+	private $ruleProvider;
+
+	/**
+	 * Rule hit tracker instance.
+	 *
+	 * @var RuleHitTracker
+	 */
+	private $hitTracker;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param AccessManager $accessManager Access manager instance.
-	 * @param DataStore     $dataStore     Data store instance.
+	 * @param AccessManager  $accessManager Access manager instance.
+	 * @param DataStore      $dataStore     Data store instance.
+	 * @param RuleProvider   $ruleProvider  Rule provider instance.
+	 * @param RuleHitTracker $hitTracker    Rule hit tracker instance.
 	 */
-	public function __construct( AccessManager $accessManager, DataStore $dataStore ) {
+	public function __construct( AccessManager $accessManager, DataStore $dataStore, RuleProvider $ruleProvider, RuleHitTracker $hitTracker ) {
 		$this->accessManager = $accessManager;
 		$this->dataStore     = $dataStore;
+		$this->ruleProvider  = $ruleProvider;
+		$this->hitTracker    = $hitTracker;
+
 		add_action( 'wp_dashboard_setup', array( $this, 'add' ) );
 		add_action( 'wp_ajax_imunify_snooze_widget', array( $this, 'snoozeWidget' ) );
 	}
@@ -118,22 +160,87 @@ class Widget extends View {
 			$canUserUpgrade = $this->accessManager->canUserUpgrade( $this->dataStore );
 			$showMoreButton = $malwareCount > self::MAX_WIDGET_ITEMS;
 
-			$this->render(
-				'widget',
-				array(
-					'scanData'          => $scanData,
-					'pluginUrl'         => $pluginUrl,
-					'features'          => $this->dataStore->getFeatures(),
-					'malwareItems'      => array_slice( $malwareItems, 0, self::MAX_WIDGET_ITEMS ),
-					'totalItemsCount'   => $malwareCount,
-					'showMoreButton'    => $showMoreButton,
-					'showMoreUrl'       => $showMoreButton ? $this->getAdminPageUrl() : '',
-					'showUpgradeButton' => $canUserUpgrade,
-					'upgradeUrl'        => $canUserUpgrade ? $this->getUpgradeUrl() : '',
-					'statusTitle'       => $this->getProtectionStatusTitle(),
-					'statusIcon'        => $this->getProtectionStatusIcon(),
-				)
+			$templateData = array(
+				'scanData'          => $scanData,
+				'pluginUrl'         => $pluginUrl,
+				'features'          => $this->dataStore->getFeatures(),
+				'malwareItems'      => array_slice( $malwareItems, 0, self::MAX_WIDGET_ITEMS ),
+				'totalItemsCount'   => $malwareCount,
+				'showMoreButton'    => $showMoreButton,
+				'showMoreUrl'       => $showMoreButton ? $this->getAdminPageUrl() : '',
+				'showUpgradeButton' => $canUserUpgrade,
+				'upgradeUrl'        => $canUserUpgrade ? $this->getUpgradeUrl() : '',
+				'statusTitle'       => $this->getProtectionStatusTitle(),
+				'statusIcon'        => $this->getProtectionStatusIcon(),
+				'malwareUrl'        => $this->getMalwareUrl(),
+				'wafUrl'            => $this->getWafUrl(),
 			);
+
+			$rules                          = $this->ruleProvider->loadRules();
+			$templateData['showWafSection'] = false;
+			$templateData['wafEnabled']     = false;
+			$templateData['wafMonitoring']  = false;
+
+			// Check if WAF rules exist.
+			if ( null !== $rules && ! $rules->isEmpty() ) {
+				$isImunify360 = AccessManager::isProductType( $this->dataStore, 'imunify360' );
+
+				// Set the appropriate WAF status flag.
+				if ( $isImunify360 ) {
+					// Imunify360: WAF is enabled with full protection (blocking).
+					$templateData['wafEnabled'] = true;
+				} else {
+					// ImunifyAV: WAF is in monitoring-only mode (logging only).
+					$templateData['wafMonitoring'] = true;
+				}
+
+				// Process incidents for both product types.
+				$ruleDisplays = array();
+
+				foreach ( $rules->getRules() as $rule ) {
+					// For Imunify360 only: exclude pass-mode rules from the incidents list.
+					if ( $isImunify360 && $rule->getMode() === RuleMode::PASS ) {
+						continue;
+					}
+					$hitCount      = $this->hitTracker->getTotalHitsForRule( $rule );
+					$lastTimestamp = $this->hitTracker->getLastTimestampForRule( $rule );
+
+					// Only include rules that have actual incidents (hit count > 0).
+					if ( $hitCount > 0 ) {
+						$ruleDisplays[] = RuleDisplay::fromRule( $rule, $hitCount, $lastTimestamp );
+					}
+				}
+
+				// Show incident details section only if there are actual incidents.
+				if ( ! empty( $ruleDisplays ) ) {
+					$templateData['showWafSection'] = true;
+
+					// Sort by last incident timestamp (most recent first).
+					usort(
+						$ruleDisplays,
+						function ( $a, $b ) {
+							// Handle null timestamps - push them to the end.
+							if ( null === $a->lastIncidentTimestamp && null === $b->lastIncidentTimestamp ) {
+								return 0;
+							}
+							if ( null === $a->lastIncidentTimestamp ) {
+								return 1;
+							}
+							if ( null === $b->lastIncidentTimestamp ) {
+								return -1;
+							}
+							// Sort descending (most recent first).
+							return $b->lastIncidentTimestamp - $a->lastIncidentTimestamp;
+						}
+					);
+
+					// Limit to max incidents.
+					$templateData['rules']   = array_slice( $ruleDisplays, 0, self::MAX_WAF_INCIDENTS );
+					$templateData['ruleset'] = $this->ruleProvider->getRulesetVersion();
+				}
+			}
+
+			$this->render( 'widget', $templateData );
 		}
 	}
 
@@ -163,6 +270,24 @@ class Widget extends View {
 	}
 
 	/**
+	 * Gets the malware page URL.
+	 *
+	 * @return string
+	 */
+	public function getMalwareUrl() {
+		return $this->getAdminPageUrl() . '#/' . $this->getProductUriPrefix() . self::MALWARE_URI_PATH;
+	}
+
+	/**
+	 * Gets the WAF/incidents page URL.
+	 *
+	 * @return string
+	 */
+	public function getWafUrl() {
+		return $this->getAdminPageUrl() . '#/' . $this->getProductUriPrefix() . self::WAF_URI_PATH;
+	}
+
+	/**
 	 * Checks if the widget will be rendered.
 	 *
 	 * @return bool
@@ -173,6 +298,22 @@ class Widget extends View {
 		}
 
 		return ! $this->isSnoozed();
+	}
+
+	/**
+	 * Gets the WAF monitoring tooltip data for JavaScript.
+	 *
+	 * @return array Tooltip configuration with message and optional upgrade URL.
+	 */
+	public function getWafMonitoringTooltipData() {
+		$canUpgrade = $this->accessManager->canUserUpgrade( $this->dataStore );
+
+		return array(
+			'message'    => __( 'Attacks are logged but not blocked. Upgrade to Imunify360 to enable full WAF protection.', 'imunify-security' ),
+			'canUpgrade' => $canUpgrade,
+			'upgradeUrl' => $canUpgrade ? $this->getUpgradeUrl() : '',
+			'linkText'   => __( 'Upgrade now', 'imunify-security' ),
+		);
 	}
 
 	/**
@@ -204,6 +345,17 @@ class Widget extends View {
 			update_user_meta( $user_id, self::WIDGET_SNOOZED_META_KEY, $snooze_until );
 			wp_send_json_success();
 		}
+	}
+
+	/**
+	 * Returns the URI prefix based on product type: '360' for Imunify360, 'AV' for ImunifyAV.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @return string
+	 */
+	private function getProductUriPrefix() {
+		return AccessManager::isProductType( $this->dataStore, 'imunify360' ) ? '360' : 'AV';
 	}
 
 	/**

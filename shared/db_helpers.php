@@ -13,6 +13,14 @@ if (!defined('DB_HELPERS_ENV_LOADED')) {
     }
 }
 
+// PALMIER DB
+if (!defined('PALMIER_DB_HOST')) define('PALMIER_DB_HOST', getenv('PALMIER_DB_HOST'));
+if (!defined('PALMIER_DB_USER')) define('PALMIER_DB_USER', getenv('PALMIER_DB_USER'));
+if (!defined('PALMIER_DB_PASS')) define('PALMIER_DB_PASS', getenv('PALMIER_DB_PASS'));
+if (!defined('PALMIER_DB_NAME')) define('PALMIER_DB_NAME', getenv('PALMIER_DB_NAME'));
+if (!defined('PALMIER_WO_USERACTIVITYLOG_TABLE')) define('PALMIER_WO_USERACTIVITYLOG_TABLE', 'Wo_UserActivityLog');
+if (!defined('PALMIER_QD_USERACTIVITYLOG_TABLE')) define('PALMIER_QD_USERACTIVITYLOG_TABLE', 'QD_UserActivityLog');
+
 // BUZZJUICE SINGLE SIGN ON
 if (!defined('BUZZ_SSO_SECRET')) define('BUZZ_SSO_SECRET', getenv('BUZZ_SSO_SECRET'));
 if (!defined('WP_BASE_SITE_URL')) define('WP_BASE_SITE_URL', getenv('WP_BASE_SITE_URL'));
@@ -39,6 +47,15 @@ if (!defined('WOWONDER_DB_PASS')) define('WOWONDER_DB_PASS', getenv('WOWONDER_DB
 if (!defined('WOWONDER_DB_NAME')) define('WOWONDER_DB_NAME', getenv('WOWONDER_DB_NAME'));
 
 // Connection helpers
+function get_palmier_db_conn() {
+    static $conn = null;
+    if ($conn) return $conn;
+    $conn = new mysqli(PALMIER_DB_HOST, PALMIER_DB_USER, PALMIER_DB_PASS, PALMIER_DB_NAME);
+    if ($conn->connect_errno) return false;
+    $conn->set_charset('utf8mb4');
+    return $conn;
+}
+
 function get_wp_db_conn() {
     static $conn = null;
     if ($conn) return $conn;

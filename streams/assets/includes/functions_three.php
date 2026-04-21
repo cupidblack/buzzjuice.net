@@ -1112,6 +1112,9 @@ function Wo_InsertBlog($registration_data = array()) {
     $query  = mysqli_query($sqlConnect, "INSERT INTO " . T_BLOG . " ({$fields}) VALUES ({$data})");
     if ($query) {
         return mysqli_insert_id($sqlConnect);
+        
+        bzj_log_activity($user_id, 'blog', $blog_id, 'blog', $wo['config']['createblog_point'], 'Wo_Blog');
+        
     }
     return false;
 }
@@ -1126,6 +1129,9 @@ function Wo_RegisterBlogComment($registration_data = array()) {
     if ($query) {
         $comment_id = mysqli_insert_id($sqlConnect);
         Wo_RegisterPoint($comment_id, "blog_comment");
+        
+        bzj_log_activity($user_id, 'comment', $comment_id, 'comment', $wo['config']['comments_point'], 'Wo_BlogComments');
+        
         return $comment_id;
     }
     return false;
@@ -1502,9 +1508,15 @@ function Wo_AddBlogCommentLikes($id, $blog) {
         $query = mysqli_query($sqlConnect, $sql);
         if ($query) {
             $result = true;
+            
+            bzj_log_activity($user_id, 'like', $blog_id, 'blog_movie', $wo['config']['likes_point'], 'Wo_BlogMovieLikes');
+            
         }
     } else if ($comment && !empty($comment) && Wo_RemoveBlogCommentLikes($id)) {
         $result = true;
+        
+        bzj_log_activity($user_id, 'like', $blog_id, 'blog_movie', -$wo['config']['likes_point'], 'Wo_BlogMovieLikes');
+        
     }
     return $result;
 }
@@ -1526,9 +1538,15 @@ function Wo_AddBlogCommReplyLikes($id, $blog) {
         if ($query) {
             $result = true;
             @Wo_RemoveBlogCommentReplyDisLikes($id);
+            
+            bzj_log_activity($user_id, 'like', $blog_commreply_id, 'blog_movie', $wo['config']['dislikes_point'], 'Wo_BlogMovieLikes');
+            
         }
     } else if ($comment && !empty($comment) && Wo_RemoveBlogCommentReplyLikes($id)) {
         $result = true;
+        
+        bzj_log_activity($user_id, 'like', $blog_commreply_id, 'blog_movie', -$wo['config']['dislikes_point'], 'Wo_BlogMovieLikes');
+        
     }
     return $result;
 }
@@ -2089,11 +2107,26 @@ function Wo_GetThreadReplies($args = array()) {
     }
     $sql_query    = "SELECT * FROM " . T_FORUM_THREAD_REPLIES . " WHERE  `posted_time` > 0 {$query_one} ";
     $sql_queryset = mysqli_query($sqlConnect, $sql_query);
+        if (!$sql_queryset) {
+            return [];
+        }
+        
     $data         = array();
     while ($fetched_data = mysqli_fetch_assoc($sql_queryset)) {
-        $fetched_data['user_data'] = Wo_UserData($fetched_data['poster_id']);
-        $fetched_data['is_owner']  = ($fetched_data['poster_id'] == $wo['user']['id']) ? true : false;
-        $fetched_data['is_admin']  = ($wo['user']['admin'] == 1) ? true : false;
+//        $fetched_data['user_data'] = Wo_UserData($fetched_data['poster_id']);
+
+        $user_data = Wo_UserData($fetched_data['poster_id']);
+        $fetched_data['user_data'] = is_array($user_data) ? $user_data : [];
+
+//        $fetched_data['is_owner']  = ($fetched_data['poster_id'] == $wo['user']['id']) ? true : false;
+//        $fetched_data['is_admin']  = ($wo['user']['admin'] == 1) ? true : false;
+
+        $current_user_id = $wo['user']['id'] ?? 0;
+        $current_is_admin = $wo['user']['admin'] ?? 0;
+        
+        $fetched_data['is_owner'] = ((int)$fetched_data['poster_id'] === (int)$current_user_id);
+        $fetched_data['is_admin'] = ((int)$current_is_admin === 1);
+
         $fetched_data['reply-url'] = Wo_SeoLink("index.php?link1=threadquote&tid=" . $fetched_data['id']);
         $fetched_data['edit-url']  = Wo_SeoLink("index.php?link1=editreply&tid=" . $fetched_data['id']);
         if ($forum) {
@@ -3670,9 +3703,15 @@ function Wo_AddBlogCommReplyDisLikes($id, $blog) {
         if ($query) {
             $result = true;
             @Wo_RemoveBlogCommentReplyLikes($id);
+            
+            bzj_log_activity($user_id, 'dislike', $blog_commreply_id, 'blog_movie', $wo['config']['likes_point'], 'Wo_BlogCommentReplyDisLikes');
+            
         }
     } else if ($comment && !empty($comment) && Wo_RemoveBlogCommentReplyDisLikes($id)) {
         $result = true;
+        
+        bzj_log_activity($user_id, 'dislike', $blog_commreply_id, 'blog_movie', -$wo['config']['likes_point'], 'Wo_BlogCommentReplyDisLikes');
+        
     }
     return $result;
 }
@@ -3694,9 +3733,15 @@ function Wo_AddBlogCommentDisLikes($id, $blog) {
         $query = mysqli_query($sqlConnect, $sql);
         if ($query) {
             $result = true;
+            
+            bzj_log_activity($user_id, 'dislike', $blog_id, 'blog_movie', $wo['config']['dislikes_point'], 'Wo_BlogCommentDisLikes');
+            
         }
     } else if ($comment && !empty($comment) && Wo_RemoveBlogCommentDisLikes($id)) {
         $result = true;
+        
+        bzj_log_activity($user_id, 'dislike', $blog_id, 'blog_movie', -$wo['config']['dislikes_point'], 'Wo_BlogCommentDisLikes');
+        
     }
     return $result;
 }
@@ -3850,6 +3895,9 @@ function Wo_RegisterMovieComment($registration_data = array()) {
     $query  = mysqli_query($sqlConnect, "INSERT INTO " . T_MOVIE_COMMS . " ({$fields}) VALUES ({$data})");
     if ($query) {
         return mysqli_insert_id($sqlConnect);
+        
+        bzj_log_activity($user_id, 'comment', $comment_id, 'comment', $wo['config']['comments_point'], 'Wo_MovieComments');
+        
     }
     return false;
 }
@@ -4230,9 +4278,15 @@ function Wo_AddMovieCommentLikes($id, $movie) {
         $query = mysqli_query($sqlConnect, $sql);
         if ($query) {
             $result = true;
+            
+            bzj_log_activity($user_id, 'like', $movie_id, 'blog_movie', $wo['config']['likes_point'], 'Wo_BlogMovieLikes');
+            
         }
     } else if ($comment && !empty($comment) && Wo_RemoveMovieCommentLikes($id)) {
         $result = true;
+        
+        bzj_log_activity($user_id, 'like', $movie_id, 'blog_movie', -$wo['config']['likes_point'], 'Wo_BlogMovieLikes');
+        
     }
     return $result;
 }
@@ -4254,9 +4308,15 @@ function Wo_AddMovieCommentDisLikes($id, $movie) {
         $query = mysqli_query($sqlConnect, $sql);
         if ($query) {
             $result = true;
+            
+            bzj_log_activity($user_id, 'dislike', $movie_id, 'blog_movie', $wo['config']['dislikes_point'], 'Wo_BlogMovieDisLikes');
+            
         }
     } else if ($comment && !empty($comment) && Wo_RemoveMovieCommentDisLikes($id)) {
         $result = true;
+        
+        bzj_log_activity($user_id, 'dislike', $movie_id, 'blog_movie', -$wo['config']['dislikes_point'], 'Wo_BlogMovieCommentDisLikes');
+        
     }
     return $result;
 }
@@ -4278,9 +4338,15 @@ function Wo_AddMovieCommReplyLikes($id, $movie) {
         if ($query) {
             $result = true;
             @Wo_RemoveMovieCommentReplyDisLikes($id);
+            
+            bzj_log_activity($user_id, 'like', $movie_commreply_id, 'blog_movie', $wo['config']['likes_point'], 'Wo_BlogMovieLikes');
+            
         }
     } else if ($comment && !empty($comment) && Wo_RemoveMovieCommentReplyLikes($id)) {
         $result = true;
+        
+        bzj_log_activity($user_id, 'like', $movie_commreply_id, 'blog_movie', -$wo['config']['likes_point'], 'Wo_BlogMovieLikes');
+        
     }
     return $result;
 }
@@ -4302,9 +4368,15 @@ function Wo_AddMovieCommReplyDisLikes($id, $movie) {
         if ($query) {
             $result = true;
             @Wo_RemoveMovieCommentReplyLikes($id);
+            
+            bzj_log_activity($user_id, 'dislike', $movie_commreply_id, 'blog_movie', $wo['config']['dislikes_point'], 'Wo_MovieCommentReplyDisLikes');
+            
         }
     } else if ($comment && !empty($comment) && Wo_RemoveMovieCommentReplyDisLikes($id)) {
         $result = true;
+        
+        bzj_log_activity($user_id, 'dislike', $movie_commreply_id, 'blog_movie', -$wo['config']['dislikes_point'], 'Wo_MovieCommentReplyDisLikes');
+        
     }
     return $result;
 }
@@ -4843,8 +4915,14 @@ function Wo_RegisterAdConversionClick($id) {
         cache($ad_user_id, 'users', 'delete');
     } else if ($ad && is_array($ad) && !empty($ad) && isset($ad['user_data']) && $is_admin == false) {
         $result = Wo_RegisterAdClick($id);
+        
+        bzj_log_activity($user_id, 'admob', $ad_id, 'ad', $wo['config']['admob_point'], 'Wo_UserAds_Data');
+        
     } else {
         return true;
+        
+        bzj_log_activity($user_id, 'admob', $ad_id, 'ad', $wo['config']['admob_point'], 'Wo_UserAds_Data');
+        
     }
     return $result;
 }

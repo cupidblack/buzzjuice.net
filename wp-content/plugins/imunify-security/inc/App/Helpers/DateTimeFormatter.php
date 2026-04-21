@@ -68,4 +68,54 @@ class DateTimeFormatter {
 
 		return date_i18n( 'M j, H:i:s', $local_timestamp );
 	}
+
+	/**
+	 * Format timestamp as relative time if recent, otherwise as date.
+	 *
+	 * Examples:
+	 * - "5 secs ago" (if less than 1 minute ago)
+	 * - "3 mins ago" (if less than 1 hour ago)
+	 * - "2 hrs ago" (if less than 1 day ago)
+	 * - "Jan 25" (if older than 1 day)
+	 *
+	 * @param int $timestamp Unix timestamp in UTC.
+	 * @return string Formatted relative time or date.
+	 */
+	public static function formatRelativeTime( $timestamp ) {
+		$now  = time();
+		$diff = $now - $timestamp;
+
+		// Less than 1 minute ago.
+		if ( $diff < MINUTE_IN_SECONDS ) {
+			$seconds = max( 1, $diff );
+			return sprintf(
+				/* translators: %d: number of seconds */
+				_n( '%d sec ago', '%d secs ago', $seconds, 'imunify-security' ),
+				$seconds
+			);
+		}
+
+		// Less than 1 hour ago.
+		if ( $diff < HOUR_IN_SECONDS ) {
+			$minutes = (int) floor( $diff / MINUTE_IN_SECONDS );
+			return sprintf(
+				/* translators: %d: number of minutes */
+				_n( '%d min ago', '%d mins ago', $minutes, 'imunify-security' ),
+				$minutes
+			);
+		}
+
+		// Less than 1 day ago.
+		if ( $diff < DAY_IN_SECONDS ) {
+			$hours = (int) floor( $diff / HOUR_IN_SECONDS );
+			return sprintf(
+				/* translators: %d: number of hours */
+				_n( '%d hr ago', '%d hrs ago', $hours, 'imunify-security' ),
+				$hours
+			);
+		}
+
+		// Older than 1 day - show date.
+		return self::formatDetectionDate( $timestamp );
+	}
 }

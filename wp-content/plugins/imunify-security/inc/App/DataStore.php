@@ -231,15 +231,17 @@ class DataStore {
 	 */
 	private function processRawDataFromFile( $rawData, $filepath ) {
 		if ( ! is_array( $rawData ) ) {
+			$filename = basename( $filepath );
 			do_action(
 				'imunify_security_set_error',
 				E_WARNING,
-				'File scan_data.php returned unexpected data',
+				'File ' . $filename . ' returned unexpected data',
 				__FILE__,
 				__LINE__,
 				array(
-					'file' => $filepath,
-					'data' => var_export( $rawData, true ), // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
+					'fingerprint' => array( 'unexpected-file-data', $filename ),
+					'file'        => $filepath,
+					'data'        => var_export( $rawData, true ), // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_var_export
 				)
 			);
 			return null;
@@ -259,7 +261,7 @@ class DataStore {
 	private function processFileLoadingError( $filename, $e ) {
 		$this->handleError(
 			$filename . ' file loading failed with error  ' . $e->getMessage(),
-			'file_loading_failed',
+			'file_loading_failed_' . $filename,
 			array(
 				'file'       => $filename,
 				'error_type' => get_class( $e ),

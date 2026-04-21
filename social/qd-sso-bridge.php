@@ -301,17 +301,7 @@ if (!$wordpress_logged_in_) {
             ]
         );
 
-        $referer = $_SERVER['HTTP_REFERER'] ?? $_SESSION['last_url'] ?? '/social';
-        
-        $separator = (parse_url($referer, PHP_URL_QUERY) ? '&' : '?');
-        
-        $redirect = $referer . $separator . 'try=0';
-
-        if (!is_string($redirect) || strpos($redirect, '/') !== 0) {
-            $redirect = '/social';
-        }
-
-        header('Location: ' . $redirect);
+        header('Location: ' . $last_url);
         exit;
     }
 
@@ -433,7 +423,7 @@ if (!$access_payload && $wordpress_logged_in_) {
     elseif ($http_code === 401) {
         bz_bridge_log('WP SSO endpoint returned 401 — user not logged in');
         $redirect_to = $_SERVER['REQUEST_URI'] ?? '/social';
-        header('Location: /wp-login.php?try=0&redirect_to=' . urlencode($redirect_to));
+        header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
         exit;
     }
     
@@ -492,7 +482,7 @@ if (!$access_payload && $wordpress_logged_in_) {
 if (!$access_payload) {
     bz_bridge_log('Dual-token bootstrap failed — redirecting to login');
     $redirect_to = $_SERVER['REQUEST_URI'] ?? '/social';
-    header('Location: /wp-login.php?try=1&redirect_to=' . urlencode($redirect_to));
+    header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
@@ -508,7 +498,7 @@ $_SESSION['wp_qd_SSO_Login'] = true;
 // -----------------------------
 if (!$_SESSION['wp_user_id'] || !$_SESSION['wp_user_login'] || !$_SESSION['wp_user_email']) {
     bz_bridge_log('Missing required claims (cookie incomplete)', $access_payload);
-    header('Location: /wp-login.php?try=2&redirect_to=/social');
+    header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
@@ -605,7 +595,7 @@ if (empty($access_payload['qd_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
             if ($wp_user_id && $qd_user_id) {
                 bz_update_wp_qd_user_id($wp_user_id, $qd_user_id);
             }
-            header('Location: /wp-login.php?try=3&redirect_to=/social');
+            header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
             exit;
         }
 
@@ -664,7 +654,7 @@ if (empty($access_payload['qd_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
                     bz_update_wp_qd_user_id($wp_user_id, $qd_user_id);
                 }
                 $access_payload['qd_user_id'] = $qd_user_id;
-                header('Location: /wp-login.php?redirect_to=/social');
+                header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
                 exit;
             } else {
                 bz_bridge_log('SSO/QD: Username update failed', [
@@ -809,7 +799,7 @@ if (!function_exists('bz_clear_wp_qd_user_id')) {
     function bz_clear_wp_qd_user_id($wp_user_id) {
         $wp_conn = get_wp_db_conn();
         if (!$wp_conn || empty($wp_user_id)) {
-            header('Location: /wp-login.php?try=6&redirect_to=/social');
+            header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
             exit;
         }
         $wp_user_id = (int)$wp_user_id;
@@ -829,7 +819,7 @@ if (!function_exists('bz_clear_wp_qd_user_id')) {
             exit;
         } else {
             // Failed to clear mapping, redirect to login
-            header('Location: /wp-login.php?try=7&redirect_to=/social');
+            header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
             exit;
         }
     }
@@ -1028,6 +1018,88 @@ function QD_SSO_Login() {
         foreach (['user_login', 'user_email', 'first_name', 'last_name'] as $core_field) {
             if (!empty($wp_full[$core_field])) $wp_all_meta[$core_field] = $wp_full[$core_field];
         }
+    
+    
+        // ======================================================
+        // WordPress → QuickDate Role & Subscription Sync (Authoritative)
+        // ======================================================
+        
+        // 1. Role → pro_type mapping (Edit here if you add roles!)
+        $role_map = [
+            'classic_lifestyle'  => 1,
+            'silver_lifestyle'   => 2,
+            'rockstar_lifestyle' => 3,
+            'premium_lifestyle'  => 4,
+            'jewel_affiliate'    => 2,
+        ];
+        // 2. Role priority (first found wins if multiple assigned)
+        $role_priority = [
+            'premium_lifestyle',
+            'rockstar_lifestyle',
+            'silver_lifestyle',
+            'classic_lifestyle',
+            'jewel_affiliate'
+        ];
+        
+        // 3. Extract normalized user roles from WP data
+        $wp_roles = [];
+        // Preferred: $wp_full['roles'] from wp_get_full_user_data
+        if (!empty($wp_full['roles']) && is_array($wp_full['roles'])) {
+            $wp_roles = array_map('strtolower', $wp_full['roles']);
+        } elseif (!empty($wp_full['meta']['wp_capabilities'])) {
+            $maybe_caps = @unserialize($wp_full['meta']['wp_capabilities']);
+            if (is_array($maybe_caps)) {
+                $wp_roles = array_map('strtolower', array_keys(array_filter($maybe_caps)));
+            } elseif (is_string($wp_full['meta']['wp_capabilities']) && strpos($wp_full['meta']['wp_capabilities'], '{') === 0) {
+                $maybe_caps = json_decode($wp_full['meta']['wp_capabilities'], true);
+                if (is_array($maybe_caps)) {
+                    $wp_roles = array_map('strtolower', array_keys(array_filter($maybe_caps)));
+                }
+            }
+        }
+        
+        // 4. Find highest-priority mapped role present
+        $matched_roles = array_values(array_intersect($role_priority, $wp_roles));
+        $is_pro = 0;
+        $pro_type = 0;
+        $pro_time = 0;
+        if (!empty($matched_roles)) {
+            $role = $matched_roles[0]; // Highest priority
+            $pro_type = $role_map[$role];
+            $is_pro   = 1;
+            $pro_time = time();
+        }
+        
+        // 5. Lookup current QuickDate state (for downgrade logic)
+        $current_qd = [];
+        $q = mysqli_query($qd_conn, "SELECT is_pro, pro_type FROM users WHERE email='".mysqli_real_escape_string($qd_conn, $exp_email)."' LIMIT 1");
+        if ($q && $row = mysqli_fetch_assoc($q)) {
+            $current_qd = $row;
+        }
+        
+        // 6. Inject authoritative values directly into $wp_all_meta
+        if ($is_pro) {
+            $wp_all_meta['is_pro']   = 1;
+            $wp_all_meta['pro_type'] = $pro_type;
+            $wp_all_meta['pro_time'] = $pro_time;
+        } elseif (!empty($current_qd) && (int)$current_qd['is_pro'] === 1) {
+            // If user no longer has mapped WP pro role, forcibly downgrade in QuickDate
+            $wp_all_meta['is_pro']   = 0;
+            $wp_all_meta['pro_type'] = 0;
+            $wp_all_meta['pro_time'] = 0;
+        }
+        
+        // 7. Log every entitlement sync step for trace/audit
+        bz_bridge_log('WP→QuickDate subscription sync', [
+            'wp_roles'      => $wp_roles,
+            'matched_roles' => $matched_roles,
+            'final_is_pro'  => $is_pro,
+            'final_pro_type'=> $pro_type,
+            'current_qd'    => $current_qd,
+            'exp_email'     => $exp_email
+        ]);
+    
+    
     
         // =========================================================
         // 🔥 [NEW] STRICT AVATAR SANITIZER (FINAL AUTHORITY)

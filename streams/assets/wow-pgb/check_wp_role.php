@@ -1,21 +1,6 @@
 <?php
-require_once 'config.php';
-require_once 'assets/init.php';
-
-// Start secure session
-if (session_status() == PHP_SESSION_NONE) {
-    session_start([
-        'use_strict_mode' => true,
-        'cookie_httponly' => true,
-        'cookie_secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on'),
-        'cookie_samesite' => 'Lax'
-    ]);
-
-    if (!isset($_SESSION['initiated'])) {
-        session_regenerate_id(true);
-        $_SESSION['initiated'] = true;
-    }
-}
+// require_once '/../../config.php';
+require_once __DIR__ . '/../init.php';
 
 // Ensure WoWonder user is authenticated
 if (empty($wo) || empty($wo['user']['email']) || empty($wo['user']['user_id']) || empty($wo['user']['username'])) {

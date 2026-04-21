@@ -74,7 +74,7 @@ class RateLimiter {
 	 */
 	private function generateTransientKey( $rule_id, $ip_address ) {
 		// Hash the IP address for brevity and to avoid special characters.
-		$ip_hash = md5( $ip_address );
+		$ip_hash = md5( $ip_address ); // nosemgrep: weak-crypto -- used for cache key, not security.
 
 		return self::TRANSIENT_PREFIX . $rule_id . '_' . $ip_hash;
 	}

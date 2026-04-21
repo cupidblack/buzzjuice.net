@@ -2,6 +2,8 @@
 use Twilio\Jwt\AccessToken;
 use Twilio\Jwt\Grants\VideoGrant;
 
+require_once __DIR__ . '/../../../shared/palmier/palmier_logger.php';
+
 Class Chat extends Aj {
     function upload_media() {
         global $db, $_UPLOAD, $_DS;
@@ -910,6 +912,10 @@ Class Chat extends Aj {
             ));
             if ($saved) {
                 $_SESSION[ 'userEdited' ] = true;
+                
+                $user_id = self::ActiveUser()->id;
+                bzj_log_activity($user_id, 'not_pro_chat_stickers_credit', null, 'sticker', $_cost, 'QD_live');
+                
                 return array(
                     'status' => 200,
                     'current_credit' => self::ActiveUser()->balance - $_cost,
@@ -951,8 +957,7 @@ Class Chat extends Aj {
             $error = '<p>• ' . __('No chat user ID found.') . '</p>';
         }
         $_cost = $config->not_pro_chat_credit;
-        if (self::ActiveUser()->balance >= $_cost) {
-        } else {
+        if (self::ActiveUser()->balance < $_cost) {
             $error = '<p>• ' . __('No credit available.') . '</p>';
         }
         if ($error == '') {
@@ -966,6 +971,20 @@ Class Chat extends Aj {
                     'balance' => $db->dec($_cost)
                 ));
                 $_SESSION[ 'userEdited' ] = true;
+    
+                // CORRECT insert id for MysqliDb:
+                $chat_buy_id = hash('sha256', $user_id . '_' . $chat_user_id . '_' . microtime(true));
+                $user_id = self::ActiveUser()->id;
+    
+                bzj_log_activity(
+                    $user_id,      // best to always use the session user who paid
+                    'not_pro_chat_credit',
+                    $chat_buy_id,
+                    'chat',
+                    $_cost,
+                    'QD_user_chat_buy'
+                );
+    
                 return array(
                     'status' => 200,
                     'current_credit' => self::ActiveUser()->balance - $_cost,
@@ -978,7 +997,7 @@ Class Chat extends Aj {
         if ($error !== '') {
             return array(
                 'status' => 400,
-                'message' => __('Error while buy more chat credit.')
+                'message' => $error // Instead of generic. Shows actual error message.
             );
         }
     }

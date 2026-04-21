@@ -33,14 +33,32 @@ class Defender {
 	private $incidentRecorder;
 
 	/**
+	 * Disabled rules manager instance.
+	 *
+	 * @var DisabledRulesManager|null
+	 */
+	private $disabledRulesManager;
+
+	/**
+	 * Rule hit tracker instance.
+	 *
+	 * @var RuleHitTracker
+	 */
+	private $hitTracker;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param RuleProvider     $ruleProvider     Rule provider instance.
-	 * @param IncidentRecorder $incidentRecorder Incident recorder instance.
+	 * @param RuleProvider              $ruleProvider          Rule provider instance.
+	 * @param IncidentRecorder          $incidentRecorder      Incident recorder instance.
+	 * @param RuleHitTracker            $hitTracker            Rule hit tracker instance.
+	 * @param DisabledRulesManager|null $disabledRulesManager  Disabled rules manager instance (optional).
 	 */
-	public function __construct( $ruleProvider, $incidentRecorder ) {
-		$this->ruleProvider     = $ruleProvider;
-		$this->incidentRecorder = $incidentRecorder;
+	public function __construct( $ruleProvider, $incidentRecorder, $hitTracker, $disabledRulesManager = null ) {
+		$this->ruleProvider         = $ruleProvider;
+		$this->incidentRecorder     = $incidentRecorder;
+		$this->hitTracker           = $hitTracker;
+		$this->disabledRulesManager = $disabledRulesManager;
 	}
 
 	/**
@@ -70,6 +88,11 @@ class Defender {
 				continue;
 			}
 
+			// Skip disabled rules.
+			if ( $this->isRuleDisabled( $rule ) ) {
+				continue;
+			}
+
 			// Skip rules that don't apply for the current request's method.
 			if ( ! $this->isMethodAllowed( $rule, $request ) ) {
 				continue;
@@ -82,7 +105,7 @@ class Defender {
 			}
 
 			// Apply the rule.
-			$handler = new Handler( $rule, $request, $this->incidentRecorder, $targetInfo, $version );
+			$handler = new Handler( $rule, $request, $this->incidentRecorder, $this->hitTracker, $targetInfo, $version );
 			$handler->apply();
 		}
 	}
@@ -108,9 +131,20 @@ class Defender {
 		return $request->isMethod( $ruleMethod );
 	}
 
+	/**
+	 * Check if a rule is disabled.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param Rule $rule Rule object.
+	 *
+	 * @return bool True if the rule is disabled, false otherwise.
+	 */
+	private function isRuleDisabled( $rule ) {
+		if ( null === $this->disabledRulesManager ) {
+			return false;
+		}
 
-
-
-
-
+		return $this->disabledRulesManager->isRuleDisabled( $rule->getId() );
+	}
 }

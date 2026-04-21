@@ -60,7 +60,7 @@ $data = readLog($logFile,$slot);
 if(!$data){
     // 1. Get verified currencies/commodities list
     $woocs = fetch_json(WOOCS_API);
-    if(!$woocs) die("WOOCS API unavailable");
+    if(!$woocs) exit("WOOCS API unavailable");
     $verified_currency_commodity = [];
     foreach($woocs as $code=>$c){
         $verified_currency_commodity[strtoupper($code)] = true;
@@ -79,7 +79,7 @@ if(!$data){
         $td = fetch_json(TWELVE_API.'/price?symbol=XAU/USD&apikey='.TWELVE_KEY);
         if(isset($td['price'])) $goldUSD = (float)$td['price'];
     }
-    if(!$goldUSD || $goldUSD<=0) die("Gold price unavailable");
+    if(!$goldUSD || $goldUSD<=0) exit("Gold price unavailable");
 
     // 4. Build live rates table; only verified codes
     $codes = array_keys($verified_currency_commodity);
@@ -149,8 +149,12 @@ if(isset($_GET['endpoint'])){
     }
     if($_GET['endpoint']=='palmier'){
         echo json_encode([
-            'formatted'=>$data['palmier_value_formatted'],
-            'normalized'=>$data['palmier_value_normalized']
+            'formatted'                     => $data['palmier_value_formatted'],
+            'normalized'                    => $data['palmier_value_normalized'],
+            'palmier'                       => $data['palmier_value'],
+            'historical_currencies_count'   => $data['historical_currencies_count'],
+            'live_currencies_count'         => $data['live_currencies_count'],
+            'live_currencies'               => $data['live_currencies']
         ], JSON_PRETTY_PRINT); exit;
     }
 }

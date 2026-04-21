@@ -985,7 +985,45 @@ if( route(2) == 'opengift' && is_numeric(route(3)) ) {
     <!-- Buy Chat Credits Modal -->
     <div id="buy_chat_credits" class="modal" style="width: 30%;">
         <div class="modal-content">
-            <h6 class="bold"><?php echo __('Chat');?></h6>
+            <h6 class="bold"><?php echo __('Daily Chat Limit Reached');?></h6>
+            <?php
+			//BlueCrownR&D
+			if (!empty($user) && isset($user->id)) {
+				$lastchat = GetLastChat($user->id);
+			
+				// Initialize $plusday with a default value
+				$plusday = 0;
+			
+				if ($lastchat > 0) {
+					$plusday = ($lastchat + (60 * 60 * 24)) - time();
+				}
+			} else {
+				// Handle unauthenticated users
+				$lastchat = null;
+				$plusday = 0;
+				// error_log("User is not authenticated. Unable to retrieve last chat.");
+			}
+            ?>
+            
+            
+            
+            <p><?php echo __("Wait") . ', ' . '<span id="chat_time" data-chat-time="'.$plusday.'" style="color:#a33596;font-weight: bold;"></span>' .', '. __("or buy") . ' <span style="color:#a33596;font-weight: bold;">' . (int)$config->not_pro_chat_credit . '</span> ' . __( 'credits to chat now') . '.' . ' ' . '<br><br>' . __( 'Please wait a few minutes for transctions to clear') . '.';?></p>
+            <div class="modal-footer">
+                    <button type="button" class="btn-flat waves-effect modal-close"><?php echo __( 'Cancel' );?></button>
+                    <?php if ($user !== null && (int)$user->balance >= (int)$config->not_pro_chat_credit) { ?>
+                        <button data-userid="<?php echo $user->id; ?>" data-chat-userid="<?php echo $profile->id; ?>" id="btn_buymore_chat_credit" class="waves-effect waves-light btn-flat btn_primary white-text"><?php echo __('Buy Now.'); ?></button>
+                    <?php } else { ?>
+                        <a href="<?php echo $site_url; ?>/credit" data-ajax="/credit" class="modal-close waves-effect waves-light btn-flat btn_primary white-text"><?php echo __('Buy Credits'); ?></a>
+                    <?php } ?>
+                </div>
+        </div>
+    </div>
+    <!-- End Buy Chat Credits Modal -->
+    
+    <!-- Buy Chat Credits Modal -->
+    <div id="buy_chat_credits" class="modal" style="width: 30%;">
+        <div class="modal-content">
+            <h6 class="bold"><?php echo __('Chat Limit Reached');?></h6>
             <?php
 			//BlueCrownR&D
 			if (!empty($user) && isset($user->id)) {
@@ -1005,6 +1043,9 @@ if( route(2) == 'opengift' && is_numeric(route(3)) ) {
 			}
             ?>
             <p><?php echo __("You have reached your daily limit") . ', '. __("you can chat to new people after") . ' ' . '<span id="chat_time" data-chat-time="'.$plusday.'" style="color:#a33596;font-weight: bold;"></span>' .', '. __("can't wait? this service costs you") . ' <span style="color:#a33596;font-weight: bold;">' . (int)$config->not_pro_chat_credit . '</span> ' . __( 'Credits') . '.';?></p>
+
+<!--            <p><?php /* echo __("Wait") . ', ' . '<span id="chat_time" data-chat-time="'.$plusday.'" style="color:#a33596;font-weight: bold;"></span>' .', '. __("or buy") . ' <span style="color:#a33596;font-weight: bold;">' . (int)$config->not_pro_chat_credit . '</span> ' . __( 'credits to chat now') . '.' . ' ' . '<br><br>' . __( 'Please wait a few minutes for transctions to clear') . '.'; */ ?></p> -->
+
             <div class="modal-footer">
                     <button type="button" class="btn-flat waves-effect modal-close"><?php echo __( 'Cancel' );?></button>
                     <?php if ($user !== null && (int)$user->balance >= (int)$config->not_pro_chat_credit) { ?>

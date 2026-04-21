@@ -70,7 +70,7 @@ class MatchNoneConstraint implements ConstraintInterface
      */
     public function getUpperBound()
     {
-        return new Bound('0.0.0.0-dev', false);
+        return new Bound('0.0.0.0.0-dev', false);
     }
 
     /**
@@ -78,6 +78,6 @@ class MatchNoneConstraint implements ConstraintInterface
      */
     public function getLowerBound()
     {
-        return new Bound('0.0.0.0-dev', false);
+        return new Bound('0.0.0.0.0-dev', false);
     }
 }

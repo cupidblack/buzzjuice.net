@@ -52,6 +52,13 @@ class ConditionSource {
 	const REQUEST_HEADERS = 'REQUEST_HEADERS';
 
 	/**
+	 * GET/POST argument key names source.
+	 *
+	 * @var string
+	 */
+	const ARGS_NAMES = 'ARGS_NAMES';
+
+	/**
 	 * Get all valid condition sources.
 	 *
 	 * @return array Array of valid condition sources.
@@ -63,6 +70,7 @@ class ConditionSource {
 			self::FILES,
 			self::REQUEST_COOKIES,
 			self::REQUEST_HEADERS,
+			self::ARGS_NAMES,
 		);
 	}
 
@@ -91,6 +99,7 @@ class ConditionSource {
 			self::FILES           => 'File upload fields',
 			self::REQUEST_COOKIES => 'Request cookies',
 			self::REQUEST_HEADERS => 'HTTP headers',
+			self::ARGS_NAMES      => 'GET/POST parameter key names',
 		);
 
 		return isset( $descriptions[ $source ] ) ? $descriptions[ $source ] : 'Unknown source';

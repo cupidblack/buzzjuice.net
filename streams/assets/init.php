@@ -25,6 +25,7 @@ function bz_safe_session_start() {
 bz_safe_session_start();
 
 @ini_set('gd.jpeg_ignore_warning', 1);
+require_once __DIR__ . '/../../shared/palmier/palmier_logger.php';
 require_once __DIR__ . '/libraries/DB/vendor/joshcam/mysqli-database-class/MySQL-Maria.php';
 require_once __DIR__ . '/includes/cache.php';
 require_once __DIR__ . '/includes/functions_general.php';
@@ -32,3 +33,10 @@ require_once __DIR__ . '/includes/tabels.php';
 require_once __DIR__ . '/includes/functions_one.php';
 require_once __DIR__ . '/includes/functions_two.php';
 require_once __DIR__ . '/includes/functions_three.php';
+
+if (!isset($wo['user']) || !is_array($wo['user'])) {
+    $wo['user'] = [
+        'id' => 0,
+        'admin' => 0
+    ];
+}

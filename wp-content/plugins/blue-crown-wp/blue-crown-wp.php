@@ -42,6 +42,21 @@ add_action('wp_footer', 'blue_crown_pre_fill_nickname');
 // Activation hook to apply user roles
 function blue_crown_activate_plugin() {
     require_once plugin_dir_path(__FILE__) . 'includes/user-roles.php';
+    
+    // ----------------------------------------------------------
+    // Automatically include the WoWonder Payment Gateway Bridge
+    // Functionality is now bundled with Blue Crown WP plugin.
+    // Located at: blue-crown-wp/wow-pgb_sync/wow-pgb_sync.php
+    // Also run wow-pgb_sync.php plugin activation logic if present
+    // ----------------------------------------------------------
+    $wow_pgb_activate_path = plugin_dir_path(__FILE__) . 'wow-pgb_sync/wow-pgb_sync.php';
+    if (file_exists($wow_pgb_activate_path)) {
+        require_once $wow_pgb_activate_path;
+        if (function_exists('create_wow_pgb_virtual_products')) {
+            create_wow_pgb_virtual_products(); // manually run activation if hook is missed
+        }
+    }
+    
 }
 register_activation_hook(__FILE__, 'blue_crown_activate_plugin');
 

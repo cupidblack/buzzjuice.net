@@ -1,7 +1,7 @@
 {
   "imports": {
-    "@imunify/nav-root": "nav-root/main.cb1d0635fcfb.js",
-    "@imunify/other-root": "other-root/main.6f60feacae29.js",
+    "@imunify/nav-root": "nav-root/main.abc6ce5c57f1.js",
+    "@imunify/other-root": "other-root/main.781a8b138bf4.js",
     "@imunify/email-root": "email-root/main.js",
     "single-spa": "shared-dependencies/single-spa.min.1ef7e0b9902d.js",
     "single-spa-layout": "shared-dependencies/single-spa-layout.min.5bf6d9cda318.js",

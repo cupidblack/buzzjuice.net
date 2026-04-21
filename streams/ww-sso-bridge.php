@@ -221,7 +221,7 @@ if ($wordpress_logged_in_) {
             ]
         );
 
-        header('Location: ' . $last_url);
+        header('Location: ' . urlencode($last_url));
         exit;
     }
 
@@ -343,7 +343,7 @@ if ($resp !== false && $http_code === 200) {
 
 if ($http_code === 401) {
     bz_bridge_log('WP SSO endpoint returned 401 — user not logged in');
-    header('Location: /wp-login.php?try=0&redirect_to=' . urlencode('/streams'));
+    header('Location: /wp-login.php?try=0&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
@@ -400,8 +400,8 @@ if (!$access_payload && $wordpress_logged_in_) {
 // 4. Fail → redirect user to login
 if (!$access_payload) {
     bz_bridge_log('Dual-token bootstrap failed — redirecting to login');
-    $redirect_to = $_SERVER['REQUEST_URI'] ?? '/streams';
-    header('Location: /wp-login.php?try=1&redirect_to=' . urlencode($redirect_to));
+//    $redirect_to = $_SERVER['REQUEST_URI'] ?? '/streams';
+    header('Location: /wp-login.php?try=1&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
@@ -417,7 +417,7 @@ $_SESSION['wp_Wo_SSO_Login'] = true;
 // -----------------------------
 if (!$_SESSION['wp_user_id'] || !$_SESSION['wp_user_login'] || !$_SESSION['wp_user_email']) {
     bz_bridge_log('Missing required claims (cookie incomplete)', $access_payload);
-    header('Location: /wp-login.php?try=2&redirect_to=/streams');
+    header('Location: /wp-login.php?try=1&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
@@ -514,7 +514,7 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
             if ($wp_user_id && $wo_user_id) {
                 bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
             }
-            header('Location: /wp-login.php?try=3&redirect_to=' . $last_url);
+            header('Location: /wp-login.php?try=1&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
             exit;
         }
         
@@ -568,7 +568,7 @@ if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
                     bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
                 }
                 $access_payload['wo_user_id'] = $wo_user_id;
-                header('Location: /wp-login.php?try=6&redirect_to=' . $last_url);
+                header('Location: /wp-login.php?try=1&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
                 exit;
             } else {
                 bz_bridge_log('SSO: WoWonder username update failed', [
@@ -714,7 +714,7 @@ if (!function_exists('bz_clear_wp_wo_user_id')) {
     function bz_clear_wp_wo_user_id($wp_user_id) {
         $wp_conn = get_wp_db_conn();
         if (!$wp_conn || empty($wp_user_id)) {
-            header('Location: /wp-login.php?try=9&redirect_to=/streams');
+            header('Location: /wp-login.php?try=1&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
             exit;
         }
         $wp_user_id = (int)$wp_user_id;
@@ -734,7 +734,7 @@ if (!function_exists('bz_clear_wp_wo_user_id')) {
             exit;
         } else {
             // Failed to clear mapping, redirect to login
-            header('Location: /wp-login.php?try=10&redirect_to=/streams');
+            header('Location: /wp-login.php?try=1&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
             exit;
         }
     }
@@ -953,17 +953,23 @@ function Wo_SSO_Login() {
         
             $site_host = parse_url($site_base, PHP_URL_HOST);
         
-            // Absolute URL handling
+            // Absolute URL handling (keeps off-site URLs as-is)
             if (preg_match('#^https?://#i', $url)) {
                 $host = parse_url($url, PHP_URL_HOST);
                 $path = parse_url($url, PHP_URL_PATH);
-                // Keep external URLs as-is
                 if ($host && $host !== $site_host) return $url;
                 if ($path) $url = $path;
             }
         
+            // Normalize WP uploads to WoWonder upload path:
+            if (strpos($url, 'wp-content/uploads/') !== false) {
+                $url = preg_replace('#^.*wp-content/uploads/#i', 'upload/photos/', $url);
+            }
+        
             // Remove leading slashes
             $url = ltrim($url, '/');
+            // Remove unwanted projects subdirs
+            $url = preg_replace('#(?:^|/)(streams|social)(?:/|$)#i', '', $url);
         
             // Remove all 'streams' or 'social' segments
             $url = preg_replace('#(?:^|/)(streams|social)(?:/|$)#i', '', $url);
@@ -994,15 +1000,141 @@ function Wo_SSO_Login() {
             return $url;
         }
         
+        // =========================================================
+        // 5.i. Avatar/Cover: Deterministic BuddyBoss Default/Fallback (Bridge-Safe)
+        // =========================================================
+        
         $site_base = rtrim($base_site_url ?? 'https://buzzjuice.net', '/');
-        if (!empty($wp_meta['bp_profile_avatar'])) {
-            $wp_all_meta['avatar'] = bz_normalize_avatar_cover($wp_meta['bp_profile_avatar'], $site_base, 'avatar');
-        }
-        if (!empty($wp_meta['bp_profile_cover'])) {
-            $wp_all_meta['cover']  = bz_normalize_avatar_cover($wp_meta['bp_profile_cover'], $site_base, 'cover');
+        
+        $bb_defaults = [
+            // Most common/default BuddyBoss profile avatar:
+            'avatar' => '/wp-content/plugins/buddyboss-platform/bp-core/images/profile-avatar-buddyboss.png',
+            // Your custom *primary* cover (set via WP Customizer/etc):
+            'cover_primary'   => '/wp-content/uploads/buddypress/members/0/cover-image/69dd867faacfb-bp-cover-image.jpg',
+            // BuddyBoss default fallback (if custom ever not accessible)
+            'cover_fallback'  => '/wp-content/plugins/buddyboss-platform/bp-core/images/cover-image.png'
+        ];
+        
+        // Build absolute URL
+        function bz_build_abs_url($relative, $base) {
+            return rtrim($base, '/') . '/' . ltrim($relative, '/');
         }
         
-        // 6. BUILD WoWonder UPDATE PAYLOAD (schema mapping)
+        // -------------
+        // AVATAR
+        // -------------
+        if (!empty($wp_meta['bp_profile_avatar'])) {
+            $avatar_url = $wp_meta['bp_profile_avatar'];
+        } else {
+            // Always fallback to BuddyBoss default avatar
+            $avatar_url = bz_build_abs_url($bb_defaults['avatar'], $site_base);
+        }
+        
+        // -------------
+        // COVER
+        // -------------
+        if (!empty($wp_meta['bp_profile_cover'])) {
+            $cover_url = $wp_meta['bp_profile_cover'];
+        } else {
+            // Try your branded/global cover (uploads) then plugin default cover
+            $primary_cover  = bz_build_abs_url($bb_defaults['cover_primary'], $site_base);
+            $fallback_cover = bz_build_abs_url($bb_defaults['cover_fallback'], $site_base);
+        
+            // Always prefer branded cover (exists in your install), fallback otherwise
+            $cover_url = $primary_cover ?: $fallback_cover;
+        }
+        
+        // -------------
+        // Inject into meta (normalize for WoWonder)
+        // -------------
+        $wp_all_meta['avatar'] = bz_normalize_avatar_cover($avatar_url, $site_base, 'avatar');
+        $wp_all_meta['cover']  = bz_normalize_avatar_cover($cover_url,  $site_base, 'cover');
+        
+        // 6. WordPress → WoWonder Role & Subscription Sync (Authoritative)
+        // --------- Mapping: WP Role → WoWonder pro_type ---------
+        $role_map = [
+            'classic_lifestyle'  => 1,
+            'silver_lifestyle'   => 2,
+            'rockstar_lifestyle' => 3,
+            'premium_lifestyle'  => 4,
+            'jewel_affiliate'    => 2,
+        ];
+        
+        // --------- Priority for users with multiple roles ---------
+        $role_priority = [
+            'premium_lifestyle',
+            'rockstar_lifestyle',
+            'silver_lifestyle',
+            'classic_lifestyle',
+            'jewel_affiliate'
+        ];
+        
+        // --------- Extract user WordPress roles ---------
+        $wp_roles = [];
+        // Try $wp_core['roles'] (preferred, array in 'wp_get_full_user_data()')
+        if (!empty($wp_core['roles']) && is_array($wp_core['roles'])) {
+            $wp_roles = array_map('strtolower', $wp_core['roles']);
+        } elseif (!empty($wp_meta['wp_capabilities'])) {
+            // Check for serialized capabilities
+            $maybe_caps = @unserialize($wp_meta['wp_capabilities']);
+            if (is_array($maybe_caps)) {
+                $wp_roles = array_map('strtolower', array_keys(array_filter($maybe_caps)));
+            } elseif (is_string($wp_meta['wp_capabilities']) && strpos($wp_meta['wp_capabilities'], '{') === 0) {
+                $maybe_caps = json_decode($wp_meta['wp_capabilities'], true);
+                if (is_array($maybe_caps)) {
+                    $wp_roles = array_map('strtolower', array_keys(array_filter($maybe_caps)));
+                }
+            }
+        }
+        
+        // --------- Detect highest priority mapped role ---------
+        $matched_roles = array_values(array_intersect($role_priority, $wp_roles));
+        $is_pro = 0;
+        $pro_type = 0;
+        $pro_time = 0;
+        if (!empty($matched_roles)) {
+            // Use the highest priority mapped role, even if user has multiple roles
+            $role     = $matched_roles[0];
+            $pro_type = $role_map[$role];
+            $is_pro   = 1;
+            $pro_time = time();
+        }
+        
+        // --------- Get current WW pro status for downgrade logic ---------
+        $current_ww = [];
+        $q = mysqli_query($sqlConn, "SELECT is_pro, pro_type FROM {$wo_table} WHERE user_id=".(int)$accepted_user_id." LIMIT 1");
+        if ($q && $row = mysqli_fetch_assoc($q)) {
+            $current_ww = $row;
+        }
+        
+        // --------- Insert authoritative pro/subscription fields into $update ---------
+        if ($is_pro) {
+            $update['is_pro'] = 1;
+            $update['pro_type'] = $pro_type;
+            // If WoWonder schema has pro_time, sync current unix datetime
+            if (isset($wo_schema['pro_time'])) {
+                $update['pro_time'] = $pro_time;
+            }
+        } elseif (!empty($current_ww) && (int)$current_ww['is_pro'] === 1) {
+            // If previously pro, but now has no mapped roles, downgrade in WoWonder
+            $update['is_pro'] = 0;
+            $update['pro_type'] = 0;
+            if (isset($wo_schema['pro_time'])) {
+                $update['pro_time'] = 0;
+            }
+        }
+        
+        // --------- Detailed log for sync events ----------
+        bz_bridge_log('WP→Wo subscription sync', [
+            'wp_roles'      => $wp_roles,
+            'matched_roles' => $matched_roles,
+            'final_is_pro'  => $is_pro,
+            'final_pro_type'=> $pro_type,
+            'current_ww'    => $current_ww,
+            'user_id'       => $accepted_user_id
+        ]);
+
+        // 7. BUILD WoWonder UPDATE PAYLOAD (schema mapping)
         $update = [];
         foreach ($sync_fields as $field) {
             if (!array_key_exists($field, $wp_all_meta)) continue;
@@ -1020,7 +1152,7 @@ function Wo_SSO_Login() {
         if (!empty($_SESSION['wp_user_email']))  $update['email']    = trim($_SESSION['wp_user_email']);
         if (!empty($_SESSION['wp_user_login']))  $update['username'] = trim($_SESSION['wp_user_login']);
         
-        // 7. LOAD WoWonder SCHEMA CACHE (efficient, reloads only if missing)
+        // 8. LOAD WoWonder SCHEMA CACHE (efficient, reloads only if missing)
         $schema_cache_folder = $_SERVER['DOCUMENT_ROOT'] . '/data/schema_cache/';
         $schema_cache_file   = $schema_cache_folder . 'wo_users_schema.json';
         if (!is_dir($schema_cache_folder)) @mkdir($schema_cache_folder, 0755, true);
@@ -1036,7 +1168,7 @@ function Wo_SSO_Login() {
             }
         }
         
-        // 8. FILTER UNSUPPORTED FIELDS (future-proof)
+        // 9. FILTER UNSUPPORTED FIELDS (future-proof)
         $update_filtered = [];
         foreach ($update as $field => $value) {
             if (isset($wo_schema[$field])) {
@@ -1046,7 +1178,7 @@ function Wo_SSO_Login() {
             }
         }
         
-        // 9. METADATA HASH OPTIMIZATION — Only write if changed
+        // 10. METADATA HASH OPTIMIZATION — Only write if changed
         $hash_payload = $update_filtered;
         unset($hash_payload['lastseen'], $hash_payload['session'], $hash_payload['ip_address']);
         $new_hash = md5(json_encode($hash_payload));
@@ -1056,7 +1188,7 @@ function Wo_SSO_Login() {
             if ($q && $row = mysqli_fetch_assoc($q)) $old_hash = $row['wp_meta_hash'] ?? '';
         }
         
-        // 10. PUSH TO WoWonder ONLY IF CHANGED; Extensive Error Logging
+        // 11. PUSH TO WoWonder ONLY IF CHANGED; Extensive Error Logging
         if ($new_hash !== $old_hash || $new_hash === $old_hash) {
             $update_filtered['wp_meta_hash'] = $new_hash;
             if (!empty($update_filtered) && function_exists('Wo_UpdateUserData')) {
