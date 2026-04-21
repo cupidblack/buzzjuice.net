@@ -1,0 +1,810 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: myCRED BP Charges\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-10-05 11:45+0000\n"
+"POT-Revision-Date: Fri Feb 19 2016 03:38:45 GMT+0100 (CET)\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: \n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: ..\n"
+"X-Poedit-KeywordsList: _:1;gettext:1;dgettext:2;ngettext:1,2;dngettext:2,3;"
+"__:1;_e:1;_c:1;_n:1,2;_n_noop:1,2;_nc:1,2;__ngettext:1,2;__ngettext_noop:1,2;"
+"_x:1,2c;_ex:1,2c;_nx:1,2,4c;_nx_noop:1,2,3c;_n_js:1,2;_nx_js:1,2,3c;"
+"esc_attr__:1;esc_html__:1;esc_attr_e:1;esc_html_e:1;esc_attr_x:1,2c;"
+"esc_html_x:1,2c;comments_number_link:2,3;t:1;st:1;trans:1;transChoice:1,2\n"
+"X-Generator: Loco - https://localise.biz/"
+
+#: mycred-bp-charges.php:207
+msgid "This myCRED Add-on requires WordPress 4.0 or higher. Version detected:"
+msgstr ""
+
+#: mycred-bp-charges.php:212
+msgid "This myCRED Add-on requires PHP 5.3 or higher. Version detected: "
+msgstr ""
+
+#: mycred-bp-charges.php:217
+msgid "This myCRED Add-on requires SQL 5.0 or higher. Version detected: "
+msgstr ""
+
+#: mycred-bp-charges.php:223
+msgid ""
+"Sorry but your WordPress installation does not reach the minimum "
+"requirements for running this add-on. The following errors were given:"
+msgstr ""
+
+#: mycred-bp-charges.php:283
+msgid "More information about this plugin"
+msgstr ""
+
+#: mycred-bp-charges.php:285
+msgid "View details"
+msgstr ""
+
+#: abstracts/buddypress-charges.php:86
+msgid "This Charge has no settings"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:85
+msgid "Group Access Payment (BP Charges)"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:86
+msgid "Group Access Payout (BP Charges)"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:121
+msgid "Group Access"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:124 charges/bp-charge-profile-view.php:157
+msgid "Total Paid"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:127 charges/bp-charge-profile-view.php:160
+msgid "Total Earned"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:263
+msgid "Insufficient Funds. Could not join group."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:273
+msgid "You joined the group!"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:280
+msgid "Could not charge for membership."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:605
+msgid "Join Button Label"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:607
+msgid "Request Membership Button Label"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:609
+msgid "Accept Membership Invite Button Label"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:613 charges/bp-charge-profile-view.php:539
+#, php-format
+msgid "Maximum %s"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:622 charges/bp-charge-profile-view.php:548
+msgid "Enable"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:625 charges/bp-charge-group-join.php:1228
+#: charges/bp-charge-profile-view.php:554
+#: charges/bp-charge-profile-view.php:1125
+msgid "Price"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:632
+msgid "This label is used in the Group directory."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:637 charges/bp-charge-profile-view.php:561
+#, php-format
+msgid "Note that you will be charged a service fee of %s for each sale."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:641
+msgid "Profit Sharing"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:643 charges/bp-charge-group-join.php:1238
+msgid "All payments are given to the group founder."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:646 charges/bp-charge-group-join.php:1241
+msgid "Payments are equally shared between admins."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:649 charges/bp-charge-group-join.php:1244
+msgid "Payments are equally shared between moderators."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:652 charges/bp-charge-group-join.php:1247
+msgid "Payments are equally shared between members."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:658 charges/bp-charge-profile-view.php:578
+msgid "Save Changes"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:747 charges/bp-charge-profile-view.php:248
+msgid "Settings Saved."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:750 charges/bp-charge-profile-view.php:251
+msgid "Purchase Completed."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1142
+#: charges/bp-charge-profile-view.php:1028
+msgid "Navigation Setup - Seller"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1145 charges/bp-charge-group-join.php:1163
+#: charges/bp-charge-profile-view.php:1031
+#: charges/bp-charge-profile-view.php:1049
+msgid "Menu Title"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1149 charges/bp-charge-group-join.php:1167
+#: charges/bp-charge-profile-view.php:1035
+#: charges/bp-charge-profile-view.php:1053
+msgid "Menu URL Slug"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1153 charges/bp-charge-group-join.php:1171
+#: charges/bp-charge-profile-view.php:1039
+#: charges/bp-charge-profile-view.php:1057
+msgid "Menu Position"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1157
+msgid "Group administrators an enable and setup sales from this page."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1160
+#: charges/bp-charge-profile-view.php:1046
+msgid "Navigation Setup - Buyer"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1175
+msgid "Members can buy access to the group from this page."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1178 charges/bp-charge-messaging.php:657
+#: charges/bp-charge-profile-view.php:1140
+msgid "Point Type"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1188
+#: charges/bp-charge-profile-view.php:1085
+msgid "Sales Setup"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1191
+msgid "Let group admins decide if they want to sell access to their groups."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1192
+msgid "Set all group access for sale by default."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1195
+msgid ""
+"Note! If you set all groups for sale, your users will not be able to set "
+"their own price or select to disable sales."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1199
+#: charges/bp-charge-profile-view.php:1096
+msgid "Default Price"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1203
+#: charges/bp-charge-profile-view.php:1100
+msgid "Option to set a default price which will be suggested to your users."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1206
+#: charges/bp-charge-profile-view.php:1103
+msgid "Price Limits"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1209
+#: charges/bp-charge-profile-view.php:1106
+msgid "Minimum"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1211
+#: charges/bp-charge-profile-view.php:1108
+msgid "The lowest price a user can set."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1214
+#: charges/bp-charge-profile-view.php:1111
+msgid "Maximum"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1216
+#: charges/bp-charge-profile-view.php:1113
+msgid "The highest price a user can set."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1219
+#: charges/bp-charge-profile-view.php:1116
+msgid "Fee"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1223
+msgid ""
+"Option to charge a percentage of the sale as a fee. This fee is taken out of "
+"the amount a member pays to join the group. Use zero for no fee."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1232
+#: charges/bp-charge-profile-view.php:1129
+msgid "Users can not change this price."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1235
+#: charges/bp-charge-profile-view.php:1132
+msgid "Profit Share"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1251
+#: charges/bp-charge-profile-view.php:1150
+msgid "Purchase Expiry"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1254
+msgid "Purchase expiry is not supported for group memberships."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1257
+#: charges/bp-charge-profile-view.php:1157
+msgid "Non Member Template"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1263
+msgid ""
+"Used when a group is viewed by a member that is not logged in to the website."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1265
+#: charges/bp-charge-profile-view.php:1165
+msgid "Sale Template"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1271
+#, php-format
+msgid ""
+"Use %s for the purchase button and %s to show when (if used) a purchase "
+"expires"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1273
+#: charges/bp-charge-profile-view.php:1173
+msgid "Insufficient Funds Template"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1276
+#: charges/bp-charge-profile-view.php:1176
+msgid "Shown when a user can not afford to pay to access a profile."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1280
+#, php-format
+msgid ""
+"Use %s to show the current users balance and %s to show when (if used) a "
+"purchase expires."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1282
+#: charges/bp-charge-profile-view.php:1182
+msgid "Purchase Log Template"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1289
+#: charges/bp-charge-profile-view.php:1189
+msgid "Sales Log Template"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1303
+#: charges/bp-charge-profile-view.php:1204
+msgid "Activities"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1305
+msgid ""
+"Option to hide the activity content from users and visitors who have not "
+"paid for access. Only applicable for Public Groups."
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1312
+#: charges/bp-charge-profile-view.php:1213
+msgid "No filtering - all activities are shown"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1313
+#: charges/bp-charge-profile-view.php:1214
+msgid "Hide activities from non paying users and visitors"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1327
+#: charges/bp-charge-profile-view.php:1228
+msgid "Activity Content Template"
+msgstr ""
+
+#: charges/bp-charge-group-join.php:1329
+#, php-format
+msgid ""
+"This text will be shown instead of the actual activity posted in the public "
+"group. Use %s to insert the URL for the group."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:27
+msgid "Not enough %plural% to send a new message."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:31
+msgid "Not enough %plural% to send a reply."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:75
+msgid "New Message Payment (BP Charges)"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:76
+msgid "New Reply Payment (BP Charges)"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:142
+msgid "Messages"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:145
+msgid "New Messages"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:148
+msgid "New Replies"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:216
+msgid "Your message was not sent. Please enter a subject line."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:218
+msgid "Your message was not sent. Please enter some content."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:233
+msgid "Notice successfully created."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:239
+msgid "Notice was not created. Please try again."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:280
+msgid "Message successfully sent."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:446
+msgid "Your reply was sent successfully"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:451
+msgid "There was a problem sending your reply. Please try again."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:505
+#, php-format
+msgid "Sent %s"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:527
+msgid "There was a problem sending that reply. Please try again."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:618
+msgid "Access"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:621
+msgid ""
+"What should happen when a user tries to compose a new message in BuddyPress "
+"but can not afford to send a message."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:625
+msgid ""
+"Nothing. Let the user compose a new message but show an error when they try "
+"and send the message."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:626
+msgid "Redirect user to a specific page."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:630
+msgid ""
+"Should the \"Private Message\" button be hidden if the user can not afford "
+"to pay for a new message?"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:633
+msgid "Yes, hide the button"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:634
+msgid "No, always show the button."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:640
+msgid "Page Redirect"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:649
+msgid "Select page"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:671
+msgid "Price - New Message"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:675 charges/bp-charge-messaging.php:701
+msgid "Use zero if this is free."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:679 charges/bp-charge-messaging.php:705
+msgid "Log Entry"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:681 charges/bp-charge-messaging.php:707
+msgid "Leave empty to just charge without a log entry."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:685 charges/bp-charge-messaging.php:711
+msgid "Insufficient Funds Warning"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:687
+msgid ""
+"Leave empty if you do not want to show a warning. Used on the Compose page."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:691 charges/bp-charge-messaging.php:717
+msgid "Cost Template"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:693
+msgid ""
+"Option to show the cost when a user composes a new message. Leave empty to "
+"hide."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:697
+msgid "Price - New Reply"
+msgstr ""
+
+#: charges/bp-charge-messaging.php:713
+msgid ""
+"Leave empty if you do not want to show a warning. Used when viewing a "
+"message."
+msgstr ""
+
+#: charges/bp-charge-messaging.php:719
+msgid ""
+"Option to show the cost when a user composes a new reply. Leave empty to "
+"hide."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:96
+msgid "Profile Access Payment (BP Charges)"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:97
+msgid "Profile Access Sale (BP Charges)"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:154
+msgid "Profile Access"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:324
+#: charges/bp-charge-profile-view.php:373
+#: charges/bp-charge-profile-view.php:432
+msgid "Stats"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:333
+#: charges/bp-charge-profile-view.php:384
+msgid "Settings"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:432
+#, php-format
+msgid "%s's Stats"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:452
+msgid "Total Sales"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:456
+msgid "Sales this month"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:460
+msgid "Total Buyers"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:464
+msgid "Buyers with access"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:471
+msgid "Returning Buyers"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:474
+msgid "Top Buyer"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:478
+msgid "No purchases yes"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:487
+#, php-format
+msgid "Buyers (%d)"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:523
+msgid "Setup"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:523
+#, php-format
+msgid "%s's Setup"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:551
+msgid "Free for Friends"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:568
+msgid "Expiry"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:569
+msgid "days"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:570
+msgid ""
+"Number of days that sales are valid. Once expired, the member must pay again "
+"to view your profile. Use zero for permanent sales."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:647
+msgid "Last Payment"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:651
+#: charges/bp-charge-profile-view.php:670
+msgid "Expires"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:652
+#, php-format
+msgid "In %s days"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:666
+msgid "Unlocked"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:671 includes/bp-charge-functions.php:218
+#: includes/bp-charge-functions.php:222
+msgid "Never"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1043
+msgid "Members can view their sales and edit their settings on this page."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1061
+msgid "Members can buy access or view their purchase history on this page."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1064
+msgid "Profile Buttons"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1071
+msgid "Show profile buttons even if user has not purchased access"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1072
+msgid "Hide profile buttons if user has not purchased access"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1088
+msgid "Let users decide if they want to sell access to their profiles."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1089
+msgid "Set all profiles for sale by default."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1092
+msgid ""
+"Note! If you set all profiles for sale, your users will not be able to set "
+"their own price or select to disable sales."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1120
+msgid ""
+"Option to charge a percentage of the sale as a fee. This fee is taken out of "
+"the amount the profile owner set as their price. Use zero for no fee."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1136
+msgid "Option to pay a percentage to the profile owner. Use zero to disable."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1153
+msgid "day(s)"
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1154
+msgid ""
+"Option to expire purchases forcing users to buy again. Use zero to only "
+"allow permanent sales. If set to zero, users will not be able to set an "
+"expire date. Set to at least 1 if you wan to allow users to use this feature."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1163
+msgid ""
+"Used when a profile is viewed by a member that is not logged in to the "
+"website."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1171
+#, php-format
+msgid ""
+"Use %s for the purchase button, %s to show when (if used) a purchase expires,"
+" %s to show the total number of buyers and %s to show the last 25 buyers "
+"avatar."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1180
+#, php-format
+msgid ""
+"Use %s to show the current users balance, %s to show when (if used) a "
+"purchase expires, %s to show the total number of buyers and %s to show the "
+"last 25 buyers avatar."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1206
+msgid ""
+"Option to hide the activity content from users and visitors who have not "
+"paid for access."
+msgstr ""
+
+#: charges/bp-charge-profile-view.php:1230
+#, php-format
+msgid ""
+"This text will be shown instead of the actual activity posted by the user. "
+"Use %s to insert the URL for the profile."
+msgstr ""
+
+#: includes/bp-charge-functions.php:165
+msgid "Buy Now"
+msgstr ""
+
+#: includes/bp-charge-functions.php:215
+#, php-format
+msgid "After 1 Day"
+msgid_plural "After %d Days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: modules/bp-charges-module.php:25 modules/bp-charges-module.php:26
+#: modules/bp-charges-module.php:27 modules/bp-charges-module.php:171
+msgid "BuddyPress Charges"
+msgstr ""
+
+#: modules/bp-charges-module.php:98
+msgid "View Profiles"
+msgstr ""
+
+#: modules/bp-charges-module.php:99
+msgid ""
+"Either sell access to all BuddyPress profile or let your users select to "
+"sell access themselves."
+msgstr ""
+
+#: modules/bp-charges-module.php:106
+msgid "Sending Private Messages"
+msgstr ""
+
+#: modules/bp-charges-module.php:107
+msgid "Charge users for sending private messages in BuddyPress."
+msgstr ""
+
+#: modules/bp-charges-module.php:114
+msgid "Join Group"
+msgstr ""
+
+#: modules/bp-charges-module.php:115
+msgid "Charge users for joining groups in BuddyPress."
+msgstr ""
+
+#: modules/bp-charges-module.php:164
+msgid "Access Denied"
+msgstr ""
+
+#: modules/bp-charges-module.php:175
+msgid "Available BuddyPress Charges that you can enforce."
+msgstr ""
+
+#: modules/bp-charges-module.php:192
+msgid "Charge for this"
+msgstr ""
+
+#: modules/bp-charges-module.php:206
+msgid "Group Creations"
+msgstr ""
+
+#: modules/bp-charges-module.php:208
+msgid ""
+"You can use the BuddyPress: Groups hook to deduct points when a user creates "
+"a new group. If the a user does not have enough points, the \"Create Group\" "
+"button will not be available."
+msgstr ""
+
+#: modules/bp-charges-module.php:215
+msgid "Friendships"
+msgstr ""
+
+#: modules/bp-charges-module.php:217
+msgid ""
+"You can use the BuddyPress: Member hook to deduct points when a user become "
+"friends with someone. If a user does not have enough points, the \"Add "
+"Friend\" button will not be available."
+msgstr ""
+
+#: modules/bp-charges-module.php:224
+msgid "Update Changes"
+msgstr ""
+
+#. Name of the plugin
+msgid "myCRED BP Charges"
+msgstr ""
+
+#. Description of the plugin
+msgid ""
+"Charge your users for using BuddyPress features like sending messages, "
+"replying to messages or viewing other members profiles."
+msgstr ""

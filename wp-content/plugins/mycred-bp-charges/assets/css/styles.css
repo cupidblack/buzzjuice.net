@@ -1,0 +1,29 @@
+.activity-meta.groups-meta.action {
+    display: flex ;
+    align-items: center ;
+}
+
+body #buddypress .bp-list .action {
+    
+    display: flex;
+    align-items: center;
+}
+
+img.mycred-badge-image.badge-levelnone {
+    width: 18px ;
+    height: 18px ;
+	margin-right: 10px;
+    margin-left: 10px;
+}
+
+img.rank-logo {
+    width: 18px ;
+    height: 18px ;
+	margin-right: 10px;
+    margin-left: 10px;
+}
+
+span.user-badge-heading {
+    margin-left: 4px;
+}
+

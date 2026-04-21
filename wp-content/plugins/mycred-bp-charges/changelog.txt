@@ -1,0 +1,100 @@
+Version 1.4.7
+------------------------------------------------------------
+Tweak - Added compatibility with myCred 2.6.
+
+Version 1.4.6
+------------------------------------------------------------
+Improvement - Improve license system.
+
+Version 1.4.5
+------------------------------------------------------------
+Improvement – Added Compatibility with Buddyboss theme.
+
+Version 1.4.4
+------------------------------------------------------------
+FIX - Activities should be hidden on global activities page if access is not purchased.
+
+Version 1.4.3
+------------------------------------------------------------
+Improvement - Improve license system.
+
+Version 1.4.2
+------------------------------------------------------------
+FIX - Sell profile access and buy profile access related issues.
+
+Version 1.4.1
+------------------------------------------------------------
+Improvement - Upgrading License System
+
+Version 1.4
+------------------------------------------------------------
+Fix - Support for the BuddyPress legacy template.
+Fix - Private message button is visible as per settings.
+TWEAK - Remove depreciated functions.
+
+Version 1.3
+------------------------------------------------------------
+Fix - Issue occurs while saving Sell Access setting.
+Fix - If user Disable Sell Access then Profile Page Not Found error occurs for not logged in Users.
+Fix - When a user pays to join a group the points doesn't go to the founder or any other option.
+
+Version 1.2.1
+------------------------------------------------------------
+FIX - Points not charging for Reply Message.
+
+Version 1.2
+------------------------------------------------------------
+Compatible upto WorddPress 5.1
+FIX - Points not charging for Private Message.
+
+Version 1.1.5
+------------------------------------------------------------
+FIX - Buying access through the buy button in groups causes double charges on certain themes.
+NEW - Added new mycred_bp_show_charge_message_cost filter for those who want to hide the message cost message.
+NEW - Added new mycred_bp_show_charge_reply_cost filter for those who want to hide the reply cost message.
+NEW - Added totals to the myCRED Overview widget for charges that are enabled.
+UPDATE - Updated translation files.
+
+Version 1.1.4
+------------------------------------------------------------
+FIX - Fixed minimum payout issue when used with point types that use decimals.
+FIX - Fixed fee calculation issue with group payouts.
+FIX - Buy Access page in profiles still visible even if sale is not enabled by user. (Thanks Andy for your help)
+NEW - Added new mycred_bp_charge_can_afford filter to override charges.
+TWEAK - Added code to prevent duplicate charges when joining a group on certain setups.
+Tested with WordPress 4.8.1
+Tested with BuddyPress 2.9
+
+Version 1.1.3
+------------------------------------------------------------
+FIX - Fixed conflict with Group Charges and Group Creation.
+FIX - Clicking on the "Join Group" button when viewing a group does not trigger the group join process.
+
+Version 1.1.2
+------------------------------------------------------------
+TWEAK - Added compatibility with BuddyPress 2.7+
+TWEAK - Added compatibility with myCRED 1.7+
+TWEAK - Adjusted settings positions for better grouping.
+TWEAK - Updated main plugin class.
+FIX - Fixed message button error by no longer using the legacy hook: bp_get_send_message_button.
+FIX - Fixed a few incorrect spelling.
+FIX - Added missing strings for translations.
+FIX - Settings javascript error causing view profile settings to get incorrectly hidden.
+NEW - Added support for badges.
+UPDATE - Updated translation files.
+Tested with BuddyPress 2.8.2.
+
+Version 1.1.1
+------------------------------------------------------------
+NEW - Insufficient funds templates now support HTML.
+NEW - Updated myCRED.me license api script.
+NEW - Updated translation files.
+
+Version 1.1
+------------------------------------------------------------
+FIX – Added support for latest BuddyPress version. Version 1.1 will now only work with BuddyPress 2.4 or higher!
+NEW – Added new feature allowing group creators to charge for group memberships.
+
+Version 1.0
+------------------------------------------------------------
+Initial release
