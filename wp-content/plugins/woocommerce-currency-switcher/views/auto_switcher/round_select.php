@@ -50,11 +50,11 @@ wp_add_inline_style('woocommerce-currency-switcher', $data);
             <li>
                 <a data-currency="<?php echo esc_attr($key) ?>" href="#" class="<?php echo esc_attr($current) ?> woocs_auto_switcher_link">
                     <?php if ($side == 'left'): ?>
-                        <span class="woocs_base_text"><?php echo wp_kses_post($base_text) ?></span>                  
+                        <span class="woocs_base_text"><?php echo wp_kses_post(apply_filters('woocs_price_html', $base_text)) ?></span>                  
                         <span class="woocs_add_field"> <?php echo wp_kses_post($add_text) ?> </span>              
                     <?php else: ?>
                         <span class="woocs_add_field"> <?php echo wp_kses_post($add_text) ?> </span>
-                        <span class="woocs_base_text"><?php echo wp_kses_post($base_text) ?></span>
+                        <span class="woocs_base_text"><?php echo wp_kses_post(apply_filters('woocs_price_html', $base_text)) ?></span>
                     <?php endif; ?>
                 </a>
             </li>

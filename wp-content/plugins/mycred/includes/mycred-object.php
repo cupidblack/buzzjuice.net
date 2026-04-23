@@ -377,8 +377,16 @@ if ( ! class_exists( 'myCRED_History' ) ) :
 			$this->data = mycred_get_users_history( $user_id, $point_type );
 			if ( ! empty( $this->data ) ) {
 
-				foreach ( $this->data as $reference => $data )
-					$this->total_data += $data->rows;
+				// foreach ( $this->data as $reference => $data )
+					// $this->total_data += $data->rows;
+				foreach ( $this->data as $reference => $data ) {
+                    if (is_object($data) && isset($data->rows)) {
+                        $this->total_data += (int) $data->rows;
+                    } elseif (is_array($data) && isset($data['rows'])) {
+                        $this->total_data += (int) $data['rows'];
+                    }
+                    // else: skip invalid structure
+                }
 
 				if ( $this->total_data > 0 )
 					$this->has_history = true;

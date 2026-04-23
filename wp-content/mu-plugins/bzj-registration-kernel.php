@@ -11,7 +11,9 @@
 if (!defined('ABSPATH')) exit;
 
 define('BZJ_CHALLENGE_TTL', 20 * MINUTE_IN_SECONDS);
-define('BZJ_LOG_DIR', WP_CONTENT_DIR . '/bzj-logs/');
+if (!defined('BZJ_LOG_DIR')) {
+    define('BZJ_LOG_DIR', ABSPATH . '/data/logs/');
+}
 
 /** ===== LOAD BUZZ_SSO_SECRET FROM ENV ===== */
 if (!defined('BZJ_SSO_SECRET')) {
@@ -70,7 +72,7 @@ function bzj_log($type, $data = []) {
         @mkdir(BZJ_LOG_DIR, 0755, true);
     }
 
-    $log_file = BZJ_LOG_DIR . 'events.log';
+    $log_file = BZJ_LOG_DIR . 'bzj-registration-kernel.log';
 
     if (file_exists($log_file) && filesize($log_file) > 5 * 1024 * 1024) {
         unlink($log_file);

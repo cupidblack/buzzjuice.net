@@ -337,7 +337,7 @@ jQuery(function ($) {
                     woocs_show_info_popup(woocs_lang.save_changes, 1999);
                 } catch (e) {
                     woocs_hide_stat_info_popup();
-                    alert('Request error! Try later or another agregator!');
+                    alert('Request error! Try later or another currency agregator!');
                 }
             });
         }

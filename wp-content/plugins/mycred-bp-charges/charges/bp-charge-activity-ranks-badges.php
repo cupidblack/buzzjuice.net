@@ -9,6 +9,10 @@ if ( ! defined( 'BP_CHARGES_VERSION' ) ) exit;
 if ( ! class_exists( 'myCRED_BP_Activity_Ranks_Badges' ) ) :
 	class myCRED_BP_Activity_Ranks_Badges extends myCRED_BP_Charge {
 
+        // Explicitly declare these properties to fix PHP 8.2+ dynamic warnings
+        public $core_point_types = array();
+        public $point_type_value = array();
+        public $point_type_key = array();
 		
 		function __construct( $charge_prefs, $type = MYCRED_DEFAULT_TYPE_KEY ) {
 
@@ -299,8 +303,3 @@ if ( ! class_exists( 'myCRED_BP_Activity_Ranks_Badges' ) ) :
 
 	}
 endif;
-
-?>
-
-
- 

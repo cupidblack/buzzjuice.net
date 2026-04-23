@@ -10,12 +10,12 @@ class WOOCS_SMART_DESIGNER {
 
         add_action('wp_ajax_woocs_sd_create', array($this, 'create'));
         add_action('wp_ajax_woocs_sd_delete', function () {
-			if (!current_user_can('manage_woocommerce')) {
-				die('0');
-			}			
-			if (!(isset($_POST['wpnonce_sd']) && wp_verify_nonce($_POST['wpnonce_sd'], 'woocs_wpnonce_sd'))) {
-				die();
-			}			
+            if (!current_user_can('manage_woocommerce')) {
+                die('0');
+            }
+            if (!(isset($_POST['wpnonce_sd']) && wp_verify_nonce($_POST['wpnonce_sd'], 'woocs_wpnonce_sd'))) {
+                die();
+            }
             $id = intval($_REQUEST['id']);
             delete_option('woocs_sd_' . $id);
             $designs = $this->get_designs();
@@ -26,12 +26,12 @@ class WOOCS_SMART_DESIGNER {
         });
         add_action('wp_ajax_woocs_sd_save', array($this, 'save'));
         add_action('wp_ajax_woocs_sd_get', function () {
-			if (!current_user_can('manage_woocommerce')) {
-				die('0');
-			}			
-			if (!(isset($_POST['wpnonce_sd']) && wp_verify_nonce($_POST['wpnonce_sd'], 'woocs_wpnonce_sd'))) {
-				die();
-			}			
+            if (!current_user_can('manage_woocommerce')) {
+                die('0');
+            }
+            if (!(isset($_POST['wpnonce_sd']) && wp_verify_nonce($_POST['wpnonce_sd'], 'woocs_wpnonce_sd'))) {
+                die();
+            }
             die(json_encode($this->get(intval($_REQUEST['id']))));
         });
 
@@ -94,6 +94,7 @@ class WOOCS_SMART_DESIGNER {
                         'delete' => esc_html__('delete', 'woocommerce-currency-switcher'),
                         'edit' => esc_html__('edit', 'woocommerce-currency-switcher'),
                         'signs_using' => esc_html__('Use special keywords and their combination: __CODE__, __SIGN__, __DESCR__. Also you can use usual static text. Example: __CODE__ - __SIGN__', 'woocommerce-currency-switcher'),
+                        'curr_not_exists_or_hidden' => esc_html__('Currencies do not exist or are not visible. Please make them visible under Currencies → Visible and then click the Save button.', 'woocommerce-currency-switcher'),
                     ]]
                 );
             }
@@ -114,10 +115,10 @@ class WOOCS_SMART_DESIGNER {
     public function create() {
         if (!current_user_can('manage_woocommerce')) {
             die('0');
-        }		
-		if (!(isset($_POST['wpnonce_sd']) && wp_verify_nonce($_POST['wpnonce_sd'], 'woocs_wpnonce_sd'))) {
+        }
+        if (!(isset($_POST['wpnonce_sd']) && wp_verify_nonce($_POST['wpnonce_sd'], 'woocs_wpnonce_sd'))) {
             die();
-        }		
+        }
         $designs = $this->get_designs();
 
         if (empty($designs)) {
@@ -138,18 +139,19 @@ class WOOCS_SMART_DESIGNER {
     public function save() {
         if (!current_user_can('manage_woocommerce')) {
             die('0');
-        }		
-		if (!(isset($_POST['wpnonce_sd']) && wp_verify_nonce($_POST['wpnonce_sd'], 'woocs_wpnonce_sd'))) {
+        }
+        if (!(isset($_POST['wpnonce_sd']) && wp_verify_nonce($_POST['wpnonce_sd'], 'woocs_wpnonce_sd'))) {
             die();
         }
-			
+
         $data = json_decode(stripslashes($_REQUEST['options']), true);
-		$data = wc_clean($data);
-		$data_to_int = array_intersect_key($data, array_flip(array('width_p100', 'show_title', 'title_bold', 'show_description', 'show_img','img_pos')));
-		$data = array_merge($data, array_map('intval', $data_to_int));
-		
+        $data = wc_clean($data);
+        $data_to_int = array_intersect_key($data, array_flip(array('width_p100', 'show_title', 'title_bold', 'show_description', 'show_img', 'img_pos')));
+        $data = array_merge($data, array_map('intval', $data_to_int));
+
         update_option('woocs_sd_' . intval($_REQUEST['id']), $data);
     }
+
     public function get($id) {
         if (get_option('woocs_sd_' . $id, -1) === -1) {
             return -1;
@@ -173,19 +175,18 @@ class WOOCS_SMART_DESIGNER {
         return array_map(function ($c) {
             $title = apply_filters('woocs_currname_in_option', $c['name']);
             return [
-        'value' => $c['name'],
-        'sign' => $c['symbol'],
-        'title' => $title,
-        'text' => $c['description'],
-        'img' => $c['flag'],
-        'title_attributes' => [
-            'data-sign' => $c['symbol'],
-            'data-name' => $title,
-            'data-desc' => $c['description']
+                'value' => $c['name'],
+                'sign' => $c['symbol'],
+                'title' => $title,
+                'text' => $c['description'],
+                'img' => $c['flag'],
+                'title_attributes' => [
+                    'data-sign' => $c['symbol'],
+                    'data-name' => $title,
+                    'data-desc' => $c['description']
             ]];
         }, array_values($all_currencies));
     }
-
 }
 
 $GLOBALS['WOOCS_SD'] = new WOOCS_SMART_DESIGNER();

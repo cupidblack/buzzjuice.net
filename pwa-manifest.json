@@ -4,31 +4,31 @@
     "description": "Connecting communities since 1997!",
     "icons": [
         {
-            "src": "https:\/\/buzzjuice.net\/wp-content\/uploads\/2026\/04\/Buzzjuice-Bee-Logo-transparent-192x192px-2.03-e1776286093627.png",
+            "src": "https:\/\/buzzjuice.net\/wp-content\/uploads\/2026\/04\/BuzzJuice-Logo-2.03-icon192x192.png",
             "sizes": "192x192",
             "type": "image\/png",
             "purpose": "any"
         },
         {
-            "src": "https:\/\/buzzjuice.net\/wp-content\/uploads\/2026\/04\/Buzzjuice-Bee-Logo-transparent-192x192px-2.03-e1776286093627.png",
+            "src": "https:\/\/buzzjuice.net\/wp-content\/uploads\/2026\/04\/BuzzJuice-Logo-2.03-icon192x192.png",
             "sizes": "192x192",
             "type": "image\/png",
             "purpose": "maskable"
         },
         {
-            "src": "https:\/\/buzzjuice.net\/wp-content\/uploads\/2026\/04\/cropped-Buzzjuice-Bee-Logo-500x512px-2.02.png",
+            "src": "https:\/\/buzzjuice.net\/wp-content\/uploads\/2026\/04\/BuzzJuice-Logo-2.03-icon512x512.png",
             "sizes": "512x512",
             "type": "image\/png",
             "purpose": "any"
         },
         {
-            "src": "https:\/\/buzzjuice.net\/wp-content\/uploads\/2026\/04\/cropped-Buzzjuice-Bee-Logo-500x512px-2.02.png",
+            "src": "https:\/\/buzzjuice.net\/wp-content\/uploads\/2026\/04\/BuzzJuice-Logo-2.03-icon512x512.png",
             "sizes": "512x512",
             "type": "image\/png",
             "purpose": "maskable"
         },
         {
-            "src": "https:\/\/buzzjuice.net\/wp-content\/uploads\/2026\/04\/cropped-Buzzjuice-Bee-Logo-500x512px-2.02.png",
+            "src": "https:\/\/buzzjuice.net\/wp-content\/uploads\/2026\/04\/BuzzJuice-Logo-2.03-icon512x512.png",
             "sizes": "512x512",
             "type": "image\/png",
             "purpose": "monochrome"
@@ -36,7 +36,7 @@
     ],
     "screenshots": [
         {
-            "src": "https:\/\/buzzjuice.net\/wp-content\/uploads\/2026\/04\/cropped-Buzzjuice-Bee-Logo-500x512px-2.02.png",
+            "src": "https:\/\/buzzjuice.net\/wp-content\/uploads\/2026\/04\/BuzzJuice-Logo-2.03-icon512x512.png",
             "sizes": "512x512",
             "type": "image\/png",
             "purpose": "maskable",

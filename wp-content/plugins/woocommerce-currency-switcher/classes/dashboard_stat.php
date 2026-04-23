@@ -18,20 +18,19 @@ class woocs_woo_stat {
     public function recalculate_order_stats($order_id) {
         global $wpdb;
         global $WOOCS;
-		//hpos
+        //hpos
         //$_order_currency = get_post_meta($order_id, '_order_currency', true);
-		//$order_rate = get_post_meta($order_id, '_woocs_order_rate', true);
+        //$order_rate = get_post_meta($order_id, '_woocs_order_rate', true);
         //$order_recalculated = get_post_meta($order_id, 'woocs_order_stat_recalculated', true);
-		$order = wc_get_order( $order_id );
-		$_order_currency  = $order->get_currency();
-		$order_rate = $order->get_meta( '_woocs_order_rate', true);	
-		$order_recalculated = $order->get_meta( 'woocs_order_stat_recalculated', true);	
-		
-		
+        $order = wc_get_order($order_id);
+        $_order_currency = $order->get_currency();
+        $order_rate = $order->get_meta('_woocs_order_rate', true);
+        $order_recalculated = $order->get_meta('woocs_order_stat_recalculated', true);
+
         $currencies = $WOOCS->get_currencies();
         $decimals = 2;
-        if (isset($currencies[$_order_currency])) {
-            $decimals = $currencies[$_order_currency]['decimals'];
+        if (isset($currencies[$_order_currency]) && array_key_exists('decimals', $currencies[$_order_currency])) {
+            $decimals = intval($currencies[$_order_currency]['decimals']);
         }
         if (!$order_rate) {
             if (isset($currencies[$_order_currency])) {
@@ -60,7 +59,7 @@ class woocs_woo_stat {
                 $format,
                 array('%d')
         );
-        update_post_meta($order_id, 'woocs_order_stat_recalculated', true);
+        $order->update_meta_data('woocs_order_stat_recalculated', true);
     }
 
     public function recalculate_all_stats() {
@@ -70,5 +69,4 @@ class woocs_woo_stat {
             $this->recalculate_order_stats($order_id);
         }
     }
-
 }

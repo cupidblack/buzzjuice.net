@@ -49,7 +49,7 @@ wp_add_inline_style('woocommerce-currency-switcher', $data);
         ?>  
         <a class=" woocs_auto_switcher_item woocs_auto_switcher_item_<?php echo esc_attr($key) ?> <?php echo esc_attr($current) ?>" href="#"> 
             <div class="woocs_auto_switcher_text">
-                <span><?php echo wp_kses_post($base_text) ?> </span>
+                <span><?php echo wp_kses_post(apply_filters('woocs_price_html', $base_text)) ?> </span>
             </div>
         </a> 
 

@@ -61,7 +61,7 @@ wp_add_inline_style('woocommerce-currency-switcher', $data);
                         $r_add_text = $add_text;
                         $add_text = "";
                     }
-                    ?><?php echo wp_kses_post($add_text) ?><span class="woocs_add_field"><?php echo wp_kses_post($base_text) ?></span>
+                    ?><?php echo wp_kses_post($add_text) ?><span class="woocs_add_field"><?php echo wp_kses_post(apply_filters('woocs_price_html', $base_text)) ?></span>
                     <?php echo wp_kses_post($r_add_text) ?> 
                 </a> 
             </li>

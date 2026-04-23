@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Give - Donation Plugin plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Give - Donation Plugin 4.14.1\n"
+"Project-Id-Version: Give - Donation Plugin 4.14.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/givewp\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-02-11T19:06:38+00:00\n"
+"POT-Creation-Date: 2026-04-08T18:23:04+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: give\n"
@@ -73,8 +73,8 @@ msgstr ""
 
 #: blocks/donation-form/class-give-donation-form-block.php:137
 #: src/DonationForms/Blocks/DonationFormBlock/DataTransferObjects/BlockAttributes.php:39
-#: src/DonationForms/Properties/FormSettings.php:307
-#: src/DonationForms/Properties/FormSettings.php:369
+#: src/DonationForms/Properties/FormSettings.php:308
+#: src/DonationForms/Properties/FormSettings.php:370
 #: build/campaignBlocks.js:1
 msgid "Donate now"
 msgstr ""
@@ -178,7 +178,7 @@ msgstr ""
 #: src/Campaigns/Blocks/DonateButton/render.php:24
 #: src/Campaigns/Shortcodes/CampaignDonationsShortcode.php:69
 #: src/ThirdPartySupport/Elementor/Widgets/V2/ElementorCampaignDonationsWidget/ElementorCampaignDonationsWidget.php:166
-#: templates/shortcode-form-grid.php:222
+#: templates/shortcode-form-grid.php:226
 #: build/campaignBlocksLandingPage.js:1
 #: build/donationFormApp.js:2
 #: build/formBuilderApp.js:13
@@ -454,7 +454,7 @@ msgid "Import Donations"
 msgstr ""
 
 #: includes/admin/admin-actions.php:663
-#: src/DonationForms/V2/DonationFormsAdminPage.php:287
+#: src/DonationForms/V2/DonationFormsAdminPage.php:319
 #: src/Donors/DonorsAdminPage.php:79
 #: src/Subscriptions/SubscriptionsAdminPage.php:65
 msgid "Switch to New View"
@@ -815,7 +815,7 @@ msgstr ""
 #: includes/admin/shortcodes/shortcode-give-donor-wall.php:48
 #: includes/admin/tools/export/class-give-export-donations.php:222
 #: includes/post-types.php:64
-#: src/DonationForms/V2/DonationFormsAdminPage.php:72
+#: src/DonationForms/V2/DonationFormsAdminPage.php:73
 #: src/ThirdPartySupport/Elementor/Widgets/V2/ElementorDonationFormGridWidget/ElementorDonationFormGridWidget.php:221
 msgid "All Forms"
 msgstr ""
@@ -2512,7 +2512,7 @@ msgstr ""
 #: includes/admin/import-functions.php:183
 #: includes/admin/tools/export/give-export-donations-exporter.php:437
 #: includes/forms/template.php:532
-#: includes/payments/functions.php:1622
+#: includes/payments/functions.php:1640
 #: build/assets/dist/js/donor-dashboards-app.js:1
 #: build/formBuilderRegistrars.js:1
 msgid "Custom Amount"
@@ -2818,7 +2818,7 @@ msgstr ""
 
 #: includes/admin/forms/class-metabox-form-data.php:539
 #: src/DonationForms/Factories/DonationFormFactory.php:42
-#: src/DonationForms/Properties/FormSettings.php:329
+#: src/DonationForms/Properties/FormSettings.php:330
 #: src/Onboarding/DefaultFormFactory.php:67
 msgid "Thank you to all our donors, we have met our fundraising goal."
 msgstr ""
@@ -3455,7 +3455,8 @@ msgstr ""
 #: includes/admin/shortcodes/shortcode-give-form.php:27
 #: includes/admin/shortcodes/shortcode-give-form.php:28
 #: includes/post-types.php:71
-#: src/DonationForms/Properties/FormSettings.php:306
+#: src/DonationForms/Properties/FormSettings.php:307
+#: src/FormBuilder/Routes/CreateFormRoute.php:44
 #: src/ThirdPartySupport/Elementor/Widgets/V2/ElementorDonationFormWidget/ElementorDonationFormWidget.php:115
 #: build/adminBlocks.js:1
 #: build/assets/dist/js/orphaned-forms-list-table.js:4
@@ -4613,7 +4614,7 @@ msgstr ""
 #: includes/admin/settings/class-settings-advanced.php:374
 #: includes/misc-functions.php:538
 #: includes/post-types.php:58
-#: src/DonationForms/V2/DonationFormsAdminPage.php:71
+#: src/DonationForms/V2/DonationFormsAdminPage.php:72
 #: build/assets/dist/js/give-admin-donation-forms.js:4
 #: build/assets/dist/js/give-admin-event-tickets-details.js:4
 #: build/campaignDetails.js:10
@@ -6704,7 +6705,7 @@ msgstr ""
 #: src/MultiFormGoals/resources/views/progressbar.php:40
 #: src/Views/Form/Templates/Classic/Classic.php:325
 #: src/Views/Form/Templates/Sequoia/sections/income-stats.php:32
-#: templates/shortcode-form-grid.php:464
+#: templates/shortcode-form-grid.php:467
 #: build/adminBlocks.js:1
 #: build/adminBlocks.js:4
 #: build/assets/dist/js/give-admin-donations.js:4
@@ -14624,7 +14625,7 @@ msgstr ""
 
 #: includes/forms/widget.php:170
 #: includes/forms/widget.php:177
-#: src/DonationForms/Properties/FormSettings.php:371
+#: src/DonationForms/Properties/FormSettings.php:372
 #: src/Onboarding/DefaultFormFactory.php:140
 #: src/Views/Form/Templates/Sequoia/Actions.php:321
 #: src/Views/Form/Templates/Sequoia/optionConfig.php:178
@@ -15784,7 +15785,7 @@ msgstr ""
 msgid "Delete this donation note."
 msgstr ""
 
-#: includes/payments/functions.php:1759
+#: includes/payments/functions.php:1777
 msgctxt "custom donation dropdown item"
 msgid "Custom"
 msgstr ""
@@ -17766,6 +17767,16 @@ msgstr ""
 msgid "You do not have permission to view this donation form."
 msgstr ""
 
+#: src/DonationForms/Controllers/DonationFormViewController.php:25
+#: src/DonationForms/Controllers/DonationFormViewController.php:54
+msgid "Donation form not found."
+msgstr ""
+
+#: src/DonationForms/Controllers/DonationFormViewController.php:26
+#: src/DonationForms/Controllers/DonationFormViewController.php:55
+msgid "Not Found"
+msgstr ""
+
 #: src/DonationForms/DataTransferObjects/DonationFormGoalData.php:236
 msgid "recurring donations"
 msgstr ""
@@ -17775,13 +17786,12 @@ msgid "amount"
 msgstr ""
 
 #: src/DonationForms/Factories/DonationFormFactory.php:25
-#: src/FormBuilder/Routes/CreateFormRoute.php:43
 #: src/ThirdPartySupport/Elementor/Widgets/V2/ElementorDonationFormWidget/ElementorDonationFormWidget.php:30
 msgid "GiveWP Donation Form"
 msgstr ""
 
 #: src/DonationForms/Factories/DonationFormFactory.php:37
-#: src/DonationForms/Properties/FormSettings.php:300
+#: src/DonationForms/Properties/FormSettings.php:301
 #: src/Onboarding/DefaultFormFactory.php:122
 #: src/Views/Form/Templates/Classic/optionConfig.php:70
 #: src/Views/Form/Templates/Sequoia/optionConfig.php:10
@@ -17802,16 +17812,16 @@ msgstr ""
 msgid "Two Panel"
 msgstr ""
 
-#: src/DonationForms/Properties/FormSettings.php:302
+#: src/DonationForms/Properties/FormSettings.php:303
 msgid "Help our organization by donating today! Donations go to making a difference for our cause."
 msgstr ""
 
-#: src/DonationForms/Properties/FormSettings.php:333
+#: src/DonationForms/Properties/FormSettings.php:334
 #: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:342
 msgid "Hey {first_name}, thanks for your donation!"
 msgstr ""
 
-#: src/DonationForms/Properties/FormSettings.php:337
+#: src/DonationForms/Properties/FormSettings.php:338
 #: src/Framework/Receipts/Actions/GenerateConfirmationPageReceipt.php:359
 msgid "{first_name}, your contribution means a lot and will be put to good use in making a difference. We’ve sent your donation receipt to {email}."
 msgstr ""
@@ -18699,7 +18709,7 @@ msgstr ""
 msgid "Zip/Postal Code"
 msgstr ""
 
-#: src/FormMigration/Controllers/MigrationController.php:61
+#: src/FormMigration/Controllers/MigrationController.php:77
 msgid "Form migrated from v2 to v3."
 msgstr ""
 
@@ -19967,20 +19977,34 @@ msgstr ""
 msgid "You are not allowed to perform this action."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:368
+#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:377
 msgid "Make sure to complete the entire PayPal process. Do not close the window until you have finished the process."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:372
+#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:381
 msgid "The last screen of the PayPal connect process includes a button to be sent back to your site. It is important you click this and do not close the window yourself."
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:376
+#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:385
 msgid "If you’re still having problems connecting: "
 msgstr ""
 
-#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:384
+#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:393
 msgid "Having trouble connecting to PayPal?"
+msgstr ""
+
+#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:439
+msgid "Invalid donation amount."
+msgstr ""
+
+#. translators: %s: maximum donation amount
+#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:447
+#, php-format
+msgid "Donation amount must not exceed %s."
+msgstr ""
+
+#: src/PaymentGateways/PayPalCommerce/AjaxRequestHandler.php:471
+msgid "Donation amount cannot be decreased."
 msgstr ""
 
 #: src/PaymentGateways/PayPalCommerce/Banners/GatewaySettingPageBanner.php:48
@@ -23592,13 +23616,25 @@ msgstr ""
 msgid "Donor Avatar"
 msgstr ""
 
-#: templates/shortcode-form-grid.php:295
+#. translators: %s: donation form title
+#: templates/shortcode-form-grid.php:90
+#, php-format
+msgid "Open donation form: %s"
+msgstr ""
+
+#. translators: %s: donation form title
+#: templates/shortcode-form-grid.php:106
+#, php-format
+msgid "View donation form: %s"
+msgstr ""
+
+#: templates/shortcode-form-grid.php:298
 #, php-format
 msgid "Form progress: %s%% toward goal"
 msgstr ""
 
 #. translators: 1: amount of income raised 2: goal target amount.
-#: templates/shortcode-form-grid.php:404
+#: templates/shortcode-form-grid.php:407
 #, php-format
 msgid ""
 "<span class=\"amount\"  data-amounts=\"%1$s\">%2$s</span>\n"
@@ -23606,7 +23642,7 @@ msgid ""
 msgstr ""
 
 #. translators: %s: percentage of the amount raised compared to the goal target
-#: templates/shortcode-form-grid.php:418
+#: templates/shortcode-form-grid.php:421
 #, php-format
 msgid ""
 "\n"
@@ -23614,14 +23650,14 @@ msgid ""
 "                                                   <span class=\"goal\">of 100&#37;</span>"
 msgstr ""
 
-#: templates/shortcode-form-grid.php:437
+#: templates/shortcode-form-grid.php:440
 #, php-format
 msgid "of %s donation"
 msgid_plural "of %s donations"
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/shortcode-form-grid.php:450
+#: templates/shortcode-form-grid.php:453
 #, php-format
 msgid "of %s donor"
 msgid_plural "of %s donors"
@@ -26272,6 +26308,18 @@ msgstr ""
 
 #: build/assets/dist/js/give-admin-subscriptions.js:4
 msgid "subscriptions"
+msgstr ""
+
+#: build/assets/dist/js/give-edit-v2form.js:1
+msgid "Upgrade in Progress"
+msgstr ""
+
+#: build/assets/dist/js/give-edit-v2form.js:1
+msgid "This form has been upgraded to the Visual Form Builder. Complete the transfer to finalize the upgrade."
+msgstr ""
+
+#: build/assets/dist/js/give-edit-v2form.js:1
+msgid "Continue editing upgraded form"
 msgstr ""
 
 #: build/assets/dist/js/give-edit-v2form.js:1

@@ -91,7 +91,7 @@ if (!function_exists('woocs_price_options_geo')) {
 }
 ?>
 
-<div class="woocs_multiple_simple_panel options_group pricing woocommerce_variation" style="<?php if ($type == 'simple'): ?>display: none;<?php endif; ?>">
+<div class="woocs_multiple_simple_panel options_group pricing woocommerce_variation_fixed" style="<?php if ($type == 'simple'): ?>display: none;<?php endif; ?>">
 
     <ul class="woocs_tab_navbar">
         <?php if ($is_fixed_enabled): ?>
@@ -125,7 +125,7 @@ if (!function_exists('woocs_price_options_geo')) {
                 <?php endforeach; ?>
             </select>
             &nbsp;<a href="javascript:woocs_add_product_price('<?php echo esc_attr($post_id) ?>', '<?php echo esc_attr(woocs_short_id($post_id)) ?>');void(0);" class="button"><?php esc_html_e('Add', 'woocommerce-currency-switcher') ?></a>
-            &nbsp;<a href="javascript:woocs_add_all_product_price('<?php echo esc_attr($post_id) ?>', '<?php echo esc_attr(woocs_short_id($post_id)) ?>');void(0);" class="button woocs-mt-3"><?php esc_html_e('Add all', 'woocommerce-currency-switcher') ?></a>
+            &nbsp;<a href="javascript:woocs_add_all_product_price('<?php echo esc_attr($post_id) ?>', '<?php echo esc_attr(woocs_short_id($post_id)) ?>');void(0);" class="button woocs-mt-13"><?php esc_html_e('Add all', 'woocommerce-currency-switcher') ?></a>
             <br />
             <br />
             <hr class="woocs-hr-1" />

@@ -5,16 +5,17 @@
   Plugin URI: https://currency-switcher.com/
   Description: Currency Switcher for WooCommerce that allows to the visitors and customers on your woocommerce store site switch currencies and optionally apply selected currency on checkout
   Author: realmag777
-  Version: 2.4.2.3
-  Requires at least: WP 4.9.0
-  Tested up to: WP 6.7
+  Version: 2.4.6
+  Requires at least: WP 6.0.0
+  Tested up to: WP 6.9
   Requires PHP: 7.4
   Text Domain: woocommerce-currency-switcher
   Domain Path: /languages
   Forum URI: https://pluginus.net/support/forum/woocs-woocommerce-currency-switcher-multi-currency-and-multi-pay-for-woocommerce/
   Author URI: https://pluginus.net/
   WC requires at least: 6.0
-  WC tested up to: 9.3
+  WC tested up to: 10.6
+  Requires Plugins: woocommerce
  */
 
 if (!defined('ABSPATH')) {
@@ -35,7 +36,7 @@ if (isset($_SERVER['SCRIPT_URI'])) {
         $match = array_intersect($show_legacy, $uri);
 
         if (count($match) == 0) {
-            $allow = ['woocs'];
+            $allow = ['woocs', 'divi-ajax-filter'];
             if (isset($uri[1]) AND !in_array($uri[1], $allow)) {
                 return; //!!it is important for different reports to exclude FOX influence
             }
@@ -64,7 +65,7 @@ if (defined('DOING_AJAX')) {
     }
 }
 
-define('WOOCS_VERSION', '2.4.2.3');
+define('WOOCS_VERSION', '2.4.6');
 //define('WOOCS_VERSION', uniqid('woocs-'));//for dev test purposes to reset browser cache
 define('WOOCS_MIN_WOOCOMMERCE', '6.0');
 define('WOOCS_PATH', plugin_dir_path(__FILE__));
@@ -88,7 +89,7 @@ include_once WOOCS_PATH . 'classes/woocs_hpos.php';
 
 include_once WOOCS_PATH . 'classes/world_currencies.php';
 
-//03-11-2024
+//16-03-2026
 class WOOCS_STARTER {
 
     private $default_woo_version = 6.0;
@@ -164,6 +165,7 @@ class WOOCS_STARTER {
             return $this->_woocs;
         }
 
+        include_once WOOCS_PATH . 'classes/Rates/ExchangeRateLimiter.php';
         include_once WOOCS_PATH . 'classes/woocs.php'; //woocs_after_33.php
         include_once WOOCS_PATH . 'classes/fixed/fixed_coupon.php';
         include_once WOOCS_PATH . 'classes/fixed/fixed_shipping.php';
@@ -303,3 +305,13 @@ add_action('before_woocommerce_init', function () {
     }
 });
 
+function woocs_validate_currency($currency) {
+    global $WOOCS;
+    $currency = strtoupper(sanitize_text_field($currency));
+    $currencies = $WOOCS->get_currencies();
+    $currency_keys = array_map('strtoupper', array_keys($currencies));
+    if (in_array($currency, $currency_keys)) {
+        return $currency;
+    }
+    return strtoupper($WOOCS->default_currency);
+}

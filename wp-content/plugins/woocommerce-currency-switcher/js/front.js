@@ -365,7 +365,91 @@ jQuery(function ($) {
     }, 300);
     //***
 
+    //fix: https://pluginus.net/support/topic/wrong-currency-displayed/#postid-100678
+    //for shortcode [woocs_show_custom_price value="100"] when sites has cache enabled
+    setTimeout(function () {
+        // Check if cache mode is enabled
+        if (typeof woocs_shop_is_cached !== 'undefined' && woocs_shop_is_cached) {
 
+            // Recalculate custom prices function
+            function woocs_recalculate_custom_prices() {
+                jQuery('.woocs_amount_custom_price').each(function () {
+                    var $item = jQuery(this);
+                    var base_value = parseFloat($item.data('value'));
+                    var decimals = parseInt($item.data('decimals'));
+
+                    if (isNaN(base_value)) {
+                        return;
+                    }
+
+                    // Convert to current currency
+                    var converted_value = base_value * woocs_current_currency.rate;
+
+                    // Determine decimals
+                    if (decimals === -1 || isNaN(decimals)) {
+                        decimals = parseInt(woocs_current_currency.decimals);
+                    }
+
+                    // Apply hide_cents setting
+                    if (woocs_current_currency.hide_cents == 1) {
+                        decimals = 0;
+                    }
+
+                    // Format number
+                    var price_formatted = converted_value.toFixed(decimals);
+
+                    // Apply separators
+                    if (woocs_current_currency.separators === "1") {
+                        // European format: 1.234,56
+                        price_formatted = price_formatted.replace('.', ',');
+                        var parts = price_formatted.split(',');
+                        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                        price_formatted = parts.join(',');
+                    } else {
+                        // American format: 1,234.56
+                        var parts = price_formatted.split('.');
+                        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                        price_formatted = parts.join('.');
+                    }
+
+                    // Build HTML with currency symbol
+                    var symbol = woocs_current_currency.symbol;
+                    var position = woocs_current_currency.position;
+                    var final_html = '';
+
+                    switch (position) {
+                        case 'left':
+                            final_html = symbol + price_formatted;
+                            break;
+                        case 'left_space':
+                            final_html = symbol + '&nbsp;' + price_formatted;
+                            break;
+                        case 'right':
+                            final_html = price_formatted + symbol;
+                            break;
+                        case 'right_space':
+                            final_html = price_formatted + '&nbsp;' + symbol;
+                            break;
+                        default:
+                            final_html = symbol + price_formatted;
+                    }
+
+                    // Update inner span with class woocs_amount
+                    $item.find('.woocs_amount').html(final_html);
+                });
+
+                console.log('WOOCS custom prices recalculated');
+            }
+
+            // Run on page load
+            woocs_recalculate_custom_prices();
+
+            // Run on currency change
+            jQuery(document).on('woocs_currencies_changed', function () {
+                setTimeout(woocs_recalculate_custom_prices, 100);
+            });
+        }
+    }, 500);
 });
 
 
@@ -409,15 +493,14 @@ function woocs_redirect(currency) {
 
     } else {
         if (Object.keys(woocs_array_of_get).length > 0) {
+            let get_values = [];
             jQuery.each(woocs_array_of_get, function (index, value) {
-                string_of_get = string_of_get + "&" + index + "=" + value;
+                get_values.push(index + "=" + value);
             });
-
+            string_of_get += get_values.join("&");
         }
         window.location = l + string_of_get + id_key;
     }
-
-
 }
 
 function woocs_refresh_mini_cart(delay) {

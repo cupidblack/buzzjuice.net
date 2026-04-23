@@ -21,11 +21,19 @@ if ( ! class_exists( 'myCRED_BuddyPress_Charges' ) ) :
 					'active'       => array(),
 					'charge_prefs' => array()
 				),
-				'labels'      => array(
+				
+				/* 'labels'      => array(
 					'menu'        => __( 'BuddyPress Charges', 'bp_charge' ),
 					'page_title'  => __( 'BuddyPress Charges', 'bp_charge' ),
 					'page_header' => __( 'BuddyPress Charges', 'bp_charge' )
-				),
+				), */
+				
+				'labels'      => array(
+                    'menu'        => 'BuddyPress Charges',
+                    'page_title'  => 'BuddyPress Charges',
+                    'page_header' => 'BuddyPress Charges'
+                ),
+				
 				'screen_id'   => MYCRED_SLUG . '-buddypress_charges',
 				'accordion'   => true,
 				'add_to_core' => true,
@@ -103,14 +111,22 @@ if ( ! class_exists( 'myCRED_BuddyPress_Charges' ) ) :
 
 			// View Profile
 			$installed['view_profile'] = array(
-				'title'        => __( 'View Profiles', 'bp_charge' ),
-				'description'  => __( 'Either sell access to all BuddyPress profile or let your users select to sell access themselves.', 'bp_charge' ),
+				/* 'title'        => __( 'View Profiles', 'bp_charge' ),
+				'description'  => __( 'Either sell access to all BuddyPress profile or let your users select to sell access themselves.', 'bp_charge' ), */
+				
+				'title'       => 'View Profiles',
+                'description' => 'Either sell access to all BuddyPress profile or let your users select to sell access themselves.',
+				
 				'callback'     => array( 'myCRED_BP_Charge_View_Profile' )
 			);
 			
 			$installed['activity_ranks_and_badges'] = array(
-				'title'        => __( 'Ranks and badges', 'bp_charge' ),
-				'description'  => __( 'To display the Ranks & Badges that user have earned in the BuddyPress comments section', 'bp_charge' ),
+				/* 'title'        => __( 'Ranks and badges', 'bp_charge' ),
+				'description'  => __( 'To display the Ranks & Badges that user have earned in the BuddyPress comments section', 'bp_charge' ), */
+				
+				'title'        => 'Ranks and badges', 'bp_charge',
+				'description'  => 'To display the Ranks & Badges that user have earned in the BuddyPress comments section',
+				
 				'callback'     => array( 'myCRED_BP_Activity_Ranks_Badges' )
 			);
 
@@ -119,16 +135,24 @@ if ( ! class_exists( 'myCRED_BuddyPress_Charges' ) ) :
 			// Messaging (if enabled)
 			if ( bp_is_active( 'messages' ) )
 				$installed['messaging'] = array(
-					'title'        => __( 'Sending Private Messages', 'bp_charge' ),
-					'description'  => __( 'Charge users for sending private messages in BuddyPress.', 'bp_charge' ),
+					/* 'title'        => __( 'Sending Private Messages', 'bp_charge' ),
+					'description'  => __( 'Charge users for sending private messages in BuddyPress.', 'bp_charge' ), */
+					
+					'title'        => 'Sending Private Messages',
+					'description'  => 'Charge users for sending private messages in BuddyPress.',
+					
 					'callback'     => array( 'myCRED_BP_Charge_Messaging' )
 				);
 
 			// Messaging (if enabled)
 			if ( bp_is_active( 'groups' ) )
 				$installed['join_group'] = array(
-					'title'        => __( 'Join Group', 'bp_charge' ),
-					'description'  => __( 'Charge users for joining groups in BuddyPress.', 'bp_charge' ),
+					/* 'title'        => __( 'Join Group', 'bp_charge' ),
+					'description'  => __( 'Charge users for joining groups in BuddyPress.', 'bp_charge' ), */
+					
+					'title'        => 'Join Group',
+					'description'  => 'Charge users for joining groups in BuddyPress.',
+					
 					'callback'     => array( 'myCRED_BP_Charge_Join_Group' )
 				);
 

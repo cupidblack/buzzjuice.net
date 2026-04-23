@@ -75,6 +75,8 @@ social/config.php
 # ----------------------------
 # WordPress specifics
 # ----------------------------
+wp-content/plugins/**/.git
+wp-content/plugins/**/.git/**
 wp-content/uploads/
 wp-content/upgrade/
 wp-content/cache/

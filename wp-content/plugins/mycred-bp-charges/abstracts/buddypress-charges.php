@@ -10,6 +10,9 @@ if ( ! defined( 'myCRED_VERSION' ) ) exit;
 if ( ! class_exists( 'myCRED_BP_Charge' ) ) :
 	abstract class myCRED_BP_Charge {
 
+        // Explicitly declare this property - Fixes PHP 8.2+ dynamic property warning
+        public $defaults = array();
+
 		// Charge ID
 		public $id;
 

@@ -14,11 +14,10 @@ class WOOCS_FIXED_SHIPPING_FREE extends WOOCS_FIXED_AMOUNT {
     }
 
     public function add_fixed_free_rate($fields) {
-
         global $WOOCS;
         $currencies = $WOOCS->get_currencies();
         $default_currency = $WOOCS->default_currency;
-        $is_fixed_enabled = $WOOCS->is_fixed_shipping;
+        //$is_fixed_enabled = $WOOCS->is_fixed_shipping;
 
         foreach ($currencies as $code => $data) {
             if ($code == $default_currency) {
@@ -33,31 +32,39 @@ class WOOCS_FIXED_SHIPPING_FREE extends WOOCS_FIXED_AMOUNT {
                 'desc_tip' => true
             );
         }
-        wc_enqueue_js("
-        		jQuery( function( $ ) {
-                            function wcFreeShippingShowHideMinAmountFieldWOOCS( el ) {
-				var form = $( el ).closest( 'form' );
-				var minAmountField = $( 'input[id^=woocommerce_free_shipping_woocs_fixed_min_shipping_]', form ).closest( 'tr' );
-				if ( 'coupon' === $( el ).val() || '' === $( el ).val() ) {
-                                    minAmountField.hide();
-				} else {
-                                    minAmountField.show();
-				}
-			}
 
-			$( document.body ).on( 'change', '#woocommerce_free_shipping_requires', function() {
-                            wcFreeShippingShowHideMinAmountFieldWOOCS( this );
-			});
+        $handle = 'woocs-free-shipping-fields';
+        wp_register_script($handle, '', array('jquery'), false, true);
+        wp_enqueue_script($handle);
 
-			// Change while load.
-			$( '#woocommerce_free_shipping_requires' ).trigger( 'change' );
-                            $( document.body ).on( 'wc_backbone_modal_loaded', function( evt, target ) {
-				if ( 'wc-modal-shipping-method-settings' === target ) {
-                                    wcFreeShippingShowHideMinAmountFieldWOOCS( $( '#wc-backbone-modal-dialog #woocommerce_free_shipping_requires', evt.currentTarget ) );
-				}
-                            } );
-			});
-	");
+        $inline_script = "
+        jQuery(function($) {
+            function wcFreeShippingShowHideMinAmountFieldWOOCS(el) {
+                var form = $(el).closest('form');
+                var minAmountField = $('input[id^=woocommerce_free_shipping_woocs_fixed_min_shipping_]', form).closest('tr');
+                if ('coupon' === $(el).val() || '' === $(el).val()) {
+                    minAmountField.hide();
+                } else {
+                    minAmountField.show();
+                }
+            }
+            
+            $(document.body).on('change', '#woocommerce_free_shipping_requires', function() {
+                wcFreeShippingShowHideMinAmountFieldWOOCS(this);
+            });
+            
+            // Change while load.
+            $('#woocommerce_free_shipping_requires').trigger('change');
+            
+            $(document.body).on('wc_backbone_modal_loaded', function(evt, target) {
+                if ('wc-modal-shipping-method-settings' === target) {
+                    wcFreeShippingShowHideMinAmountFieldWOOCS($('#wc-backbone-modal-dialog #woocommerce_free_shipping_requires', evt.currentTarget));
+                }
+            });
+        });
+    ";
+
+        wp_add_inline_script($handle, $inline_script);
 
         return $fields;
     }
@@ -69,7 +76,7 @@ class WOOCS_FIXED_SHIPPING_FREE extends WOOCS_FIXED_AMOUNT {
     public function get_value($method_key, $code, $type) {
 
         $settings = get_option($method_key, null);
-        if ($settings == null OR ! is_array($settings)) {
+        if ($settings == null OR !is_array($settings)) {
             return -1;
         }
         $array_key = sprintf('woocs_fixed%s%s%s', $type, $this->key, $code);
@@ -78,5 +85,4 @@ class WOOCS_FIXED_SHIPPING_FREE extends WOOCS_FIXED_AMOUNT {
         }
         return $this->prepare_float_val($settings[$array_key]);
     }
-
 }

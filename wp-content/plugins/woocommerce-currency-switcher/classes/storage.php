@@ -18,27 +18,55 @@ final class WOOCS_STORAGE {
         if ($this->type == 'woo_session') {
             $this->type = 'session';
         }
-        if ($this->type == 'session') {
+        /* if ($this->type == 'session') {
             if (!session_id() && !defined('REST_REQUEST')) {
                 @session_start();
             }
         }
-
-		if(!empty($_SERVER['HTTP_X_REAL_IP'])){
-			$ip = $_SERVER['HTTP_X_REAL_IP'];
-			if($splitPos = strpos($ip, ',')){
-				$ip = substr($ip, 0, $splitPos);
-			}
-		} else if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-			$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-			if($splitPos = strpos($ip, ',')){
-				$ip = substr($ip, 0, $splitPos);
-			}
-		} elseif(isset($_SERVER['REMOTE_ADDR'])) {
-			$ip = $_SERVER['REMOTE_ADDR'];
-		} else {
-			$ip='';
-		}		
+        */ 
+        
+        
+        if ($this->type == 'session') {
+            if (!session_id() && !defined('REST_REQUEST')) {
+            
+                $save_path = ini_get('session.save_path');
+            
+                $is_valid =
+                    !empty($save_path) &&
+                    is_string($save_path) &&
+                    is_dir($save_path) &&
+                    is_writable($save_path);
+            
+                if ($is_valid) {
+                    @session_start();
+                } else {
+            
+                    // fallback: disable session dependency
+                    $this->type = 'transient';
+            
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('[WOOCS] session disabled: invalid save_path = ' . $save_path);
+                    }
+                }
+            }
+        }
+        
+        
+        if (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+            $ip = $_SERVER['HTTP_X_REAL_IP'];
+            if ($splitPos = strpos($ip, ',')) {
+                $ip = substr($ip, 0, $splitPos);
+            }
+        } else if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            if ($splitPos = strpos($ip, ',')) {
+                $ip = substr($ip, 0, $splitPos);
+            }
+        } elseif (isset($_SERVER['REMOTE_ADDR'])) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        } else {
+            $ip = '';
+        }
         $this->user_ip = filter_var($ip, FILTER_VALIDATE_IP);
         $this->transient_key = substr(md5($this->user_ip), 7, 23);
         if ($this->type == 'woocs_session') {
@@ -222,5 +250,4 @@ final class WOOCS_STORAGE {
 
         return $isset;
     }
-
 }

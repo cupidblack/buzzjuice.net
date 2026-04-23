@@ -3256,8 +3256,8 @@ span[class^='icon-']{
 }
 
 #woocs-head svg {
-    width: 35px;
-    height: 35px;
+    width: 45px;
+    height: 45px;
     position: absolute;
 }
 /* modal*/
@@ -3312,5 +3312,22 @@ span[class^='icon-']{
 
 input[name='woocs_rate[]']{
     border: solid 1px #dee2e6 !important;
+}
+
+nav.woocs__tabs-nav{
+    margin: 0 !important;
+}
+
+#woocs-sd-create{
+    margin-left: 11px;
+}
+
+.woocommerce-save-button{
+    margin-left: 11px;
+}
+
+
+div#wpfooter{
+    position: relative !important;
 }
 

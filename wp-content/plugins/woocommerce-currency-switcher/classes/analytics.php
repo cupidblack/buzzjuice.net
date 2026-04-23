@@ -14,33 +14,34 @@ class WOOCS_analytics {
     public function __construct() {
         //coupons
         add_action('woocommerce_analytics_update_coupon', array($this, 'convert_coupons'), 12, 2);
-		
+
         //products 
-		//wp-content\plugins\woocommerce\src\Admin\API\Reports\Products\DataStore.php::sync_order_products
+        //wp-content\plugins\woocommerce\src\Admin\API\Reports\Products\DataStore.php::sync_order_products
         add_action('woocommerce_analytics_update_product', array($this, 'convert_products'), 12, 2);
         //tax
         add_action('woocommerce_analytics_update_tax', array($this, 'convert_tax'), 12, 2);
     }
-	public function update_order_analytics_data($order_id){
-		ProductsDataStore::sync_order_products($order_id);
-	}
-	public function convert_tax($tax_rate_id, $order_id) {
+
+    public function update_order_analytics_data($order_id) {
+        ProductsDataStore::sync_order_products($order_id);
+    }
+
+    public function convert_tax($tax_rate_id, $order_id) {
         global $wpdb;
         global $WOOCS;
-        $decimal = 2;
         $currencies = $WOOCS->get_currencies();
-		//hpos
+        //hpos
         //$_order_currency = get_post_meta($order_id, '_order_currency', true);
-		$order = wc_get_order( $order_id ); 		
-		$_order_currency  = $order->get_currency();
-		
+        $order = wc_get_order($order_id);
+        $_order_currency = $order->get_currency();
+
         if (!$_order_currency || $_order_currency == $WOOCS->default_currency) {
             return;
         }
-		//hpos
+        //hpos
         //$order_rate = get_post_meta($order_id, '_woocs_order_rate', true);
-		$order_rate = $order->get_meta( '_woocs_order_rate', true);
-        $decimal = $currencies[$WOOCS->default_currency]['decimals'];
+        $order_rate = $order->get_meta('_woocs_order_rate', true);
+        $decimal = $currencies[$WOOCS->default_currency]['decimals'] ?? 2;
         if (!$order_rate && isset($currencies[$_order_currency])) {
             $order_rate = $currencies[$_order_currency]['rate'];
         }
@@ -84,24 +85,21 @@ class WOOCS_analytics {
         global $wpdb;
         global $WOOCS;
 
-        $decimal = 2;
         $currencies = $WOOCS->get_currencies();
-        
-		//hpos
+
+        //hpos
         //$_order_currency = get_post_meta($order_id, '_order_currency', true);
-		$order = wc_get_order( $order_id ); 		
-		$_order_currency  = $order->get_currency();
-		
-		
+        $order = wc_get_order($order_id);
+        $_order_currency = $order->get_currency();
+
         if (!$_order_currency || $_order_currency == $WOOCS->default_currency) {
             return;
         }
-		
-		//hpos
+
+        //hpos
         //$order_rate = get_post_meta($order_id, '_woocs_order_rate', true);
-		$order_rate = $order->get_meta( '_woocs_order_rate', true);
-        
-        $decimal = $currencies[$WOOCS->default_currency]['decimals'];
+        $order_rate = $order->get_meta('_woocs_order_rate', true);
+        $decimal = $currencies[$WOOCS->default_currency]['decimals'] ?? 2;
         if (!$order_rate && isset($currencies[$_order_currency])) {
             $order_rate = $currencies[$_order_currency]['rate'];
         }
@@ -146,21 +144,20 @@ class WOOCS_analytics {
 
         $decimal = 2;
         $currencies = $WOOCS->get_currencies();
-		
-		//hpos
+
+        //hpos
         //$_order_currency = get_post_meta($order_id, '_order_currency', true);
-		$order = wc_get_order( $order_id );
-		$_order_currency  = $order->get_currency();
-		
+        $order = wc_get_order($order_id);
+        $_order_currency = $order->get_currency();
+
         if (!$_order_currency || $_order_currency == $WOOCS->default_currency) {
             return;
         }
-        
-		//hpos
+
+        //hpos
         //$order_rate = get_post_meta($order_id, '_woocs_order_rate', true);
-		$order_rate = $order->get_meta( '_woocs_order_rate', true);		
-		
-		
+        $order_rate = $order->get_meta('_woocs_order_rate', true);
+
         $decimal = $currencies[$WOOCS->default_currency]['decimals'];
         if (!$order_rate && isset($currencies[$_order_currency])) {
             $order_rate = $currencies[$_order_currency]['rate'];
@@ -187,68 +184,17 @@ class WOOCS_analytics {
                 $coupon_item[$key] = round($pr, $decimal);
             }
         }
+        
+        //https://wordpress.org/support/topic/bug-in-analytics-php-multi-currency-coupons-show-wrong-amount-in-analytics/
         $wpdb->update(
                 $table_name,
                 $coupon_item,
                 array(
                     'order_id' => $order_id,
-                    'order_item_id' => $coupon_item
+                    'coupon_id' => $coupon_id
                 ),
                 array('%f'),
                 array('%d', '%d')
         );
-
-//		global $wpdb;
-//		global $WOOCS;
-//		$order = wc_get_order($order_id);
-//
-//		if (!$order) {
-//			return;
-//		}
-//
-//		$coupon_items = $order->get_items('coupon');
-//		$currencies = $WOOCS->get_currencies();
-//
-//		$_order_currency = get_post_meta($order_id, '_order_currency', true);
-//		if (!$_order_currency || $_order_currency == $WOOCS->default_currency) {
-//			return;
-//		}
-//		$order_rate = get_post_meta($order_id, '_woocs_order_rate', true);
-//
-//		if (!$order_rate && isset($currencies[$_order_currency])) {
-//			$order_rate = $currencies[$_order_currency]['rate'];
-//		}
-//
-//		if (!$order_rate) {
-//			return;
-//		}
-//
-//		foreach ($coupon_items as $coupon_item) {
-//			$current_coupon_id = CouponsDataStore::get_coupon_id($coupon_item);
-//			if ($current_coupon_id != $coupon_id) {
-//				continue;
-//			}
-//
-//			$discount = $coupon_item->get_discount();
-//
-//			$discount = $discount / $order_rate;
-//
-//			$result = $wpdb->replace(
-//					CouponsDataStore::get_db_table_name(),
-//					array(
-//						'order_id' => $order_id,
-//						'coupon_id' => $coupon_id,
-//						'discount_amount' => $discount,
-//						'date_created' => $order->get_date_created('edit')->date(TimeInterval::$sql_datetime_format),
-//					),
-//					array(
-//						'%d',
-//						'%d',
-//						'%f',
-//						'%s',
-//					)
-//			);
-//		}
     }
-
 }
