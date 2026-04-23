@@ -1,4 +1,10 @@
 <?php
+add_action('init', function () {
+    if (!ob_get_level()) {
+        ob_start();
+    }
+}, 0);
+
 function default_sort_users( $args ) {
     if ( empty( $args['orderby'] ) ) {
         $args['orderby'] = 'user_registered';

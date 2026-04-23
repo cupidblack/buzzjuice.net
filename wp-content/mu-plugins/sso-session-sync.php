@@ -8,6 +8,16 @@
 
 if (!defined('ABSPATH')) exit;
 
+/**
+ * Safe session config
+ */
+
+add_action('init', function () {
+    if (!headers_sent() && session_status() === PHP_SESSION_NONE) {
+        @ini_set('session.cookie_domain', '.buzzjuice.net');
+    }
+}, 0);
+
 // --------------------------------------
 // Load shared SSO helpers (all utilities)
 // --------------------------------------
@@ -23,6 +33,8 @@ if (!defined('BUZZ_SSO_DEBUG'))      define('BUZZ_SSO_DEBUG', false);
 if (!defined('BUZZ_DEBUG_LOG'))      define('BUZZ_DEBUG_LOG', __DIR__ . '/wp_debug_buzz_sso.log');
 
 $__buzz_sso_secret = getenv('BUZZ_SSO_SECRET') ?: (defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : null);
+
+
 
 // --------------------------------------
 // Debug Logging (centralized helper)
@@ -218,5 +230,3 @@ add_action('init', function() {
         }
     }
 }, 5);
-
-?>

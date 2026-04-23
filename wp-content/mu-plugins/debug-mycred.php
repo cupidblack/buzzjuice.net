@@ -34,20 +34,3 @@ function debug_mycred_log_once($message, $file, $line) {
     );
     @file_put_contents($dir . 'debug-mycred.log', $log, FILE_APPEND | LOCK_EX);
 }
-
-$debug_mycred_prev_handler = set_error_handler(function ($errno, $errstr, $errfile = null, $errline = null) use (&$debug_mycred_prev_handler) {
-    if (
-        // Only warnings or notices
-        ($errno === E_WARNING || $errno === E_NOTICE)
-        && is_string($errstr)
-        && strpos($errstr, 'Attempt to read property "rows" on array') !== false
-        && strpos((string)$errfile, 'mycred/includes/mycred-object.php') !== false
-    ) {
-        debug_mycred_log_once($errstr, $errfile, $errline);
-        // Do NOT return true so devs/admins can see the error unless/until you wish to fully suppress
-    }
-    if (is_callable($debug_mycred_prev_handler)) {
-        return call_user_func($debug_mycred_prev_handler, $errno, $errstr, $errfile, $errline);
-    }
-    return false;
-});

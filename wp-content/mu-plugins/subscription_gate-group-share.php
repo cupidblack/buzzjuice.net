@@ -402,6 +402,3 @@ function bzj_user_can_post_group( $user_id = null ) {
 	}
 	return ( bzj_get_weekly_group_posts_remaining( $user_id ) > 0 );
 }
-
-/* End of plugin */
-?>

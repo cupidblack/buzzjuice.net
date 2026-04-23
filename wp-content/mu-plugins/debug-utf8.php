@@ -62,3 +62,11 @@ function buzz_utf8_log_once($message, $file = null, $line = null) {
         FILE_APPEND | LOCK_EX
     );
 }
+
+if (!function_exists('seems_utf8')) {
+    function seems_utf8($str) {
+        return function_exists('mb_check_encoding')
+            ? mb_check_encoding($str, 'UTF-8')
+            : wp_is_valid_utf8($str);
+    }
+}

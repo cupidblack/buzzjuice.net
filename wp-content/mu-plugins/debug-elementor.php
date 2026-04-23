@@ -57,3 +57,14 @@ function debug_elementor_log_once($message, $file = null, $line = null) {
         FILE_APPEND | LOCK_EX
     );
 }
+
+add_filter('elementor/frontend/element/before_render', function ($element) {
+
+    $settings = $element->get_settings();
+
+    if (is_array($settings) && !isset($settings['topic'])) {
+        $settings['topic'] = null;
+        $element->set_settings($settings);
+    }
+
+}, 5);

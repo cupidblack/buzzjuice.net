@@ -49,36 +49,3 @@ function bzj_woocs_log_once($msg, $file, $line) {
 
     @file_put_contents($dir . 'debug-woocs.log', $log, FILE_APPEND | LOCK_EX);
 }
-
-$prev = set_error_handler(function ($errno, $errstr, $errfile = null, $errline = null) use (&$prev) {
-
-    $is_target =
-        is_string($errstr) &&
-        (
-            strpos($errstr, 'session_start(): open') !== false ||
-            strpos($errstr, 'Failed to read session data') !== false
-        ) &&
-        stripos((string)$errfile, 'woocommerce-currency-switcher') !== false;
-
-    if ($is_target) {
-
-        bzj_woocs_log_once($errstr, $errfile, $errline);
-
-        /**
-         * OPTIONAL BEHAVIOR (like Elementor/MyCRED system):
-         * - true  = fully suppress from WP/PHP logs
-         * - false = allow default logging
-         */
-        if (defined('BZJ_WOOCS_SUPPRESS') && BZJ_WOOCS_SUPPRESS) {
-            return true;
-        }
-
-        return false;
-    }
-
-    if (is_callable($prev)) {
-        return call_user_func($prev, $errno, $errstr, $errfile, $errline);
-    }
-
-    return false;
-});

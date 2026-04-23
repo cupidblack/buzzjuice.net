@@ -38,7 +38,9 @@ final class WOOCS_STORAGE {
                     is_writable($save_path);
             
                 if ($is_valid) {
-                    @session_start();
+                    if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+                        @session_start();
+                    }
                 } else {
             
                     // fallback: disable session dependency
