@@ -11,6 +11,7 @@ add_action('init', function () {
 
     add_rewrite_rule('^subscribe/?$', 'index.php?shortlink=subscribe', 'top');
     add_rewrite_rule('^signup/?$', 'index.php?shortlink=signup', 'top');
+    add_rewrite_rule('^login/?$', 'index.php?shortlink=login', 'top');
 
     // Custom shortlink — escape @ in regex
     add_rewrite_rule('^dry80/?$', 'index.php?shortlink=dry80', 'top');
@@ -42,6 +43,7 @@ add_action('template_redirect', function () {
         'subscribe'     => 'https://buzzjuice.net/streams/ww-sso-bridge.php?redirect_to=go-pro',
         'signup'        => 'https://buzzjuice.net/register/',
         'tlearn'        => 'https://t.me/+RBmeWLwfrEY2NDRk',
+        'login'         => 'https://buzzjuice.net/wp-login.php',
     ];
 
     // If matched, redirect

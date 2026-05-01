@@ -10,7 +10,7 @@ function getLatest6hSlot() {
 }
 
 function getLogFile($slot) {
-    return dirname(__DIR__).'/gold_prices/'.substr($slot,0,7).'.log';
+    return dirname(__DIR__).'/gold_calc/gold_prices/gold_cache_'.substr($slot,0,7).'.log';
 }
 
 function logExists($file, $slot) {

@@ -739,9 +739,37 @@ function learndash_course_add_child_to_parent( int $course_id, int $child_id, in
  */
 function learndash_check_course_step( $wp ) {
 	if ( is_single() ) {
-		global $post;
-		if ( ( in_array( $post->post_type, array( 'sfwd-lessons', 'sfwd-topic', 'sfwd-quiz' ), true ) === true ) && ( 'yes' === LearnDash_Settings_Section::get_section_setting( 'LearnDash_Settings_Section_Permalinks', 'nested_urls' ) ) ) {
-			$course_slug = get_query_var( 'sfwd-courses' );
+        global $post;
+        
+        // Validate global $post safely
+        if ( ! isset($post) || ! is_object($post) || empty($post->post_type) ) {
+        
+            if (function_exists('bzj_log_once')) {
+                bzj_log_once(
+                    'debug-learndash.log',
+                    "Invalid or NULL global \$post in ld-course-steps-functions.php. Value: " . var_export($post, true),
+                    __FILE__,
+                    __LINE__,
+                    60
+                );
+            }
+        
+            // Soft fallback: prevent fatal but DO NOT break execution flow aggressively
+            $post_type = null;
+        
+        } else {
+            $post_type = $post->post_type;
+        }
+        
+        if (
+            $post_type &&
+            in_array($post_type, array('sfwd-lessons', 'sfwd-topic', 'sfwd-quiz'), true) &&
+            'yes' === LearnDash_Settings_Section::get_section_setting(
+                'LearnDash_Settings_Section_Permalinks',
+                'nested_urls'
+            )
+        ) {
+            $course_slug = get_query_var('sfwd-courses');
 
 			// Check first if there is an existing course part of the URL. Maybe the student is trying to user a lesson URL part for a different course.
 			if ( ! empty( $course_slug ) ) {

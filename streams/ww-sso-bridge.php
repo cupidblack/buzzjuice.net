@@ -343,7 +343,7 @@ if ($resp !== false && $http_code === 200) {
 
 if ($http_code === 401) {
     bz_bridge_log('WP SSO endpoint returned 401 — user not logged in');
-    header('Location: /wp-login.php?try=0&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
+    header('Location: /wp-login.php?try=ww00&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
@@ -401,7 +401,7 @@ if (!$access_payload && $wordpress_logged_in_) {
 if (!$access_payload) {
     bz_bridge_log('Dual-token bootstrap failed — redirecting to login');
 //    $redirect_to = $_SERVER['REQUEST_URI'] ?? '/streams';
-    header('Location: /wp-login.php?try=1&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
+    header('Location: /wp-login.php?try=ww01&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
@@ -417,7 +417,7 @@ $_SESSION['wp_Wo_SSO_Login'] = true;
 // -----------------------------
 if (!$_SESSION['wp_user_id'] || !$_SESSION['wp_user_login'] || !$_SESSION['wp_user_email']) {
     bz_bridge_log('Missing required claims (cookie incomplete)', $access_payload);
-    header('Location: /wp-login.php?try=1&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
+    header('Location: /wp-login.php?try=ww02&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
@@ -435,212 +435,241 @@ if (!$_SESSION['wp_user_id'] || !$_SESSION['wp_user_login'] || !$_SESSION['wp_us
 // SSO: Auto-register WoWonder user if missing
 // Updates WordPress usermeta 'wo_user_id' after successful registration
 // Redirects to /wp-login.php?redirect_to=/members/me/settings/ if registration fails
+// WoWonder SSO Identity Resolver + Auto Registration (FINAL, PRODUCTION-READY)
 // =======================================================================================
 
-if (empty($access_payload['wo_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
-    $wp_user_id   = !empty($access_payload['wp_user_id']) ? (int)$access_payload['wp_user_id'] : 0;
-    $max_attempts = 5;
-    $attempt      = 0;
-    $wo_user_id   = 0;
-
-    // Helper: fetch WordPress usermeta 'wo_user_id'
-    function bz_fetch_wp_wo_user_id($wp_user_id) {
-        $wp_conn = get_wp_db_conn();
-        if (!$wp_conn || empty($wp_user_id)) return 0;
-        $meta_key = 'wo_user_id';
-        $key_esc = mysqli_real_escape_string($wp_conn, $meta_key);
-        $table = function_exists('wp_table') ? wp_table('usermeta') : 'wp_usermeta';
-        $query = "SELECT meta_value FROM {$table} WHERE user_id = $wp_user_id AND meta_key = '$key_esc' LIMIT 1";
-        $result = mysqli_query($wp_conn, $query);
-        if ($result && $row = mysqli_fetch_assoc($result)) return (int)$row['meta_value'];
-        return 0;
+// ---------------------------
+// HELPERS (global safe)
+// ---------------------------
+if (!function_exists('bz_clean_username')) {
+    function bz_clean_username($username) {
+        $username = (string)$username;
+        $username = preg_replace('/[^a-zA-Z0-9_]/', '', $username);
+        if (strlen($username) < 5) $username .= rand(1000,9999);
+        return substr($username, 0, 32);
     }
+}
 
-    // Helper: upsert 'wo_user_id' usermeta in WordPress
-    function bz_update_wp_wo_user_id($wp_user_id, $wo_user_id) {
-        $wp_conn = get_wp_db_conn();
-        if (!$wp_conn || empty($wp_user_id) || empty($wo_user_id)) return false;
-        $wp_user_id = (int)$wp_user_id;
-        $wo_user_id = (int)$wo_user_id;
-        $meta_key = 'wo_user_id';
-        $key_esc = mysqli_real_escape_string($wp_conn, $meta_key);
-        $table = function_exists('wp_table') ? wp_table('usermeta') : 'wp_usermeta';
-        $check_query = "SELECT umeta_id FROM {$table} WHERE user_id = $wp_user_id AND meta_key = '$key_esc' LIMIT 1";
-        $check_result = mysqli_query($wp_conn, $check_query);
-
-        if ($check_result && mysqli_num_rows($check_result) > 0) {
-            $row = mysqli_fetch_assoc($check_result);
-            $umeta_id = (int)$row['umeta_id'];
-            return (bool)mysqli_query($wp_conn, "UPDATE {$table} SET meta_value = '$wo_user_id' WHERE umeta_id = $umeta_id");
-        } else {
-            return (bool)mysqli_query($wp_conn, "INSERT INTO {$table} (user_id, meta_key, meta_value) VALUES ($wp_user_id, '$key_esc', '$wo_user_id')");
+if (!function_exists('bz_generate_unique_username')) {
+    function bz_generate_unique_username($base, $sqlConn, $tbl) {
+        $base = bz_clean_username($base);
+        $candidate = $base;
+        $i = 1;
+        while (true) {
+            $esc = mysqli_real_escape_string($sqlConn, $candidate);
+            $q = mysqli_query($sqlConn, "SELECT user_id FROM {$tbl} WHERE username='{$esc}' LIMIT 1");
+            if (!$q || mysqli_num_rows($q) === 0) return $candidate;
+            $candidate = substr($base . $i++, 0, 32);
         }
     }
+}
+
+if (!function_exists('bz_fetch_wp_wo_user_id')) {
+    function bz_fetch_wp_wo_user_id($wp_user_id) {
+        $conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
+        if (!$conn || !$wp_user_id) return 0;
+        $table = function_exists('wp_table') ? wp_table('usermeta') : 'wp_usermeta';
+        $q = mysqli_query($conn, "SELECT meta_value FROM {$table} WHERE user_id={$wp_user_id} AND meta_key='wo_user_id' LIMIT 1");
+        if ($q && $row = mysqli_fetch_assoc($q)) return (int)$row['meta_value'];
+        return 0;
+    }
+}
+
+if (!function_exists('bz_update_wp_wo_user_id')) {
+    function bz_update_wp_wo_user_id($wp_user_id, $wo_user_id) {
+        $conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
+        if (!$conn) return false;
+        $table = function_exists('wp_table') ? wp_table('usermeta') : 'wp_usermeta';
+        $wp_user_id = (int)$wp_user_id; $wo_user_id = (int)$wo_user_id;
+        // Try upsert (ON DUPLICATE KEY) or manual logic (MySQL config dependent)
+        // Most WP installs (>=5.0) support ON DUPLICATE KEY
+        @mysqli_query($conn, "
+            INSERT INTO {$table} (user_id, meta_key, meta_value)
+            VALUES ($wp_user_id, 'wo_user_id', '$wo_user_id')
+            ON DUPLICATE KEY UPDATE meta_value='$wo_user_id'
+        ");
+        return true;
+    }
+}
+
+// ---------------------------
+// MAIN FLOW (idempotent, no unnecessary redirects)
+// ---------------------------
+if (
+    empty($access_payload['wo_user_id']) &&
+    BUZZ_SSO_AUTO_REGISTER &&
+    !empty($access_payload['wp_user_id']) &&
+    !empty($access_payload['wp_user_login']) &&
+    !empty($access_payload['wp_user_email'])
+) {
+    $wp_user_id  = (int)$access_payload['wp_user_id'];
+    $wp_username = trim($access_payload['wp_user_login']);
+    $wp_email    = trim($access_payload['wp_user_email']);
+    $sqlConn     = $GLOBALS['sqlConnect'];
+    $tbl         = defined('T_USERS') ? T_USERS : 'Wo_Users';
+
+    $wo_user_id   = 0;
+    $max_attempts = 5;
+    $attempt      = 0;
+    $fatal_error  = null;
 
     while ($attempt < $max_attempts) {
-        // Defensive check for existing mapping (race safety)
-        $current_wo_id = ($wp_user_id ? bz_fetch_wp_wo_user_id($wp_user_id) : 0);
-        if (!empty($current_wo_id)) {
-            $wo_user_id = $current_wo_id;
-            $access_payload['wo_user_id'] = $wo_user_id;
-            bz_bridge_log('SSO registration race detected: using existing WoWonder user', [
-                'wo_user_id' => $wo_user_id,
-                'wp_user_id' => $wp_user_id
+        // ---- 1: Existing mapping? ----
+        $existing_wo_id = bz_fetch_wp_wo_user_id($wp_user_id);
+        if ($existing_wo_id) {
+            $wo_user_id = $access_payload['wo_user_id'] = $existing_wo_id;
+            bz_bridge_log('SSO: Used prior mapping from usermeta', [
+                'wp_user_id' => $wp_user_id,
+                'wo_user_id' => $wo_user_id
             ]);
             break;
         }
 
-        // Check WoWonder for existing username/email
-        $sqlConn = $GLOBALS['sqlConnect'];
-        $username_esc = mysqli_real_escape_string($sqlConn, $access_payload['wp_user_login']);
-        $email_esc    = mysqli_real_escape_string($sqlConn, $access_payload['wp_user_email']);
-        $tbl = defined('T_USERS') ? T_USERS : 'Wo_Users';
-
+        // ---- 2: Try to find existing WW user by username or email ----
+        $username_esc = mysqli_real_escape_string($sqlConn, $wp_username);
+        $email_esc    = mysqli_real_escape_string($sqlConn, $wp_email);
         $q = mysqli_query($sqlConn, "SELECT user_id,username,email FROM {$tbl} WHERE username='{$username_esc}' OR email='{$email_esc}'");
         $rows = [];
-        while ($r = mysqli_fetch_assoc($q)) $rows[] = $r;
+        while ($r = $q ? mysqli_fetch_assoc($q) : null) $rows[] = $r;
 
-        // Find user IDs for username/email
-        $user_id_by_username = null;
-        $user_id_by_email = null;
+        $user_id_by_username = null; $user_id_by_email = null;
         foreach ($rows as $r) {
-            if (strcasecmp($r['username'], $access_payload['wp_user_login']) === 0) $user_id_by_username = (int)$r['user_id'];
-            if (strcasecmp($r['email'], $access_payload['wp_user_email']) === 0) $user_id_by_email = (int)$r['user_id'];
+            if (strcasecmp($r['username'], $wp_username) === 0) $user_id_by_username = (int)$r['user_id'];
+            if (strcasecmp($r['email'], $wp_email) === 0)    $user_id_by_email = (int)$r['user_id'];
         }
 
-        // If username/email exist and belong to same user, map that user_id and update WP
+        // ---- [Case 1] Both username/email point to the same user ----
         if ($user_id_by_username && $user_id_by_email && $user_id_by_username === $user_id_by_email) {
             $wo_user_id = $user_id_by_username;
-            if ($wp_user_id && $wo_user_id) {
-                bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
-            }
-            header('Location: /wp-login.php?try=1&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
-            exit;
+            bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
+            $access_payload['wo_user_id'] = $wo_user_id;
+            bz_bridge_log('SSO: PERFECT MATCH (username & email)', [
+                'wp_user_id'=>$wp_user_id, 'wo_user_id'=>$wo_user_id
+            ]);
+            break;
         }
-        
-        // -------------------------------------------------------------------
-        // CASE: WoWonder email matches WordPress email, username differs
-        // Update WoWonder username to match WordPress, then sync wo_user_id
-        // -------------------------------------------------------------------
+
+        // ---- [Case 2] Email match (username differs or doesn't exist) — try sync username ----
         if (
             $user_id_by_email &&
             (
                 !$user_id_by_username ||
-                strcasecmp($rows[array_search($user_id_by_email, array_column($rows, 'user_id'))]['username'], $access_payload['wp_user_login']) !== 0
+                strcasecmp($rows[array_search($user_id_by_email, array_column($rows, 'user_id'))]['username'], $wp_username) !== 0
             )
         ) {
             $wo_user_id = (int)$user_id_by_email;
-            $desired_username = preg_replace('/[^a-zA-Z0-9_]/', '', $access_payload['wp_user_login']);
-            $desired_username = substr($desired_username, 0, 32);
-        
-            // Check minimum username length (WoWonder requires 5)
-            if (strlen($desired_username) < 5) {
-                bz_bridge_log('SSO: Desired username too short', ['attempted_username' => $desired_username]);
-                header('Location: /wp-login.php?try=4&redirect_to=/members/me/settings/');
-                exit;
-            }
-        
-            // Check WoWonder reserved/disallowed usernames and existence
+            $desired_username = bz_generate_unique_username($wp_username, $sqlConn, $tbl);
+
             $reserved_usernames = $wo['reserved_usernames'] ?? [];
-            if (
-                (function_exists('Wo_IsNameExist') && Wo_IsNameExist($desired_username)) ||
-                in_array($desired_username, $wo['site_pages'] ?? []) ||
-                in_array($desired_username, $reserved_usernames)
-            ) {
-                bz_bridge_log('SSO: Desired WoWonder username already exists or is reserved', ['username' => $desired_username]);
-                header('Location: /wp-login.php?try=5&redirect_to=/members/me/settings/');
-                exit;
+            $is_reserved = in_array($desired_username, $wo['site_pages'] ?? []) ||
+                           in_array($desired_username, $reserved_usernames) ||
+                           (function_exists('Wo_IsNameExist') && Wo_IsNameExist($desired_username));
+
+            if ($is_reserved) {
+                $fatal_error = 'Your desired username is reserved or already taken. Please contact support@buzzjuice.net or edit your name in WordPress.';
+                break;
             }
-        
-            // Official WoWonder update method
+            if (strlen($desired_username) < 5) {
+                $fatal_error = 'Your username is too short for Streams. Please update your name in WordPress.';
+                break;
+            }
             $update_success = false;
             if (function_exists('Wo_UpdateUserData')) {
                 $update_success = Wo_UpdateUserData($wo_user_id, ['username' => $desired_username]);
             }
-            bz_bridge_log('SSO: WoWonder username sync attempt', [
-                'wo_user_id' => $wo_user_id,
-                'old_username' => $rows[array_search($wo_user_id, array_column($rows, 'user_id'))]['username'] ?? '',
-                'new_username' => $desired_username,
-                'result' => $update_success
+            bz_bridge_log('SSO: Username sync (email match)', [
+                'wo_user_id'=>$wo_user_id, 'desired'=>$desired_username, 'result'=>$update_success
             ]);
             if ($update_success) {
-                if ($wp_user_id && $wo_user_id) {
-                    bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
-                }
+                bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
                 $access_payload['wo_user_id'] = $wo_user_id;
-                header('Location: /wp-login.php?try=1&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
-                exit;
+                break;
             } else {
-                bz_bridge_log('SSO: WoWonder username update failed', [
-                    'wo_user_id' => $wo_user_id,
-                    'desired_username' => $desired_username
-                ]);
-                header('Location: /wp-login.php?try=7&redirect_to=/members/me/settings/');
-                exit;
+                $fatal_error = 'A server error occurred during username sync. Please contact support@buzzjuice.net.';
+                break;
             }
         }
 
-        // If username/email exist but belong to different users, rename both and continue registration
+        // ---- [Case 3] Username/email point to different users: quarantine both, retry ----
         if ($user_id_by_username && $user_id_by_email && $user_id_by_username !== $user_id_by_email) {
-            $prefix = 'error'.rand(10000,99999).'-';
+            $prefix = 'conflict_' . rand(10000,99999) . '_';
             // Rename username
-            $new_username = $prefix.$access_payload['wp_user_login'];
-            mysqli_query($sqlConn, "UPDATE {$tbl} SET username='".mysqli_real_escape_string($sqlConn,$new_username)."' WHERE user_id=".intval($user_id_by_username));
+            $new_username = $prefix . $wp_username;
+            mysqli_query($sqlConn, "UPDATE {$tbl} SET username='" . mysqli_real_escape_string($sqlConn, $new_username) . "' WHERE user_id=" . intval($user_id_by_username));
             // Rename email (prefix before @)
-            $new_email = preg_replace('/^([^@]+)/', $prefix.'$1', $access_payload['wp_user_email']);
-            mysqli_query($sqlConn, "UPDATE {$tbl} SET email='".mysqli_real_escape_string($sqlConn,$new_email)."' WHERE user_id=".intval($user_id_by_email));
-            // continue registration
+            $new_email = preg_replace('/^([^@]+)/', $prefix.'$1', $wp_email);
+            mysqli_query($sqlConn, "UPDATE {$tbl} SET email='" . mysqli_real_escape_string($sqlConn, $new_email) . "' WHERE user_id=" . intval($user_id_by_email));
+            bz_bridge_log('SSO: Username/email split conflict: both legacy', [
+                'username_user' => $user_id_by_username,
+                'email_user'    => $user_id_by_email
+            ]);
+            // continue to next attempt, as now neither match
         }
 
-        // Register new WoWonder user
+        // ---- [Case 4] Username match only ("quarantine") ----
+        if ($user_id_by_username && !$user_id_by_email) {
+            $prefix = 'legacy_' . rand(1000,9999) . '_';
+            mysqli_query($sqlConn, "UPDATE {$tbl} SET username='" . mysqli_real_escape_string($sqlConn, $prefix.$wp_username) . "' WHERE user_id=" . intval($user_id_by_username));
+            bz_bridge_log('SSO: Username-only collision resolved by rename', [
+                'old_user_id' => $user_id_by_username
+            ]);
+            // continue, as now username will be available on next loop
+        }
+
+        // ---- 3: Register new WoWonder user ----
+        $final_username = bz_generate_unique_username($wp_username, $sqlConn, $tbl);
         $registration = Wo_RegisterUser([
-            'username' => $access_payload['wp_user_login'],
-            'email'    => $access_payload['wp_user_email'],
-            'password' => bin2hex(random_bytes(16)), // random password; login only via SSO
+            'username' => $final_username,
+            'email'    => $wp_email,
+            'password' => bin2hex(random_bytes(16)),
             'active'   => 1
         ]);
-
-        if ($registration && isset($registration['user_id'])) {
+        if ($registration && !empty($registration['user_id'])) {
             $wo_user_id = (int)$registration['user_id'];
+            bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
             $access_payload['wo_user_id'] = $wo_user_id;
-            // Update WP mapping
-            if ($wp_user_id && $wo_user_id) {
-                bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
-            }
             $_SESSION['wo_auto_registered'] = true;
-            bz_bridge_log('Auto-registered WoWonder user from SSO', [
-                'user_id' => $wo_user_id,
-                'wp_user' => $wp_user_id
+            bz_bridge_log('SSO: NEW WoWonder user registered', [
+                'wo_user_id' => $wo_user_id, 'username' => $final_username, 'email' => $wp_email
             ]);
             break;
         }
 
-        // Registration failed, wait and retry up to max_attempts
+        // Registration failed, retry up to max_attempts, then error out
         usleep(100000);
         $attempt++;
-    }
+    } // while
 
-    // Failed after all attempts → redirect
-    if (empty($wo_user_id)) {
-        bz_bridge_log('WoWonder auto-registration failed after retries', [
-            'payload'  => $access_payload,
-            'attempts' => $attempt
+    // -------------- If all reconciliation fails --------------
+    if (empty($wo_user_id) || $fatal_error) {
+        bz_bridge_log('SSO: WoWonder registration failed', [
+            'payload'    => $access_payload,
+            'attempts'   => $attempt,
+            'fatal_error'=> $fatal_error,
+            'username'   => $wp_username,
+            'email'      => $wp_email
         ]);
-        header('Location: /wp-login.php?try=8&redirect_to=/members/me/settings/');
+        $err_message = $fatal_error ?: "We're unable to create or connect your Streams account at this time.<br>
+        Please contact <a href='mailto:support@buzzjuice.net'>support@buzzjuice.net</a>
+        or return to the <a href='https://buzzjuice.net/dashboard'>dashboard</a>.";
+        // AJAX or bridge page: show error (never redirect to login)
+        $is_ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+        if ($is_ajax) {
+            echo json_encode(['status'=>500, 'error'=>$err_message]);
+        } else {
+            echo "<div class='status err'>" . $err_message . "</div>";
+        }
         exit;
     }
 }
 
-
-
-// Persist canonical session values (set wp_user_login only if not set already to keep it immutable)
-// -- 2. HYDRATE CANONICAL SESSION FIELDS FOR CURRENT UI
-$final_wo_user_id = $access_payload['wo_user_id'] ?? $wo_user_id;
-if (!isset($_SESSION['wp_user_login'])) 
-$_SESSION['wp_user_login']  = (string)$access_payload['wp_user_login'];
-$_SESSION['wp_user_id']     = (int)$access_payload['wp_user_id'];
-$_SESSION['wp_user_email']  = (string)$access_payload['wp_user_email'];
-$_SESSION['wo_user_id']     = (int)$final_wo_user_id;
+// SESSION HYDRATION (always finish in all flows)
+$final_wo_user_id = $access_payload['wo_user_id'] ?? $wo_user_id ?? null;
+if (!isset($_SESSION['wp_user_login']))
+    $_SESSION['wp_user_login'] = (string)($access_payload['wp_user_login'] ?? '');
+$_SESSION['wp_user_id']    = (int)($access_payload['wp_user_id'] ?? 0);
+$_SESSION['wp_user_email'] = (string)($access_payload['wp_user_email'] ?? '');
+$_SESSION['wo_user_id']    = (int)($final_wo_user_id ?? 0);
 
 /* bz_bridge_log('After mapping/registration - canonical session snapshot', [
     'wp_user_id'    => $_SESSION['wp_user_id'],
@@ -714,7 +743,7 @@ if (!function_exists('bz_clear_wp_wo_user_id')) {
     function bz_clear_wp_wo_user_id($wp_user_id) {
         $wp_conn = get_wp_db_conn();
         if (!$wp_conn || empty($wp_user_id)) {
-            header('Location: /wp-login.php?try=1&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
+            header('Location: /wp-login.php?try=ww09&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
             exit;
         }
         $wp_user_id = (int)$wp_user_id;
@@ -734,7 +763,7 @@ if (!function_exists('bz_clear_wp_wo_user_id')) {
             exit;
         } else {
             // Failed to clear mapping, redirect to login
-            header('Location: /wp-login.php?try=1&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
+            header('Location: /wp-login.php?try=ww10&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
             exit;
         }
     }

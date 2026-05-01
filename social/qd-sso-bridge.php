@@ -423,7 +423,7 @@ if (!$access_payload && $wordpress_logged_in_) {
     elseif ($http_code === 401) {
         bz_bridge_log('WP SSO endpoint returned 401 — user not logged in');
         $redirect_to = $_SERVER['REQUEST_URI'] ?? '/social';
-        header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
+        header('Location: /wp-login.php?try=qd00&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
         exit;
     }
     
@@ -482,7 +482,7 @@ if (!$access_payload && $wordpress_logged_in_) {
 if (!$access_payload) {
     bz_bridge_log('Dual-token bootstrap failed — redirecting to login');
     $redirect_to = $_SERVER['REQUEST_URI'] ?? '/social';
-    header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
+    header('Location: /wp-login.php?try=qd01&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
@@ -498,7 +498,7 @@ $_SESSION['wp_qd_SSO_Login'] = true;
 // -----------------------------
 if (!$_SESSION['wp_user_id'] || !$_SESSION['wp_user_login'] || !$_SESSION['wp_user_email']) {
     bz_bridge_log('Missing required claims (cookie incomplete)', $access_payload);
-    header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
+    header('Location: /wp-login.php?try=qd02&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
@@ -516,215 +516,245 @@ if (!$_SESSION['wp_user_id'] || !$_SESSION['wp_user_login'] || !$_SESSION['wp_us
 // SSO: Auto-register WoWonder user if missing
 // Updates WordPress usermeta 'qd_user_id' after successful registration
 // Redirects to /wp-login.php?redirect_to=/members/me/settings/ if registration fails
+// QUICKDATE SSO IDENTITY RESOLVER + AUTO REGISTRATION (robust, unified, no forced redirects)
 // =======================================================================================
 
-if (empty($access_payload['qd_user_id']) && BUZZ_SSO_AUTO_REGISTER) {
-    $wp_user_id   = !empty($access_payload['wp_user_id']) ? (int)$access_payload['wp_user_id'] : 0;
-    $max_attempts = 5;
-    $attempt      = 0;
-    $qd_user_id   = 0;
-
-    // Helper: fetch WordPress usermeta 'qd_user_id'
-    function bz_fetch_wp_qd_user_id($wp_user_id) {
-        $wp_conn = get_wp_db_conn();
-        if (!$wp_conn || empty($wp_user_id)) return 0;
-        $meta_key = 'qd_user_id';
-        $key_esc = mysqli_real_escape_string($wp_conn, $meta_key);
-        $table = function_exists('wp_table') ? wp_table('usermeta') : 'wp_usermeta';
-        $query = "SELECT meta_value FROM {$table} WHERE user_id = $wp_user_id AND meta_key = '$key_esc' LIMIT 1";
-        $result = mysqli_query($wp_conn, $query);
-        if ($result && $row = mysqli_fetch_assoc($result)) return (int)$row['meta_value'];
-        return 0;
+// ---------------------------
+// HELPERS (safe for all contexts)
+// ---------------------------
+if (!function_exists('bz_clean_username')) {
+    function bz_clean_username($username) {
+        $username = preg_replace('/[^a-zA-Z0-9_]/', '', $username ?? '');
+        if (strlen($username) < 5) $username .= rand(1000,9999);
+        return substr($username, 0, 32);
     }
+}
 
-    // Helper: upsert 'qd_user_id' usermeta in WordPress
-    function bz_update_wp_qd_user_id($wp_user_id, $qd_user_id) {
-        $wp_conn = get_wp_db_conn();
-        if (!$wp_conn || empty($wp_user_id) || empty($qd_user_id)) return false;
-        $wp_user_id = (int)$wp_user_id;
-        $qd_user_id = (int)$qd_user_id;
-        $meta_key = 'qd_user_id';
-        $key_esc = mysqli_real_escape_string($wp_conn, $meta_key);
-        $table = function_exists('wp_table') ? wp_table('usermeta') : 'wp_usermeta';
-        $check_query = "SELECT umeta_id FROM {$table} WHERE user_id = $wp_user_id AND meta_key = '$key_esc' LIMIT 1";
-        $check_result = mysqli_query($wp_conn, $check_query);
-
-        if ($check_result && mysqli_num_rows($check_result) > 0) {
-            $row = mysqli_fetch_assoc($check_result);
-            $umeta_id = (int)$row['umeta_id'];
-            return (bool)mysqli_query($wp_conn, "UPDATE {$table} SET meta_value = '$qd_user_id' WHERE umeta_id = $umeta_id");
-        } else {
-            return (bool)mysqli_query($wp_conn, "INSERT INTO {$table} (user_id, meta_key, meta_value) VALUES ($wp_user_id, '$key_esc', '$qd_user_id')");
+if (!function_exists('bz_generate_unique_username')) {
+    function bz_generate_unique_username($base, $conn, $table = 'users') {
+        $base = bz_clean_username($base);
+        $candidate = $base; $i = 1;
+        while (true) {
+            $esc = mysqli_real_escape_string($conn, $candidate);
+            $q = mysqli_query($conn, "SELECT id FROM {$table} WHERE username='{$esc}' LIMIT 1");
+            if (!$q || mysqli_num_rows($q) === 0) return $candidate;
+            $candidate = substr($base . $i++, 0, 32);
         }
     }
+}
+
+if (!function_exists('bz_fetch_wp_qd_user_id')) {
+    function bz_fetch_wp_qd_user_id($wp_user_id) {
+        $conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
+        if (!$conn || !$wp_user_id) return 0;
+        $table = function_exists('wp_table') ? wp_table('usermeta') : 'wp_usermeta';
+        $q = mysqli_query($conn, "SELECT meta_value FROM {$table} WHERE user_id={$wp_user_id} AND meta_key='qd_user_id' LIMIT 1");
+        if ($q && $row = mysqli_fetch_assoc($q)) return (int)$row['meta_value'];
+        return 0;
+    }
+}
+
+if (!function_exists('bz_update_wp_qd_user_id')) {
+    function bz_update_wp_qd_user_id($wp_user_id, $qd_user_id) {
+        $conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
+        if (!$conn) return false;
+        $table = function_exists('wp_table') ? wp_table('usermeta') : 'wp_usermeta';
+        // MySQL 5.7+/InnoDB will upsert here, otherwise fallback is safe (INSERT, fail = ignore)
+        @mysqli_query($conn, "
+            INSERT INTO {$table} (user_id, meta_key, meta_value)
+            VALUES ($wp_user_id, 'qd_user_id', '$qd_user_id')
+            ON DUPLICATE KEY UPDATE meta_value='$qd_user_id'
+        ");
+        return true;
+    }
+}
+
+// =======================================================================================
+// MAIN FLOW: NO REDIRECTS TO wp-login.php, FULL CONFLICT RECONCILIATION
+// =======================================================================================
+if (
+    empty($access_payload['qd_user_id']) &&
+    BUZZ_SSO_AUTO_REGISTER &&
+    !empty($access_payload['wp_user_id']) &&
+    !empty($access_payload['wp_user_login']) &&
+    !empty($access_payload['wp_user_email'])
+) {
+    $wp_user_id  = (int)$access_payload['wp_user_id'];
+    $wp_username = trim($access_payload['wp_user_login']);
+    $wp_email    = trim($access_payload['wp_user_email']);
+    $qd_conn     = function_exists('get_qd_db_conn') ? get_qd_db_conn() : null;
+    $table       = 'users';
+
+    $qd_user_id   = 0;
+    $max_attempts = 5;
+    $attempt      = 0;
+    $fatal_error  = null;
 
     while ($attempt < $max_attempts) {
-        // Defensive check for existing mapping (race safety)
-        $current_qd_id = ($wp_user_id ? bz_fetch_wp_qd_user_id($wp_user_id) : 0);
-        if (!empty($current_qd_id)) {
-            $qd_user_id = $current_qd_id;
-            $access_payload['qd_user_id'] = $qd_user_id;
-            bz_bridge_log('SSO registration race detected: using existing QD user', [
-                'qd_user_id' => $qd_user_id,
-                'wp_user_id' => $wp_user_id
+        // 1. CHECK EXISTING MAP
+        $existing_qd_id = bz_fetch_wp_qd_user_id($wp_user_id);
+        if ($existing_qd_id) {
+            $qd_user_id = $access_payload['qd_user_id'] = $existing_qd_id;
+            bz_bridge_log('QD SSO: Used prior mapping from usermeta', [
+                'wp_user_id' => $wp_user_id,
+                'qd_user_id' => $qd_user_id
             ]);
             break;
         }
 
-        // Check QuickDate for existing username/email
-        $qd_conn = get_qd_db_conn();
-        $username_esc = mysqli_real_escape_string($qd_conn, $access_payload['wp_user_login']);
-        $email_esc    = mysqli_real_escape_string($qd_conn, $access_payload['wp_user_email']);
-        $tbl = defined('users') ? users : 'users';
-
-        $q = mysqli_query($qd_conn, "SELECT id,username,email FROM {$tbl} WHERE username='{$username_esc}' OR email='{$email_esc}'");
+        // 2. SEARCH QUICKDATE USER DB FOR USERNAME/EMAIL
+        $username_esc = mysqli_real_escape_string($qd_conn, $wp_username);
+        $email_esc    = mysqli_real_escape_string($qd_conn, $wp_email);
+        $q = mysqli_query($qd_conn, "SELECT id,username,email FROM {$table} WHERE username='{$username_esc}' OR email='{$email_esc}'");
         $rows = [];
-        while ($r = mysqli_fetch_assoc($q)) $rows[] = $r;
+        while ($r = $q ? mysqli_fetch_assoc($q) : null) $rows[] = $r;
 
-        // Find user IDs for username/email
-        $user_id_by_username = null;
-        $user_id_by_email = null;
+        $user_id_by_username = null; $user_id_by_email = null;
         foreach ($rows as $r) {
-            if (strcasecmp($r['username'], $access_payload['wp_user_login']) === 0) $user_id_by_username = (int)$r['id'];
-            if (strcasecmp($r['email'], $access_payload['wp_user_email']) === 0) $user_id_by_email = (int)$r['id'];
+            if (strcasecmp($r['username'], $wp_username) === 0) $user_id_by_username = (int)$r['id'];
+            if (strcasecmp($r['email'], $wp_email)    === 0) $user_id_by_email    = (int)$r['id'];
         }
 
-        // If username/email exist and belong to same user, map that user_id and update WP
+        // 3. PERFECT MATCH
         if ($user_id_by_username && $user_id_by_email && $user_id_by_username === $user_id_by_email) {
             $qd_user_id = $user_id_by_username;
-            if ($wp_user_id && $qd_user_id) {
-                bz_update_wp_qd_user_id($wp_user_id, $qd_user_id);
-            }
-            header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
-            exit;
+            bz_update_wp_qd_user_id($wp_user_id, $qd_user_id);
+            $access_payload['qd_user_id'] = $qd_user_id;
+            bz_bridge_log('QD SSO: PERFECT MATCH (username & email)', [
+                'wp_user_id'=>$wp_user_id, 'qd_user_id'=>$qd_user_id
+            ]);
+            break;
         }
 
-        // ---------------------------------------------------------------------------
-        // CASE: QuickDate email matches WordPress email, username differs
-        // Update QuickDate username to match WordPress via official API, then sync qd_user_id
-        // ---------------------------------------------------------------------------
+        // 4. EMAIL MATCH (username differs): update username
         if (
             $user_id_by_email &&
             (
                 !$user_id_by_username ||
-                strcasecmp($rows[array_search($user_id_by_email, array_column($rows, 'id'))]['username'], $access_payload['wp_user_login']) !== 0
+                strcasecmp($rows[array_search($user_id_by_email, array_column($rows, 'id'))]['username'], $wp_username) !== 0
             )
         ) {
-            $qd_user_id = (int)$user_id_by_email;
-            $desired_username = preg_replace('/[^a-zA-Z0-9_]/', '', $access_payload['wp_user_login']);
-            $desired_username = substr($desired_username, 0, 32);
-        
-            // Validate QuickDate username: min 5 chars, etc.
-            if (strlen($desired_username) < 5) {
-                bz_bridge_log('SSO/QD: Desired username too short', ['attempted_username' => $desired_username]);
-                header('Location: /wp-login.php?redirect_to=/members/me/settings/');
-                exit;
-            }
-        
-            // Check for reserved or taken usernames
+            $qd_user_id = $user_id_by_email;
+            $desired_username = bz_generate_unique_username($wp_username, $qd_conn, $table);
+
             $reserved_usernames = $qd['reserved_usernames'] ?? [];
-            if ((function_exists('QD_IsNameExist') && QD_IsNameExist($desired_username)) ||
-                in_array($desired_username, $reserved_usernames)
-            ) {
-                bz_bridge_log('SSO/QD: Username already exists or reserved', ['username' => $desired_username]);
-                header('Location: /wp-login.php?redirect_to=/members/me/settings/');
-                exit;
+            $is_reserved = in_array($desired_username, $reserved_usernames) ||
+                (function_exists('QD_IsNameExist') && QD_IsNameExist($desired_username));
+
+            if ($is_reserved) {
+                $fatal_error = 'Your desired QuickDate username is reserved or already exists. Please contact <a href="mailto:support@buzzjuice.net">support@buzzjuice.net</a> or change your WordPress username.';
+                break;
             }
-        
-            // Use QuickDate official endpoint/controller to update username
-            $user_api = LoadEndPointResource('users');
+            if (strlen($desired_username) < 5) {
+                $fatal_error = 'Your username is too short for QuickDate. Please update it in WordPress.';
+                break;
+            }
+            // Use QuickDate's API if available, else SQL fallback
             $update_success = false;
-            if ($user_api && method_exists($user_api, 'update_general_setting')) {
-                $update = $user_api->update_general_setting([
-                    'user_id'  => $qd_user_id,
-                    'username' => $desired_username
-                ]);
-                $update_success = ($update && isset($update['code']) && $update['code'] == 200);
-            }
-        
-            bz_bridge_log('SSO/QD: Username sync attempt', [
-                'qd_user_id'   => $qd_user_id,
-                'old_username' => $rows[array_search($qd_user_id, array_column($rows, 'id'))]['username'] ?? '',
-                'new_username' => $desired_username,
-                'result'       => $update_success
-            ]);
-        
-            if ($update_success) {
-                if ($wp_user_id && $qd_user_id) {
-                    bz_update_wp_qd_user_id($wp_user_id, $qd_user_id);
+            if (function_exists('LoadEndPointResource')) {
+                $user_api = LoadEndPointResource('users');
+                if ($user_api && method_exists($user_api, 'update_general_setting')) {
+                    $update = $user_api->update_general_setting([
+                        'user_id'  => $qd_user_id,
+                        'username' => $desired_username
+                    ]);
+                    $update_success = ($update && isset($update['code']) && $update['code'] == 200);
                 }
+            }
+            if (!$update_success)
+                $update_success = mysqli_query($qd_conn, "UPDATE {$table} SET username='" . mysqli_real_escape_string($qd_conn,$desired_username) . "' WHERE id=".(int)$qd_user_id);
+
+            bz_bridge_log('QD SSO: Username sync (email match)', [
+                'qd_user_id'  => $qd_user_id,
+                'desired_username' => $desired_username,
+                'result'      => $update_success
+            ]);
+            if ($update_success) {
+                bz_update_wp_qd_user_id($wp_user_id, $qd_user_id);
                 $access_payload['qd_user_id'] = $qd_user_id;
-                header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
-                exit;
+                break;
             } else {
-                bz_bridge_log('SSO/QD: Username update failed', [
-                    'qd_user_id'      => $qd_user_id,
-                    'desired_username' => $desired_username
-                ]);
-                header('Location: /wp-login.php?redirect_to=/members/me/settings/');
-                exit;
+                $fatal_error = 'A server error occurred updating your QuickDate username. Contact <a href="mailto:support@buzzjuice.net">support@buzzjuice.net</a>.';
+                break;
             }
         }
 
-        // If username/email exist but belong to different users, rename both and continue registration
+        // 5. USERNAME/EMAIL SPLIT: quarantine both, retry
         if ($user_id_by_username && $user_id_by_email && $user_id_by_username !== $user_id_by_email) {
-            $prefix = 'error'.rand(10000,99999).'-';
-            // Rename username
-            $new_username = $prefix.$access_payload['wp_user_login'];
-            mysqli_query($qd_conn, "UPDATE {$tbl} SET username='".mysqli_real_escape_string($qd_conn,$new_username)."' WHERE id=".intval($user_id_by_username));
-            // Rename email (prefix before @)
-            $new_email = preg_replace('/^([^@]+)/', $prefix.'$1', $access_payload['wp_user_email']);
-            mysqli_query($qd_conn, "UPDATE {$tbl} SET email='".mysqli_real_escape_string($qd_conn,$new_email)."' WHERE id=".intval($user_id_by_email));
-            // continue registration
-        }
-
-        // Register new BuzzSocial user
-        $user 		= LoadEndPointResource('users');		
-        $re_data 	= [
-                'username' => $access_payload['wp_user_login'],
-                'email'    => $access_payload['wp_user_email'],
-                'password' => bin2hex(random_bytes(16)), // random password; login only via SSO
-                'active'   => 1
-        ];
-            $regestered_user = $user->register($re_data);
-        if ($regestered_user['code'] == 200) {
-            // Save new user_id in both canonical and session for subsequent matching
-            $qd_user_id = (int) $regestered_user['userId'];
-            $access_payload['qd_user_id'] = $qd_user_id;
-            $_SESSION['qd_auto_registered'] = true;
-            bz_bridge_log('Auto-registered BuzzSocial user from SSO', [
-                'user_id' => $qd_user_id,
-                'wp_user' => $access_payload['wp_user_id']
+            $prefix = 'conflict_' . rand(10000,99999) . '_';
+            mysqli_query($qd_conn, "UPDATE {$table} SET username='" . mysqli_real_escape_string($qd_conn,$prefix.$wp_username) . "' WHERE id=" . intval($user_id_by_username));
+            $new_email = preg_replace('/^([^@]+)/', $prefix.'$1', $wp_email);
+            mysqli_query($qd_conn, "UPDATE {$table} SET email='" . mysqli_real_escape_string($qd_conn,$new_email) . "' WHERE id=" . intval($user_id_by_email));
+            bz_bridge_log('QD SSO: Username/email split conflict: both legacy', [
+                'username_user' => $user_id_by_username,
+                'email_user'    => $user_id_by_email
             ]);
-
+            // continue, will retry loop
         }
 
-        // Registration failed, wait and retry up to max_attempts
+        // 6. USERNAME ONLY: quarantine that legacy user
+        if ($user_id_by_username && !$user_id_by_email) {
+            $prefix = 'legacy_' . rand(1000,9999) . '_';
+            mysqli_query($qd_conn, "UPDATE {$table} SET username='" . mysqli_real_escape_string($qd_conn, $prefix.$wp_username) . "' WHERE id=" . intval($user_id_by_username));
+            bz_bridge_log('QD SSO: Username-only collision resolved by rename', [
+                'old_user_id' => $user_id_by_username
+            ]);
+            // continue, will retry loop
+        }
+
+        // 7. REGISTER NEW QUICKDATE USER
+        $final_username = bz_generate_unique_username($wp_username, $qd_conn, $table);
+        $user_api = function_exists('LoadEndPointResource') ? LoadEndPointResource('users') : null;
+        $registered_user = $user_api && method_exists($user_api, 'register')
+            ? $user_api->register([
+                'username' => $final_username,
+                'email'    => $wp_email,
+                'password' => bin2hex(random_bytes(16)),
+                'active'   => 1
+            ])
+            : null;
+        if ($registered_user && isset($registered_user['code']) && $registered_user['code'] == 200) {
+            $qd_user_id = (int)$registered_user['userId'];
+            $access_payload['qd_user_id'] = $qd_user_id;
+            bz_update_wp_qd_user_id($wp_user_id, $qd_user_id);
+            $_SESSION['qd_auto_registered'] = true;
+            bz_bridge_log('QD SSO: New user registered', [
+                'qd_user_id' => $qd_user_id, 'username' => $final_username, 'email' => $wp_email
+            ]);
+            break;
+        }
+
         usleep(100000);
         $attempt++;
-    }
+    } // while
 
-    // Failed after all attempts → redirect
-    if (empty($qd_user_id)) {
-        bz_bridge_log('BuzzSocial auto-registration failed after retries', [
-            'payload'  => $access_payload,
-            'attempts' => $attempt
+    // 8. SURFACE FATAL ERROR (NO REDIRECTS)
+    if (empty($qd_user_id) || $fatal_error) {
+        bz_bridge_log('QD SSO: Registration failed', [
+            'payload'    => $access_payload,
+            'attempts'   => $attempt,
+            'fatal_err'  => $fatal_error
         ]);
-        header('Location: /wp-login.php?try=5&redirect_to=/members/me/settings/');
+        $err_message = $fatal_error ?: "We're unable to create or connect your QuickDate account at this time.<br>
+        Please contact <a href='mailto:support@buzzjuice.net'>support@buzzjuice.net</a>
+        or return to the <a href='https://buzzjuice.net/dashboard'>dashboard</a>.";
+        $is_ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+        if ($is_ajax) {
+            echo json_encode(['status'=>500, 'error'=>$err_message]);
+        } else {
+            echo "<div class='status err'>{$err_message}</div>";
+        }
         exit;
     }
 }
 
-
-
-// Persist canonical session values (set wp_user_login only if not set already to keep it immutable)
-// -- 2. HYDRATE CANONICAL SESSION FIELDS FOR CURRENT UI
-$final_qd_user_id = $access_payload['qd_user_id'] ?? $qd_user_id;
-if (!isset($_SESSION['wp_user_login'])) 
-$_SESSION['wp_user_login'] = (string)$access_payload['wp_user_login'];
-$_SESSION['wp_user_id']    = (int)$access_payload['wp_user_id'];
-$_SESSION['wp_user_email'] = (string)$access_payload['wp_user_email'];
-$_SESSION['qd_user_id']    = (int)$final_qd_user_id;
+// SESSION FINALIZATION
+$final_qd_user_id = $access_payload['qd_user_id'] ?? $qd_user_id ?? null;
+if (!isset($_SESSION['wp_user_login']))
+    $_SESSION['wp_user_login'] = (string)($access_payload['wp_user_login'] ?? '');
+$_SESSION['wp_user_id']    = (int)($access_payload['wp_user_id'] ?? 0);
+$_SESSION['wp_user_email'] = (string)($access_payload['wp_user_email'] ?? '');
+$_SESSION['qd_user_id']    = (int)($final_qd_user_id ?? 0);
 
 /* bz_bridge_log('After mapping/registration - canonical session snapshot', [
     'wp_user_id'    => $_SESSION['wp_user_id'],
@@ -799,7 +829,7 @@ if (!function_exists('bz_clear_wp_qd_user_id')) {
     function bz_clear_wp_qd_user_id($wp_user_id) {
         $wp_conn = get_wp_db_conn();
         if (!$wp_conn || empty($wp_user_id)) {
-            header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
+            header('Location: /wp-login.php?try=qd06&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
             exit;
         }
         $wp_user_id = (int)$wp_user_id;
@@ -819,7 +849,7 @@ if (!function_exists('bz_clear_wp_qd_user_id')) {
             exit;
         } else {
             // Failed to clear mapping, redirect to login
-            header('Location: /wp-login.php?try=0&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
+            header('Location: /wp-login.php?try=qd07&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
             exit;
         }
     }

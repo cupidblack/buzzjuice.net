@@ -125,7 +125,7 @@ if ( ! class_exists( 'myCRED_BP_Charges' ) ) :
             $this->file( BP_CHARGES_ROOT . 'license/license.php' );
 			
 			add_action( 'bp_include',             array( $this, 'load_module' ), 120 );
-			add_action( 'mycred_init',            array( $this, 'load_plugin_textdomain' ) );
+			add_action( 'init',                   array( $this, 'load_plugin_textdomain' ) );
 			add_action( 'wp_enqueue_scripts',     array( $this, 'plugin_custom_styles' ) );
 
 			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ),20 );

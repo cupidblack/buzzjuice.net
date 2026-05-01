@@ -21,7 +21,7 @@ add_action('init', function () {
 // --------------------------------------
 // Load shared SSO helpers (all utilities)
 // --------------------------------------
-require_once __DIR__ . '/../../shared/sso_bridge_helpers.php';
+require_once ABSPATH . '/shared/sso_bridge_helpers.php';
 
 // --------------------------------------
 // CONFIG
@@ -108,12 +108,6 @@ add_action('wp_login', function($user_login, $user) use ($__buzz_sso_secret) {
     bz_sso_set_cookie($token, BUZZ_SSO_TTL);
 }, 10, 2);
 
-add_action('wp_logout', function() {
-    setcookie(BUZZ_SSO_COOKIE, '', time() - 3600, '/', '.buzzjuice.net' /* BUZZ_COOKIE_DOMAIN */);
-});
-
-
-
 // ---------------------------------------------------
 // BUZZ_SSO_COOKIE Auto-refresh (activity/throttled)
 // ---------------------------------------------------
@@ -159,29 +153,69 @@ add_action('init', function() use ($__buzz_sso_secret) {
 // ---------------------------------------------------
 // LOGOUT HANDOFF
 // ---------------------------------------------------
-add_action('wp_logout', function() {
-    // Expire WordPress login cookies
+/**
+ * BuzzJuice SSO/Session Sync — Unified Logout Handler
+ * 
+ * Cleans up WordPress + SSO (JWT) cookies, destroys PHP session,
+ * invalidates SSO state, triggers orchestrator Single Log Out (SLO) chain.
+ */
+add_action('wp_logout', function () {
+    // ---- CONFIG ----
+    $cookie_domain = defined('BUZZ_COOKIE_DOMAIN') ? BUZZ_COOKIE_DOMAIN : '.buzzjuice.net';
+    $sso_cookie    = defined('BUZZ_SSO_COOKIE')    ? BUZZ_SSO_COOKIE    : 'buzz_sso';
+    $orchestrator_url = 'https://buzzjuice.net/shared/sso-logout.php?cabin=home';
+    $expiry = time() - 3600;
+    $secure = is_ssl();
+
+    // ---- Optional pre-logout hook for orchestration ----
+    if (function_exists('do_action')) {
+        do_action('bbj_sso_before_logout_cleanup', get_current_user_id());
+    }
+
+    // ---- Remove all WordPress authentication cookies ----
     foreach ($_COOKIE as $key => $val) {
         if (strpos($key, 'wordpress_logged_in_') === 0) {
-            setcookie($key, '', time() - 3600, '/');
+            setcookie($key, '', $expiry, '/');
             unset($_COOKIE[$key]);
         }
     }
-    // Expire SSO JWT cookies (all known variants)
-    $domain = defined('BUZZ_COOKIE_DOMAIN') ? BUZZ_COOKIE_DOMAIN : '.buzzjuice.net';
-    foreach (['buzz_sso','buzz_access','buzz_refresh'] as $c) {
-        setcookie($c, '', time() - 3600, '/', $domain, true, true);
+
+    // ---- Remove SSO/JWT cookies (with and without domain) ----
+    $all_cookies = array_unique([
+        $sso_cookie,
+        'buzz_sso',
+        'buzz_access',
+        'buzz_refresh'
+    ]);
+    foreach ($all_cookies as $c) {
+        if (!$c) continue;
+        setcookie($c, '', $expiry, '/', $cookie_domain, $secure, true);
         unset($_COOKIE[$c]);
-        setcookie($c, '', time() - 3600, '/');
+        setcookie($c, '', $expiry, '/', '', $secure, true);
     }
-    // Destroy PHP session if active
-    if (session_status() === PHP_SESSION_ACTIVE) {
+
+    // ---- Destroy PHP session robustly ----
+    if (session_status() === PHP_SESSION_ACTIVE || (function_exists('session_id') && session_id())) {
         $_SESSION = [];
         @session_unset();
         @session_destroy();
     }
-    // Chained orchestrator: WP disables local SSO/JWT, then cascades
-    wp_safe_redirect('https://buzzjuice.net/shared/sso-logout.php?cabin=home');
+
+    // ---- Invalidate user SSO state (transients) ----
+    if (function_exists('is_user_logged_in') && is_user_logged_in()) {
+        $user_id = get_current_user_id();
+        // Remove SSO readiness/verification flags—important for orchestrator & integrations
+        delete_transient('bbj_sso_ready_' . $user_id);
+        delete_transient('bbj_sso_verified_' . $user_id);
+    }
+
+    // ---- Debug logging (optional) ----
+    if (function_exists('bz_debug_log')) {
+        bz_debug_log('wp_logout: unified SSO/session cleanup & SLO orchestrator redirect');
+    }
+
+    // ---- Redirect to orchestrator for chained logout ----
+    wp_safe_redirect($orchestrator_url);
     exit;
 }, 10);
 
@@ -230,3 +264,27 @@ add_action('init', function() {
         }
     }
 }, 5);
+
+// --- SSO READY marker: lets verified-gate know cookies and tokens are stable ---
+// Path: wp-content/mu-plugins/sso-session-sync.php
+/**
+ * SSO session hydration marker: set after SSO/session sync on every page load if user is logged in.
+ */
+add_action('init', function () {
+    if (!is_user_logged_in()) {
+        return;
+    }
+    $user_id = get_current_user_id();
+    // Mark both transient (Fast) and cookie (Cross-request fallback)
+    set_transient('bbj_sso_ready_' . $user_id, 1, 120);
+
+    setcookie(
+        'bbj_sso_ready',
+        '1',
+        time() + 120,
+        COOKIEPATH,
+        COOKIE_DOMAIN,
+        is_ssl(),
+        true
+    );
+});

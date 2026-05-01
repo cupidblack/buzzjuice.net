@@ -5,6 +5,30 @@ add_action('init', function () {
     }
 }, 0);
 
+
+
+/**
+ * Runtime NULL → STRING normalizer
+ * Prevents PHP 8+ deprecation warnings globally
+ */
+
+function bzj_safe_string($v) {
+    return is_string($v) ? $v : '';
+}
+
+function bzj_safe_array($v) {
+    return is_array($v) ? $v : [];
+}
+
+function bzj_safe_post($id) {
+    $p = get_post($id);
+    return ($p && is_object($p)) ? $p : null;
+}
+
+add_filter('pre_wp_kses_post', function($x) { return bzj_safe_string($x); });
+
+
+
 function default_sort_users( $args ) {
     if ( empty( $args['orderby'] ) ) {
         $args['orderby'] = 'user_registered';

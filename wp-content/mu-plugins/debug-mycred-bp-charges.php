@@ -29,3 +29,23 @@ if (!function_exists('mycred_bp_charges_log_note')) {
  * Example usage (manual calls only):
  * mycred_bp_charges_log_note('Plugin loaded');
  */
+ 
+// Force loading of textdomain only at init (safe)
+/**
+ * Force correct translation lifecycle boundary
+ */
+add_action('init', function () {
+
+    add_action('bp_include', function () {
+
+        if (!function_exists('load_plugin_textdomain')) return;
+
+        load_plugin_textdomain(
+            'bp_charge',
+            false,
+            'mycred-bp-charges/languages'
+        );
+
+    }, 5);
+
+}, 20);

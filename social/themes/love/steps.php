@@ -6,7 +6,7 @@
    }else{
        exit();
    }
-
+   
    $current_step = "";
    $step = null;
    
@@ -771,9 +771,15 @@
                         <h2 class="light"><?php echo __( 'Congratulations!' );?></h2>
                         <p class="bold"><?php echo __('You have successfully registered.');?></p>
                      </div>`);
-                  setTimeout(function(){
+                     
+                  /* setTimeout(function(){
                     window.location = window.site_url;
-                  }, 1000);
+                  }, 1000); */
+                  
+                  setTimeout(() => {
+                        window.location.href = "https://buzzjuice.net/dashboard";
+                    }, 2000);
+                  
                <?php } ?>
 
                <?php if ($config->emailValidation == 1) { ?>
@@ -808,12 +814,16 @@ function verify_email_code( thisx ){
                         <h2 class="light"><?php echo __( 'Congratulations!' );?></h2>
                         <p class="bold"><?php echo __('You have successfully registered.');?></p>
                      </div>`);
-                  setTimeout(function(){
+                     
+                  /* setTimeout(function(){
                     window.location = window.site_url;
-                  }, 1000);
-               <?php } ?>
+                  }, 1000); */
+                  
+                  setTimeout(() => {
+                        window.location.href = "https://buzzjuice.net/dashboard";
+                    }, 2000);
 
-                
+               <?php } ?>
 
             }else{
                showResponseAlert('.steps_alerts','danger',"Wrong verification email code, try again later.",2000);
@@ -850,9 +860,15 @@ function verify_sms_code( thisx ){
                         <h2 class="light"><?php echo __( 'Congratulations!' );?></h2>
                         <p class="bold"><?php echo __('You have successfully registered.');?></p>
                      </div>`);
-                  setTimeout(function(){
+                     
+                  /* setTimeout(function(){
                     window.location = window.site_url;
-                  }, 1000);
+                  }, 1000); */
+                  
+                  setTimeout(() => {
+                        window.location.href = "https://buzzjuice.net/dashboard";
+                    }, 2000);
+
                <?php } ?>
 
             }else{
@@ -911,9 +927,15 @@ $( document ).on( 'input', '#otp_check_email', function(e){
                                     <h2 class="light"><?php echo __( 'Congratulations!' );?></h2>
                                     <p class="bold"><?php echo __('You have successfully registered.');?></p>
                                  </div>`);
-                              setTimeout(function(){
+                                 
+                              /* setTimeout(function(){
                                 window.location = window.site_url;
-                              }, 1000);
+                              }, 1000); */
+                              
+                              setTimeout(() => {
+                                    window.location.href = "https://buzzjuice.net/dashboard";
+                                }, 2000);
+                              
                            <?php } ?>
                         }else{
                            showResponseAlert('.steps_alerts','danger',"Wronge verification sms code, try again later.",2000);

@@ -6,6 +6,8 @@
  * - All plugin routines/features should NOT set their own error handlers!
  */
 
+if (!defined('ABSPATH')) exit;
+
 if (defined('BZJ_RUNTIME_ERROR_GUARD')) return;
 define('BZJ_RUNTIME_ERROR_GUARD', true);
 
@@ -76,6 +78,28 @@ function bzj_log_once($logfile, $errstr, $errfile, $errline, $interval) {
     @file_put_contents($fpath, $log, FILE_APPEND | LOCK_EX);
 }
 
+/**
+ * Safe array getter (system contract enforcement)
+ */
+function bzj_arr_get($arr, $key, $default = []) {
+    return (is_array($arr) && array_key_exists($key, $arr))
+        ? $arr[$key]
+        : $default;
+}
+
+/**
+ * Block early translation loading violations
+ */
+add_filter('load_textdomain_mofile', function ($mofile, $domain) {
+
+    if ($domain === 'bp_charge' && !did_action('init')) {
+        return false; // blocks early loading attempts
+    }
+
+    return $mofile;
+
+}, 1, 2);
+
 // ACTUAL HANDLER
 set_error_handler(function ($errno, $errstr, $errfile = null, $errline = null) use ($BZJ_INTERVALS) {
     if (!is_string($errstr)) return false;
@@ -120,6 +144,87 @@ set_error_handler(function ($errno, $errstr, $errfile = null, $errline = null) u
     ) {
         bzj_log_once('debug-bp-charges.log', $errstr, $errfile, $errline, $BZJ_INTERVALS['bp-charges']);
         return true; // Suppress
+    }
+    
+    // Add before general log fallback:
+    if (
+        strpos($errstr, 'Cron reschedule event error') !== false ||
+        strpos($errstr, 'Cron unschedule event error') !== false
+    ) {
+        bzj_log_once('debug-cron.log', $errstr, $errfile, $errline, 600); // 10 minutes
+        return true;
+    }
+    
+    if (
+        strpos($errfile, 'mycred-learndash-leaderboard.php') !== false &&
+        strpos($errstr, 'foreach() argument must be of type array|object, string given') !== false
+    ) {
+        bzj_log_once('debug-mycred-toolkit.log', $errstr, $errfile, $errline, 30);
+        return true;
+    } elseif (
+        strpos((string)$errfile, 'mycred-learndash-leaderboard.php') !== false &&
+        strpos($errstr, 'foreach() argument must be of type array|object') !== false
+    ) {
+        bzj_log_once('debug-mycred-toolkit.log', $errstr, $errfile, $errline, 30);
+        return true;
+    }
+    
+    if (strpos($errstr, 'load_textdomain_just_in_time') !== false) {
+        bzj_log_once('debug-mycred-bp-charges.log', $errstr, $errfile, $errline, 600);
+        return true;
+    }
+    
+    if (
+        strpos($errfile, 'mycred-learndash') !== false &&
+        (
+            strpos($errstr, 'Undefined array key') !== false ||
+            strpos($errstr, 'Trying to access array offset') !== false
+        )
+    ) {
+        bzj_log_once('debug-mycred-toolkit.log', $errstr, $errfile, $errline, 60);
+        return true;
+    }
+    
+    if (
+        strpos($errfile, 'kses.php') !== false &&
+        strpos($errstr, 'Passing null to parameter') !== false &&
+        strpos($errstr, 'preg_replace') !== false
+    ) {
+        bzj_log_once('debug-kses.log', $errstr, $errfile, $errline, 60);
+        return true;
+    }
+    
+    if (strpos($errfile, 'mustache') !== false || strpos($errfile, 'WP_CLI/Dispatcher') !== false) {
+        bzj_log_once('debug-wp-cli.log', $errstr, $errfile, $errline, 3600);
+        return true;
+    }
+    if (strpos($errstr, 'dynamic property') !== false) {
+        bzj_log_once('debug-php-deprecated.log', $errstr, $errfile, $errline, 900);
+        return true;
+    }
+    
+    if (
+        strpos($errfile, 'bb-forums.php') !== false &&
+        strpos($errstr, 'str_replace(): Passing null to parameter') !== false
+    ) {
+        bzj_log_once('debug-buddyboss-theme.log', $errstr, $errfile, $errline, 60);
+        return true;
+    }
+    
+    if (
+    strpos($errfile, 'ld-course-steps-functions.php') !== false &&
+        strpos($errstr, 'Attempt to read property "post_type" on null') !== false
+    ) {
+        bzj_log_once('debug-sfwd-lms.log', $errstr, $errfile, $errline, 60);
+        return true;
+    }
+
+    if (
+        strpos($errfile, 'filter/layout.php') !== false &&
+        (strpos($errstr, 'Undefined array key') !== false || strpos($errstr, 'array offset') !== false)
+    ) {
+        bzj_log_once('debug-sfwd-lms.log', $errstr, $errfile, $errline, 60);
+        return true;
     }
     
     // Add new categories below as needed. Example:

@@ -15,7 +15,7 @@ if ( is_user_logged_in() ) return;
 $shake = !empty($_GET['login']) && $_GET['login'] === 'failed';
 
 // You can customize the redirect_to as needed
-$redirect = home_url();
+$redirect = home_url('/dashboard');
 ?>
 
 <div id="custom-login-block" class="<?php echo $shake ? 'login-shake' : ''; ?>" style="max-width:400px;margin:0 auto;">

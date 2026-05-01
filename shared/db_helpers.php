@@ -22,7 +22,30 @@ if (!defined('PALMIER_WO_USERACTIVITYLOG_TABLE')) define('PALMIER_WO_USERACTIVIT
 if (!defined('PALMIER_QD_USERACTIVITYLOG_TABLE')) define('PALMIER_QD_USERACTIVITYLOG_TABLE', 'QD_UserActivityLog');
 
 // BUZZJUICE SINGLE SIGN ON
+function bzj_get_sso_secret() {
+    // 1. ENV (primary)
+    $env = getenv('BUZZ_SSO_SECRET');
+    if (!empty($env)) {
+        return $env;
+    }
+    // 2. Constant fallback
+    if (defined('BUZZ_SSO_SECRET') && BUZZ_SSO_SECRET) {
+        return BUZZ_SSO_SECRET;
+    }
+    // 3. Controlled fallback (prevents fatal)
+    if (function_exists('bzj_log_once')) {
+        bzj_log_once(
+            'debug-sso.log',
+            'SSO secret missing — fallback used (CRITICAL)',
+            __FILE__,
+            __LINE__,
+            300
+        );
+    }
+    return 'bzj_fallback_' . hash('sha256', ABSPATH);
+}
 if (!defined('BUZZ_SSO_SECRET')) define('BUZZ_SSO_SECRET', getenv('BUZZ_SSO_SECRET'));
+
 if (!defined('WP_BASE_SITE_URL')) define('WP_BASE_SITE_URL', getenv('WP_BASE_SITE_URL'));
 
 // WORDPRESS DB

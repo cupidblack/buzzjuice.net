@@ -354,7 +354,21 @@ if (!function_exists('bz_sso_jwt_validate')) {
         $payload = json_decode(bz_sso_b64url_decode($p), true);
         $sig = bz_sso_b64url_decode($s);
         if (!$payload) return false;
+        
+        if (!is_string($secret) || $secret === '') {
+            if (function_exists('bzj_log_once')) {
+                bzj_log_once(
+                    'debug-sso.log',
+                    'Invalid SSO secret passed to hash_hmac — validation aborted',
+                    __FILE__,
+                    __LINE__,
+                    60
+                );
+            }
+            return false;
+        }
         $expected = hash_hmac('sha256', "$h.$p", $secret, true);
+        
         if (!hash_equals($expected, $sig)) return false;
         $now = time();
         if (!empty($payload['exp']) && $now > $payload['exp']) return false;

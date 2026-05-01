@@ -420,3 +420,24 @@ add_filter('wp_pre_insert_user_data', function($data, $update) {
     return $data;
 
 }, 1, 2);
+
+//Elementor Form for Redirection to the BuddyBoss register page.
+add_action('wp_footer', function() {
+    if ( is_page('register') ) { // Or use your register page ID/slug.
+        ?>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function getQueryVar(name) {
+                let url = new URL(window.location.href);
+                return url.searchParams.get(name) || '';
+            }
+            var email = getQueryVar('prefill_email');
+            if (email) {
+                var input = document.querySelector('#signup_email, input[name="signup_email"], input[name="email"]');
+                if (input) input.value = email;
+            }
+        });
+        </script>
+        <?php
+    }
+});
