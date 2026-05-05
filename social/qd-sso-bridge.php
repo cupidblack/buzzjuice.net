@@ -253,141 +253,101 @@ function qd_clear_and_logout($reason='unknown') {
 // ===================================================================
 // START: SESSION MANAGEMENT / ENDPOINTS / PAYLOAD / DATA MAPPING
 // ===================================================================
-// -----------------------------------------------------
-// STEP 1: SESSION SAFETY GUARD FOR DUAL-TOKEN JWT SSO
-// -----------------------------------------------------
-// --- Current WoWonder authentication state ---
-$qd_loggedin        = !empty(IS_LOGGED);
-$qd_user_id 	    = !empty(auth()->id) ?? null;
+// ===================================================================
+// QUICKDATE SSO BRIDGE — DETERMINISTIC LOGIN PIPELINE
+// ===================================================================
 
-// --- Current PHP session state ---
-$session_qd_user_id = $_SESSION['qd_user_id'] ?? null;
-$session_user_id    = $_SESSION['user_id'] ?? null;
+// -----------------------------------------------------
+// 0. FAST EXIT IF ALREADY LOGGED IN WITH MATCHING SESSION
+// -----------------------------------------------------
+if (
+    !empty(IS_LOGGED) &&
+    !empty(auth()->id) &&
+    !empty($_SESSION['qd_user_id']) &&
+    (string)$_SESSION['qd_user_id'] === (string)auth()->id
+) {
+    bz_bridge_log('QuickDate: SSO fast-exit (already logged in)', [
+        'qd_user_id' => auth()->id,
+        'session_qd_user_id' => $_SESSION['qd_user_id'],
+        'last_url' => $last_url
+    ]);
+    header('Location: ' . $last_url);
+    exit;
+}
 
-// --- Detect WordPress login cookie (authority signal for SSO) ---
-$wordpress_logged_in_ = false;
+// -----------------------------------------------------
+// 1. WORDPRESS AUTHORITY (COOKIE) CHECK
+// -----------------------------------------------------
+$wordpress_logged_in = false;
 foreach ($_COOKIE as $name => $value) {
     if (strpos($name, 'wordpress_logged_in_') === 0) {
-        $wordpress_logged_in_ = true;
+        $wordpress_logged_in = true;
         break;
     }
 }
 
-// ---------------------------------------------------------------
-// CASE A: WordPress logged in — check WoWonder session
-// ---------------------------------------------------------------
-if (!$wordpress_logged_in_) {
-
-    // --- CASE A.1: Both WP and WoWonder session fully active ---
-    $already_logged_in = (
-        $qd_loggedin &&
-        !empty($qd_user_id) &&
-        !empty($session_user_id) &&
-        !empty($session_qd_user_id) &&
-        ((string)$session_qd_user_id === (string)$qd_user_id)
-    );
-
-    if ($already_logged_in) {
-        bz_bridge_log(
-            'Already logged in; Both WordPress & QuickDate sessions confirmed; safe redirect.',
-            [
-                'qd_loggedin'        => $qd_loggedin,
-                'qd_user_id'         => $qd_user_id,
-                'session_qd_user_id' => $session_qd_user_id,
-                'session_user_id'    => $session_user_id,
-                'request_uri'        => $_SERVER['REQUEST_URI'] ?? null,
-                'http_referer'       => $_SERVER['HTTP_REFERER'] ?? null,
-                'redirect_to'        => $_GET['redirect_to'] ?? null
-            ]
-        );
-
-        header('Location: ' . $last_url);
-        exit;
+if (!$wordpress_logged_in) {
+    // Only clear session if an authority is absent
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        $_SESSION = [];
+        session_unset();
+        @session_destroy();
     }
-
-    // --- CASE A.2: WP logged in but QuickDate session not active ---
-//bz_bridge_log('WP session active, QD session inactive — proceeding to SSO bootstrap.', ['qd_loggedin' => $qd_loggedin, 'qd_user_id' => $qd_user_id, 'session_user_id' => $session_user_id, 'session_qd_user_id' => $session_qd_user_id, ]); 
-    // Allow SSO bootstrap code (dual-token flow) to run next
+    bz_bridge_log('QuickDate: No WP session present, redirecting for login.', ['last_url' => $last_url]);
+    header('Location: /wp-login.php?redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
+    exit;
 }
 
-// ---------------------------------------------------------------
-// CASE B: WordPress not logged in — clear any stale QuickDate session
-// ---------------------------------------------------------------
-bz_bridge_log(
-    'WP or QD session inactive — proceeding to SSO login.',
-    [
-        'qd_loggedin'        => $qd_loggedin,
-        'qd_user_id'         => $qd_user_id,
-        'session_user_id'    => $session_user_id,
-        'session_qd_user_id' => $session_qd_user_id,
-    ]
-);
-
-// --- Explicitly destroy stale QuickDate session ---
-if (isset($_SESSION) && !empty($session_qd_user_id) || !empty($session_user_id)) {
-    session_unset();
-    @session_destroy();
-}
-
-// Proceed to SSO bootstrap — user must re-login
-
-// =============================================================================
-// BuzzStreams Fetch Stateless SSO Payload Orchestration (WordPress → QuickDate)
-// =============================================================================
+// -----------------------------------------------------
+// 2. SSO TOKEN RESOLUTION (ACCESS → REFRESH → WP ENDPOINT)
+// -----------------------------------------------------
 $audience = 'social';
 $BUZZ_SSO_SECRET = getenv('BUZZ_SSO_SECRET') ?: (defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : null);
 
-$access_token  = $_COOKIE['buzz_access'] ?? $_REQUEST['buzz_access'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? $_REQUEST[BUZZ_SSO_COOKIE] ?? null);
-$refresh_token = $_COOKIE['buzz_refresh'] ?? $_REQUEST['buzz_refresh'] ?? null;
+/**
+ * SSO payload resolver: tries local access/refresh JWT, then server-side WP call.
+ */
+function bz_qd_resolve_payload($audience, $secret) {
+    $access_token  = $_COOKIE['buzz_access'] ?? $_REQUEST['buzz_access'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? $_REQUEST[BUZZ_SSO_COOKIE] ?? null);
+    $refresh_token = $_COOKIE['buzz_refresh'] ?? $_REQUEST['buzz_refresh'] ?? null;
 
-$access_payload = false;
-
-// 1. Try validating access token for current bridge OR universal audience
-if ($access_token) {
-    $access_payload = bz_sso_jwt_validate($access_token, $BUZZ_SSO_SECRET, $audience, 'access');
-    if (!$access_payload) {
-        $access_payload = bz_sso_jwt_validate($access_token, $BUZZ_SSO_SECRET, 'buzznet', 'access');
+    // 1. Local access token (preferred, low latency)
+    if ($access_token) {
+        $payload = bz_sso_jwt_validate($access_token, $secret, $audience, 'access')
+            ?: bz_sso_jwt_validate($access_token, $secret, 'buzznet', 'access');
+        if ($payload) return $payload;
     }
-}
 
-// 2. If access still invalid, try silent local minting using refresh token
-if (!$access_payload && $refresh_token) {
-    $refresh_payload = bz_sso_jwt_validate($refresh_token, $BUZZ_SSO_SECRET, $audience, 'refresh');
-    if (!$refresh_payload) {
-        $refresh_payload = bz_sso_jwt_validate($refresh_token, $BUZZ_SSO_SECRET, 'buzznet', 'refresh');
+    // 2. Mint new access token with refresh
+    if ($refresh_token) {
+        $refresh_payload = bz_sso_jwt_validate($refresh_token, $secret, $audience, 'refresh')
+            ?: bz_sso_jwt_validate($refresh_token, $secret, 'buzznet', 'refresh');
+        if ($refresh_payload) {
+            $new_payload = [
+                'wp_user_id'    => $refresh_payload['wp_user_id'] ?? null,
+                'wp_user_login' => $refresh_payload['wp_user_login'] ?? null,
+                'wp_user_email' => $refresh_payload['wp_user_email'] ?? null,
+                'wo_user_id'    => $refresh_payload['wo_user_id'] ?? null,
+                'qd_user_id'    => $refresh_payload['qd_user_id'] ?? null
+            ];
+            $new_access = bz_sso_jwt_encode($new_payload, $secret, $audience, BUZZ_SSO_TTL_ACCESS, 'access');
+            bz_sso_set_cookie('buzz_access', $new_access, time()+BUZZ_SSO_TTL_ACCESS);
+            return bz_sso_jwt_validate($new_access, $secret, $audience, 'access');
+        }
     }
-    if ($refresh_payload) {
-        $new_payload = [
-            'wp_user_id'    => $refresh_payload['wp_user_id'] ?? null,
-            'wp_user_login' => $refresh_payload['wp_user_login'] ?? null,
-            'wp_user_email' => $refresh_payload['wp_user_email'] ?? null,
-            'wo_user_id'    => $refresh_payload['wo_user_id'] ?? null,
-            'qd_user_id'    => $refresh_payload['qd_user_id'] ?? null
-        ];
-        $new_access = bz_sso_jwt_encode($new_payload, $BUZZ_SSO_SECRET, $audience, BUZZ_SSO_TTL_ACCESS, 'access');
-        bz_sso_set_cookie('buzz_access', $new_access, time()+BUZZ_SSO_TTL_ACCESS);
-        $access_payload = bz_sso_jwt_validate($new_access, $BUZZ_SSO_SECRET, $audience, 'access');
-    }
-}
 
-// 3. If still invalid, call WordPress endpoint using server-side request *with correct Cookie/Header*
-if (!$access_payload && $wordpress_logged_in_) {
+    // 3. Call WP endpoint as last resort (with WP cookies forwarded)
     $wp_token_url = 'https://buzzjuice.net/?sso_action=issue_tokens&aud=' . urlencode($audience);
-
-    // Build correct Cookie header (only WP auth cookies)
     $cookies = '';
     foreach ($_COOKIE as $name => $val) {
         if (strpos($name, 'wordpress_logged_in_') === 0 || strpos($name, 'wordpress_sec_') === 0) {
             $cookies .= "$name=$val; ";
         }
     }
-    $cookies = trim($cookies);
-
     $headers = [
-        'Cookie: ' . $cookies,
+        'Cookie: ' . trim($cookies),
         'User-Agent: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'BuzzSSO/1.0')
     ];
-
     $context = stream_context_create([
         'http' => [
             'method'  => 'GET',
@@ -395,17 +355,12 @@ if (!$access_payload && $wordpress_logged_in_) {
             'timeout' => 5
         ]
     ]);
-
-    // Suppress warnings with @ and detect HTTP status
     $resp = @file_get_contents($wp_token_url, false, $context);
     $http_code = 0;
-    if (isset($http_response_header[0])) {
-        if (preg_match('#HTTP/\d+\.\d+\s+(\d+)#', $http_response_header[0], $matches)) {
-            $http_code = (int)$matches[1];
-        }
-    }
+    if (isset($http_response_header[0])
+        && preg_match('#HTTP/\d+\.\d+\s+(\d+)#', $http_response_header[0], $matches)
+    ) $http_code = (int)$matches[1];
 
-    // Handle 200 response
     if ($resp !== false && $http_code === 200) {
         $data = json_decode($resp, true);
         if (!empty($data['access'])) {
@@ -413,24 +368,19 @@ if (!$access_payload && $wordpress_logged_in_) {
             if (!empty($data['refresh'])) {
                 bz_sso_set_cookie('buzz_refresh', $data['refresh'], time()+BUZZ_SSO_TTL_REFRESH);
             }
-            $access_payload =
-                bz_sso_jwt_validate($data['access'], $BUZZ_SSO_SECRET, $audience, 'access')
-                ?: bz_sso_jwt_validate($data['access'], $BUZZ_SSO_SECRET, 'buzznet', 'access');
+            return bz_sso_jwt_validate($data['access'], $secret, $audience, 'access')
+                ?: bz_sso_jwt_validate($data['access'], $secret, 'buzznet', 'access');
         }
     }
-    
-    // Handle 401 Unauthorized explicitly
-    elseif ($http_code === 401) {
-        bz_bridge_log('WP SSO endpoint returned 401 — user not logged in');
-        $redirect_to = $_SERVER['REQUEST_URI'] ?? '/social';
-        header('Location: /wp-login.php?try=qd00&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
-        exit;
-    }
-    
+    return false;
 }
 
-// 4. If still invalid, use browser JS fallback SSO
-if (!$access_payload && $wordpress_logged_in_) {
+$access_payload = bz_qd_resolve_payload($audience, $BUZZ_SSO_SECRET);
+
+// -----------------------------------------------------
+// 3. JS FALLBACK FOR EDGE CASES
+// -----------------------------------------------------
+if (!$access_payload && $wordpress_logged_in) {
     $aud = htmlspecialchars($audience, ENT_QUOTES, 'UTF-8');
     $redirect = htmlspecialchars($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8');
     ?>
@@ -450,10 +400,7 @@ if (!$access_payload && $wordpress_logged_in_) {
             return;
         }
         if (window.sessionStorage) sessionStorage.setItem('sso_js_fallback_tried', '1');
-
-        fetch('https://buzzjuice.net/?sso_action=issue_tokens&aud=<?php echo $aud; ?>', {
-            credentials: 'include'
-        })
+        fetch('https://buzzjuice.net/?sso_action=issue_tokens&aud=<?php echo $aud; ?>', {credentials: 'include'})
         .then(function(resp) {
             if (!resp.ok) throw new Error("HTTP " + resp.status);
             return resp.json();
@@ -478,20 +425,32 @@ if (!$access_payload && $wordpress_logged_in_) {
     exit;
 }
 
-// 5. If all failed, redirect to login
+// -----------------------------------------------------
+// 4. FINAL FAILURE: REDIRECT TO LOGIN IF SSO NOT POSSIBLE
+// -----------------------------------------------------
 if (!$access_payload) {
-    bz_bridge_log('Dual-token bootstrap failed — redirecting to login');
-    $redirect_to = $_SERVER['REQUEST_URI'] ?? '/social';
+    bz_bridge_log('QuickDate: Dual-token bootstrap failed — redirecting to login.');
     header('Location: /wp-login.php?try=qd01&redirect_to=/social/qd-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
-// Hydrate canonical session for downstream mapping
+// -----------------------------------------------------
+// 5. HYDRATE CANONICAL SSO SESSION (FOR QD)
+// -----------------------------------------------------
 $_SESSION['wp_user_id']    = (int)($access_payload['wp_user_id'] ?? 0);
 $_SESSION['wp_user_login'] = (string)($access_payload['wp_user_login'] ?? '');
 $_SESSION['wp_user_email'] = (string)($access_payload['wp_user_email'] ?? '');
 $_SESSION['qd_user_id']    = (int)($access_payload['qd_user_id'] ?? 0);
 $_SESSION['wp_qd_SSO_Login'] = true;
+
+bz_bridge_log('QuickDate SSO session hydrated from JWT claims', [
+    'session' => [
+        'wp_user_id'      => $_SESSION['wp_user_id'],
+        'wp_user_login'   => $_SESSION['wp_user_login'],
+        'qd_user_id'      => $_SESSION['qd_user_id'],
+        'wp_qd_SSO_Login' => $_SESSION['wp_qd_SSO_Login'],
+    ]
+]);
 
 // -----------------------------
 // Required claims guard
@@ -1003,58 +962,125 @@ function QD_SSO_Login() {
         }
     }
 
-    // ====================== WordPress → QuickDate Metadata Sync (Canonical Source) ======================
 
+
+    // ==================== WordPress → QuickDate Metadata Sync (Refactored, Safe, & Failsafe) ====================
+    
     try {
-        bz_bridge_log('Preparing to sync WordPress metadata to QuickDate', [
+        bz_bridge_log('Preparing QuickDate meta sync', [
             'wp_user_id' => $exp_wp,
-            'wp_email'   => $exp_email
+            'email'      => $exp_email
         ]);
         $did_sync = false;
     
-        if (empty($exp_email) || empty($exp_wp)) {
-            bz_bridge_log('QuickDate sync skipped: missing wp_user_id or wp_email');
+        // 0. Preconditions
+        if (empty($exp_wp) || empty($exp_email)) {
+            bz_bridge_log('QuickDate sync aborted: missing wp_user_id or email');
             return;
         }
-    
-        // 1. Load full WordPress profile and metadata registry
         $wp_conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
         $qd_conn = function_exists('get_qd_db_conn') ? get_qd_db_conn() : null;
         if (!$wp_conn || !$qd_conn) {
-            bz_bridge_log('QuickDate sync skipped: missing WP or QD DB connection');
+            bz_bridge_log('QuickDate sync aborted: DB unavailable');
             return;
         }
-    
         $wp_full = function_exists('wp_get_full_user_data') ? wp_get_full_user_data($wp_conn, $exp_wp) : null;
         if (!$wp_full || !is_array($wp_full)) {
-            bz_bridge_log('QuickDate sync aborted: wp_get_full_user_data failed', ['wp_user_id'=>$exp_wp]);
+            bz_bridge_log('QuickDate sync aborted: wp_get_full_user_data failed');
             return;
         }
+        $wp_meta     = $wp_full['meta'] ?? [];
+        $wp_xprofile = $wp_full['xprofile'] ?? [];
+        $wp_core     = $wp_full;
     
-        $metadata = function_exists('get_user_field_metadata') ? get_user_field_metadata() : [];
-        $public_fields  = $metadata['public_open_fields'] ?? [];
-        $private_fields = $metadata['private_secure_fields'] ?? [];
-        $field_map      = $metadata['field_map'] ?? [];
+        // 1. Scalar-normalization to ensure safe DB writes and avoid unserialize/array errors
+        function qd_norm($v) {
+            if (is_array($v) || is_object($v)) return json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if (!is_string($v)) return $v;
+            if (function_exists('is_serialized') && is_serialized($v)) {
+                $u = @unserialize($v);
+                if ($u !== false || $v === 'b:0;') return $u;
+            }
+            $json = json_decode($v, true);
+            if (json_last_error() === JSON_ERROR_NONE) return $json;
+            return $v;
+        }
+        function qd_scalar($v) {
+            return (is_array($v) || is_object($v)) ? json_encode($v, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) : (string)$v;
+        }
     
-        // 2. Aggregate WordPress meta/xprofile/core fields
-        $wp_all_meta = [];
-        foreach ($wp_full['meta'] ?? [] as $k => $v) $wp_all_meta[$k] = $v;
-    
-        foreach ($wp_full['xprofile'] ?? [] as $k => $v) {
+        // 2. Build canonical user state array (all lowercased)
+        $state = [];
+        foreach ($wp_meta as $k => $v) {
+            $state[strtolower(trim($k))] = qd_scalar(qd_norm($v));
+        }
+        foreach ($wp_xprofile as $k => $v) {
             $norm = strtolower(str_replace([' ','-'],'_',trim($k)));
-            $wp_all_meta[$norm] = $v;
+            $state[$norm] = qd_scalar(qd_norm($v));
+        }
+        foreach (['user_login','user_email','first_name','last_name'] as $f) {
+            if (!empty($wp_core[$f])) $state[$f] = $wp_core[$f];
         }
     
-        foreach (['user_login', 'user_email', 'first_name', 'last_name'] as $core_field) {
-            if (!empty($wp_full[$core_field])) $wp_all_meta[$core_field] = $wp_full[$core_field];
+        // 3. MEDIA NORMALIZATION ENGINE (no rewriting `/streams/upload/`, all wp-content fixed)
+        function qd_media_url($url) {
+            $url = trim((string)$url);
+            if (!$url) return '';
+            // Fix errant /streams/wp-content or /social/wp-content in absolute URLs
+            if (preg_match('#^https?://#i', $url)) {
+                $url = preg_replace('#^(https?://[^/]+)/(streams|social)/wp-content/#i', '$1/wp-content/', $url);
+                return $url;
+            }
+            // Fix relative
+            $url = preg_replace('#^/(streams|social)/wp-content/#i', '/wp-content/', $url);
+            if (strpos($url, '/wp-content/') === 0) return 'https://buzzjuice.net' . $url;
+            if (strpos($url, 'wp-content/') === 0)   return 'https://buzzjuice.net/' . $url;
+            // If inside shared media, do not rewrite (preserve QuickDate/WoWonder shared media)
+            if (strpos($url, '/streams/upload/') !== false) return $url;
+            // Catch-all: treat as site-relative
+            return 'https://buzzjuice.net/' . ltrim($url, '/');
+        }
+        function qd_file_exists($url) {
+            if (!preg_match('#^https?://buzzjuice\.net(/.*)$#i', $url, $m)) return true;
+            return file_exists($_SERVER['DOCUMENT_ROOT'] . $m[1]);
         }
     
+        $default_icon        = 'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.03-icon192x192.png';
+        $bb_avatar_default   = '/wp-content/plugins/buddyboss-platform/bp-core/images/profile-avatar-buddyboss.png';
+        $bb_cover_primary    = '/wp-content/uploads/buddypress/members/0/cover-image/69dd867faacfb-bp-cover-image.jpg';
+        $bb_cover_fallback   = '/wp-content/plugins/buddyboss-platform/bp-core/images/cover-image.png';
     
-        // ======================================================
-        // WordPress → QuickDate Role & Subscription Sync (Authoritative)
-        // ======================================================
-        
-        // 1. Role → pro_type mapping (Edit here if you add roles!)
+        // Avatar/candidates
+        $avatar_candidates = [
+            qd_media_url($wp_meta['bp_profile_avatar'] ?? ''),
+            qd_media_url($bb_avatar_default),
+            $default_icon
+        ];
+        $avatar_url = $default_icon;
+        foreach ($avatar_candidates as $cand) {
+            if ($cand && qd_file_exists($cand)) {
+                $avatar_url = $cand;
+                break;
+            }
+        }
+        // Cover/candidates
+        $cover_candidates = [
+            qd_media_url($wp_meta['bp_profile_cover'] ?? ''),
+            qd_media_url($bb_cover_primary),
+            qd_media_url($bb_cover_fallback),
+            $default_icon
+        ];
+        $cover_url = $default_icon;
+        foreach ($cover_candidates as $cand) {
+            if ($cand && qd_file_exists($cand)) {
+                $cover_url = $cand;
+                break;
+            }
+        }
+        $state['avatar'] = $avatar_url;
+        $state['cover']  = $cover_url;
+    
+        // 4. Role & Pro/Subscription info
         $role_map = [
             'classic_lifestyle'  => 1,
             'silver_lifestyle'   => 2,
@@ -1062,7 +1088,6 @@ function QD_SSO_Login() {
             'premium_lifestyle'  => 4,
             'jewel_affiliate'    => 2,
         ];
-        // 2. Role priority (first found wins if multiple assigned)
         $role_priority = [
             'premium_lifestyle',
             'rockstar_lifestyle',
@@ -1070,56 +1095,31 @@ function QD_SSO_Login() {
             'classic_lifestyle',
             'jewel_affiliate'
         ];
-        
-        // 3. Extract normalized user roles from WP data
         $wp_roles = [];
-        // Preferred: $wp_full['roles'] from wp_get_full_user_data
-        if (!empty($wp_full['roles']) && is_array($wp_full['roles'])) {
-            $wp_roles = array_map('strtolower', $wp_full['roles']);
-        } elseif (!empty($wp_full['meta']['wp_capabilities'])) {
-            $maybe_caps = @unserialize($wp_full['meta']['wp_capabilities']);
-            if (is_array($maybe_caps)) {
-                $wp_roles = array_map('strtolower', array_keys(array_filter($maybe_caps)));
-            } elseif (is_string($wp_full['meta']['wp_capabilities']) && strpos($wp_full['meta']['wp_capabilities'], '{') === 0) {
-                $maybe_caps = json_decode($wp_full['meta']['wp_capabilities'], true);
-                if (is_array($maybe_caps)) {
-                    $wp_roles = array_map('strtolower', array_keys(array_filter($maybe_caps)));
-                }
-            }
+        if (!empty($wp_core['roles']) && is_array($wp_core['roles'])) {
+            $wp_roles = array_map('strtolower', $wp_core['roles']);
+        } elseif (!empty($wp_meta['wp_capabilities'])) {
+            $maybe_caps = qd_norm($wp_meta['wp_capabilities']);
+            if (is_array($maybe_caps)) $wp_roles = array_map('strtolower', array_keys(array_filter($maybe_caps)));
         }
-        
-        // 4. Find highest-priority mapped role present
         $matched_roles = array_values(array_intersect($role_priority, $wp_roles));
-        $is_pro = 0;
-        $pro_type = 0;
-        $pro_time = 0;
-        if (!empty($matched_roles)) {
-            $role = $matched_roles[0]; // Highest priority
-            $pro_type = $role_map[$role];
-            $is_pro   = 1;
-            $pro_time = time();
-        }
-        
-        // 5. Lookup current QuickDate state (for downgrade logic)
+        $is_pro   = !empty($matched_roles);
+        $pro_type = $is_pro ? $role_map[$matched_roles[0]] : 0;
+        $pro_time = $is_pro ? time() : 0;
+    
+        // Check current QuickDate pro/downgrade logic:
         $current_qd = [];
         $q = mysqli_query($qd_conn, "SELECT is_pro, pro_type FROM users WHERE email='".mysqli_real_escape_string($qd_conn, $exp_email)."' LIMIT 1");
-        if ($q && $row = mysqli_fetch_assoc($q)) {
-            $current_qd = $row;
-        }
-        
-        // 6. Inject authoritative values directly into $wp_all_meta
+        if ($q && $row = mysqli_fetch_assoc($q)) $current_qd = $row;
         if ($is_pro) {
-            $wp_all_meta['is_pro']   = 1;
-            $wp_all_meta['pro_type'] = $pro_type;
-            $wp_all_meta['pro_time'] = $pro_time;
+            $state['is_pro']   = 1;
+            $state['pro_type'] = $pro_type;
+            $state['pro_time'] = $pro_time;
         } elseif (!empty($current_qd) && (int)$current_qd['is_pro'] === 1) {
-            // If user no longer has mapped WP pro role, forcibly downgrade in QuickDate
-            $wp_all_meta['is_pro']   = 0;
-            $wp_all_meta['pro_type'] = 0;
-            $wp_all_meta['pro_time'] = 0;
+            $state['is_pro']   = 0;
+            $state['pro_type'] = 0;
+            $state['pro_time'] = 0;
         }
-        
-        // 7. Log every entitlement sync step for trace/audit
         bz_bridge_log('WP→QuickDate subscription sync', [
             'wp_roles'      => $wp_roles,
             'matched_roles' => $matched_roles,
@@ -1129,95 +1129,23 @@ function QD_SSO_Login() {
             'exp_email'     => $exp_email
         ]);
     
+        // 5. Meta fieldmap registry/load (buzz_metadata.json, plus required identity fields)
+        $metadata = function_exists('get_user_field_metadata') ? get_user_field_metadata() : [];
+        $public_fields  = $metadata['public_open_fields'] ?? [];
+        $private_fields = $metadata['private_secure_fields'] ?? [];
+        $field_map      = $metadata['field_map'] ?? [];
+        $sync_fields = array_unique(
+            array_merge(
+                array_keys($public_fields),
+                array_keys($private_fields),
+                ['username','email','first_name','last_name','avatar','cover']
+            )
+        );
     
-    
-        // =========================================================
-        // 🔥 [NEW] STRICT AVATAR SANITIZER (FINAL AUTHORITY)
-        // =========================================================
-        function bz_normalize_avatar_strict($value) {
-            $value = trim((string)$value);
-            if ($value === '') return '';
-    
-            // 1. Allow external URLs unchanged
-            if (preg_match('#^https?://#i', $value)) {
-                return $value;
-            }
-    
-            // 2. Normalize slashes and remove leading junk
-            $value = str_replace('\\', '/', $value);
-            $value = preg_replace('#^(\.\./)+#', '', $value);
-            $value = ltrim($value, '/');
-    
-            // 3. Remove known prefixes
-            $value = preg_replace('#^(streams/|social/)?upload/photos/#i', '', $value);
-    
-            // 4. Prevent malformed duplication like photos/photos/
-            $value = preg_replace('#^(photos/)+#i', '', $value);
-    
-            // 5. Ensure valid structure
-            if (!preg_match('#^[0-9]{4}/[0-9]{2}/#', $value)) {
-                // fallback: just ensure it's under upload/photos
-                $value = ltrim($value, '/');
-            }
-    
-            // 6. Build canonical path
-            $value = '../streams/upload/photos/' . $value;
-    
-            // 7. Final cleanup (prevent duplicates)
-            $value = preg_replace('#(\.\./streams/)+#', '../streams/', $value);
-    
-            return $value;
-        }
-        // =========================================================
-    
-        // 3. Normalize avatar/cover (initial pass)
-        $site_base = 'https://buzzjuice.net';
-    
-        if (!empty($wp_full['meta']['bp_profile_avatar'])) {
-            $wp_all_meta['avatar'] = $wp_full['meta']['bp_profile_avatar'];
-        }
-        if (!empty($wp_full['meta']['bp_profile_cover'])) {
-            $wp_all_meta['cover'] = $wp_full['meta']['bp_profile_cover'];
-        }
-    
-        // 4. Build QuickDate candidate fields
-        $qd_candidate = [];
-    
-        foreach ($public_fields as $qd_key => $map) {
-            $wp_field = $field_map[$qd_key] ?? $qd_key;
-            if (isset($wp_all_meta[$wp_field]) && $wp_all_meta[$wp_field] !== '') {
-                $qd_candidate[$qd_key] = trim($wp_all_meta[$wp_field]);
-            }
-        }
-    
-        foreach ($private_fields as $qd_key => $map) {
-            $wp_field = $field_map[$qd_key] ?? $qd_key;
-            if (!isset($qd_candidate[$qd_key]) && isset($wp_all_meta[$wp_field]) && $wp_all_meta[$wp_field] !== '') {
-                $qd_candidate[$qd_key] = trim($wp_all_meta[$wp_field]);
-            }
-        }
-    
-        // Canonical fields
-        foreach(['username','email','first_name','last_name','avatar','cover'] as $f) {
-            if (!isset($qd_candidate[$f]) && !empty($wp_all_meta[$f])) {
-                $qd_candidate[$f] = $wp_all_meta[$f];
-            }
-        }
-    
-        // =========================================================
-        // 🔥 [NEW] FINAL AVATAR ENFORCEMENT (CRITICAL FIX)
-        // =========================================================
-        if (isset($qd_candidate['avatar'])) {
-            $qd_candidate['avatar'] = bz_normalize_avatar_strict($qd_candidate['avatar']);
-        }
-        // =========================================================
-    
-        // 5. Load QuickDate schema cache
+        // 6. QuickDate schema cache
         $schema_cache_folder = $_SERVER['DOCUMENT_ROOT'] . '/data/schema_cache/';
         $schema_cache_file   = $schema_cache_folder . 'qd_users_schema.json';
-    
         if (!is_dir($schema_cache_folder)) @mkdir($schema_cache_folder, 0755, true);
-    
         static $qd_schema = null;
         if ($qd_schema === null) {
             if (file_exists($schema_cache_file)) {
@@ -1225,52 +1153,43 @@ function QD_SSO_Login() {
             } else {
                 $qd_schema = [];
                 $q = mysqli_query($qd_conn, "SHOW COLUMNS FROM users");
-                while ($row = mysqli_fetch_assoc($q)) {
-                    $qd_schema[$row['Field']] = true;
-                }
+                while ($row = mysqli_fetch_assoc($q)) $qd_schema[$row['Field']] = true;
                 @file_put_contents($schema_cache_file, json_encode($qd_schema));
             }
         }
-    
-        // 6. Filter valid fields
+        // 7. Build update payload (enforce schema, always use normalized avatar/cover)
         $qd_update = [];
-        foreach ($qd_candidate as $k => $v) {
-            if ($k === 'avatar' && $v === '') continue; // prevent overwrite
-    
-            if (isset($qd_schema[$k])) {
-                $qd_update[$k] = $v;
-            } else {
-                bz_bridge_log('QuickDate sync skipped unsupported field', ['field'=>$k]);
-            }
+        foreach ($sync_fields as $qd_key) {
+            $wp_field = $field_map[$qd_key] ?? $qd_key;
+            if (!isset($state[$wp_field]) || $state[$wp_field] === '') continue;
+            if (!isset($qd_schema[$qd_key])) continue;
+            if ($qd_key === 'avatar') $qd_update['avatar'] = $avatar_url;
+            elseif ($qd_key === 'cover') $qd_update['cover'] = $cover_url;
+            else $qd_update[$qd_key] = is_string($state[$wp_field]) ? trim($state[$wp_field]) : $state[$wp_field];
         }
+        // Always ensure email/username
+        $qd_update['email']    = $exp_email;
+        $qd_update['username'] = $wp_core['user_login'] ?? '';
     
-        // 7. Hash optimization
+        // 8. Hash change detection (idempotence)
         $hash_payload = $qd_update;
         unset($hash_payload['lastseen'], $hash_payload['session'], $hash_payload['ip_address']);
-    
         $new_hash = md5(json_encode($hash_payload));
         $old_hash = '';
-    
         if (isset($qd_schema['wp_meta_hash'])) {
             $q = mysqli_query($qd_conn, "SELECT wp_meta_hash FROM users WHERE email='".mysqli_real_escape_string($qd_conn, $exp_email)."' LIMIT 1");
-            if ($q && $row = mysqli_fetch_assoc($q)) {
-                $old_hash = $row['wp_meta_hash'] ?? '';
-            }
+            if ($q && $row = mysqli_fetch_assoc($q)) $old_hash = $row['wp_meta_hash'] ?? '';
         }
-    
-        // 8. Update QuickDate
+        // 9. Write to DB (only if changes)
         if ($new_hash !== $old_hash && !empty($qd_update)) {
             $qd_update['wp_meta_hash'] = $new_hash;
-    
             $ok = function_exists('qd_update_user') ? qd_update_user($exp_email, $qd_update) : false;
-    
             bz_bridge_log('QuickDate sync: updated metadata', [
                 'email' => $exp_email,
                 'wp_user_id' => $exp_wp,
                 'fields' => array_keys($qd_update),
                 'result' => (bool) $ok
             ]);
-    
             $did_sync = (bool) $ok;
         } else {
             bz_bridge_log('QuickDate sync skipped (meta hash unchanged or no updatable fields)', [
@@ -1278,17 +1197,17 @@ function QD_SSO_Login() {
                 'wp_user_id' => $exp_wp
             ]);
         }
-    
         if (!$did_sync) {
             bz_bridge_log('QuickDate sync did not run or failed', [
                 'email' => $exp_email,
                 'wp_user_id' => $exp_wp
             ]);
         }
-    
     } catch (Throwable $e) {
         bz_bridge_log('Exception during QuickDate sync', ['ex' => $e->getMessage()]);
     }
+
+
 
     // Decide redirect URL
     $url = (isset($config->uri) ? rtrim($config->uri,'/') : '') . '/steps';

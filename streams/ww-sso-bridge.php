@@ -173,182 +173,126 @@ $_SESSION['last_url'] = $last_url;
 // ===================================================================
 // START: SESSION MANAGEMENT / ENDPOINTS / PAYLOAD / DATA MAPPING
 // ===================================================================
-// -----------------------------------------------------
-// STEP 1: SESSION SAFETY GUARD FOR DUAL-TOKEN JWT SSO
-// -----------------------------------------------------
-// --- Current WoWonder authentication state ---
-$wo_loggedin        = !empty($wo['loggedin']);
-$wo_user_id         = $wo['user']['user_id'] ?? null;
+// ===================================================================
+// UNIFIED SSO SESSION MANAGEMENT / DUAL TOKEN BOOTSTRAP (RECOMMENDED)
+// ===================================================================
 
-// --- Current PHP session state ---
-$session_wo_user_id = $_SESSION['wo_user_id'] ?? null;
-$session_user_id    = $_SESSION['user_id'] ?? null;
+// 1. FAST PATH: Already logged into WoWonder in canonical session
+if (
+    !empty($wo['loggedin']) &&
+    !empty($wo['user']['user_id']) &&
+    !empty($_SESSION['wo_user_id']) &&
+    (string)$_SESSION['wo_user_id'] === (string)$wo['user']['user_id']
+) {
+    bz_bridge_log('User already fully logged in to WoWonder, fast redirect.', [
+        'wo_user_id'         => $wo['user']['user_id'],
+        'session_wo_user_id' => $_SESSION['wo_user_id'],
+        'last_url'           => $last_url,
+    ]);
+    header('Location: ' . $last_url);
+    exit;
+}
 
-// --- Detect WordPress login cookie (authority signal for SSO) ---
-$wordpress_logged_in_ = false;
+// 2. Check for WordPress authority 
+$wordpress_logged_in = false;
 foreach ($_COOKIE as $name => $value) {
     if (strpos($name, 'wordpress_logged_in_') === 0) {
-        $wordpress_logged_in_ = true;
+        $wordpress_logged_in = true;
         break;
     }
 }
 
-// ---------------------------------------------------------------
-// CASE A: WordPress logged in — check WoWonder session
-// ---------------------------------------------------------------
-if ($wordpress_logged_in_) {
-
-    // --- CASE A.1: Both WP and WoWonder session fully active ---
-    $already_logged_in = (
-        $wo_loggedin &&
-        !empty($wo_user_id) &&
-        !empty($session_user_id) &&
-        !empty($session_wo_user_id) &&
-        ((string)$session_wo_user_id === (string)$wo_user_id)
-    );
-
-    if ($already_logged_in) {
-        bz_bridge_log(
-            'Both WordPress & WoWonder sessions confirmed; safe redirect.',
-            [
-                'wo_loggedin'        => $wo_loggedin,
-                'wo_user_id'         => $wo_user_id,
-                'session_wo_user_id' => $session_wo_user_id,
-                'session_user_id'    => $session_user_id,
-                'request_uri'        => $_SERVER['REQUEST_URI'] ?? null,
-                'http_referer'       => $_SERVER['HTTP_REFERER'] ?? null,
-                'redirect_to'        => $_GET['redirect_to'] ?? null
-            ]
-        );
-
-        header('Location: ' . urlencode($last_url));
-        exit;
+// 3. If no WordPress, destroy any lingering session and force login round-trip
+if (!$wordpress_logged_in) {
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        $_SESSION = [];
+        session_unset();
+        @session_destroy();
     }
-
-    // --- CASE A.2: WP logged in but WoWonder session not active ---
-//bz_bridge_log('WP session active, WW session inactive — proceeding to SSO bootstrap.', ['wo_loggedin' => $wo_loggedin, 'wo_user_id' => $wo_user_id, 'session_user_id' => $session_user_id, 'session_wo_user_id' => $session_wo_user_id, ]); 
-    // Allow SSO bootstrap code (dual-token flow) to run next
-}
-
-// ---------------------------------------------------------------
-// CASE B: WordPress not logged in — clear any stale WoWonder session
-// ---------------------------------------------------------------
-bz_bridge_log(
-    'WP or WW session inactive — proceeding to SSO login.',
-    [
-        'wo_loggedin'        => $wo_loggedin,
-        'wo_user_id'         => $wo_user_id,
-        'session_user_id'    => $session_user_id,
-        'session_wo_user_id' => $session_wo_user_id,
-    ]
-);
-
-// --- Explicitly destroy stale WoWonder session ---
-if (isset($_SESSION) && !empty($session_wo_user_id) || !empty($session_user_id)) {
-    session_unset();
-    @session_destroy();
-}
-
-// Proceed to SSO bootstrap — user must re-login
-
-// =============================================================================
-// BuzzStreams Fetch Stateless SSO Payload Orchestration (WordPress → WoWonder)
-// =============================================================================
-$audience = 'streams';
-$BUZZ_SSO_SECRET = getenv('BUZZ_SSO_SECRET') ?: (defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : null);
-
-$access_token  = $_COOKIE['buzz_access'] ?? $_REQUEST['buzz_access'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? $_REQUEST[BUZZ_SSO_COOKIE] ?? null);
-$refresh_token = $_COOKIE['buzz_refresh'] ?? $_REQUEST['buzz_refresh'] ?? null;
-
-$access_payload = false;
-
-// 1. Try validating access token for current bridge OR universal audience
-if ($access_token) {
-    $access_payload = bz_sso_jwt_validate($access_token, $BUZZ_SSO_SECRET, $audience, 'access');
-    if (!$access_payload) {
-        // Accept universal 'buzznet' audience token as fallback
-        $access_payload = bz_sso_jwt_validate($access_token, $BUZZ_SSO_SECRET, 'buzznet', 'access');
-    }
-}
-
-// 2. If access still invalid, try silent local minting using refresh token
-if (!$access_payload && $refresh_token) {
-    $refresh_payload = bz_sso_jwt_validate($refresh_token, $BUZZ_SSO_SECRET, $audience, 'refresh');
-    if (!$refresh_payload) {
-        // Accept universal audience for refresh token as fallback
-        $refresh_payload = bz_sso_jwt_validate($refresh_token, $BUZZ_SSO_SECRET, 'buzznet', 'refresh');
-    }
-    if ($refresh_payload) {
-        $new_payload = [
-            'wp_user_id'    => $refresh_payload['wp_user_id'] ?? null,
-            'wp_user_login' => $refresh_payload['wp_user_login'] ?? null,
-            'wp_user_email' => $refresh_payload['wp_user_email'] ?? null,
-            'wo_user_id'    => $refresh_payload['wo_user_id'] ?? null,
-            'qd_user_id'    => $refresh_payload['qd_user_id'] ?? null
-        ];
-        $new_access = bz_sso_jwt_encode($new_payload, $BUZZ_SSO_SECRET, $audience, BUZZ_SSO_TTL_ACCESS, 'access');
-        bz_sso_set_cookie('buzz_access', $new_access, time()+BUZZ_SSO_TTL_ACCESS);
-        $access_payload = bz_sso_jwt_validate($new_access, $BUZZ_SSO_SECRET, $audience, 'access');
-    }
-}
-
-// =================================
-// **** TODO - REVIEW CODE & FUNCTIONALITY ****
-// =================================
-// 3. If still invalid, call WordPress endpoint. Use streams OR buzznet for /issue_tokens
-// 1. Try PHP-side SSO token fetch
-$wp_token_url = 'https://buzzjuice.net/?sso_action=issue_tokens&aud=' . urlencode($audience);
-
-$cookies = '';
-foreach ($_COOKIE as $name => $val) {
-    if (strpos($name, 'wordpress_logged_in_') === 0 || strpos($name, 'wordpress_sec_') === 0) {
-        $cookies .= "$name=$val; ";
-    }
-}
-$cookies = trim($cookies);
-
-$headers = [
-    'Cookie: ' . $cookies,
-    'User-Agent: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'BuzzSSO/1.0')
-];
-
-$context = stream_context_create([
-    'http' => [
-        'method'  => 'GET',
-        'header'  => implode("\r\n", $headers),
-        'timeout' => 5 // seconds -- adjust as desired
-    ]
-]);
-
-$resp = @file_get_contents($wp_token_url, false, $context);
-$http_code = 0;
-if (isset($http_response_header[0])) {
-    if (preg_match('#HTTP/\d+\.\d+\s+(\d+)#', $http_response_header[0], $matches)) {
-        $http_code = (int)$matches[1];
-    }
-}
-if ($resp !== false && $http_code === 200) {
-    $data = json_decode($resp, true);
-
-    if (!empty($data['access'])) {
-        bz_sso_set_cookie('buzz_access', $data['access'], time()+BUZZ_SSO_TTL_ACCESS);
-        if (!empty($data['refresh'])) {
-            bz_sso_set_cookie('buzz_refresh', $data['refresh'], time()+BUZZ_SSO_TTL_REFRESH);
-        }
-        $access_payload =
-            bz_sso_jwt_validate($data['access'], $BUZZ_SSO_SECRET, $audience, 'access')
-            ?: bz_sso_jwt_validate($data['access'], $BUZZ_SSO_SECRET, 'buzznet', 'access');
-    }
-}
-
-if ($http_code === 401) {
-    bz_bridge_log('WP SSO endpoint returned 401 — user not logged in');
-    header('Location: /wp-login.php?try=ww00&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
+    bz_bridge_log('No WordPress session present. Redirecting to WordPress login.', ['last_url' => $last_url]);
+    header('Location: /wp-login.php?redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
-// 2. If that failed, use browser JS fallback
-if (!$access_payload && $wordpress_logged_in_) {
+// 4. Centralized SSO payload resolver
+$audience = 'streams';
+$BUZZ_SSO_SECRET = getenv('BUZZ_SSO_SECRET') ?: (defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : null);
+
+function bz_resolve_sso_payload($audience, $secret) {
+    $access_token  = $_COOKIE['buzz_access'] ?? $_REQUEST['buzz_access'] ?? ($_COOKIE[BUZZ_SSO_COOKIE] ?? $_REQUEST[BUZZ_SSO_COOKIE] ?? null);
+    $refresh_token = $_COOKIE['buzz_refresh'] ?? $_REQUEST['buzz_refresh'] ?? null;
+
+    // a. Try access token (preferred, local-first)
+    if ($access_token) {
+        $payload = bz_sso_jwt_validate($access_token, $secret, $audience, 'access')
+            ?: bz_sso_jwt_validate($access_token, $secret, 'buzznet', 'access');
+        if ($payload) return $payload;
+    }
+
+    // b. If that's expired/invalid/missing, try the refresh token to mint new access
+    if ($refresh_token) {
+        $refresh_payload = bz_sso_jwt_validate($refresh_token, $secret, $audience, 'refresh')
+            ?: bz_sso_jwt_validate($refresh_token, $secret, 'buzznet', 'refresh');
+        if ($refresh_payload) {
+            $new_payload = [
+                'wp_user_id'    => $refresh_payload['wp_user_id'] ?? null,
+                'wp_user_login' => $refresh_payload['wp_user_login'] ?? null,
+                'wp_user_email' => $refresh_payload['wp_user_email'] ?? null,
+                'wo_user_id'    => $refresh_payload['wo_user_id'] ?? null,
+                'qd_user_id'    => $refresh_payload['qd_user_id'] ?? null,
+            ];
+            $new_access = bz_sso_jwt_encode($new_payload, $secret, $audience, BUZZ_SSO_TTL_ACCESS, 'access');
+            bz_sso_set_cookie('buzz_access', $new_access, time()+BUZZ_SSO_TTL_ACCESS);
+            return bz_sso_jwt_validate($new_access, $secret, $audience, 'access');
+        }
+    }
+
+    // c. As last resort, call server-side to WordPress to issue new tokens using WP cookies
+    $wp_token_url = 'https://buzzjuice.net/?sso_action=issue_tokens&aud=' . urlencode($audience);
+
+    $cookies = '';
+    foreach ($_COOKIE as $name => $val) {
+        // Only send WP auth cookies for authority!
+        if (strpos($name, 'wordpress_logged_in_') === 0 || strpos($name, 'wordpress_sec_') === 0) {
+            $cookies .= "$name=$val; ";
+        }
+    }
+    $headers = [
+        'Cookie: ' . trim($cookies),
+        'User-Agent: ' . ($_SERVER['HTTP_USER_AGENT'] ?? 'BuzzSSO/1.0')
+    ];
+    $context = stream_context_create([
+        'http' => [
+            'method'  => 'GET',
+            'header'  => implode("\r\n", $headers),
+            'timeout' => 5
+        ]
+    ]);
+    $resp = @file_get_contents($wp_token_url, false, $context);
+    $http_code = 0;
+    if (isset($http_response_header[0])
+        && preg_match('#HTTP/\d+\.\d+\s+(\d+)#', $http_response_header[0], $matches)
+    ) $http_code = (int)$matches[1];
+
+    if ($resp !== false && $http_code === 200) {
+        $data = json_decode($resp, true);
+        if (!empty($data['access'])) {
+            bz_sso_set_cookie('buzz_access', $data['access'], time()+BUZZ_SSO_TTL_ACCESS);
+            if (!empty($data['refresh'])) {
+                bz_sso_set_cookie('buzz_refresh', $data['refresh'], time()+BUZZ_SSO_TTL_REFRESH);
+            }
+            return bz_sso_jwt_validate($data['access'], $secret, $audience, 'access')
+                ?: bz_sso_jwt_validate($data['access'], $secret, 'buzznet', 'access');
+        }
+    }
+    return false;
+}
+
+// 5. Actually use the resolver. Try all above paths.
+$access_payload = bz_resolve_sso_payload($audience, $BUZZ_SSO_SECRET);
+
+// 6. If server-side failed but browser still has WP session, use client-side JS fallback.
+if (!$access_payload && $wordpress_logged_in) {
     $aud = htmlspecialchars($audience, ENT_QUOTES, 'UTF-8');
     $redirect = htmlspecialchars($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8');
     ?>
@@ -362,17 +306,12 @@ if (!$access_payload && $wordpress_logged_in_) {
     <div id="status">Attempting secure SSO authorization…</div>
     <script>
     (function() {
-        // Prevent infinite retry/failure loop
         if (window.sessionStorage && sessionStorage.getItem('sso_js_fallback_tried')) {
-            document.getElementById('status').textContent =
-                "SSO failed. Please login via WordPress or try again.";
+            document.getElementById('status').textContent = "SSO failed. Please login via WordPress or try again.";
             return;
         }
         if (window.sessionStorage) sessionStorage.setItem('sso_js_fallback_tried', '1');
-
-        fetch('https://buzzjuice.net/?sso_action=issue_tokens&aud=<?php echo $aud; ?>', {
-            credentials: 'include'
-        })
+        fetch('https://buzzjuice.net/?sso_action=issue_tokens&aud=<?php echo $aud; ?>', {credentials:'include' })
         .then(function(resp) {
             if (!resp.ok) throw new Error("HTTP " + resp.status);
             return resp.json();
@@ -386,8 +325,7 @@ if (!$access_payload && $wordpress_logged_in_) {
             window.location.href = '<?php echo $redirect; ?>';
         })
         .catch(function(e) {
-            document.getElementById('status').textContent =
-                "Network or authentication error during SSO. Please try again.";
+            document.getElementById('status').textContent = "Network or authentication error during SSO. Please try again.";
         });
     })();
     </script>
@@ -397,20 +335,28 @@ if (!$access_payload && $wordpress_logged_in_) {
     exit; // Ensure no further PHP output.
 }
 
-// 4. Fail → redirect user to login
+// 7. If still nothing, fallback to login for manual re-authentication.
 if (!$access_payload) {
     bz_bridge_log('Dual-token bootstrap failed — redirecting to login');
-//    $redirect_to = $_SERVER['REQUEST_URI'] ?? '/streams';
     header('Location: /wp-login.php?try=ww01&redirect_to=/streams/ww-sso-bridge.php?last_url=' . urlencode($last_url));
     exit;
 }
 
-// Hydrate canonical session for downstream mapping
+// 8. Always hydrate canonical session—this makes the rest of the bridge and autologin work
 $_SESSION['wp_user_id']    = (int)($access_payload['wp_user_id'] ?? 0);
 $_SESSION['wp_user_login'] = (string)($access_payload['wp_user_login'] ?? '');
 $_SESSION['wp_user_email'] = (string)($access_payload['wp_user_email'] ?? '');
 $_SESSION['wo_user_id']    = (int)($access_payload['wo_user_id'] ?? 0);
 $_SESSION['wp_Wo_SSO_Login'] = true;
+
+bz_bridge_log('WoWonder SSO session hydrated from JWT claims', [
+    'session' => [
+        'wp_user_id'    => $_SESSION['wp_user_id'],
+        'wp_user_login' => $_SESSION['wp_user_login'],
+        'wo_user_id'    => $_SESSION['wo_user_id'],
+        'wp_Wo_SSO_Login' => $_SESSION['wp_Wo_SSO_Login'],
+    ]
+]);
 
 // -----------------------------
 // Required claims guard
@@ -924,326 +870,231 @@ function Wo_SSO_Login() {
 
 
 
-        // =========================================================
-        // WordPress → WoWonder User Metadata Sync (Canonical Source)
-        // Buzzjuice: after successful login, replace WoWonder meta with WordPress meta
-        // =========================================================
-        
-        // 1. PRECONDITION: Must have valid login
-        $wp_user_id = isset($_SESSION['wp_user_id']) ? (int)$_SESSION['wp_user_id'] : 0;
-        if (!$wp_user_id) {
-            bz_bridge_log('WP→Wo sync skipped: missing wp_user_id');
-            return;
-        }
-        $wp_conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
-        if (!$wp_conn) {
-            bz_bridge_log('WP→Wo sync skipped: WP DB unavailable');
-            return;
-        }
-        $sqlConn  = $GLOBALS['sqlConnect'];
-        $wo_table = defined('T_USERS') ? T_USERS : 'Wo_Users';
-        
-        // 2. LOAD BUZZ METADATA REGISTRY
-        $metadata = function_exists('get_user_field_metadata') ? get_user_field_metadata() : [];
-        $wp_usermeta_fields = $metadata['private_secure_fields'] ?? [];
-        $wp_xprofile_fields = $metadata['public_open_fields'] ?? [];
-        $field_map          = $metadata['field_map'] ?? [];
-        $sync_fields = array_unique(array_merge($wp_usermeta_fields, $wp_xprofile_fields));
-        
-        // 3. FETCH FULL WORDPRESS PROFILE
-        $wp_data = function_exists('wp_get_full_user_data')
-            ? wp_get_full_user_data($wp_conn, $wp_user_id)
-            : false;
-        if (!$wp_data || !is_array($wp_data)) {
-            bz_bridge_log('WP→Wo sync aborted: wp_get_full_user_data failed', ['wp_user_id'=>$wp_user_id]);
-            return;
-        }
-        $wp_meta     = $wp_data['meta'] ?? [];
-        $wp_xprofile = $wp_data['xprofile'] ?? [];
-        $wp_core     = $wp_data;
-        
-        // 4. NORMALIZE & AGGREGATE WP METADATA (usermeta, xprofile, core)
-        $wp_all_meta = [];
-        foreach ($wp_meta as $key => $value)
-            $wp_all_meta[$key] = $value;
-        foreach ($wp_xprofile as $key => $value) {
-            $norm = strtolower(str_replace([' ','-'],'_',trim($key)));
-            $wp_all_meta[$norm] = $value;
-        }
-        foreach (['user_login','user_email','display_name','user_registered'] as $field)
-            if (isset($wp_core[$field]) && !empty($wp_core[$field]))
-                $wp_all_meta[$field] = $wp_core[$field];
-        
-        // 5. Avatar/Cover: BuddyBoss plugin normalization and fix
-        // Helper: Normalize avatar and cover paths for WoWonder display.
-        function bz_normalize_avatar_cover($url, $site_base = 'https://buzzjuice.net', $type = 'avatar') {
-            $url = trim($url);
-            if (!$url) return '';
-        
-            $site_host = parse_url($site_base, PHP_URL_HOST);
-        
-            // Absolute URL handling (keeps off-site URLs as-is)
-            if (preg_match('#^https?://#i', $url)) {
-                $host = parse_url($url, PHP_URL_HOST);
-                $path = parse_url($url, PHP_URL_PATH);
-                if ($host && $host !== $site_host) return $url;
-                if ($path) $url = $path;
-            }
-        
-            // Normalize WP uploads to WoWonder upload path:
-            if (strpos($url, 'wp-content/uploads/') !== false) {
-                $url = preg_replace('#^.*wp-content/uploads/#i', 'upload/photos/', $url);
-            }
-        
-            // Remove leading slashes
-            $url = ltrim($url, '/');
-            // Remove unwanted projects subdirs
-            $url = preg_replace('#(?:^|/)(streams|social)(?:/|$)#i', '', $url);
-        
-            // Remove all 'streams' or 'social' segments
-            $url = preg_replace('#(?:^|/)(streams|social)(?:/|$)#i', '', $url);
-        
-            // Split into path segments and resolve '..'
-            $parts = explode('/', $url);
-            $resolved = [];
-            foreach ($parts as $part) {
-                if ($part === '' || $part === '.') continue;
-                if ($part === '..') {
-                    array_pop($resolved);
-                } else {
-                    $resolved[] = $part;
-                }
-            }
-        
-            $url = implode('/', $resolved);
-        
-            // Ensure starts with 'upload/photos/'
-            /*if (!preg_match('#^upload/photos/#i', $url)) {
-                if (strpos($url, 'photos/') !== false) {
-                    $url = preg_replace('#^.*photos/#i', 'upload/photos/', $url);
-                } else {
-                    $url = '/' . $url;
-                }
-            }*/
-        
-            return $url;
-        }
         
         // =========================================================
-        // 5.i. Avatar/Cover: Deterministic BuddyBoss Default/Fallback (Bridge-Safe)
+        // WordPress → WoWonder Metadata Sync (Buzzjuice Platform Sync v3)
+        // Safely normalizes, maps, and updates only supported fields
         // =========================================================
         
-        $site_base = rtrim($base_site_url ?? 'https://buzzjuice.net', '/');
-        
-        $bb_defaults = [
-            // Most common/default BuddyBoss profile avatar:
-            'avatar' => '/wp-content/plugins/buddyboss-platform/bp-core/images/profile-avatar-buddyboss.png',
-            // Your custom *primary* cover (set via WP Customizer/etc):
-            'cover_primary'   => '/wp-content/uploads/buddypress/members/0/cover-image/69dd867faacfb-bp-cover-image.jpg',
-            // BuddyBoss default fallback (if custom ever not accessible)
-            'cover_fallback'  => '/wp-content/plugins/buddyboss-platform/bp-core/images/cover-image.png'
-        ];
-        
-        // Build absolute URL
-        function bz_build_abs_url($relative, $base) {
-            return rtrim($base, '/') . '/' . ltrim($relative, '/');
-        }
-        
-        // -------------
-        // AVATAR
-        // -------------
-        if (!empty($wp_meta['bp_profile_avatar'])) {
-            $avatar_url = $wp_meta['bp_profile_avatar'];
-        } else {
-            // Always fallback to BuddyBoss default avatar
-            $avatar_url = bz_build_abs_url($bb_defaults['avatar'], $site_base);
-        }
-        
-        // -------------
-        // COVER
-        // -------------
-        if (!empty($wp_meta['bp_profile_cover'])) {
-            $cover_url = $wp_meta['bp_profile_cover'];
-        } else {
-            // Try your branded/global cover (uploads) then plugin default cover
-            $primary_cover  = bz_build_abs_url($bb_defaults['cover_primary'], $site_base);
-            $fallback_cover = bz_build_abs_url($bb_defaults['cover_fallback'], $site_base);
-        
-            // Always prefer branded cover (exists in your install), fallback otherwise
-            $cover_url = $primary_cover ?: $fallback_cover;
-        }
-        
-        // -------------
-        // Inject into meta (normalize for WoWonder)
-        // -------------
-        $wp_all_meta['avatar'] = bz_normalize_avatar_cover($avatar_url, $site_base, 'avatar');
-        $wp_all_meta['cover']  = bz_normalize_avatar_cover($cover_url,  $site_base, 'cover');
-        
-        // 6. WordPress → WoWonder Role & Subscription Sync (Authoritative)
-        // --------- Mapping: WP Role → WoWonder pro_type ---------
-        $role_map = [
-            'classic_lifestyle'  => 1,
-            'silver_lifestyle'   => 2,
-            'rockstar_lifestyle' => 3,
-            'premium_lifestyle'  => 4,
-            'jewel_affiliate'    => 2,
-        ];
-        
-        // --------- Priority for users with multiple roles ---------
-        $role_priority = [
-            'premium_lifestyle',
-            'rockstar_lifestyle',
-            'silver_lifestyle',
-            'classic_lifestyle',
-            'jewel_affiliate'
-        ];
-        
-        // --------- Extract user WordPress roles ---------
-        $wp_roles = [];
-        // Try $wp_core['roles'] (preferred, array in 'wp_get_full_user_data()')
-        if (!empty($wp_core['roles']) && is_array($wp_core['roles'])) {
-            $wp_roles = array_map('strtolower', $wp_core['roles']);
-        } elseif (!empty($wp_meta['wp_capabilities'])) {
-            // Check for serialized capabilities
-            $maybe_caps = @unserialize($wp_meta['wp_capabilities']);
-            if (is_array($maybe_caps)) {
-                $wp_roles = array_map('strtolower', array_keys(array_filter($maybe_caps)));
-            } elseif (is_string($wp_meta['wp_capabilities']) && strpos($wp_meta['wp_capabilities'], '{') === 0) {
-                $maybe_caps = json_decode($wp_meta['wp_capabilities'], true);
-                if (is_array($maybe_caps)) {
-                    $wp_roles = array_map('strtolower', array_keys(array_filter($maybe_caps)));
-                }
-            }
-        }
-        
-        // --------- Detect highest priority mapped role ---------
-        $matched_roles = array_values(array_intersect($role_priority, $wp_roles));
-        $is_pro = 0;
-        $pro_type = 0;
-        $pro_time = 0;
-        if (!empty($matched_roles)) {
-            // Use the highest priority mapped role, even if user has multiple roles
-            $role     = $matched_roles[0];
-            $pro_type = $role_map[$role];
-            $is_pro   = 1;
-            $pro_time = time();
-        }
-        
-        // --------- Get current WW pro status for downgrade logic ---------
-        $current_ww = [];
-        $q = mysqli_query($sqlConn, "SELECT is_pro, pro_type FROM {$wo_table} WHERE user_id=".(int)$accepted_user_id." LIMIT 1");
-        if ($q && $row = mysqli_fetch_assoc($q)) {
-            $current_ww = $row;
-        }
-        
-        // --------- Insert authoritative pro/subscription fields into $update ---------
-        if ($is_pro) {
-            $update['is_pro'] = 1;
-            $update['pro_type'] = $pro_type;
-            // If WoWonder schema has pro_time, sync current unix datetime
-            if (isset($wo_schema['pro_time'])) {
-                $update['pro_time'] = $pro_time;
-            }
-        } elseif (!empty($current_ww) && (int)$current_ww['is_pro'] === 1) {
-            // If previously pro, but now has no mapped roles, downgrade in WoWonder
-            $update['is_pro'] = 0;
-            $update['pro_type'] = 0;
-            if (isset($wo_schema['pro_time'])) {
-                $update['pro_time'] = 0;
-            }
-        }
-        
-        // --------- Detailed log for sync events ----------
-        bz_bridge_log('WP→Wo subscription sync', [
-            'wp_roles'      => $wp_roles,
-            'matched_roles' => $matched_roles,
-            'final_is_pro'  => $is_pro,
-            'final_pro_type'=> $pro_type,
-            'current_ww'    => $current_ww,
-            'user_id'       => $accepted_user_id
-        ]);
+// ==================================================================
+// WordPress → WoWonder User Metadata Sync (Robust, Hardened Version)
+// ==================================================================
 
-        // 7. BUILD WoWonder UPDATE PAYLOAD (schema mapping)
-        $update = [];
-        foreach ($sync_fields as $field) {
-            if (!array_key_exists($field, $wp_all_meta)) continue;
-            $val = $wp_all_meta[$field];
-            if ($val === null || (is_string($val) && trim($val) === '')) continue;
-            // Normalize avatar/cover as you push
-            if ($field === 'avatar') $val = bz_normalize_avatar_cover($val, $site_base, 'avatar');
-            if ($field === 'cover')  $val = bz_normalize_avatar_cover($val, $site_base, 'cover');
-            $wo_field = $field_map[$field] ?? $field;
-            $update[$wo_field] = is_string($val) ? trim($val) : $val;
-        }
-        
-        // Canonical identity always synced from session
-        $update['wp_user_id'] = $wp_user_id;
-        if (!empty($_SESSION['wp_user_email']))  $update['email']    = trim($_SESSION['wp_user_email']);
-        if (!empty($_SESSION['wp_user_login']))  $update['username'] = trim($_SESSION['wp_user_login']);
-        
-        // 8. LOAD WoWonder SCHEMA CACHE (efficient, reloads only if missing)
-        $schema_cache_folder = $_SERVER['DOCUMENT_ROOT'] . '/data/schema_cache/';
-        $schema_cache_file   = $schema_cache_folder . 'wo_users_schema.json';
-        if (!is_dir($schema_cache_folder)) @mkdir($schema_cache_folder, 0755, true);
-        static $wo_schema = null;
-        if ($wo_schema === null) {
-            if (file_exists($schema_cache_file)) {
-                $wo_schema = json_decode(file_get_contents($schema_cache_file), true) ?: [];
-            } else {
-                $wo_schema = [];
-                $q = mysqli_query($sqlConn, "SHOW COLUMNS FROM {$wo_table}");
-                while ($row = mysqli_fetch_assoc($q)) $wo_schema[$row['Field']] = true;
-                @file_put_contents($schema_cache_file, json_encode($wo_schema));
-            }
-        }
-        
-        // 9. FILTER UNSUPPORTED FIELDS (future-proof)
-        $update_filtered = [];
-        foreach ($update as $field => $value) {
-            if (isset($wo_schema[$field])) {
-                $update_filtered[$field] = $value;
-            } else {
- //               bz_bridge_log('WP→Wo sync skipped field (not in WoWonder schema)', ['field'=>$field]);
-            }
-        }
-        
-        // 10. METADATA HASH OPTIMIZATION — Only write if changed
-        $hash_payload = $update_filtered;
-        unset($hash_payload['lastseen'], $hash_payload['session'], $hash_payload['ip_address']);
-        $new_hash = md5(json_encode($hash_payload));
-        $old_hash = '';
-        if (isset($wo_schema['wp_meta_hash'])) {
-            $q = mysqli_query($sqlConn, "SELECT wp_meta_hash FROM {$wo_table} WHERE user_id=".(int)$accepted_user_id." LIMIT 1");
-            if ($q && $row = mysqli_fetch_assoc($q)) $old_hash = $row['wp_meta_hash'] ?? '';
-        }
-        
-        // 11. PUSH TO WoWonder ONLY IF CHANGED; Extensive Error Logging
-        if ($new_hash !== $old_hash || $new_hash === $old_hash) {
-            $update_filtered['wp_meta_hash'] = $new_hash;
-            if (!empty($update_filtered) && function_exists('Wo_UpdateUserData')) {
-                $old_level = error_reporting();
-                error_reporting($old_level & ~E_NOTICE & ~E_WARNING);
-                try {
-                    $result = Wo_UpdateUserData($accepted_user_id, $update_filtered);
+// 1. Gather identifiers safely.
+$wp_user_id = (int)($_SESSION['wp_user_id'] ?? 0);
+$wo_user_id = (int)($_SESSION['wo_user_id'] ?? 0);
+if (!$wp_user_id || !$wo_user_id) {
+    bz_bridge_log('WP→Wo sync aborted: missing user ids', [
+        'wp_user_id'=>$wp_user_id, 'wo_user_id'=>$wo_user_id
+    ]);
+    return;
+}
+$wp_conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
+$sqlConn = $GLOBALS['sqlConnect'] ?? null;
+if (!$wp_conn || !$sqlConn) {
+    bz_bridge_log('WP→Wo sync aborted: missing DB connection');
+    return;
+}
+$wo_table = defined('T_USERS') ? T_USERS : 'Wo_Users';
 
-                    bz_bridge_log('WP→Wo sync: metadata updated', [
-                        'user_id'=>$accepted_user_id,
-                        'fields'=>array_keys($update_filtered),
-                        'result'=>$result
-                    ]);
+// 2. Metadata/field registry.
+$metadata     = function_exists('get_user_field_metadata') ? get_user_field_metadata() : [];
+$field_map    = $metadata['field_map'] ?? [];
+$sync_fields  = array_unique(array_merge(
+    $metadata['private_secure_fields'] ?? [],
+    $metadata['public_open_fields'] ?? []
+));
 
-                } catch (Throwable $e) {
-                    bz_bridge_log('WP→Wo sync: ERROR during Wo_UpdateUserData', [
-                        'user_id'=>$accepted_user_id,
-                        'error'=>$e->getMessage()
-                    ]);
-                } finally {
-                    error_reporting($old_level);
-                }
-            }
-        } else {
-            bz_bridge_log('WP→Wo sync skipped (meta hash unchanged)', ['user_id'=>$accepted_user_id]);
+// 3. Pull full WP profile/meta and normalize values to always be scalars.
+$wp_data     = function_exists('wp_get_full_user_data') ? wp_get_full_user_data($wp_conn, $wp_user_id) : [];
+$wp_meta     = $wp_data['meta']     ?? [];
+$wp_xprofile = $wp_data['xprofile'] ?? [];
+$wp_core     = $wp_data;
+
+function bz_safe_value($val) {
+    // Handles unserialization and JSON auto-conversion.
+    if (is_array($val) || is_object($val)) return $val;
+    if (!is_string($val)) return $val;
+    if (function_exists('is_serialized') && is_serialized($val)) {
+        $tmp = @unserialize($val);
+        if ($tmp !== false || $val === 'b:0;') return $tmp;
+    }
+    $json = json_decode($val, true);
+    if (json_last_error() === JSON_ERROR_NONE) return $json;
+    return $val;
+}
+function bz_scalar($v) {
+    return (is_array($v) || is_object($v)) ? json_encode($v, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) : (string)$v;
+}
+
+// Build normalized meta.
+$wp_all_meta = [];
+foreach ($wp_meta as $k=>$v)
+    $wp_all_meta[strtolower(trim($k))] = bz_scalar(bz_safe_value($v));
+foreach ($wp_xprofile as $k=>$v) {
+    $norm = strtolower(str_replace([' ','-'],'_',trim($k)));
+    $wp_all_meta[$norm] = bz_scalar(bz_safe_value($v));
+}
+foreach (['user_login','user_email','display_name','user_registered'] as $f)
+    if (!empty($wp_core[$f])) $wp_all_meta[$f] = $wp_core[$f];
+
+// 4. Avatar and cover image normalization, with multi-fallbacks and existence checks.
+function bz_media_abs_url($url) {
+    $url = trim((string)$url);
+    if (!$url) return '';
+    // Strip accidental /streams or /social from beginning of wp-content URLs:
+    if (preg_match('#^https?://#i', $url)) {
+        $url = preg_replace('#^(https?://[^/]+)/(streams|social)/wp-content/#i', '$1/wp-content/', $url);
+        return $url;
+    }
+    $url = preg_replace('#^/(streams|social)/wp-content/#i', '/wp-content/', $url);
+    if (strpos($url, '/wp-content/') === 0) return 'https://buzzjuice.net' . $url;
+    if (strpos($url, 'wp-content/') === 0)   return 'https://buzzjuice.net/' . $url;
+    // If the URL looks like WoWonder media, leave as-is:
+    if (preg_match('#/streams/upload/#', $url)) return $url;
+    // Root-relative fallback:
+    return 'https://buzzjuice.net/' . ltrim($url, '/');
+}
+function bz_wp_file_exists($url) {
+    if (!preg_match('#^https?://buzzjuice\.net(/.*)$#i', $url, $m)) return true; // allow any offsite
+    $doc_path = $_SERVER['DOCUMENT_ROOT'] . $m[1];
+    return file_exists($doc_path);
+}
+$default_icon        = 'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.03-icon192x192.png';
+$bb_avatar_default   = '/wp-content/plugins/buddyboss-platform/bp-core/images/profile-avatar-buddyboss.png';
+$bb_cover_primary    = '/wp-content/uploads/buddypress/members/0/cover-image/69dd867faacfb-bp-cover-image.jpg';
+$bb_cover_fallback   = '/wp-content/plugins/buddyboss-platform/bp-core/images/cover-image.png';
+// --- COVER CHAIN ---
+$wp_cover_raw     = $wp_meta['bp_profile_cover'] ?? '';
+$cover_candidates = [
+    bz_media_abs_url($wp_cover_raw),
+    bz_media_abs_url($bb_cover_primary),
+    bz_media_abs_url($bb_cover_fallback)
+];
+$cover_url = $default_icon;
+foreach ($cover_candidates as $cand) {
+    if ($cand && bz_wp_file_exists($cand)) {
+        $cover_url = $cand;
+        break;
+    }
+}
+// --- AVATAR CHAIN ---
+$wp_avatar_raw     = $wp_meta['bp_profile_avatar'] ?? '';
+$avatar_candidates = [
+    bz_media_abs_url($wp_avatar_raw),
+    bz_media_abs_url($bb_avatar_default)
+];
+$avatar_url = $default_icon;
+foreach ($avatar_candidates as $cand) {
+    if ($cand && bz_wp_file_exists($cand)) {
+        $avatar_url = $cand;
+        break;
+    }
+}
+$wp_all_meta['avatar'] = $avatar_url;
+$wp_all_meta['cover']  = $cover_url;
+
+// 5. WP role to WW pro field logic.
+$role_map = [
+    'classic_lifestyle'  => 1,
+    'silver_lifestyle'   => 2,
+    'rockstar_lifestyle' => 3,
+    'premium_lifestyle'  => 4,
+    'jewel_affiliate'    => 2,
+];
+$role_priority = [
+    'premium_lifestyle',
+    'rockstar_lifestyle',
+    'silver_lifestyle',
+    'classic_lifestyle',
+    'jewel_affiliate'
+];
+$wp_roles = [];
+if (!empty($wp_core['roles']) && is_array($wp_core['roles'])) {
+    $wp_roles = array_map('strtolower', $wp_core['roles']);
+} elseif (!empty($wp_meta['wp_capabilities'])) {
+    $maybe_caps = bz_safe_value($wp_meta['wp_capabilities']);
+    if (is_array($maybe_caps)) $wp_roles = array_map('strtolower', array_keys(array_filter($maybe_caps)));
+}
+$matched_roles = array_values(array_intersect($role_priority, $wp_roles));
+$is_pro   = !empty($matched_roles);
+$pro_type = $is_pro ? ($role_map[$matched_roles[0]] ?? 0) : 0;
+$pro_time = $is_pro ? time() : 0;
+
+// 6. Load WW schema cache to skip missing fields.
+static $wo_schema = null;
+$cache_dir = $_SERVER['DOCUMENT_ROOT'] . '/data/schema_cache/';
+$schema_file = $cache_dir . 'wo_users_schema.json';
+if (!is_dir($cache_dir)) @mkdir($cache_dir, 0755, true);
+if ($wo_schema === null) {
+    if (file_exists($schema_file)) $wo_schema = json_decode(file_get_contents($schema_file), true) ?: [];
+    else {
+        $wo_schema = [];
+        $q = mysqli_query($sqlConn, "SHOW COLUMNS FROM {$wo_table}");
+        while ($q && $row = mysqli_fetch_assoc($q)) $wo_schema[$row['Field']] = true;
+        @file_put_contents($schema_file, json_encode($wo_schema));
+    }
+}
+
+// 7. Build final update.
+$update = [];
+foreach ($sync_fields as $field) {
+    if (!array_key_exists($field, $wp_all_meta)) continue;
+    $wo_field = $field_map[$field] ?? $field;
+    if (!isset($wo_schema[$wo_field])) continue;
+    $val = $wp_all_meta[$field];
+    if ($wo_field === 'avatar') $val = $avatar_url;
+    if ($wo_field === 'cover')  $val = $cover_url;
+    if ($val === '' || $val === null) continue;
+    $update[$wo_field] = is_string($val) ? trim($val) : $val;
+}
+$update['wp_user_id'] = $wp_user_id;
+if (!empty($_SESSION['wp_user_email']))  $update['email']    = trim($_SESSION['wp_user_email']);
+if (!empty($_SESSION['wp_user_login']))  $update['username'] = trim($_SESSION['wp_user_login']);
+if ($is_pro) {
+    $update['is_pro']   = 1;
+    $update['pro_type'] = $pro_type;
+    if (isset($wo_schema['pro_time'])) $update['pro_time'] = $pro_time;
+} else {
+    $update['is_pro']   = 0;
+    $update['pro_type'] = 0;
+    if (isset($wo_schema['pro_time'])) $update['pro_time'] = 0;
+}
+
+// 8. Write only if changed (meta hash filter for churn prevention).
+$q = mysqli_query($sqlConn, "SELECT wp_meta_hash FROM {$wo_table} WHERE user_id=".(int)$wo_user_id." LIMIT 1");
+$old_hash = '';
+if ($q && $row = mysqli_fetch_assoc($q)) $old_hash = $row['wp_meta_hash'] ?? '';
+$hash_payload = $update;
+unset($hash_payload['lastseen'], $hash_payload['session'], $hash_payload['ip_address']);
+$new_hash = md5(json_encode($hash_payload));
+
+if ($new_hash !== $old_hash) {
+    $update['wp_meta_hash'] = $new_hash;
+    if (!empty($update) && function_exists('Wo_UpdateUserData')) {
+        $old_level = error_reporting();
+        error_reporting($old_level & ~E_NOTICE & ~E_WARNING);
+        try {
+            $result = Wo_UpdateUserData($wo_user_id, $update);
+            bz_bridge_log('WP→Wo sync: metadata updated', [
+                'user_id'=>$wo_user_id,
+                'fields'=>array_keys($update),
+                'result'=>$result,
+                'meta_hash'=>$new_hash
+            ]);
+        } catch (Throwable $e) {
+            bz_bridge_log('WP→Wo sync: ERROR during Wo_UpdateUserData', [
+                'user_id'=>$wo_user_id,
+                'error'=>$e->getMessage()
+            ]);
+        } finally {
+            error_reporting($old_level);
         }
+    }
+} else {
+    bz_bridge_log('WP→Wo sync skipped (meta hash unchanged)', ['user_id'=>$wo_user_id]);
+}
+
         // todo: Advanced field mapping implementation and 
         // helper utilities for WordPress/BuddyPress meta extraction and transformation
         // WP->WW API meta sync, Buzzjuice Identity Sync Engine -> central identity authority, Sync Queue, Worker Processes Sync Queue, Push data....
