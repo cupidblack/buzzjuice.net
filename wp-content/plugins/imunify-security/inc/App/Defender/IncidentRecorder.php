@@ -170,7 +170,11 @@ class IncidentRecorder {
 			$mode
 		);
 
-		// Append ruleset version if provided.
+		$probeData = $rule->getProbeData();
+		if ( ! empty( $probeData ) ) {
+			$message .= '||PROBE:' . $probeData;
+		}
+
 		if ( ! empty( $version ) ) {
 			$message .= '||RSV:' . $version;
 		}

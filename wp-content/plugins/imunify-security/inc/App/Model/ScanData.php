@@ -55,6 +55,15 @@ class ScanData {
 	private $license = array();
 
 	/**
+	 * Package versions from the Imunify agent.
+	 *
+	 * @since 3.0.3
+	 *
+	 * @var array
+	 */
+	private $versions = array();
+
+	/**
 	 * Create from array
 	 *
 	 * @param array $data Data.
@@ -68,6 +77,7 @@ class ScanData {
 		$result->username          = isset( $data['username'] ) ? $data['username'] : '';
 		$result->config            = isset( $data['config'] ) ? $data['config'] : array();
 		$result->license           = isset( $data['license'] ) ? $data['license'] : array();
+		$result->versions          = isset( $data['versions'] ) && is_array( $data['versions'] ) ? $data['versions'] : array();
 		if ( isset( $data['malware'] ) && is_array( $data['malware'] ) ) {
 			$result->malware = array_map(
 				function ( $item ) {
@@ -109,6 +119,7 @@ class ScanData {
 			'username'          => $this->username,
 			'config'            => $this->config,
 			'license'           => $this->license,
+			'versions'          => $this->versions,
 			'malware'           => array_map(
 				function ( $item ) {
 					return $item->toArray();
@@ -176,5 +187,16 @@ class ScanData {
 	 */
 	public function getLicense() {
 		return $this->license;
+	}
+
+	/**
+	 * Get the package versions.
+	 *
+	 * @since 3.0.3
+	 *
+	 * @return array
+	 */
+	public function getVersions() {
+		return $this->versions;
 	}
 }

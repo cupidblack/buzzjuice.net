@@ -504,10 +504,28 @@ class Debug {
 	 * @return array<string> Tags.
 	 */
 	public function tags() {
-		return array(
+		$tags = array(
 			'php_version'    => phpversion(),
 			'plugin_version' => $this->pluginVersion(),
 		);
+
+		// Merge Imunify package versions as Sentry tags. Wrapped in try/catch
+		// so that version tagging can never disrupt error reporting.
+		try {
+			$versions = function_exists( 'get_option' )
+				? get_option( 'imunify_security_package_versions', array() )
+				: array();
+			if ( is_array( $versions ) ) {
+				foreach ( $versions as $package => $version ) {
+					if ( is_string( $version ) && ! isset( $tags[ $package ] ) ) {
+						$tags[ $package ] = $version;
+					}
+				}
+			}
+		} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- version tags are non-critical.
+		}
+
+		return $tags;
 	}
 
 	/**

@@ -4,7 +4,7 @@ Tags: BuddyPress, Ultimate Member, private message, chat, messaging
 Requires at least: 5.9.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 2.14.16
+Stable tag: 2.15.5
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -100,6 +100,16 @@ https://www.youtube.com/watch?v=jMHx97QsXj8
 * Mass messaging from WP Admin with scheduling, file attachments, and background processing
 * Suggested conversations for new users
 
+**[Mini Widgets](https://www.better-messages.com/docs/features/mini-widgets):**
+
+* Embed conversation entry points anywhere on your site without using shortcodes
+* Five widgets: Friends, Groups, Users, AI Bots, Chat Rooms
+* Two display styles: Classic Bar or Floating Bubble (with chat heads)
+* Three placement surfaces: bottom bar, side panel, mobile tab bar
+* Per-widget icon picker, search box, role restrictions, and "Hide Tab When Empty" toggle
+* Users widget with three display modes (all / by role / hand-picked) and sorting by last activity or registration date
+* Customizable order of tabs in mini widgets, side panel and mobile view
+
 **Customization:**
 
 * Modern, fully customizable design
@@ -130,8 +140,14 @@ https://www.youtube.com/watch?v=jMHx97QsXj8
 * [PeepSo](https://www.better-messages.com/docs/integrations/peepso/)
 * [Ultimate Member](https://www.better-messages.com/docs/integrations/ultimate-member/)
 * [BuddyBoss Platform](https://www.better-messages.com/docs/integrations/buddyboss/)
+* [LearnPress](https://www.better-messages.com/docs/integrations/learnpress/)
+* [Tutor LMS](https://www.better-messages.com/docs/integrations/tutor-lms/)
+* [LearnDash](https://www.better-messages.com/docs/integrations/learndash/)
+* [MasterStudy LMS](https://www.better-messages.com/docs/integrations/masterstudy-lms/)
 * [WooCommerce](https://www.better-messages.com/docs/integrations/woocommerce/)
 * [HivePress](https://www.better-messages.com/docs/integrations/hivepress/)
+* [Directorist](https://www.better-messages.com/docs/integrations/directorist/)
+* [GeoDirectory](https://www.better-messages.com/docs/integrations/geodirectory/)
 * [Dokan Marketplace](https://www.better-messages.com/docs/integrations/dokan/)
 * [MultiVendorX](https://www.better-messages.com/docs/integrations/multivendorx/)
 * [WP Job Manager](https://www.better-messages.com/docs/integrations/wp-job-manager/)
@@ -193,7 +209,8 @@ Note: Mobile apps are currently in alpha stage. Core functionality works, but so
 * Online/Offline presence indicator
 * User statuses (Online, Away, Do Not Disturb)
 * Mini Chats - chat windows anywhere on your site
-* Mini Conversations widget
+* Mini Conversations widget - list and continue recent threads from any page
+* Online-only filter and online-first ordering for the Users mini widget
 
 **Better Messages Cloud AI:**
 
@@ -246,6 +263,65 @@ You can translate plugin to your language with LocoTranslate or [participate in 
 1. Onsite notifications
 
 == Changelog ==
+
+= 2.15.5 =
+* Added per-role filter for the auto-remove inactive chat room participants feature, so an admin can target guests or other specific roles only and leave members untouched
+* Fixed new chat room participants could be remove if auto-removal option is enabled for users who did not wrote any message in the chat room
+* Fixed online participant count in the chat rooms list not updating in real time when a user joined or was added to a room
+* Fixed some group chats threads could reappear after the admin deleted them
+* Other minor bugfixes and improvements
+
+= 2.15.3 =
+* Added [System Messages](https://www.better-messages.com/docs/features/system-messages/)
+* Added per-role restrictions for group calls — Settings → Group Calls → Group Call Restrictions lets admins block specific WordPress roles from starting and / or joining group audio and video calls
+* Group calls are now available to guest visitors
+* Added possibility to auto-remove inactive chat room participants
+* Added possibility to enable group audio/video calls button in mini chats
+* Added support for [LearnDash Instructor Role](https://www.learndash.com/instructor-role/) add-on
+* Added shortcodes for every Send Message / Message Instructor button in the GeoDirectory, Directorist, LearnDash, LearnPress, Tutor LMS and MasterStudy LMS integrations, so they are possible to use with page builder. Check Integrations tab in plugin settings to find appropriate shortcode
+* Reorganized Settings → General tab — added a Quick Actions dashboard with shortcuts to the Chat Rooms, AI Chat Bots and Administration screens and added easy access to detected integrations
+* End to end encryption is moved to Messaging settings tab
+* Fixed PHP 8.5 deprecation notices
+* Fixed sticker images pointing to the previous site URL after a domain migration
+* Fixed guest visitors being redirected to wp-login after starting a chat from a WooCommerce
+
+= 2.15.2 =
+* Added initial [MasterStudy LMS](https://www.better-messages.com/docs/integrations/masterstudy-lms/) integration
+* Added initial [Directorist](https://www.better-messages.com/docs/integrations/directorist/) integration
+* Added initial [GeoDirectory](https://www.better-messages.com/docs/integrations/geodirectory/) integration
+* Remake database displaying in plugin settings which make it easier to fix database if something not migrated properly
+* LMS course chats are now their own thread type in database
+* Added "Email Notifications" and "Push Notifications" toggles for LMS course chats under Settings → Integrations → LMS → Shared Course Settings
+* Other minor bugfixes and improvements
+
+= 2.15.1 =
+* Added initial [LearnPress](https://www.better-messages.com/docs/integrations/learnpress/) LMS integration
+* Added initial [Tutor LMS](https://www.better-messages.com/docs/integrations/tutor-lms/) integration
+* Added initial [LearnDash](https://www.better-messages.com/docs/integrations/learndash/) LMS integration
+* Added [MultiVendorX 5.0+](https://www.better-messages.com/docs/integrations/multivendorx/) integration alongside the existing < 5.0 support
+* Older MultiVendorX 4.x sites are unaffected — the previous integration continues to load on those installations
+* Added FluentCommunity Courses integration
+* Added a dedicated [Courses widget](https://www.better-messages.com/docs/features/mini-widgets) to the Mini Widgets which will be showing user enrolled courses in LMS
+* Added "Maximum Message Length" setting (Settings → Messaging) — cap the number of characters allowed in each message
+* Other minor bugfixes and improvements
+
+= 2.15.0 =
+* Added three new [widgets](https://www.better-messages.com/docs/features/mini-widgets): **Users** (browse and message any site member, with optional online-only filtering, online-first ordering, sort by last activity or registration date, and three display modes — all / by role / hand-picked), **AI Bots** (start or continue conversations with configured AI chat bots), and **Chat Rooms** (browse public chat rooms with optional online-count badge)
+* Redesigned the Settings → Mini Widgets page into per-widget sub-tabs, with each widget exposing its own icon picker, search-box toggle, role restrictions matrix (mini bar / side panel / mobile bar), and widget-specific options
+* Added "Hide Tab When Empty" toggle per widget — hides the Friends / Groups / AI Bots / Chat Rooms / Users tab entirely when the current user has nothing to show, instead of rendering an empty list
+* Added AI Chat Bot [welcome message](https://www.better-messages.com/docs/features/ai-chat-bots#welcome-message) — bots can greet users with a configurable opening message and placeholder
+* Added dynamic [placeholders](https://www.better-messages.com/docs/features/ai-chat-bots#placeholders) which allows to dynamically change ai chat bots system prompts and welcome messages
+* Renamed [`better_messages_open_ai_bot_instruction`](https://www.better-messages.com/hooks/php-filters#better_messages_ai_bot_instruction) filter to `better_messages_ai_bot_instruction` since it applies to all AI providers, and added new `$thread_id` and `$message_id` arguments so callbacks can read the conversation context and the triggering user message — the old name remains available as a deprecated alias
+* Added per-message edit time limit — restrict how long users can edit their own messages after sending
+* Fixed fatal error when uploading attachments at the bulk messages screen
+* Fixed `hideParticipants` chat room setting being ignored when the attachments browser was enabled
+* Fixed stale sticker suggestions remaining visible in the composer after a sticker was sent
+* Fixed AI Chat Bots admin layout breaking on older PHP versions and removed a misleading missing-key error
+* Fixed sticker pack "Add language" button appearing when no remaining locales were available
+* Fixed reply form not being blocked for deleted conversations when PeepSo friendship filter was active
+* Fixed Private Message button still showing in chat room user list and message context menu when "Hide New Conversation Button" was enabled
+* Improved performance of reported-messages admin screen for sites with millions of messages — queries now scale cleanly instead of relying on transient caches
+* Other minor bugfixes and improvements
 
 = 2.14.16 =
 * Making Stipop Sticker provider legacy as it increased price significantly since initial integration

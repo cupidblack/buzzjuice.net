@@ -422,11 +422,20 @@ class ValueResolver {
 	/**
 	 * URL-decode a single ARGS value, recursing into arrays.
 	 *
+	 * Non-string scalars (int, float, bool) are cast to their string form so
+	 * the downstream match operators (matchEquals / matchContains / matchRegex
+	 * / detectXSS / detectSQLi) see a consistent string type. Without this
+	 * cast, JSON-bodied REST requests such as `{"user_id": 1, "role": 5}`
+	 * would produce PHP-int leaves that Request::extractLeafValues()
+	 * silently drops (the walker collects only is_string() values), so a rule
+	 * like `detectSQLi on ARGS:role` would evaluate to false regardless of
+	 * payload content. null is coerced to empty string for the same reason.
+	 *
 	 * @since 3.0.2
 	 *
 	 * @param mixed $value The value to decode.
 	 *
-	 * @return mixed Decoded value.
+	 * @return mixed Decoded value (string, array, or unchanged object).
 	 */
 	private static function decodeArgValue( $value ) {
 		if ( is_string( $value ) ) {
@@ -435,6 +444,18 @@ class ValueResolver {
 
 		if ( is_array( $value ) ) {
 			return array_map( array( __CLASS__, 'decodeArgValue' ), $value );
+		}
+
+		if ( is_bool( $value ) ) {
+			return $value ? '1' : '0';
+		}
+
+		if ( null === $value ) {
+			return '';
+		}
+
+		if ( is_int( $value ) || is_float( $value ) ) {
+			return (string) $value;
 		}
 
 		return $value;

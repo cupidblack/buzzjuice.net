@@ -11,6 +11,7 @@ namespace CloudLinux\Imunify\App\Defender;
 use CloudLinux\Imunify\App\Defender\Model\Condition;
 use CloudLinux\Imunify\App\Defender\Model\ConditionSource;
 use CloudLinux\Imunify\App\Defender\Model\ConditionType;
+use CloudLinux\Imunify\App\Defender\Probe\StorageAvailabilityProbe;
 
 /**
  * Condition evaluator class.
@@ -43,14 +44,36 @@ class ConditionEvaluator {
 	private $failedCondition = null;
 
 	/**
+	 * Probe data collected during condition evaluation.
+	 *
+	 * @since 3.0.4
+	 *
+	 * @var string|null
+	 */
+	private $probeData = null;
+
+	/**
+	 * Sampling denominator for probe conditions (1 in N).
+	 *
+	 * @since 3.0.4
+	 *
+	 * @var int
+	 */
+	private $samplingDenominator;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param ValueResolver|null    $valueResolver Optional value resolver (created internally if null).
-	 * @param ConditionMatcher|null $matcher        Optional condition matcher (created internally if null).
+	 * @param ValueResolver|null    $valueResolver        Optional value resolver (created internally if null).
+	 * @param ConditionMatcher|null $matcher               Optional condition matcher (created internally if null).
+	 * @param int|null              $samplingDenominator   Optional sampling denominator override for probe conditions.
 	 */
-	public function __construct( $valueResolver = null, $matcher = null ) {
-		$this->valueResolver = $valueResolver ? $valueResolver : new ValueResolver();
-		$this->matcher       = $matcher ? $matcher : new ConditionMatcher();
+	public function __construct( $valueResolver = null, $matcher = null, $samplingDenominator = null ) {
+		$this->valueResolver       = $valueResolver ? $valueResolver : new ValueResolver();
+		$this->matcher             = $matcher ? $matcher : new ConditionMatcher();
+		$this->samplingDenominator = null !== $samplingDenominator
+			? $samplingDenominator
+			: StorageAvailabilityProbe::SAMPLING_DENOMINATOR;
 	}
 
 	/**
@@ -98,6 +121,8 @@ class ConditionEvaluator {
 				return $this->evaluateNotCurrentUser( $condition, $request );
 			case ConditionType::PROBABILISTIC:
 				return $this->evaluateProbabilistic( $condition );
+			case ConditionType::PROBE:
+				return $this->evaluateProbe( $condition );
 			default:
 				return $this->evaluateWithMatcher( $condition, $request );
 		}
@@ -370,6 +395,65 @@ class ConditionEvaluator {
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.rand_mt_rand -- sampling, not security; avoids syscall overhead at scale
 		return mt_rand( 1, $denominator ) === 1;
+	}
+
+	/**
+	 * Evaluate probe condition.
+	 *
+	 * Two-layer gate: probabilistic filter eliminates most requests with zero I/O,
+	 * then a transient guard ensures we only collect data once per interval.
+	 * The interval (in seconds) is read from the condition's value field
+	 * (e.g. 86400 = 24 h, the default in the shipped ruleset).
+	 *
+	 * @since 3.0.4
+	 *
+	 * @param Condition $condition Condition to evaluate.
+	 *
+	 * @return bool True if probe should fire, false otherwise.
+	 */
+	private function evaluateProbe( Condition $condition ) {
+		if ( ! $condition->hasRequiredFields() ) {
+			return false;
+		}
+
+		$name     = $condition->getName();
+		$interval = $condition->getValue();
+
+		if ( ! is_numeric( $interval ) || (int) $interval <= 0 ) {
+			return false;
+		}
+
+		if ( ! StorageAvailabilityProbe::isKnownProbe( $name ) ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.rand_mt_rand -- sampling, not security
+		if ( mt_rand( 1, $this->samplingDenominator ) !== 1 ) {
+			return false;
+		}
+
+		$transientKey = 'imunify_probe_' . $name . '_sent';
+		if ( get_transient( $transientKey ) ) {
+			return false;
+		}
+
+		$probe           = new StorageAvailabilityProbe();
+		$this->probeData = $probe->run();
+
+		set_transient( $transientKey, 1, (int) $interval );
+
+		return true;
+	}
+
+	/**
+	 * Get probe data collected during condition evaluation.
+	 *
+	 * @since 3.0.4
+	 *
+	 * @return string|null Probe data string, or null if no probe fired.
+	 */
+	public function getProbeData() {
+		return $this->probeData;
 	}
 
 	/**

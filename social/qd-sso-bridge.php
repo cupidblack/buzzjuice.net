@@ -964,248 +964,234 @@ function QD_SSO_Login() {
 
 
 
-    // ==================== WordPress → QuickDate Metadata Sync (Refactored, Safe, & Failsafe) ====================
+    // ==================================================================
+    // WordPress → QuickDate Full-Meta Sync (Canonical, Safe, Failsafe)
+    // ==================================================================
     
-    try {
-        bz_bridge_log('Preparing QuickDate meta sync', [
-            'wp_user_id' => $exp_wp,
-            'email'      => $exp_email
-        ]);
-        $did_sync = false;
-    
-        // 0. Preconditions
-        if (empty($exp_wp) || empty($exp_email)) {
-            bz_bridge_log('QuickDate sync aborted: missing wp_user_id or email');
-            return;
-        }
-        $wp_conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
-        $qd_conn = function_exists('get_qd_db_conn') ? get_qd_db_conn() : null;
-        if (!$wp_conn || !$qd_conn) {
-            bz_bridge_log('QuickDate sync aborted: DB unavailable');
-            return;
-        }
-        $wp_full = function_exists('wp_get_full_user_data') ? wp_get_full_user_data($wp_conn, $exp_wp) : null;
-        if (!$wp_full || !is_array($wp_full)) {
-            bz_bridge_log('QuickDate sync aborted: wp_get_full_user_data failed');
-            return;
-        }
-        $wp_meta     = $wp_full['meta'] ?? [];
-        $wp_xprofile = $wp_full['xprofile'] ?? [];
-        $wp_core     = $wp_full;
-    
-        // 1. Scalar-normalization to ensure safe DB writes and avoid unserialize/array errors
-        function qd_norm($v) {
-            if (is_array($v) || is_object($v)) return json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+// ============================= WordPress → QuickDate Full Meta Sync =============================
+
+try {
+    // --- 1. Defensive Scalar Normalization Helpers ---
+    if (!function_exists('qd_maybe_unserialize')) {
+        function qd_maybe_unserialize($v) {
+            if (is_array($v) || is_object($v)) return $v;
             if (!is_string($v)) return $v;
-            if (function_exists('is_serialized') && is_serialized($v)) {
-                $u = @unserialize($v);
-                if ($u !== false || $v === 'b:0;') return $u;
-            }
-            $json = json_decode($v, true);
-            if (json_last_error() === JSON_ERROR_NONE) return $json;
-            return $v;
+            $trim = trim($v);
+            if ($trim === '') return '';
+            $test = @unserialize($trim);
+            return ($test !== false || $trim === 'b:0;') ? $test : $v;
         }
-        function qd_scalar($v) {
-            return (is_array($v) || is_object($v)) ? json_encode($v, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) : (string)$v;
-        }
-    
-        // 2. Build canonical user state array (all lowercased)
-        $state = [];
-        foreach ($wp_meta as $k => $v) {
-            $state[strtolower(trim($k))] = qd_scalar(qd_norm($v));
-        }
-        foreach ($wp_xprofile as $k => $v) {
-            $norm = strtolower(str_replace([' ','-'],'_',trim($k)));
-            $state[$norm] = qd_scalar(qd_norm($v));
-        }
-        foreach (['user_login','user_email','first_name','last_name'] as $f) {
-            if (!empty($wp_core[$f])) $state[$f] = $wp_core[$f];
-        }
-    
-        // 3. MEDIA NORMALIZATION ENGINE (no rewriting `/streams/upload/`, all wp-content fixed)
-        function qd_media_url($url) {
-            $url = trim((string)$url);
-            if (!$url) return '';
-            // Fix errant /streams/wp-content or /social/wp-content in absolute URLs
-            if (preg_match('#^https?://#i', $url)) {
-                $url = preg_replace('#^(https?://[^/]+)/(streams|social)/wp-content/#i', '$1/wp-content/', $url);
-                return $url;
-            }
-            // Fix relative
-            $url = preg_replace('#^/(streams|social)/wp-content/#i', '/wp-content/', $url);
-            if (strpos($url, '/wp-content/') === 0) return 'https://buzzjuice.net' . $url;
-            if (strpos($url, 'wp-content/') === 0)   return 'https://buzzjuice.net/' . $url;
-            // If inside shared media, do not rewrite (preserve QuickDate/WoWonder shared media)
-            if (strpos($url, '/streams/upload/') !== false) return $url;
-            // Catch-all: treat as site-relative
-            return 'https://buzzjuice.net/' . ltrim($url, '/');
-        }
-        function qd_file_exists($url) {
-            if (!preg_match('#^https?://buzzjuice\.net(/.*)$#i', $url, $m)) return true;
-            return file_exists($_SERVER['DOCUMENT_ROOT'] . $m[1]);
-        }
-    
-        $default_icon        = 'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.03-icon192x192.png';
-        $bb_avatar_default   = '/wp-content/plugins/buddyboss-platform/bp-core/images/profile-avatar-buddyboss.png';
-        $bb_cover_primary    = '/wp-content/uploads/buddypress/members/0/cover-image/69dd867faacfb-bp-cover-image.jpg';
-        $bb_cover_fallback   = '/wp-content/plugins/buddyboss-platform/bp-core/images/cover-image.png';
-    
-        // Avatar/candidates
-        $avatar_candidates = [
-            qd_media_url($wp_meta['bp_profile_avatar'] ?? ''),
-            qd_media_url($bb_avatar_default),
-            $default_icon
-        ];
-        $avatar_url = $default_icon;
-        foreach ($avatar_candidates as $cand) {
-            if ($cand && qd_file_exists($cand)) {
-                $avatar_url = $cand;
-                break;
-            }
-        }
-        // Cover/candidates
-        $cover_candidates = [
-            qd_media_url($wp_meta['bp_profile_cover'] ?? ''),
-            qd_media_url($bb_cover_primary),
-            qd_media_url($bb_cover_fallback),
-            $default_icon
-        ];
-        $cover_url = $default_icon;
-        foreach ($cover_candidates as $cand) {
-            if ($cand && qd_file_exists($cand)) {
-                $cover_url = $cand;
-                break;
-            }
-        }
-        $state['avatar'] = $avatar_url;
-        $state['cover']  = $cover_url;
-    
-        // 4. Role & Pro/Subscription info
-        $role_map = [
-            'classic_lifestyle'  => 1,
-            'silver_lifestyle'   => 2,
-            'rockstar_lifestyle' => 3,
-            'premium_lifestyle'  => 4,
-            'jewel_affiliate'    => 2,
-        ];
-        $role_priority = [
-            'premium_lifestyle',
-            'rockstar_lifestyle',
-            'silver_lifestyle',
-            'classic_lifestyle',
-            'jewel_affiliate'
-        ];
-        $wp_roles = [];
-        if (!empty($wp_core['roles']) && is_array($wp_core['roles'])) {
-            $wp_roles = array_map('strtolower', $wp_core['roles']);
-        } elseif (!empty($wp_meta['wp_capabilities'])) {
-            $maybe_caps = qd_norm($wp_meta['wp_capabilities']);
-            if (is_array($maybe_caps)) $wp_roles = array_map('strtolower', array_keys(array_filter($maybe_caps)));
-        }
-        $matched_roles = array_values(array_intersect($role_priority, $wp_roles));
-        $is_pro   = !empty($matched_roles);
-        $pro_type = $is_pro ? $role_map[$matched_roles[0]] : 0;
-        $pro_time = $is_pro ? time() : 0;
-    
-        // Check current QuickDate pro/downgrade logic:
-        $current_qd = [];
-        $q = mysqli_query($qd_conn, "SELECT is_pro, pro_type FROM users WHERE email='".mysqli_real_escape_string($qd_conn, $exp_email)."' LIMIT 1");
-        if ($q && $row = mysqli_fetch_assoc($q)) $current_qd = $row;
-        if ($is_pro) {
-            $state['is_pro']   = 1;
-            $state['pro_type'] = $pro_type;
-            $state['pro_time'] = $pro_time;
-        } elseif (!empty($current_qd) && (int)$current_qd['is_pro'] === 1) {
-            $state['is_pro']   = 0;
-            $state['pro_type'] = 0;
-            $state['pro_time'] = 0;
-        }
-        bz_bridge_log('WP→QuickDate subscription sync', [
-            'wp_roles'      => $wp_roles,
-            'matched_roles' => $matched_roles,
-            'final_is_pro'  => $is_pro,
-            'final_pro_type'=> $pro_type,
-            'current_qd'    => $current_qd,
-            'exp_email'     => $exp_email
-        ]);
-    
-        // 5. Meta fieldmap registry/load (buzz_metadata.json, plus required identity fields)
-        $metadata = function_exists('get_user_field_metadata') ? get_user_field_metadata() : [];
-        $public_fields  = $metadata['public_open_fields'] ?? [];
-        $private_fields = $metadata['private_secure_fields'] ?? [];
-        $field_map      = $metadata['field_map'] ?? [];
-        $sync_fields = array_unique(
-            array_merge(
-                array_keys($public_fields),
-                array_keys($private_fields),
-                ['username','email','first_name','last_name','avatar','cover']
-            )
-        );
-    
-        // 6. QuickDate schema cache
-        $schema_cache_folder = $_SERVER['DOCUMENT_ROOT'] . '/data/schema_cache/';
-        $schema_cache_file   = $schema_cache_folder . 'qd_users_schema.json';
-        if (!is_dir($schema_cache_folder)) @mkdir($schema_cache_folder, 0755, true);
-        static $qd_schema = null;
-        if ($qd_schema === null) {
-            if (file_exists($schema_cache_file)) {
-                $qd_schema = json_decode(file_get_contents($schema_cache_file), true) ?: [];
-            } else {
-                $qd_schema = [];
-                $q = mysqli_query($qd_conn, "SHOW COLUMNS FROM users");
-                while ($row = mysqli_fetch_assoc($q)) $qd_schema[$row['Field']] = true;
-                @file_put_contents($schema_cache_file, json_encode($qd_schema));
-            }
-        }
-        // 7. Build update payload (enforce schema, always use normalized avatar/cover)
-        $qd_update = [];
-        foreach ($sync_fields as $qd_key) {
-            $wp_field = $field_map[$qd_key] ?? $qd_key;
-            if (!isset($state[$wp_field]) || $state[$wp_field] === '') continue;
-            if (!isset($qd_schema[$qd_key])) continue;
-            if ($qd_key === 'avatar') $qd_update['avatar'] = $avatar_url;
-            elseif ($qd_key === 'cover') $qd_update['cover'] = $cover_url;
-            else $qd_update[$qd_key] = is_string($state[$wp_field]) ? trim($state[$wp_field]) : $state[$wp_field];
-        }
-        // Always ensure email/username
-        $qd_update['email']    = $exp_email;
-        $qd_update['username'] = $wp_core['user_login'] ?? '';
-    
-        // 8. Hash change detection (idempotence)
-        $hash_payload = $qd_update;
-        unset($hash_payload['lastseen'], $hash_payload['session'], $hash_payload['ip_address']);
-        $new_hash = md5(json_encode($hash_payload));
-        $old_hash = '';
-        if (isset($qd_schema['wp_meta_hash'])) {
-            $q = mysqli_query($qd_conn, "SELECT wp_meta_hash FROM users WHERE email='".mysqli_real_escape_string($qd_conn, $exp_email)."' LIMIT 1");
-            if ($q && $row = mysqli_fetch_assoc($q)) $old_hash = $row['wp_meta_hash'] ?? '';
-        }
-        // 9. Write to DB (only if changes)
-        if ($new_hash !== $old_hash && !empty($qd_update)) {
-            $qd_update['wp_meta_hash'] = $new_hash;
-            $ok = function_exists('qd_update_user') ? qd_update_user($exp_email, $qd_update) : false;
-            bz_bridge_log('QuickDate sync: updated metadata', [
-                'email' => $exp_email,
-                'wp_user_id' => $exp_wp,
-                'fields' => array_keys($qd_update),
-                'result' => (bool) $ok
-            ]);
-            $did_sync = (bool) $ok;
-        } else {
-            bz_bridge_log('QuickDate sync skipped (meta hash unchanged or no updatable fields)', [
-                'email' => $exp_email,
-                'wp_user_id' => $exp_wp
-            ]);
-        }
-        if (!$did_sync) {
-            bz_bridge_log('QuickDate sync did not run or failed', [
-                'email' => $exp_email,
-                'wp_user_id' => $exp_wp
-            ]);
-        }
-    } catch (Throwable $e) {
-        bz_bridge_log('Exception during QuickDate sync', ['ex' => $e->getMessage()]);
     }
+    if (!function_exists('qd_clean_scalar')) {
+        function qd_clean_scalar($v) {
+            $v = qd_maybe_unserialize($v);
+            if (is_array($v) || is_object($v)) return json_encode($v, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+            return trim((string)$v);
+        }
+    }
+
+    // --- 2. Media Normalization / Existence ---
+    if (!function_exists('qd_normalize_media_url')) {
+        function qd_normalize_media_url($v) {
+            $v = qd_clean_scalar($v);
+            if ($v === '') return '';
+            // Correct: map all upload/photos/* to streams URL
+            if (preg_match('#^/?upload/photos/#i', $v)) {
+                $v = ltrim($v, '/');
+                return 'https://buzzjuice.net/streams/' . $v;
+            }
+            // (existing logic here...)
+            if (preg_match('#^(streams|social)/upload/photos/#i', $v)) return 'https://buzzjuice.net/streams/' . preg_replace('#^(streams|social)/#i', '', $v);
+            if (preg_match('#^https?://[^/]+/streams/upload/photos/#i', $v)) return $v;
+            // Fix accidental /streams/wp-content/
+            $v = preg_replace('#^https?://([^/]+)/(streams|social)/wp-content/#i', 'https://$1/wp-content/', $v);
+            if (strpos($v, '/wp-content/') === 0) return 'https://buzzjuice.net' . $v;
+            if (strpos($v, 'wp-content/') === 0) return 'https://buzzjuice.net/' . $v;
+            if (preg_match('#^https?://#i', $v)) return $v;
+            return 'https://buzzjuice.net/' . ltrim($v, '/');
+        }
+    }
+    if (!function_exists('qd_media_exists')) {
+        function qd_media_exists($v) {
+            if (!$v) return false;
+            if (preg_match('#^upload/photos/#i', $v)) return file_exists($_SERVER['DOCUMENT_ROOT'] . '/streams/' . $v);
+            if (preg_match('#^https?://buzzjuice\.net(/[^?]+)#i', $v, $m)) return file_exists($_SERVER['DOCUMENT_ROOT'] . $m[1]);
+            if (preg_match('#^https?://#i', $v)) return true;
+            return false;
+        }
+    }
+
+    bz_bridge_log('QuickDate meta sync init', [
+        'wp_user_id' => $exp_wp ?? null,
+        'qd_user_id' => $exp_qd ?? null,
+        'email'      => $exp_email ?? null
+    ]);
+
+    // --- 3. Preconditions ---
+    if (empty($exp_wp) || empty($exp_email)) return;
+    $wp_conn = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
+    $qd_conn = function_exists('get_qd_db_conn') ? get_qd_db_conn() : null;
+    if (!$wp_conn || !$qd_conn) return;
+
+    // --- 4. Load/Cache Field Mapping ---
+    $metadata_file = $_SERVER['DOCUMENT_ROOT'] . '/shared/buzz_metadata.json';
+    $meta_map = [];
+    if (file_exists($metadata_file)) {
+        $json = json_decode(file_get_contents($metadata_file), true);
+        if (isset($json['private_secure_fields']) && isset($json['public_open_fields'])) {
+            $meta_map = array_merge($json['private_secure_fields'], $json['public_open_fields']);
+        } else if (is_array($json)) {
+            $meta_map = $json;
+        }
+    }
+    // --- 5. Load/Cache QuickDate User Schema ---
+    $schema_cache_folder = $_SERVER['DOCUMENT_ROOT'] . '/data/schema_cache/';
+    $schema_cache_file   = $schema_cache_folder . 'qd_users_schema.json';
+    if (!is_dir($schema_cache_folder)) @mkdir($schema_cache_folder, 0755, true);
+    static $qd_schema = null;
+    if ($qd_schema === null) {
+        if (file_exists($schema_cache_file)) {
+            $qd_schema = json_decode(file_get_contents($schema_cache_file), true) ?: [];
+        } else {
+            $qd_schema = [];
+            $q = mysqli_query($qd_conn, "SHOW COLUMNS FROM users");
+            while ($row = mysqli_fetch_assoc($q)) $qd_schema[strtolower($row['Field'])] = true;
+            @file_put_contents($schema_cache_file, json_encode($qd_schema));
+        }
+    }
+
+    // --- 6. Compose Full Canonical WP State ---
+    $wp_full     = wp_get_full_user_data($wp_conn, $exp_wp);
+    $wp_meta     = $wp_full['meta'] ?? [];
+    $wp_xprofile = $wp_full['xprofile'] ?? [];
+    $wp_core     = $wp_full;
+    $wp_all = [];
+    foreach ($wp_core as $k => $v)      $wp_all[strtolower($k)] = $v;
+    foreach ($wp_meta as $k => $v)      $wp_all[strtolower($k)] = $v;
+    foreach ($wp_xprofile as $k => $v)  $wp_all[strtolower($k)] = $v;
+
+    // --- 7. Avatar and Cover Fallback Chain ---
+    $default_icon      = 'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.03-icon192x192.png';
+    $bb_avatar_default = '/wp-content/plugins/buddyboss-platform/bp-core/images/profile-avatar-buddyboss.png';
+    $bb_cover_primary  = '/wp-content/uploads/buddypress/members/0/cover-image/69dd867faacfb-bp-cover-image.jpg';
+    $bb_cover_fallback = '/wp-content/plugins/buddyboss-platform/bp-core/images/cover-image.png';
+
+    $wp_avatar_raw = '';
+    $wp_cover_raw  = '';
+    foreach ($wp_xprofile as $k => $v) {
+        $lk = strtolower(trim($k));
+        if ($lk === 'avatar' && $v) $wp_avatar_raw = $v;
+        if ($lk === 'cover'  && $v) $wp_cover_raw  = $v;
+    }
+    if (!$wp_avatar_raw && !empty($wp_meta['bp_profile_avatar'])) $wp_avatar_raw = $wp_meta['bp_profile_avatar'];
+    if (!$wp_cover_raw  && !empty($wp_meta['bp_profile_cover']))  $wp_cover_raw  = $wp_meta['bp_profile_cover'];
+
+    $avatar_candidates = [
+        qd_normalize_media_url($wp_avatar_raw),
+        qd_normalize_media_url($bb_avatar_default),
+        $default_icon
+    ];
+    $cover_candidates = [
+        qd_normalize_media_url($wp_cover_raw),
+        qd_normalize_media_url($bb_cover_primary),
+        qd_normalize_media_url($bb_cover_fallback),
+        $default_icon
+    ];
+    $avatar_url = $default_icon;
+    foreach ($avatar_candidates as $cand) {
+        if ($cand && qd_media_exists($cand)) {
+            $avatar_url = $cand;
+            break;
+        }
+    }
+    $cover_url = $default_icon;
+    foreach ($cover_candidates as $cand) {
+        if ($cand && qd_media_exists($cand)) {
+            $cover_url = $cand;
+            break;
+        }
+    }
+
+    // --- 8. Build Update Payload (schema-checked, avatar/cover forced) ---
+    $qd_update = [];
+    foreach ($meta_map as $wp_field => $qd_field) {
+        $qd_field_lc = strtolower($qd_field);
+        if (!isset($qd_schema[$qd_field_lc])) continue;
+        if ($qd_field_lc === 'avatar') {
+            $qd_update['avatar'] = $avatar_url;
+            continue;
+        }
+        if ($qd_field_lc === 'cover') {
+            $qd_update['cover'] = $cover_url;
+            continue;
+        }
+        $val = null;
+        if (isset($wp_xprofile[$wp_field])) $val = $wp_xprofile[$wp_field];
+        elseif (isset($wp_meta[$wp_field])) $val = $wp_meta[$wp_field];
+        elseif (isset($wp_core[$wp_field])) $val = $wp_core[$wp_field];
+        $val = qd_clean_scalar($val);
+        if ($val !== '' && $val !== null) $qd_update[$qd_field_lc] = $val;
+    }
+    if (isset($qd_schema['username'])) $qd_update['username'] = $wp_core['user_login'] ?? '';
+    if (isset($qd_schema['email']))    $qd_update['email']    = $exp_email;
+
+    // --- 9. Resolve QD User ID ---
+    $target_qd_user_id = (int)($exp_qd ?? ($wp_meta['qd_user_id'] ?? 0));
+    if ($target_qd_user_id <= 0) {
+        $lookup = mysqli_query($qd_conn, "SELECT id FROM users WHERE email='" . mysqli_real_escape_string($qd_conn, $exp_email) . "' LIMIT 1");
+        if ($lookup && $row = mysqli_fetch_assoc($lookup)) $target_qd_user_id = (int)$row['id'];
+    }
+    if ($target_qd_user_id <= 0) { bz_bridge_log('QuickDate sync aborted: unable to resolve qd_user_id', ['email' => $exp_email]); return; }
+
+    // --- 10. Write ALL fields (authoritative overwrite) ---
+    ksort($qd_update);
+    $update_fields = [];
+    foreach ($qd_update as $field => $value) {
+        $safe_field = preg_replace('/[^a-zA-Z0-9_]/','',$field);
+        $safe_value = mysqli_real_escape_string($qd_conn, (string)$value);
+        $update_fields[] = "`$safe_field`='$safe_value'";
+    }
+    $update_sql = "UPDATE users SET " . implode(',', $update_fields) . " WHERE id=$target_qd_user_id LIMIT 1";
+    $ok = mysqli_query($qd_conn, $update_sql);
+    bz_bridge_log('QuickDate sync: updated metadata', [
+        'qd_user_id' => $target_qd_user_id,
+        'fields'     => array_keys($qd_update),
+        'payload'    => $qd_update,
+        'result'     => (bool)$ok
+    ]);
+
+    // --- 11. Post-write Verification & Repair ---
+    $verify = mysqli_query($qd_conn, "SELECT * FROM users WHERE id=$target_qd_user_id LIMIT 1");
+    $final = $verify ? mysqli_fetch_assoc($verify) : [];
+    $repair = [];
+    foreach ($qd_update as $field => $val) {
+        if (!isset($final[$field])) continue;
+        if ((string)$final[$field] !== (string)$val) $repair[$field] = $val;
+    }
+    if (!empty($repair)) {
+        $set = [];
+        foreach ($repair as $k => $v) {
+            $set[] = "`$k`='" . mysqli_real_escape_string($qd_conn,$v) . "'";
+        }
+        $rq = "UPDATE users SET " . implode(',', $set) . " WHERE id=$target_qd_user_id LIMIT 1";
+        mysqli_query($qd_conn, $rq);
+        bz_bridge_log('QuickDate sync: POST-WRITE REPAIR', [
+            'qd_user_id'=>$target_qd_user_id,
+            'fields'=>$repair
+        ]);
+    }
+
+    // --- 12. Final Verification Log ---
+    $verify2 = mysqli_query($qd_conn, "SELECT avatar,cover,first_name,last_name,about,wp_meta_hash FROM users WHERE id=$target_qd_user_id LIMIT 1");
+    $snapshot = $verify2 ? mysqli_fetch_assoc($verify2) : [];
+    bz_bridge_log('QuickDate sync final verification', [
+        'qd_user_id' => $target_qd_user_id,
+        'final'      => $snapshot
+    ]);
+
+} catch (Throwable $e) {
+    bz_bridge_log('Exception during QuickDate sync', ['ex' => $e->getMessage()]);
+}
 
 
 

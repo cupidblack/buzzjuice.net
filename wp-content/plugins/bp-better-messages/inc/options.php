@@ -68,8 +68,42 @@ class Better_Messages_Options
             'allowDeleteMessages'         => '0',
             'deleteMethod'                => 'delete',
             'fastStart'                   => '1',
+            'enableSystemMessages'        => '0',
+            'enableSystemMessagesOverride' => '1',
+            'enableSystemMessagesUserJoined'      => '1',
+            'enableSystemMessagesUserLeft'        => '1',
+            'enableSystemMessagesSubjectChanged'  => '1',
+            'enableSystemMessagesImageChanged'    => '1',
+            'enableSystemMessagesUserPromoted'    => '1',
+            'enableSystemMessagesUserDemoted'     => '1',
+            'enableSystemMessagesUserKicked'      => '1',
+            'enableSystemMessagesUserMuted'       => '1',
+            'enableSystemMessagesUserBanned'      => '1',
+            'enableSystemMessagesCallStarted'     => '1',
+            'systemMessagesUserCooldownSeconds'   => 0,
+            'systemMessagesIgnoreInSort'          => '0',
             'miniThreadsEnable'           => '0',
             'miniFriendsEnable'           => '0',
+            'miniAIBotsEnable'            => '0',
+            'miniChatRoomsEnable'         => '0',
+            'miniUsersEnable'             => '0',
+            'combinedAIBotsEnable'        => '0',
+            'combinedChatRoomsEnable'     => '0',
+            'combinedUsersEnable'         => '0',
+            'mobileAIBotsEnable'          => '0',
+            'mobileChatRoomsEnable'       => '0',
+            'mobileUsersEnable'           => '0',
+            'miniWidgetsIconsOnly'        => '0',
+            'sidePanelIconsOnly'          => '0',
+            'mobileTabsIconsOnly'         => '0',
+            'widgetIconMessages'          => '',
+            'widgetIconFriends'           => '',
+            'widgetIconGroups'            => '',
+            'widgetIconAIBots'            => '',
+            'widgetIconChatRooms'         => '',
+            'widgetIconUsers'             => '',
+            'widgetIconCourses'           => '',
+            'chatRoomsShowOnline'         => '0',
             'friendsMode'                 => '0',
             'singleThreadMode'            => '0',
             'newThreadMode'               => '0',
@@ -86,11 +120,54 @@ class Better_Messages_Options
             'restrictNewRepliesMessage'   => 'You are not allowed to continue conversation',
             'restrictCalls'               => [],
             'restrictCallsMessage'        => 'You are not allowed to make a call',
+            'restrictGroupCallsStart'     => [],
+            'restrictGroupCallsJoin'      => [],
             'restrictViewMessages'        => [],
             'restrictViewMessagesMessage' => 'Message hidden',
             'restrictViewMiniThreads'     => [],
             'restrictViewMiniFriends'     => [],
             'restrictViewMiniGroups'      => [],
+            'restrictViewMiniAIBots'      => [],
+            'restrictViewMiniChatRooms'   => [],
+            'restrictViewMiniUsers'       => [],
+            'restrictViewMiniCourses'     => [],
+            'restrictViewSideThreads'     => [],
+            'restrictViewSideFriends'     => [],
+            'restrictViewSideGroups'      => [],
+            'restrictViewSideAIBots'      => [],
+            'restrictViewSideChatRooms'   => [],
+            'restrictViewSideUsers'       => [],
+            'restrictViewSideCourses'     => [],
+            'restrictViewMobileThreads'   => [],
+            'restrictViewMobileFriends'   => [],
+            'restrictViewMobileGroups'    => [],
+            'restrictViewMobileAIBots'    => [],
+            'restrictViewMobileChatRooms' => [],
+            'restrictViewMobileUsers'     => [],
+            'restrictViewMobileCourses'   => [],
+            'widgetAIBotsDisplayMode'     => 'all',
+            'widgetAIBotsIds'             => [],
+            'widgetChatRoomsDisplayMode'  => 'all',
+            'widgetChatRoomsIds'          => [],
+            'widgetUsersDisplayMode'      => 'all',
+            'widgetUsersRoles'            => [],
+            'widgetUsersIds'              => [],
+            'widgetUsersSortBy'           => 'last_active',
+            'widgetUsersOnlineOnly'       => '0',
+            'widgetUsersOnlineFirst'      => '0',
+            'widgetUsersShowOnlineCount'  => '0',
+            'widgetFriendsHideWhenEmpty'  => '0',
+            'widgetGroupsHideWhenEmpty'   => '0',
+            'widgetCoursesHideWhenEmpty'  => '0',
+            'widgetAIBotsHideWhenEmpty'   => '0',
+            'widgetChatRoomsHideWhenEmpty' => '0',
+            'widgetUsersHideWhenEmpty'    => '0',
+            'widgetFriendsShowSearch'     => '1',
+            'widgetGroupsShowSearch'      => '1',
+            'widgetCoursesShowSearch'     => '1',
+            'widgetAIBotsShowSearch'      => '1',
+            'widgetChatRoomsShowSearch'   => '1',
+            'widgetUsersShowSearch'       => '1',
             'restrictMobilePopup'         => [],
             'videoCalls'                  => '0',
             'audioCalls'                  => '0',
@@ -127,6 +204,8 @@ class Better_Messages_Options
             'profileAudioCall'            => '0',
             'miniChatAudioCall'           => '0',
             'miniChatVideoCall'           => '0',
+            'miniChatGroupAudioCall'      => '0',
+            'miniChatGroupVideoCall'      => '0',
             'disableUsersSearch'          => '0',
             'fixedHeaderHeight'           => '0',
             'mobilePopupLocationBottom'   => 20,
@@ -173,6 +252,8 @@ class Better_Messages_Options
             'deletedBehaviour'            => 'ignore',
             'unreadCounter'               => 'messages',
             'allowEditMessages'           => '0',
+            'editMessageTimeLimit'        => 0,
+            'maximumMessageLength'        => 0,
             'enableNiceLinks'             => '1',
             'userStatuses'                => '0',
             'myProfileButton'             => '1',
@@ -309,6 +390,29 @@ class Better_Messages_Options
             'FCminiGroupsEnable'            => '0',
             'FCcombinedGroupsEnable'        => '0',
             'FCmobileGroupsEnable'          => '0',
+            'FCenableCourses'               => '1',
+            'FCminiCoursesEnable'           => '0',
+            'FCcombinedCoursesEnable'       => '0',
+            'FCmobileCoursesEnable'         => '0',
+            'FCcourseChatButton'            => '1',
+            'FCcourseInstructorButton'      => '1',
+
+            'coursesShowInfoCard'           => '1',
+            'enableCoursesEmails'           => '1',
+            'enableCoursesPushs'            => '0',
+
+            'TLminiCoursesEnable'           => '0',
+            'TLcombinedCoursesEnable'       => '0',
+            'TLmobileCoursesEnable'         => '0',
+            'LPminiCoursesEnable'           => '0',
+            'LPcombinedCoursesEnable'       => '0',
+            'LPmobileCoursesEnable'         => '0',
+            'LDminiCoursesEnable'           => '0',
+            'LDcombinedCoursesEnable'       => '0',
+            'LDmobileCoursesEnable'         => '0',
+            'MSminiCoursesEnable'           => '0',
+            'MScombinedCoursesEnable'       => '0',
+            'MSmobileCoursesEnable'         => '0',
 
             'SDenableProfileButton'         => '1',
             'SDenableAuthorButton'          => '1',
@@ -356,6 +460,35 @@ class Better_Messages_Options
             'jetEngineAvatars'              => '0',
             'hivepressIntegration'          => '0',
             'hivepressMenuItem'             => '0',
+            'directoristIntegration'         => '0',
+            'directoristListingPageButton'   => '1',
+            'directoristListingCardButton'   => '0',
+            'directoristAuthorProfileButton' => '1',
+            'directoristDashboardTab'        => '1',
+            'geodirIntegration'              => '0',
+            'geodirSingleListingButton'      => '1',
+            'learnPressIntegration'         => '0',
+            'learnPressGroupChat'           => '0',
+            'learnPressProfileTab'          => '0',
+            'learnPressInstructorPMButton'  => '0',
+            'tutorLmsIntegration'           => '0',
+            'tutorLmsMessageButton'         => '0',
+            'tutorLmsInstructorPMButton'    => '0',
+            'tutorLmsStudentPMButton'       => '0',
+            'tutorLmsGroupChat'             => '0',
+            'tutorLmsDashboardTab'          => '0',
+            'learnDashIntegration'          => '0',
+            'learnDashMessageButton'        => '1',
+            'learnDashCourseGroupChat'      => '0',
+            'learnDashGroupChat'            => '0',
+            'learnDashInstructorRoleProfileButton' => '0',
+            'masterStudyIntegration'         => '0',
+            'masterStudyMessageButton'       => '0',
+            'masterStudyInstructorPMButton'  => '0',
+            'masterStudyStudentPMButton'     => '0',
+            'masterStudyGroupChat'           => '0',
+            'masterStudyAccountTab'          => '0',
+            'masterStudyDisableNativeMessages' => '0',
             'redirectUnlogged'              => '0',
             'wpJobManagerIntegration'       => '0',
             'pinnedMessages'                => '0',
@@ -524,11 +657,11 @@ class Better_Messages_Options
 
         add_submenu_page(
             'bp-better-messages',
-            _x( 'AI Chat Bots', 'WP Admin', 'bp-better-messages' ),
-            _x( 'AI Chat Bots', 'WP Admin', 'bp-better-messages' ),
-            'manage_options',
-            'bp-better-messages-ai',
-            array( $this, 'ai_bots_page_new_html' ),
+            _x( 'Administration', 'WP Admin', 'bp-better-messages' ),
+            $administration_menu_title,
+            'bm_can_administrate',
+            'better-messages-viewer',
+            array($this, 'viewer_page_new_html'),
             2
         );
 
@@ -544,12 +677,12 @@ class Better_Messages_Options
 
         add_submenu_page(
             'bp-better-messages',
-            _x( 'Administration', 'WP Admin', 'bp-better-messages' ),
-            $administration_menu_title,
-            'bm_can_administrate',
-            'better-messages-viewer',
-            array($this, 'viewer_page_new_html'),
-            10
+            _x( 'AI Chat Bots', 'WP Admin', 'bp-better-messages' ),
+            _x( 'AI Chat Bots', 'WP Admin', 'bp-better-messages' ),
+            'manage_options',
+            'bp-better-messages-ai',
+            array( $this, 'ai_bots_page_new_html' ),
+            4
         );
         //}
 
@@ -610,6 +743,7 @@ class Better_Messages_Options
                 $pages[] = array(
                     'id'    => $page->ID,
                     'title' => $page->post_title,
+                    'url'   => get_permalink( $page->ID ),
                 );
             }
         }
@@ -674,11 +808,19 @@ class Better_Messages_Options
         $has_dokan       = class_exists('WeDevs_Dokan');
         $has_wc_vendors  = class_exists('WCV_Vendors');
         $has_wcfm        = class_exists('WCFM');
-        $has_multivendorx = defined('MVX_PLUGIN_VERSION');
+        $has_multivendorx = defined('MVX_PLUGIN_VERSION')
+            || ( defined('MULTIVENDORX_PLUGIN_VERSION') && version_compare( MULTIVENDORX_PLUGIN_VERSION, '5.0.0', '>=' ) );
         $has_hivepress   = function_exists('hivepress');
+        $has_directorist = defined('ATBDP_VERSION');
+        $has_geodirectory = defined('GEODIRECTORY_VERSION');
         $has_wp_job_manager = class_exists('WP_Job_Manager');
         $has_bbpress     = class_exists('bbPress');
         $has_jetengine   = function_exists('jet_engine');
+        $has_learnpress  = class_exists('LearnPress');
+        $has_tutorlms    = defined('TUTOR_VERSION');
+        $has_learndash   = defined('LEARNDASH_VERSION');
+        $has_learndash_instructor_role = defined('INSTRUCTOR_ROLE_PLUGIN_VERSION');
+        $has_masterstudy = defined('STM_LMS_VERSION');
         $has_friends     = Better_Messages()->functions->is_friends_active();
         $has_peepso      = class_exists('PeepSo');
 
@@ -780,21 +922,6 @@ class Better_Messages_Options
             $emoji_sets = Better_Messages_Emojis()->emoji_sets;
         }
 
-        // Suggested conversations users (resolve IDs to labels)
-        $suggested_conversations_users = array();
-        if ( is_array( $this->settings['suggestedConversations'] ) ) {
-            foreach ( $this->settings['suggestedConversations'] as $user_id ) {
-                if ( Better_Messages()->functions->is_user_exists( $user_id ) ) {
-                    $user = Better_Messages()->functions->rest_user_item( $user_id );
-                    $suggested_conversations_users[] = array(
-                        'value'  => $user['user_id'],
-                        'label'  => $user['name'],
-                        'avatar' => $user['avatar'],
-                    );
-                }
-            }
-        }
-
         $resolve_support_user = function( $user_id ){
             $user_id = (int) $user_id;
             if ( $user_id <= 0 || ! Better_Messages()->functions->is_user_exists( $user_id ) ) {
@@ -811,6 +938,18 @@ class Better_Messages_Options
         $woocommerce_product_support_user      = $resolve_support_user( $this->settings['wooCommerceProductSupportUser'] );
         $woocommerce_order_support_user        = $resolve_support_user( $this->settings['wooCommerceOrderSupportUser'] );
         $woocommerce_pre_purchase_support_user = $resolve_support_user( $this->settings['wooCommercePrePurchaseSupportUser'] );
+
+        $ai_bots_count = 0;
+        if ( post_type_exists( 'bm-ai-chat-bot' ) ) {
+            $counts = (array) wp_count_posts( 'bm-ai-chat-bot' );
+            $ai_bots_count = isset( $counts['publish'] ) ? (int) $counts['publish'] : 0;
+        }
+
+        $chat_rooms_count = 0;
+        if ( post_type_exists( 'bpbm-chat' ) ) {
+            $counts = (array) wp_count_posts( 'bpbm-chat' );
+            $chat_rooms_count = isset( $counts['publish'] ) ? (int) $counts['publish'] : 0;
+        }
 
         // Load emailCustomHtml from separate option for frontend display
         $settings_for_frontend = $this->settings;
@@ -852,9 +991,16 @@ class Better_Messages_Options
             'hasWcfm'            => $has_wcfm,
             'hasMultiVendorX'    => $has_multivendorx,
             'hasHivePress'       => $has_hivepress,
+            'hasDirectorist'     => $has_directorist,
+            'hasGeoDirectory'    => $has_geodirectory,
             'hasWpJobManager'    => $has_wp_job_manager,
             'hasBbPress'         => $has_bbpress,
             'hasJetEngine'       => $has_jetengine,
+            'hasLearnPress'      => $has_learnpress,
+            'hasTutorLMS'        => $has_tutorlms,
+            'hasLearnDash'       => $has_learndash,
+            'hasLearnDashInstructorRole' => $has_learndash_instructor_role,
+            'hasMasterStudy'     => $has_masterstudy,
             'hasFriends'         => $has_friends,
             'hasVoiceMessages'   => class_exists('BP_Better_Messages_Voice_Messages'),
             'translationLanguages' => class_exists('Better_Messages_AI') ? Better_Messages_AI::instance()->get_all_translation_languages() : array(),
@@ -881,6 +1027,7 @@ class Better_Messages_Options
             'hasUmGroups'        => $has_um_groups,
             'hasUmFollowers'     => $has_um_followers,
             'hasFcSpaces'        => $has_fluent_community,
+            'hasFcCourses'       => $has_fluent_community && class_exists( 'FluentCommunity\\Modules\\Course\\Model\\Course' ),
             'hasBuddyBossApp'    => $has_buddyboss_app,
             'hasOneSignal'       => defined('ONESIGNAL_PLUGIN_URL') || defined('ONESIGNAL_VERSION_V3') || class_exists('OneSignal'),
             'hasProgressify'     => class_exists('DaftPlug\Progressify\Plugin') || defined('PROGRESSIFY_VERSION'),
@@ -890,6 +1037,8 @@ class Better_Messages_Options
             'cronStatus'         => $cron_status,
             'dbInfo'             => $db_info,
             'utf8mb4Supported'   => $wpdb->has_cap( 'utf8mb4' ),
+            'dbVersion'          => Better_Messages_Rest_Api_DB_Migrate()->get_target_db_version(),
+            'installedDbVersion' => Better_Messages_Rest_Api_DB_Migrate()->get_installed_db_version(),
             'lastSync'           => $last_sync,
             'nextSync'           => $next_sync,
             'hasMyCred'          => class_exists( 'myCRED_Core' ),
@@ -902,7 +1051,8 @@ class Better_Messages_Options
                 array( 'name' => 'ffmpeg', 'url' => class_exists('Better_Messages_Files') && Better_Messages_Files::get_ffmpeg_wasm_url() ? Better_Messages_Files::get_ffmpeg_wasm_url() . 'ffmpeg-core.wasm' : false ),
             ),
             'ffmpegSize'         => class_exists('Better_Messages_Files') ? Better_Messages_Files::get_ffmpeg_info()['size'] : '',
-            'suggestedConversationsUsers' => $suggested_conversations_users,
+            'aiBotsCount'                => $ai_bots_count,
+            'chatRoomsCount'             => $chat_rooms_count,
             'wooCommerceProductSupportUserData'     => $woocommerce_product_support_user,
             'wooCommerceOrderSupportUserData'       => $woocommerce_order_support_user,
             'wooCommercePrePurchaseSupportUserData' => $woocommerce_pre_purchase_support_user,
@@ -971,9 +1121,6 @@ class Better_Messages_Options
             'pluginUrl'        => Better_Messages()->url,
             'pluginVersion'    => Better_Messages()->version,
             'phpVersion'       => phpversion(),
-            'hasAnyApiKey'     => ! empty( Better_Messages()->settings['openAiApiKey'] )
-                || ! empty( Better_Messages()->settings['anthropicApiKey'] )
-                || ! empty( Better_Messages()->settings['geminiApiKey'] ),
             'settingsUrl'      => add_query_arg( 'page', 'bp-better-messages', admin_url('admin.php') ) . '#/integrations/openai',
             'pointsSystemActive' => class_exists( 'Better_Messages_Points' ) && Better_Messages_Points()->get_provider() !== null,
             'pointsSystemName'   => ( class_exists( 'Better_Messages_Points' ) && Better_Messages_Points()->get_provider() )
@@ -1276,6 +1423,55 @@ class Better_Messages_Options
             if ( ! isset( $settings['FCmobileGroupsEnable'] ) ) {
                 $settings['FCmobileGroupsEnable'] = '0';
             }
+
+            if ( ! isset( $settings['FCenableCourses'] ) ) {
+                $settings['FCenableCourses'] = '0';
+            }
+
+            if ( ! isset( $settings['FCcourseChatButton'] ) ) {
+                $settings['FCcourseChatButton'] = '0';
+            }
+
+            if ( ! isset( $settings['FCcourseInstructorButton'] ) ) {
+                $settings['FCcourseInstructorButton'] = '0';
+            }
+        }
+
+        if ( ! isset( $settings['coursesShowInfoCard'] ) ) {
+            $settings['coursesShowInfoCard'] = '1';
+        }
+
+        if ( ! isset( $settings['enableCoursesEmails'] ) ) {
+            $settings['enableCoursesEmails'] = '1';
+        }
+
+        if ( ! isset( $settings['enableCoursesPushs'] ) ) {
+            $settings['enableCoursesPushs'] = '0';
+        }
+
+        foreach ( array(
+            'TLminiCoursesEnable', 'TLcombinedCoursesEnable', 'TLmobileCoursesEnable',
+            'LPminiCoursesEnable', 'LPcombinedCoursesEnable', 'LPmobileCoursesEnable',
+            'LDminiCoursesEnable', 'LDcombinedCoursesEnable', 'LDmobileCoursesEnable',
+            'MSminiCoursesEnable', 'MScombinedCoursesEnable', 'MSmobileCoursesEnable',
+            'FCminiCoursesEnable', 'FCcombinedCoursesEnable', 'FCmobileCoursesEnable',
+            'widgetIconCourses', 'widgetCoursesHideWhenEmpty', 'widgetCoursesShowSearch',
+            'restrictViewMiniCourses', 'restrictViewSideCourses', 'restrictViewMobileCourses',
+        ) as $key ) {
+            if ( ! isset( $settings[ $key ] ) ) {
+                $settings[ $key ] = ( in_array( $key, array(
+                    'restrictViewMiniCourses', 'restrictViewSideCourses', 'restrictViewMobileCourses',
+                ), true ) ) ? array() : ( $key === 'widgetCoursesShowSearch' ? '1' : '' );
+                if ( in_array( $key, array(
+                    'TLminiCoursesEnable', 'TLcombinedCoursesEnable', 'TLmobileCoursesEnable',
+                    'LPminiCoursesEnable', 'LPcombinedCoursesEnable', 'LPmobileCoursesEnable',
+                    'LDminiCoursesEnable', 'LDcombinedCoursesEnable', 'LDmobileCoursesEnable',
+                    'MSminiCoursesEnable', 'MScombinedCoursesEnable', 'MSmobileCoursesEnable',
+                    'widgetCoursesHideWhenEmpty',
+                ), true ) ) {
+                    $settings[ $key ] = '0';
+                }
+            }
         }
 
         if ( defined('SUREDASHBOARD_VER') ) {
@@ -1380,6 +1576,94 @@ class Better_Messages_Options
         }
         if ( !isset( $settings['miniThreadsEnable'] ) ) {
             $settings['miniThreadsEnable'] = '0';
+        }
+        if ( !isset( $settings['miniAIBotsEnable'] ) ) {
+            $settings['miniAIBotsEnable'] = '0';
+        }
+        if ( !isset( $settings['miniChatRoomsEnable'] ) ) {
+            $settings['miniChatRoomsEnable'] = '0';
+        }
+        if ( !isset( $settings['miniUsersEnable'] ) ) {
+            $settings['miniUsersEnable'] = '0';
+        }
+        if ( !isset( $settings['chatRoomsShowOnline'] ) ) {
+            $settings['chatRoomsShowOnline'] = '0';
+        }
+        foreach ( array(
+            'combinedAIBotsEnable', 'combinedChatRoomsEnable', 'combinedUsersEnable',
+            'mobileAIBotsEnable', 'mobileChatRoomsEnable', 'mobileUsersEnable',
+            'miniWidgetsIconsOnly', 'sidePanelIconsOnly', 'mobileTabsIconsOnly',
+            'widgetUsersOnlineOnly', 'widgetUsersOnlineFirst',
+            'widgetUsersShowOnlineCount'
+        ) as $bm_flag ) {
+            if ( ! isset( $settings[ $bm_flag ] ) ) $settings[ $bm_flag ] = '0';
+        }
+        foreach ( array(
+            'widgetIconMessages', 'widgetIconFriends', 'widgetIconGroups',
+            'widgetIconAIBots', 'widgetIconChatRooms', 'widgetIconUsers'
+        ) as $bm_icon_key ) {
+            if ( ! isset( $settings[ $bm_icon_key ] ) ) $settings[ $bm_icon_key ] = '';
+        }
+        if ( !isset( $settings['restrictViewMiniAIBots'] ) ) {
+            $settings['restrictViewMiniAIBots'] = [];
+        }
+        if ( !isset( $settings['restrictViewMiniChatRooms'] ) ) {
+            $settings['restrictViewMiniChatRooms'] = [];
+        }
+        if ( !isset( $settings['restrictViewMiniUsers'] ) ) {
+            $settings['restrictViewMiniUsers'] = [];
+        }
+        foreach ( array(
+            'restrictViewSideThreads', 'restrictViewSideFriends', 'restrictViewSideGroups',
+            'restrictViewSideAIBots', 'restrictViewSideChatRooms', 'restrictViewSideUsers',
+            'restrictViewMobileThreads', 'restrictViewMobileFriends', 'restrictViewMobileGroups',
+            'restrictViewMobileAIBots', 'restrictViewMobileChatRooms', 'restrictViewMobileUsers',
+        ) as $bm_restrict_key ) {
+            if ( ! isset( $settings[ $bm_restrict_key ] ) || ! is_array( $settings[ $bm_restrict_key ] ) ) {
+                $settings[ $bm_restrict_key ] = [];
+            }
+        }
+        if ( ! isset( $settings['widgetAIBotsDisplayMode'] ) || ! in_array( $settings['widgetAIBotsDisplayMode'], array( 'all', 'specific' ), true ) ) {
+            $settings['widgetAIBotsDisplayMode'] = 'all';
+        }
+        if ( ! isset( $settings['widgetAIBotsIds'] ) || ! is_array( $settings['widgetAIBotsIds'] ) ) {
+            $settings['widgetAIBotsIds'] = array();
+        }
+        if ( ! isset( $settings['widgetChatRoomsDisplayMode'] ) || ! in_array( $settings['widgetChatRoomsDisplayMode'], array( 'all', 'specific' ), true ) ) {
+            $settings['widgetChatRoomsDisplayMode'] = 'all';
+        }
+        if ( ! isset( $settings['widgetChatRoomsIds'] ) || ! is_array( $settings['widgetChatRoomsIds'] ) ) {
+            $settings['widgetChatRoomsIds'] = array();
+        }
+        if ( ! isset( $settings['widgetUsersDisplayMode'] ) || ! in_array( $settings['widgetUsersDisplayMode'], array( 'all', 'roles', 'specific' ), true ) ) {
+            $settings['widgetUsersDisplayMode'] = 'all';
+        }
+        if ( ! isset( $settings['widgetUsersRoles'] ) || ! is_array( $settings['widgetUsersRoles'] ) ) {
+            $settings['widgetUsersRoles'] = array();
+        }
+        if ( ! isset( $settings['widgetUsersIds'] ) || ! is_array( $settings['widgetUsersIds'] ) ) {
+            $settings['widgetUsersIds'] = array();
+        }
+        if ( ! isset( $settings['widgetUsersSortBy'] ) || ! in_array( $settings['widgetUsersSortBy'], array( 'last_active', 'display_name', 'newest' ), true ) ) {
+            $settings['widgetUsersSortBy'] = 'last_active';
+        }
+        foreach ( array(
+            'widgetFriendsHideWhenEmpty', 'widgetGroupsHideWhenEmpty',
+            'widgetAIBotsHideWhenEmpty', 'widgetChatRoomsHideWhenEmpty',
+            'widgetUsersHideWhenEmpty',
+        ) as $bm_hide_key ) {
+            if ( ! isset( $settings[ $bm_hide_key ] ) ) {
+                $settings[ $bm_hide_key ] = '0';
+            }
+        }
+        foreach ( array(
+            'widgetFriendsShowSearch', 'widgetGroupsShowSearch',
+            'widgetAIBotsShowSearch', 'widgetChatRoomsShowSearch',
+            'widgetUsersShowSearch',
+        ) as $bm_show_search_key ) {
+            if ( ! isset( $settings[ $bm_show_search_key ] ) ) {
+                $settings[ $bm_show_search_key ] = '1';
+            }
         }
         if ( !isset( $settings['friendsMode'] ) ) {
             $settings['friendsMode'] = '0';
@@ -1656,6 +1940,14 @@ class Better_Messages_Options
             $settings['allowEditMessages'] = '0';
         }
 
+        if ( !isset( $settings['editMessageTimeLimit'] ) ) {
+            $settings['editMessageTimeLimit'] = 0;
+        }
+
+        if ( !isset( $settings['maximumMessageLength'] ) ) {
+            $settings['maximumMessageLength'] = 0;
+        }
+
         if ( !isset( $settings['enableNiceLinks'] ) ) {
             $settings['enableNiceLinks'] = '0';
         }
@@ -1908,6 +2200,122 @@ class Better_Messages_Options
             $settings['hivepressMenuItem'] = '0';
         }
 
+        if( ! isset( $settings['directoristIntegration'] ) ) {
+            $settings['directoristIntegration'] = '0';
+        }
+
+        if( ! isset( $settings['directoristListingPageButton'] ) ) {
+            $settings['directoristListingPageButton'] = '1';
+        }
+
+        if( ! isset( $settings['directoristListingCardButton'] ) ) {
+            $settings['directoristListingCardButton'] = '0';
+        }
+
+        if( ! isset( $settings['directoristAuthorProfileButton'] ) ) {
+            $settings['directoristAuthorProfileButton'] = '1';
+        }
+
+        if( ! isset( $settings['directoristDashboardTab'] ) ) {
+            $settings['directoristDashboardTab'] = '1';
+        }
+
+        if( ! isset( $settings['geodirIntegration'] ) ) {
+            $settings['geodirIntegration'] = '0';
+        }
+
+        if( ! isset( $settings['geodirSingleListingButton'] ) ) {
+            $settings['geodirSingleListingButton'] = '1';
+        }
+
+        if( ! isset( $settings['learnPressIntegration'] ) ) {
+            $settings['learnPressIntegration'] = '0';
+        }
+
+        if( ! isset( $settings['learnPressGroupChat'] ) ) {
+            $settings['learnPressGroupChat'] = '0';
+        }
+
+        if( ! isset( $settings['learnPressProfileTab'] ) ) {
+            $settings['learnPressProfileTab'] = '0';
+        }
+
+        if( ! isset( $settings['learnPressInstructorPMButton'] ) ) {
+            $settings['learnPressInstructorPMButton'] = '0';
+        }
+
+        if( ! isset( $settings['tutorLmsIntegration'] ) ) {
+            $settings['tutorLmsIntegration'] = '0';
+        }
+
+        if( ! isset( $settings['tutorLmsMessageButton'] ) ) {
+            $settings['tutorLmsMessageButton'] = '0';
+        }
+
+        if( ! isset( $settings['tutorLmsInstructorPMButton'] ) ) {
+            $settings['tutorLmsInstructorPMButton'] = '0';
+        }
+
+        if( ! isset( $settings['tutorLmsStudentPMButton'] ) ) {
+            $settings['tutorLmsStudentPMButton'] = '0';
+        }
+
+        if( ! isset( $settings['tutorLmsGroupChat'] ) ) {
+            $settings['tutorLmsGroupChat'] = '0';
+        }
+
+        if( ! isset( $settings['tutorLmsDashboardTab'] ) ) {
+            $settings['tutorLmsDashboardTab'] = '0';
+        }
+
+        if( ! isset( $settings['learnDashIntegration'] ) ) {
+            $settings['learnDashIntegration'] = '0';
+        }
+
+        if( ! isset( $settings['learnDashMessageButton'] ) ) {
+            $settings['learnDashMessageButton'] = '1';
+        }
+
+        if( ! isset( $settings['learnDashCourseGroupChat'] ) ) {
+            $settings['learnDashCourseGroupChat'] = '0';
+        }
+
+        if( ! isset( $settings['learnDashGroupChat'] ) ) {
+            $settings['learnDashGroupChat'] = '0';
+        }
+
+        if( ! isset( $settings['learnDashInstructorRoleProfileButton'] ) ) {
+            $settings['learnDashInstructorRoleProfileButton'] = '0';
+        }
+
+        if( ! isset( $settings['masterStudyIntegration'] ) ) {
+            $settings['masterStudyIntegration'] = '0';
+        }
+
+        if( ! isset( $settings['masterStudyMessageButton'] ) ) {
+            $settings['masterStudyMessageButton'] = '0';
+        }
+
+        if( ! isset( $settings['masterStudyInstructorPMButton'] ) ) {
+            $settings['masterStudyInstructorPMButton'] = '0';
+        }
+
+        if( ! isset( $settings['masterStudyGroupChat'] ) ) {
+            $settings['masterStudyGroupChat'] = '0';
+        }
+
+        if( ! isset( $settings['masterStudyStudentPMButton'] ) ) {
+            $settings['masterStudyStudentPMButton'] = '0';
+        }
+
+        if( ! isset( $settings['masterStudyAccountTab'] ) ) {
+            $settings['masterStudyAccountTab'] = '0';
+        }
+
+        if( ! isset( $settings['masterStudyDisableNativeMessages'] ) ) {
+            $settings['masterStudyDisableNativeMessages'] = isset( $settings['masterStudyHideNativeMessages'] ) ? $settings['masterStudyHideNativeMessages'] : '0';
+        }
+
         if( ! isset( $settings['redirectUnlogged'] ) ) {
             $settings['redirectUnlogged'] = '0';
         }
@@ -2140,7 +2548,9 @@ class Better_Messages_Options
             'voiceMessagesMaxDuration'  => 0,
             'voiceMessagesAutoDelete'   => 0,
             'deleteOldMessages'         => 0,
-            'emailLogoId'               => 0
+            'emailLogoId'               => 0,
+            'editMessageTimeLimit'      => 0,
+            'maximumMessageLength'      => 0,
         ];
 
         $arrays = [

@@ -27,6 +27,7 @@ if ( !class_exists( 'Better_Messages_Guests' ) ):
             $this->table = bm_get_table('guests');
 
             $this->check_guest_auth();
+            $this->maybe_load_mini_widget_for_guest_fallback();
 
             add_action('wp_enqueue_scripts', array($this, 'load_scripts'));
             #add_action('wp_footer', array($this, 'html_element'), 999);
@@ -83,6 +84,24 @@ if ( !class_exists( 'Better_Messages_Guests' ) ):
         }
         public function guest_access_enabled(){
             return Better_Messages()->settings['guestChat'] === '1';
+        }
+
+        public function force_mini_for_guest_on_restricted_chat_page(){
+            if ( is_user_logged_in() ) return false;
+            if ( ! $this->guest_access_enabled() ) return false;
+            $restricted = apply_filters( 'better_messages_restricted_chat_pages', array( 'woocommerce', 'buddypress' ) );
+            return in_array( Better_Messages()->settings['chatPage'], $restricted, true );
+        }
+
+        public function maybe_load_mini_widget_for_guest_fallback(){
+            static $loaded = false;
+            if ( $loaded ) return;
+            if ( ! $this->force_mini_for_guest_on_restricted_chat_page() ) return;
+            $path = Better_Messages()->path . 'inc/mini.php';
+            if ( ! file_exists( $path ) ) return;
+            require_once $path;
+            Better_Messages_Mini();
+            $loaded = true;
         }
 
         public function guest_user_id( $user_id ){
@@ -343,37 +362,35 @@ if ( !class_exists( 'Better_Messages_Guests' ) ):
                 }
             }
 
-            $return = false;
-
             if( count( $data ) > 0 ) {
                 $result = $wpdb->update( bm_get_table('guests'), $data, [ 'id' => absint($user_id) ] );
                 if ( false !== $result ) {
                     Better_Messages()->users->update_last_changed( absint($user_id) * -1 );
-
                     wp_cache_delete( 'guest_user_' . absint($user_id), 'bm_messages' );
-
                     $guest_user = $this->get_guest_user( $user_id );
-
-                    $user_item = Better_Messages()->functions->rest_user_item( $user_id );
-
-                    $return = [
-                        'id'     => (int) $guest_user->id,
-                        'secret' => $guest_user->secret,
-                        'name'   => $guest_user->name,
-                        'email'  => $guest_user->email,
-                        'user'   => $user_item
-                    ];
-
-                    if ( Better_Messages()->websocket ) {
-                        $ws_profile = Better_Messages()->functions->build_ws_profile( $user_id, $user_item );
-                        $return['pd']  = $ws_profile['pd'];
-                        $return['pdh'] = $ws_profile['pdh'];
-                        $return['pds'] = $ws_profile['pds'];
-                    }
 
                     do_action( 'better_messages_guest_updated', $user_id );
                     do_action( 'better_messages_user_updated', $user_id );
                 }
+            }
+
+            $user_item = Better_Messages()->functions->rest_user_item( $user_id );
+
+            $return = [
+                'id'     => (int) $guest_user->id,
+                'secret' => $guest_user->secret,
+                'name'   => $guest_user->name,
+                'email'  => $guest_user->email,
+                'user'   => $user_item
+            ];
+
+            if ( Better_Messages()->websocket ) {
+                $ws_profile = Better_Messages()->functions->build_ws_profile( $user_id, $user_item );
+                $return['pd']  = $ws_profile['pd'];
+                $return['pdh'] = $ws_profile['pdh'];
+                $return['pds'] = $ws_profile['pds'];
+                $return['role_hashes']     = $ws_profile['role_hashes'];
+                $return['role_hashes_sig'] = $ws_profile['role_hashes_sig'];
             }
 
             return $return;
@@ -465,6 +482,8 @@ if ( !class_exists( 'Better_Messages_Guests' ) ):
                     $return['pd']  = $ws_profile['pd'];
                     $return['pdh'] = $ws_profile['pdh'];
                     $return['pds'] = $ws_profile['pds'];
+                    $return['role_hashes']     = $ws_profile['role_hashes'];
+                    $return['role_hashes_sig'] = $ws_profile['role_hashes_sig'];
                 }
 
                 return $return;

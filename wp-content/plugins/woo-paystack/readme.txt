@@ -1,15 +1,15 @@
 === Paystack WooCommerce Payment Gateway ===
 Contributors: tubiz
 Donate link: https://bosun.me/donate
-Tags: paystack, woocommerce, payment gateway, tubiz plugins, verve, ghana, kenya, nigeria, south africa, naira, cedi, rand, mastercard, visa
-Requires at least: 6.2
-Tested up to: 6.6
-Stable tag: 5.8.2
+Tags: paystack, woocommerce, payment gateway, mastercard, visa
+Requires at least: 6.8
+Tested up to: 6.9
+Stable tag: 5.8.3
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Paystack for WooCommerce allows your store in Nigeria, Ghana, Kenya, or South Africa to accept secure payments from multiple local and global payment channels.
+Paystack for WooCommerce allows your WooCommerce store to accept secure payments from multiple local and global payment channels.
 
 == Description ==
 
@@ -122,6 +122,11 @@ If you do not find Paystack on the Payment method options, please go through the
 
 
 == Changelog ==
+
+= 5.8.3 - April 30, 2026 =
+*   Misc: Pass site url in the referrer metadata
+*   Tweak: WooCommerce 10.7 compatibility
+*   Tweak: Minimum WooCommerce supported version: 9.6
 
 = 5.8.2 - July 18, 2024 =
 *   New: Introduce filter hook `wc_paystack_payment_channels`

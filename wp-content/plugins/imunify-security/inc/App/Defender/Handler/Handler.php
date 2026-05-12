@@ -67,6 +67,15 @@ class Handler implements HandlerInterface {
 	protected $version;
 
 	/**
+	 * Optional condition evaluator override.
+	 *
+	 * @since 3.0.4
+	 *
+	 * @var ConditionEvaluator|null
+	 */
+	private $conditionEvaluator = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Rule             $rule             Rule object.
@@ -119,16 +128,36 @@ class Handler implements HandlerInterface {
 	}
 
 	/**
+	 * Set a custom condition evaluator (used in tests).
+	 *
+	 * @since 3.0.4
+	 *
+	 * @param ConditionEvaluator $evaluator Evaluator instance.
+	 *
+	 * @return void
+	 */
+	public function setConditionEvaluator( ConditionEvaluator $evaluator ) {
+		$this->conditionEvaluator = $evaluator;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	public function maybeBlock() {
 		$conditions = $this->rule->getConditions();
+
 		if ( ! empty( $conditions ) ) {
-			// Evaluate all conditions.
-			$evaluator = new ConditionEvaluator();
+			$evaluator = $this->conditionEvaluator
+				? $this->conditionEvaluator
+				: new ConditionEvaluator();
+
 			if ( ! $evaluator->evaluateConditions( $conditions, $this->request ) ) {
-				// If any condition fails, don't block (action is not targeted).
 				return;
+			}
+
+			$probeData = $evaluator->getProbeData();
+			if ( null !== $probeData ) {
+				$this->rule->setProbeData( (string) $probeData );
 			}
 		}
 
@@ -140,23 +169,23 @@ class Handler implements HandlerInterface {
 	 *
 	 * Records the incident and blocks if mode is 'block'.
 	 *
+	 * @since 3.0.4 Data-collection hit tracking skip; probe data read from Rule.
+	 *
 	 * @return void
 	 */
 	protected function processIncident() {
-		// Record the incident in both pass and block modes.
 		do_action( 'imunify_security_set_error_handler' );
 		$this->incidentRecorder->recordIncident( $this->rule, $this->rule->getMode(), $this->targetInfo, $this->request, $this->version );
 		do_action( 'imunify_security_restore_error_handler' );
 
-		// Record hit for the widget display.
-		$this->hitTracker->recordHit( $this->rule );
+		if ( ! $this->rule->isInternal() ) {
+			$this->hitTracker->recordHit( $this->rule );
+		}
 
-		// Check the rule mode - if it's 'pass', don't block.
 		if ( $this->rule->getMode() === RuleMode::PASS ) {
 			return;
 		}
 
-		// Block the request.
 		$this->blockRequest();
 	}
 

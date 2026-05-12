@@ -38,6 +38,12 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             require_once('api/groups.php');
             Better_Messages_Rest_Groups();
 
+            require_once('api/courses.php');
+            Better_Messages_Rest_Courses();
+
+            require_once('api/users.php');
+            Better_Messages_Rest_Users();
+
             require_once('api/favorited.php');
             Better_Messages_Rest_Api_Favorited();
 
@@ -421,7 +427,8 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 foreach ( $messages as $message_id ){
                     $message = Better_Messages()->functions->get_message( $message_id );
                     if( $message ){
-                        $has_access = Better_Messages()->functions->check_access( $message->thread_id, $current_user_id );
+                        $has_access = Better_Messages()->functions->check_access( $message->thread_id, $current_user_id )
+                            && Better_Messages()->functions->can_read_chat_messages( $message->thread_id, $current_user_id );
                         if( $has_access ){
                             $message->message_id = (int) $message->id;
                             unset( $message->id );
@@ -603,6 +610,13 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
 
             $return['currentTime'] = $time;
 
+            // Opt-in kill-switch. Hook this filter and return 'websocket' to tell
+            // fallback-polling clients to stop hitting REST (e.g. under high WP load).
+            $transport = apply_filters( 'better_messages_checknew_transport', null, $current_user_id );
+            if ( $transport === 'websocket' ) {
+                $return['transport'] = 'websocket';
+            }
+
             return apply_filters( 'better_messages_rest_api_update_data', $return, $current_user_id, $lastClient );
         }
 
@@ -676,9 +690,8 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 );
             } else {
                 // Allow addons (E2E) to process after thread creation (e.g. send actual encrypted message)
+                // Note: the bp_better_messages_new_thread_created action is fired from within new_message()
                 $sent = apply_filters( 'better_messages_new_thread_after_create', $sent, $request, $current_user_id );
-
-                do_action( 'bp_better_messages_new_thread_created', $sent['thread_id'], $sent['message_id'] );
 
                 return array(
                     'result'     => true,
@@ -691,7 +704,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
         public function suggest_thread( WP_REST_Request $request ){
             $current_user_id = Better_Messages()->functions->get_current_user_id();
             $recipients = (array) $request->get_param( 'recipients');
-            $forceNew   = (boolean) $request->get_param( 'forceNew');
+            $forceNew   = (bool) $request->get_param( 'forceNew');
 
             if( count( $recipients ) === 0 ) return false;
 
@@ -740,6 +753,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             $replaceMethod = Better_Messages()->settings['deleteMethod'] === 'replace';
 
             $deleted_messages = [];
+            $hard_deleted_messages = [];
             $errors = [];
 
             foreach( $messages_ids as $message_id ){
@@ -760,15 +774,29 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 }
 
                 if( $canDelete ){
+                    $is_system = $message->sender_id === 0 && is_string( $message->message ) && strpos( $message->message, '<!-- BM-SYSTEM-MESSAGE:' ) === 0;
+
                     Better_Messages()->functions->delete_message( $message_id, $message->thread_id );
                     $deleted_messages[] = $message_id;
+
+                    if ( $is_system ) {
+                        $hard_deleted_messages[] = $message_id;
+                    }
                 }
             }
 
             $return = [];
 
             if( $replaceMethod ){
-                $return = Better_Messages()->api->get_messages(null, $deleted_messages);
+                $replaced_messages = array_values( array_diff( $deleted_messages, $hard_deleted_messages ) );
+                if ( ! empty( $replaced_messages ) ) {
+                    $return = Better_Messages()->api->get_messages(null, $replaced_messages);
+                } else {
+                    $return = array( 'users' => array(), 'messages' => array() );
+                }
+                if ( ! empty( $hard_deleted_messages ) ) {
+                    $return['deleted'] = $hard_deleted_messages;
+                }
             } else {
                 $return['deleted'] = $deleted_messages;
             }
@@ -937,6 +965,14 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 $args['content'] .= ' ';
             }
 
+            $max_length = (int) Better_Messages()->settings['maximumMessageLength'];
+            if ( $max_length > 0 && Better_Messages()->functions->message_text_length( $raw_message ) > $max_length ) {
+                $errors['maxLength'] = sprintf(
+                    _x( 'Message is too long. Maximum allowed length is %d characters', 'Send message error', 'bp-better-messages' ),
+                    $max_length
+                );
+            }
+
             if( ! empty( $uploaded_files ) ){
                 $args['attachments'] = $uploaded_files;
             }
@@ -961,7 +997,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
 
                 $redirect = 'refresh';
 
-                if( count( $errors ) === 1 && ( isset( $errors['empty'] ) || isset( $errors['restrictBadWord'] ) ) ){
+                if( count( $errors ) === 1 && ( isset( $errors['empty'] ) || isset( $errors['restrictBadWord'] ) || isset( $errors['maxLength'] ) ) ){
                     $redirect = false;
                 }
 
@@ -1150,16 +1186,29 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
 
             global $wpdb;
 
-            $user_id    = Better_Messages()->functions->get_current_user_id();
-            $thread_id  = intval( $request->get_param('id') );
-            $message_id = intval( $request->get_param('message_id') );
-            $content    = Better_Messages()->functions->filter_message_content($request->get_param('message'));
+            $user_id     = Better_Messages()->functions->get_current_user_id();
+            $thread_id   = intval( $request->get_param('id') );
+            $message_id  = intval( $request->get_param('message_id') );
+            $raw_message = $request->get_param('message');
+            $content     = Better_Messages()->functions->filter_message_content( $raw_message );
 
             if( trim($content) == '') {
                 return new WP_Error(
                     'rest_forbidden',
                     __( 'Message content was empty.', 'bp-better-messages' ),
                     array( 'status' => rest_authorization_required_code() )
+                );
+            }
+
+            $max_length = (int) Better_Messages()->settings['maximumMessageLength'];
+            if ( $max_length > 0 && Better_Messages()->functions->message_text_length( $raw_message ) > $max_length ) {
+                return new WP_Error(
+                    'too_long',
+                    sprintf(
+                        _x( 'Message is too long. Maximum allowed length is %d characters', 'Edit message error', 'bp-better-messages' ),
+                        $max_length
+                    ),
+                    array( 'status' => 400 )
                 );
             }
 
@@ -1202,6 +1251,19 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                     __( 'Message not found', 'bp-better-messages' ),
                     array( 'status' => rest_authorization_required_code() )
                 );
+            }
+
+            $edit_time_limit = (int) Better_Messages()->settings['editMessageTimeLimit'];
+            if ( $edit_time_limit > 0 && ! current_user_can( 'bm_can_administrate' ) ) {
+                $threshold = Better_Messages()->functions->to_microtime( time() - $edit_time_limit * MINUTE_IN_SECONDS );
+
+                if ( (int) $message->created_at < $threshold ) {
+                    return new WP_Error(
+                        'rest_forbidden',
+                        _x( 'The edit time limit for this message has expired.', 'Rest API Error', 'bp-better-messages' ),
+                        array( 'status' => rest_authorization_required_code() )
+                    );
+                }
             }
 
             $args = array(
@@ -1602,7 +1664,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                     ORDER BY `created_at` DESC
                     LIMIT 1
                 ) as `message_id`,
-                COALESCE(MAX(`messages`.`created_at`), 0) as `created_at`
+                COALESCE(" . Better_Messages()->functions->thread_last_message_at_expr() . ", 0) as `created_at`
                 FROM " . bm_get_table('threads') . " threads
                 INNER JOIN " . bm_get_table('recipients') . " recipients
                     ON threads.`id` = recipients.`thread_id`
@@ -1643,7 +1705,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                         ORDER BY `created_at` DESC
                         LIMIT 1
                     ) as `message_id`,
-                    COALESCE(MAX(`messages`.`created_at`), 0) as `created_at`
+                    COALESCE(" . Better_Messages()->functions->thread_last_message_at_expr() . ", 0) as `created_at`
                     FROM " . bm_get_table('threads') . " threads
                     INNER JOIN " . bm_get_table('recipients') . " recipients
                         ON threads.`id` = recipients.`thread_id`
@@ -1700,12 +1762,16 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             $to          = intval($request->get_param('to'));
             $mode        = sanitize_text_field($request->get_param('mode'));
 
-            $missed_messages = Better_Messages()->functions->get_missed_message_ids( $thread_id, $message_ids );
-
             $return = [
                 'messages' => [],
                 'users' => []
             ];
+
+            if( ! Better_Messages()->functions->can_read_chat_messages( $thread_id, Better_Messages()->functions->get_current_user_id() ) ){
+                return $return;
+            }
+
+            $missed_messages = Better_Messages()->functions->get_missed_message_ids( $thread_id, $message_ids );
 
             if( count( $missed_messages ) > 0 ){
                 $message_ids = array_unique( array_merge( $message_ids, $missed_messages ) );
@@ -1838,6 +1904,11 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             $return['threads'][0]['unread'] = 0;
             $return['threads'][0]['mentions'] = [];
 
+            if( ! Better_Messages()->functions->can_read_chat_messages( $thread_id, $current_user_id ) ){
+                $return['messages'] = [];
+                return $return;
+            }
+
             $added_user_ids     = array_column($return['users'], 'user_id');
 
             $get_messages = $this->get_messages($thread_id, [], $added_user_ids);
@@ -1925,7 +1996,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 `recipients`.`is_muted`     as `is_muted`,
                 `recipients`.`is_pinned`    as `is_pinned`,
                 `recipients`.`last_update`  as `last_update`,
-                COALESCE(MAX(`messages`.`created_at`), 0) as `created_at`
+                COALESCE(" . Better_Messages()->functions->thread_last_message_at_expr() . ", 0) as `created_at`
                 FROM " . bm_get_table('threads') . " threads
                 INNER JOIN " . bm_get_table('recipients') . " recipients
                     ON threads.`id` = recipients.`thread_id`
@@ -1955,7 +2026,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 `recipients`.`is_pinned`     as `is_pinned`,
                 `recipients`.`last_update`   as `last_update`,
                 `recipients`.`is_deleted`    as `is_deleted`,
-                MAX(`messages`.`created_at`) as `created_at`
+                " . Better_Messages()->functions->thread_last_message_at_expr() . " as `created_at`
                 FROM " . bm_get_table('threads') . " threads
                 LEFT JOIN " . bm_get_table('recipients') . " recipients
                     ON threads.`id` = recipients.`thread_id`
@@ -1980,13 +2051,13 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                     `threads`.`id`    	         as `thread_id`,
                     `threads`.`type`    	     as `type`,
                     `threads`.`subject`    	     as `subject`,
-                    MAX(`messages`.`created_at`) as `created_at`
+                    " . Better_Messages()->functions->thread_last_message_at_expr() . " as `created_at`
                     FROM " . bm_get_table('threads') . " threads
-                    LEFT JOIN " . bm_get_table('messages') . " messages 
+                    LEFT JOIN " . bm_get_table('messages') . " messages
                         ON threads.`id` = messages.`thread_id` $pending_sql
                     WHERE  `threads`.`id` IN (" . implode(',', array_map('intval', $thread_ids)) . ")
                     GROUP BY `threads`.`id`
-                    ORDER BY `messages`.`created_at` DESC";
+                    ORDER BY `created_at` DESC";
                 }
             }
 
@@ -2093,6 +2164,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                         'canDeleteOwnMessages' => Better_Messages()->settings['allowDeleteMessages'] === '1',
                         'canDeleteAllMessages' => current_user_can('bm_can_administrate'),
                         'canEditOwnMessages'   => Better_Messages()->settings['allowEditMessages'] === '1',
+                        'canEditAllMessages'   => current_user_can('bm_can_administrate'),
                         'canFavorite'          => Better_Messages()->settings['disableFavoriteMessages'] !== '1',
                         'canMuteThread'        => ( Better_Messages()->settings['allowMuteThreads'] === '1' && ! $admin_access ),
                         'canEraseThread'       => Better_Messages()->functions->can_erase_thread( $current_user_id, $thread->thread_id ),
@@ -2110,6 +2182,15 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                         'requireModeration'    => Better_Messages()->moderation->is_moderation_enabled( $current_user_id, $thread_id, false ),
                         'preventVoiceMessages' => $prevent_voice_messages,
                     ];
+
+                    if ( $thread_type !== 'thread' || count( $_all_user_ids ) > 2 ) {
+                        $thread_item['systemMessages'] = Better_Messages()->system_messages->get_thread_payload(
+                            $thread_id,
+                            $thread_type,
+                            count( $_all_user_ids ),
+                            (bool) $thread_item['permissions']['isModerator']
+                        );
+                    }
 
                     $mentions = [];
 
@@ -2216,7 +2297,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 `threads`.`type`            as `type`,
                 `threads`.`subject`         as `subject`,
                 `recipients`.`is_pinned`    as `is_pinned`,
-                (SELECT MAX(m.created_at) FROM {$messages_table} m WHERE m.thread_id = threads.id) as `created_at`
+                (SELECT " . Better_Messages()->functions->thread_last_message_at_expr( 'm.created_at', 'm.sender_id' ) . " FROM {$messages_table} m WHERE m.thread_id = threads.id) as `created_at`
                 FROM " . bm_get_table('threads') . " threads
                 INNER JOIN " . bm_get_table('recipients') . " recipients
                     ON threads.`id` = recipients.`thread_id`
@@ -2318,8 +2399,9 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
 
         public function can_reply(WP_REST_Request $request) {
 
-            if( ! $this->is_user_authorized( $request ) ){
-                return false;
+            $authorized = $this->is_user_authorized( $request );
+            if ( $authorized !== true ) {
+                return $authorized;
             }
 
             $user_id    = Better_Messages()->functions->get_current_user_id();
@@ -2426,7 +2508,10 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
         }
 
         public function check_thread_access(WP_REST_Request $request) {
-            $this->is_user_authorized( $request );
+            $authorized = $this->is_user_authorized( $request );
+            if ( is_wp_error( $authorized ) ) {
+                return $authorized;
+            }
 
             $user_id    = Better_Messages()->functions->get_current_user_id();
             $thread_id  = intval($request->get_param('id'));

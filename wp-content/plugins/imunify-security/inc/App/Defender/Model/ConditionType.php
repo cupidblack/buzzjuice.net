@@ -81,6 +81,15 @@ class ConditionType {
 	const NOT_CURRENT_USER = 'not_current_user';
 
 	/**
+	 * Probe condition type.
+	 *
+	 * @var string
+	 *
+	 * @since 3.0.4
+	 */
+	const PROBE = 'probe';
+
+	/**
 	 * Get all available condition types.
 	 *
 	 * @return string[]
@@ -96,6 +105,7 @@ class ConditionType {
 			self::MISSING_CAPABILITY,
 			self::PROBABILISTIC,
 			self::NOT_CURRENT_USER,
+			self::PROBE,
 		);
 	}
 
@@ -137,6 +147,8 @@ class ConditionType {
 				return esc_html__( 'Probabilistic Trigger', 'imunify-security' );
 			case self::NOT_CURRENT_USER:
 				return esc_html__( 'Not Current User', 'imunify-security' );
+			case self::PROBE:
+				return esc_html__( 'Probe', 'imunify-security' );
 			default:
 				return '';
 		}
@@ -169,6 +181,8 @@ class ConditionType {
 				return esc_html__( 'Triggers with a configurable probability per request.', 'imunify-security' );
 			case self::NOT_CURRENT_USER:
 				return esc_html__( 'Checks if a request parameter user ID does not match the currently logged-in user.', 'imunify-security' );
+			case self::PROBE:
+				return esc_html__( 'Collects diagnostic data at a configurable interval (value = seconds, default 86400 = 24 h).', 'imunify-security' );
 			default:
 				return '';
 		}
@@ -197,6 +211,8 @@ class ConditionType {
 				return array( 'value' );
 			case self::NOT_CURRENT_USER:
 				return array( 'name' );
+			case self::PROBE:
+				return array( 'name', 'value' );
 			default:
 				return array();
 		}

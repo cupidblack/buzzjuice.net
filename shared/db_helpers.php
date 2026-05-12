@@ -9,7 +9,7 @@ if (!defined('DB_HELPERS_ENV_LOADED')) {
         $dotenv->load();
         define('DB_HELPERS_ENV_LOADED', true);
     } catch (Exception $e) {
-        die('Error - Failed to load environment: ' . $e->getMessage());
+        exit('Error - Failed to load environment: ' . $e->getMessage());
     }
 }
 

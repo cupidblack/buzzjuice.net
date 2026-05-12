@@ -198,6 +198,10 @@ class Widget extends View {
 				$ruleDisplays = array();
 
 				foreach ( $rules->getRules() as $rule ) {
+					if ( $rule->isInternal() ) {
+						continue;
+					}
+
 					// For Imunify360 only: exclude pass-mode rules from the incidents list.
 					if ( $isImunify360 && $rule->getMode() === RuleMode::PASS ) {
 						continue;

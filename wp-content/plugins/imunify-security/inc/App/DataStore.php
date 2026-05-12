@@ -152,6 +152,23 @@ class DataStore {
 			}
 
 			$this->scanData = ScanData::fromArray( $rawData );
+
+			// Persist package versions to a WP option so Debug::tags() can
+			// read them without file I/O.  Wrapped in try/catch because this
+			// is non-critical — scan data loading must never fail due to an
+			// option-storage problem.
+			try {
+				$versions = $this->scanData->getVersions();
+				$stored   = get_option( 'imunify_security_package_versions', array() );
+				if ( $versions !== $stored ) {
+					if ( ! empty( $versions ) ) {
+						update_option( 'imunify_security_package_versions', $versions, true );
+					} else {
+						delete_option( 'imunify_security_package_versions' );
+					}
+				}
+			} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- version persistence is non-critical.
+			}
 		}
 		return $this->scanData;
 	}

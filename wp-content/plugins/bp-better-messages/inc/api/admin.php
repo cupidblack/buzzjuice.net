@@ -72,6 +72,36 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Admin' ) ):
                 'permission_callback' => array($this, 'user_can_admin'),
             ));
 
+            register_rest_route('better-messages/v1/admin', '/getUsersByIds', array(
+                'methods' => 'GET',
+                'callback' => array($this, 'get_users_by_ids'),
+                'permission_callback' => array($this, 'user_can_admin'),
+            ));
+
+            register_rest_route('better-messages/v1/admin', '/searchBots', array(
+                'methods' => 'GET',
+                'callback' => array($this, 'search_bots'),
+                'permission_callback' => array($this, 'user_can_admin'),
+            ));
+
+            register_rest_route('better-messages/v1/admin', '/getBotsByIds', array(
+                'methods' => 'GET',
+                'callback' => array($this, 'get_bots_by_ids'),
+                'permission_callback' => array($this, 'user_can_admin'),
+            ));
+
+            register_rest_route('better-messages/v1/admin', '/searchChatRooms', array(
+                'methods' => 'GET',
+                'callback' => array($this, 'search_chat_rooms'),
+                'permission_callback' => array($this, 'user_can_admin'),
+            ));
+
+            register_rest_route('better-messages/v1/admin', '/getChatRoomsByIds', array(
+                'methods' => 'GET',
+                'callback' => array($this, 'get_chat_rooms_by_ids'),
+                'permission_callback' => array($this, 'user_can_admin'),
+            ));
+
             register_rest_route('better-messages/v1/admin', '/getGuests', array(
                 'methods' => 'GET',
                 'callback' => array($this, 'get_guests'),
@@ -174,12 +204,6 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Admin' ) ):
                 'permission_callback' => array($this, 'user_is_admin'),
             ));
 
-            register_rest_route('better-messages/v1/admin', '/tools/convert-utf8mb4', array(
-                'methods'             => 'POST',
-                'callback'            => array($this, 'rest_convert_utf8mb4'),
-                'permission_callback' => array($this, 'user_is_admin'),
-            ));
-
             register_rest_route('better-messages/v1/admin', '/tools/reset-database', array(
                 'methods'             => 'POST',
                 'callback'            => array($this, 'rest_reset_database'),
@@ -189,6 +213,74 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Admin' ) ):
             register_rest_route('better-messages/v1/admin', '/tools/import-settings', array(
                 'methods'             => 'POST',
                 'callback'            => array($this, 'rest_import_settings'),
+                'permission_callback' => array($this, 'user_is_admin'),
+            ));
+
+            register_rest_route('better-messages/v1/admin', '/tools/database/inspect', array(
+                'methods'             => 'GET',
+                'callback'            => array($this, 'rest_database_inspect'),
+                'permission_callback' => array($this, 'user_is_admin'),
+            ));
+
+            register_rest_route('better-messages/v1/admin', '/tools/database/repair-table', array(
+                'methods'             => 'POST',
+                'callback'            => array($this, 'rest_database_repair_table'),
+                'permission_callback' => array($this, 'user_is_admin'),
+                'args'                => array(
+                    'table' => array(
+                        'required' => true,
+                        'type'     => 'string',
+                    ),
+                ),
+            ));
+
+            register_rest_route('better-messages/v1/admin', '/tools/database/drop-columns', array(
+                'methods'             => 'POST',
+                'callback'            => array($this, 'rest_database_drop_columns'),
+                'permission_callback' => array($this, 'user_is_admin'),
+                'args'                => array(
+                    'table' => array(
+                        'required' => true,
+                        'type'     => 'string',
+                    ),
+                    'columns' => array(
+                        'required' => true,
+                        'type'     => 'array',
+                    ),
+                ),
+            ));
+
+            register_rest_route('better-messages/v1/admin', '/tools/database/drop-indexes', array(
+                'methods'             => 'POST',
+                'callback'            => array($this, 'rest_database_drop_indexes'),
+                'permission_callback' => array($this, 'user_is_admin'),
+                'args'                => array(
+                    'table' => array(
+                        'required' => true,
+                        'type'     => 'string',
+                    ),
+                    'indexes' => array(
+                        'required' => true,
+                        'type'     => 'array',
+                    ),
+                ),
+            ));
+
+            register_rest_route('better-messages/v1/admin', '/tools/database/fix-collation', array(
+                'methods'             => 'POST',
+                'callback'            => array($this, 'rest_database_fix_collation'),
+                'permission_callback' => array($this, 'user_is_admin'),
+                'args'                => array(
+                    'table' => array(
+                        'required' => true,
+                        'type'     => 'string',
+                    ),
+                ),
+            ));
+
+            register_rest_route('better-messages/v1/admin', '/tools/database/repair-all', array(
+                'methods'             => 'POST',
+                'callback'            => array($this, 'rest_database_repair_all'),
                 'permission_callback' => array($this, 'user_is_admin'),
             ));
 
@@ -498,35 +590,227 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Admin' ) ):
         {
             global $wpdb;
 
-            $search = $request->get_param('search');
+            $search   = (string) $request->get_param('search');
+            $paginated_mode = ( $request->get_param( 'page' ) !== null || $request->get_param( 'per_page' ) !== null );
 
-            if( empty( $search ) ) {
+            $page     = max( 1, (int) $request->get_param( 'page' ) ?: 1 );
+            $per_page = (int) $request->get_param( 'per_page' );
+            if ( $per_page <= 0 || $per_page > 100 ) $per_page = $paginated_mode ? 20 : 10;
+
+            if( empty( $search ) && ! $paginated_mode ) {
                 return [];
             }
 
-            $search_like = '%' . $wpdb->esc_like( $search ) . '%';
+            $where_sql = '';
+            $where_args = array();
 
-            $sql = $wpdb->prepare("
-            SELECT `bm_users`.`ID` FROM `" . bm_get_table('users') . "` `bm_users`
-            LEFT JOIN `{$wpdb->users}` `wp_users` ON `wp_users`.`ID` = `bm_users`.`ID`
-            WHERE ( `bm_users`.`ID` = %s
-            OR `bm_users`.`user_nicename` LIKE %s
-            OR `bm_users`.`display_name` LIKE %s
-            OR `bm_users`.`first_name` LIKE %s
-            OR `bm_users`.`last_name` LIKE %s
-            OR `bm_users`.`nickname` LIKE %s
-            OR `wp_users`.`user_email` LIKE %s )
-            LIMIT 0, 10", $search, $search_like, $search_like, $search_like, $search_like, $search_like, $search_like);
+            if ( $search !== '' ) {
+                $search_like = '%' . $wpdb->esc_like( $search ) . '%';
+                $where_sql = "WHERE ( `bm_users`.`ID` = %s
+                OR `bm_users`.`user_nicename` LIKE %s
+                OR `bm_users`.`display_name` LIKE %s
+                OR `bm_users`.`first_name` LIKE %s
+                OR `bm_users`.`last_name` LIKE %s
+                OR `bm_users`.`nickname` LIKE %s
+                OR `wp_users`.`user_email` LIKE %s )";
+                $where_args = array( $search, $search_like, $search_like, $search_like, $search_like, $search_like, $search_like );
+            }
+
+            $offset = ( $page - 1 ) * $per_page;
+            $sql = $wpdb->prepare(
+                "SELECT `bm_users`.`ID` FROM `" . bm_get_table('users') . "` `bm_users`
+                LEFT JOIN `{$wpdb->users}` `wp_users` ON `wp_users`.`ID` = `bm_users`.`ID`
+                {$where_sql}
+                ORDER BY `bm_users`.`display_name` ASC
+                LIMIT %d, %d",
+                array_merge( $where_args, array( $offset, $per_page + 1 ) )
+            );
 
             $search_results = $wpdb->get_col( $sql );
 
-            $return = [];
+            $has_more = count( $search_results ) > $per_page;
+            if ( $has_more ) {
+                $search_results = array_slice( $search_results, 0, $per_page );
+            }
 
+            $return = [];
             foreach( $search_results as $user_id ){
                 $return[] = Better_Messages()->functions->rest_user_item( $user_id );
             }
 
+            if ( ! $paginated_mode ) {
+                return $return;
+            }
+
+            return array(
+                'items'   => $return,
+                'page'    => $page,
+                'hasMore' => $has_more,
+            );
+        }
+
+        public function get_users_by_ids( WP_REST_Request $request ){
+            $ids = (array) $request->get_param( 'ids' );
+            $ids = array_values( array_filter( array_map( 'intval', $ids ) ) );
+            if ( empty( $ids ) ) return array();
+
+            $return = array();
+            foreach ( $ids as $user_id ) {
+                $item = Better_Messages()->functions->rest_user_item( $user_id );
+                if ( $item ) $return[] = $item;
+            }
             return $return;
+        }
+
+        public function search_bots( WP_REST_Request $request ){
+            if ( ! post_type_exists( 'bm-ai-chat-bot' ) ) {
+                return array( 'items' => array(), 'page' => 1, 'hasMore' => false );
+            }
+
+            $search   = (string) $request->get_param( 'search' );
+            $page     = max( 1, (int) $request->get_param( 'page' ) ?: 1 );
+            $per_page = (int) $request->get_param( 'per_page' );
+            if ( $per_page <= 0 || $per_page > 100 ) $per_page = 20;
+
+            $args = array(
+                'post_type'        => 'bm-ai-chat-bot',
+                'post_status'      => 'publish',
+                'posts_per_page'   => $per_page + 1,
+                'paged'            => $page,
+                'orderby'          => 'title',
+                'order'            => 'ASC',
+                'no_found_rows'    => true,
+                'suppress_filters' => true,
+            );
+            if ( $search !== '' ) $args['s'] = $search;
+
+            $posts    = get_posts( $args );
+            $has_more = count( $posts ) > $per_page;
+            if ( $has_more ) $posts = array_slice( $posts, 0, $per_page );
+
+            $ai_instance = class_exists( 'Better_Messages_AI' ) ? Better_Messages_AI::instance() : null;
+            $items = array();
+            foreach ( $posts as $post ) {
+                $enabled = false;
+                if ( $ai_instance ) {
+                    $bot_settings = $ai_instance->get_bot_settings( $post->ID );
+                    $enabled      = isset( $bot_settings['enabled'] ) && $bot_settings['enabled'] === '1';
+                }
+                $items[] = array(
+                    'value'      => (int) $post->ID,
+                    'label'      => $post->post_title !== '' ? $post->post_title : sprintf( __( 'Bot #%d', 'bp-better-messages' ), (int) $post->ID ),
+                    'muted'      => ! $enabled,
+                    'mutedLabel' => ! $enabled ? _x( 'disabled', 'Admin settings bot picker', 'bp-better-messages' ) : null,
+                );
+            }
+
+            return array( 'items' => $items, 'page' => $page, 'hasMore' => $has_more );
+        }
+
+        public function get_bots_by_ids( WP_REST_Request $request ){
+            if ( ! post_type_exists( 'bm-ai-chat-bot' ) ) return array();
+            $ids = (array) $request->get_param( 'ids' );
+            $ids = array_values( array_filter( array_map( 'intval', $ids ) ) );
+            if ( empty( $ids ) ) return array();
+
+            $posts = get_posts( array(
+                'post_type'        => 'bm-ai-chat-bot',
+                'post_status'      => 'any',
+                'posts_per_page'   => count( $ids ),
+                'post__in'         => $ids,
+                'orderby'          => 'post__in',
+                'no_found_rows'    => true,
+                'suppress_filters' => true,
+            ) );
+
+            $ai_instance = class_exists( 'Better_Messages_AI' ) ? Better_Messages_AI::instance() : null;
+            $items = array();
+            foreach ( $posts as $post ) {
+                $enabled = false;
+                if ( $ai_instance ) {
+                    $bot_settings = $ai_instance->get_bot_settings( $post->ID );
+                    $enabled      = isset( $bot_settings['enabled'] ) && $bot_settings['enabled'] === '1';
+                }
+                $items[] = array(
+                    'value'      => (int) $post->ID,
+                    'label'      => $post->post_title !== '' ? $post->post_title : sprintf( __( 'Bot #%d', 'bp-better-messages' ), (int) $post->ID ),
+                    'muted'      => ! $enabled,
+                    'mutedLabel' => ! $enabled ? _x( 'disabled', 'Admin settings bot picker', 'bp-better-messages' ) : null,
+                );
+            }
+            return $items;
+        }
+
+        public function search_chat_rooms( WP_REST_Request $request ){
+            if ( ! post_type_exists( 'bpbm-chat' ) ) {
+                return array( 'items' => array(), 'page' => 1, 'hasMore' => false );
+            }
+
+            $search   = (string) $request->get_param( 'search' );
+            $page     = max( 1, (int) $request->get_param( 'page' ) ?: 1 );
+            $per_page = (int) $request->get_param( 'per_page' );
+            if ( $per_page <= 0 || $per_page > 100 ) $per_page = 20;
+
+            $args = array(
+                'post_type'        => 'bpbm-chat',
+                'post_status'      => 'publish',
+                'posts_per_page'   => $per_page + 1,
+                'paged'            => $page,
+                'orderby'          => 'title',
+                'order'            => 'ASC',
+                'no_found_rows'    => true,
+                'suppress_filters' => true,
+            );
+            if ( $search !== '' ) $args['s'] = $search;
+
+            $posts    = get_posts( $args );
+            $has_more = count( $posts ) > $per_page;
+            if ( $has_more ) $posts = array_slice( $posts, 0, $per_page );
+
+            $items = array();
+            foreach ( $posts as $post ) {
+                $items[] = $this->format_chat_room_picker_item( $post );
+            }
+            return array( 'items' => $items, 'page' => $page, 'hasMore' => $has_more );
+        }
+
+        public function get_chat_rooms_by_ids( WP_REST_Request $request ){
+            if ( ! post_type_exists( 'bpbm-chat' ) ) return array();
+            $ids = (array) $request->get_param( 'ids' );
+            $ids = array_values( array_filter( array_map( 'intval', $ids ) ) );
+            if ( empty( $ids ) ) return array();
+
+            $posts = get_posts( array(
+                'post_type'        => 'bpbm-chat',
+                'post_status'      => 'any',
+                'posts_per_page'   => count( $ids ),
+                'post__in'         => $ids,
+                'orderby'          => 'post__in',
+                'no_found_rows'    => true,
+                'suppress_filters' => true,
+            ) );
+
+            $items = array();
+            foreach ( $posts as $post ) {
+                $items[] = $this->format_chat_room_picker_item( $post );
+            }
+            return $items;
+        }
+
+        private function format_chat_room_picker_item( $post ){
+            $avatar = '';
+            if ( has_post_thumbnail( $post->ID ) ) {
+                $thumb_id = (int) get_post_thumbnail_id( $post->ID );
+                if ( $thumb_id ) {
+                    $src = wp_get_attachment_image_src( $thumb_id, array( 40, 40 ) );
+                    if ( $src ) $avatar = $src[0];
+                }
+            }
+            return array(
+                'value'  => (int) $post->ID,
+                'label'  => $post->post_title !== '' ? $post->post_title : sprintf( __( 'Chat Room #%d', 'bp-better-messages' ), (int) $post->ID ),
+                'avatar' => $avatar,
+            );
         }
 
         public function search_senders( WP_REST_Request $request ){
@@ -621,44 +905,31 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Admin' ) ):
                     AND `message` != '<!-- BBPM START THREAD -->'
                     AND `id` IN ({$message_ids})";
             } else if( $only_reported ) {
-                $meta_table = bm_get_table('meta');
+                $meta_table     = bm_get_table('meta');
+                $messages_table = bm_get_table('messages');
 
-                $count = (int) $wpdb->get_var( "
-                SELECT COUNT(DISTINCT `messages`.`id`)
-                FROM `" . bm_get_table('messages') . "` `messages`
-                LEFT JOIN `{$meta_table}` `user_reports_meta`
-                    ON `messages`.`id` = `user_reports_meta`.`bm_message_id`
-                    AND `user_reports_meta`.`meta_key` = 'user_reports'
-                LEFT JOIN `{$meta_table}` `ai_flag_meta`
-                    ON `messages`.`id` = `ai_flag_meta`.`bm_message_id`
-                    AND `ai_flag_meta`.`meta_key` = 'ai_moderation_flagged'
-                    AND `ai_flag_meta`.`meta_value` = '1'
-                WHERE `messages`.`created_at` > 0
-                AND `messages`.`message` != '<!-- BBPM START THREAD -->'
-                AND (
-                    `user_reports_meta`.`meta_value` IS NOT NULL
-                    OR ( `ai_flag_meta`.`meta_value` = '1' AND `messages`.`is_pending` = 0 )
-                )
-                $sender_sql $search_sql $thread_sql");
+                // Invert the join direction: narrow via the indexed meta table first, then filter
+                // messages by PRIMARY KEY. The prior LEFT JOIN + OR pattern went full-scan at 6M+ rows.
+                $candidates          = $this->get_reported_candidate_ids();
+                $candidate_sql       = empty( $candidates['all_ids'] ) ? '0' : implode( ',', $candidates['all_ids'] );
+                $user_reports_in_sql = empty( $candidates['user_report_ids'] ) ? '0' : implode( ',', $candidates['user_report_ids'] );
+
+                $where = "`messages`.`id` IN ({$candidate_sql})
+                    AND `messages`.`created_at` > 0
+                    AND `messages`.`message` != '<!-- BBPM START THREAD -->'
+                    AND ( `messages`.`id` IN ({$user_reports_in_sql}) OR `messages`.`is_pending` = 0 )
+                    $sender_sql $search_sql $thread_sql";
+
+                $count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$messages_table}` `messages` WHERE $where" );
 
                 $sql = "SELECT `messages`.*,
                 `user_reports_meta`.`meta_value` as user_reports,
                 (SELECT COUNT(*)  FROM `" . bm_get_table('recipients') . "` WHERE `thread_id` = `messages`.`thread_id`) participants
-                FROM `" . bm_get_table('messages') . "` `messages`
+                FROM `{$messages_table}` `messages`
                 LEFT JOIN `{$meta_table}` `user_reports_meta`
                     ON `messages`.`id` = `user_reports_meta`.`bm_message_id`
                     AND `user_reports_meta`.`meta_key` = 'user_reports'
-                LEFT JOIN `{$meta_table}` `ai_flag_meta`
-                    ON `messages`.`id` = `ai_flag_meta`.`bm_message_id`
-                    AND `ai_flag_meta`.`meta_key` = 'ai_moderation_flagged'
-                    AND `ai_flag_meta`.`meta_value` = '1'
-                WHERE `messages`.`created_at` > 0
-                    AND `messages`.`message` != '<!-- BBPM START THREAD -->'
-                    AND (
-                        `user_reports_meta`.`meta_value` IS NOT NULL
-                        OR ( `ai_flag_meta`.`meta_value` = '1' AND `messages`.`is_pending` = 0 )
-                    )
-                $sender_sql $search_sql $thread_sql
+                WHERE $where
                 ORDER BY `messages`.`created_at` DESC
                 LIMIT {$offset}, {$per_page}";
             } else if( $only_pending ) {
@@ -719,25 +990,42 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Admin' ) ):
 
                     $content = $message['message'];
 
-                    // System messages: convert to readable text for admin
                     if ( strpos( $content, '<!-- BM-SYSTEM-MESSAGE:' ) === 0 ) {
                         preg_match( '/<!-- BM-SYSTEM-MESSAGE:(\w+)/', $content, $type_match );
                         $sys_type = isset( $type_match[1] ) ? $type_match[1] : '';
-                        switch ( $sys_type ) {
-                            case 'user_joined':
-                                $sys_data = Better_Messages()->functions->get_message_meta( $message['id'], 'system_data', true );
-                                $sys_name = is_array( $sys_data ) && isset( $sys_data['user_name'] ) ? esc_html( $sys_data['user_name'] ) : __( 'A user', 'bp-better-messages' );
-                                $content = '<em>' . sprintf( __( '%s joined the conversation', 'bp-better-messages' ), $sys_name ) . '</em>';
-                                break;
-                            case 'user_left':
-                                $sys_data = Better_Messages()->functions->get_message_meta( $message['id'], 'system_data', true );
-                                $sys_name = is_array( $sys_data ) && isset( $sys_data['user_name'] ) ? esc_html( $sys_data['user_name'] ) : __( 'A user', 'bp-better-messages' );
-                                $content = '<em>' . sprintf( __( '%s left the conversation', 'bp-better-messages' ), $sys_name ) . '</em>';
-                                break;
-                            default:
-                                // Allow addons to handle additional system message types
-                                $content = apply_filters( 'better_messages_admin_system_message', '<em>' . _x( 'System message', 'WP Admin', 'bp-better-messages' ) . '</em>', $sys_type, $message );
-                                break;
+                        $sys_data = Better_Messages()->functions->get_message_meta( $message['id'], 'system_data', true );
+                        $sys_data = is_array( $sys_data ) ? $sys_data : array();
+                        $sys_name = ( isset( $sys_data['user_name'] ) && $sys_data['user_name'] !== '' )
+                            ? esc_html( $sys_data['user_name'] )
+                            : __( 'A user', 'bp-better-messages' );
+
+                        $simple_templates = array(
+                            'user_joined'   => __( '%s joined the conversation', 'bp-better-messages' ),
+                            'user_left'     => __( '%s left the conversation', 'bp-better-messages' ),
+                            'user_promoted' => __( '%s was promoted to moderator', 'bp-better-messages' ),
+                            'user_demoted'  => __( '%s was removed as moderator', 'bp-better-messages' ),
+                            'user_kicked'   => __( '%s was removed from the conversation', 'bp-better-messages' ),
+                            'user_muted'    => __( '%s was muted', 'bp-better-messages' ),
+                            'user_banned'   => __( '%s was banned', 'bp-better-messages' ),
+                        );
+
+                        if ( isset( $simple_templates[ $sys_type ] ) ) {
+                            $content = '<em>' . sprintf( $simple_templates[ $sys_type ], $sys_name ) . '</em>';
+                        } elseif ( $sys_type === 'subject_changed' ) {
+                            $sys_subject = isset( $sys_data['new_subject'] ) ? esc_html( $sys_data['new_subject'] ) : '';
+                            $content = '<em>' . sprintf( __( '%1$s changed the subject to "%2$s"', 'bp-better-messages' ), $sys_name, $sys_subject ) . '</em>';
+                        } elseif ( $sys_type === 'image_changed' ) {
+                            $content = '<em>' . __( 'Conversation image was changed', 'bp-better-messages' ) . '</em>';
+                        } elseif ( $sys_type === 'call_started' ) {
+                            $is_video = isset( $sys_data['call_type'] ) && $sys_data['call_type'] === 'video';
+                            $content = '<em>' . sprintf(
+                                $is_video
+                                    ? __( '%s started a group video call', 'bp-better-messages' )
+                                    : __( '%s started a group audio call', 'bp-better-messages' ),
+                                $sys_name
+                            ) . '</em>';
+                        } else {
+                            $content = apply_filters( 'better_messages_admin_system_message', '<em>' . _x( 'System message', 'WP Admin', 'bp-better-messages' ) . '</em>', $sys_type, $message );
                         }
                     }
 
@@ -1004,25 +1292,38 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Admin' ) ):
         {
             global $wpdb;
 
-            $meta_table = bm_get_table('meta');
+            $candidates = $this->get_reported_candidate_ids();
+
+            if ( empty( $candidates['all_ids'] ) ) {
+                return 0;
+            }
+
+            $candidate_sql       = implode( ',', $candidates['all_ids'] );
+            $user_reports_in_sql = empty( $candidates['user_report_ids'] ) ? '0' : implode( ',', $candidates['user_report_ids'] );
 
             return (int) $wpdb->get_var( "
-                SELECT COUNT(DISTINCT `messages`.`id`)
-                FROM `" . bm_get_table('messages') . "` `messages`
-                LEFT JOIN `{$meta_table}` `user_reports_meta`
-                    ON `messages`.`id` = `user_reports_meta`.`bm_message_id`
-                    AND `user_reports_meta`.`meta_key` = 'user_reports'
-                LEFT JOIN `{$meta_table}` `ai_flag_meta`
-                    ON `messages`.`id` = `ai_flag_meta`.`bm_message_id`
-                    AND `ai_flag_meta`.`meta_key` = 'ai_moderation_flagged'
-                    AND `ai_flag_meta`.`meta_value` = '1'
-                WHERE `messages`.`created_at` > 0
-                AND `messages`.`message` != '<!-- BBPM START THREAD -->'
-                AND (
-                    `user_reports_meta`.`meta_value` IS NOT NULL
-                    OR ( `ai_flag_meta`.`meta_value` = '1' AND `messages`.`is_pending` = 0 )
-                )
+                SELECT COUNT(*) FROM `" . bm_get_table('messages') . "`
+                WHERE `id` IN ({$candidate_sql})
+                  AND `created_at` > 0
+                  AND `message` != '<!-- BBPM START THREAD -->'
+                  AND ( `id` IN ({$user_reports_in_sql}) OR `is_pending` = 0 )
             " );
+        }
+
+        private function get_reported_candidate_ids()
+        {
+            global $wpdb;
+
+            $meta_table = bm_get_table('meta');
+
+            $user_report_ids = array_map( 'intval', $wpdb->get_col( "SELECT DISTINCT `bm_message_id` FROM `{$meta_table}` WHERE `meta_key` = 'user_reports'" ) );
+            $ai_flagged_ids  = array_map( 'intval', $wpdb->get_col( "SELECT `bm_message_id` FROM `{$meta_table}` WHERE `meta_key` = 'ai_moderation_flagged' AND `meta_value` = '1'" ) );
+
+            return [
+                'user_report_ids' => $user_report_ids,
+                'ai_flagged_ids'  => $ai_flagged_ids,
+                'all_ids'         => array_unique( array_merge( $user_report_ids, $ai_flagged_ids ) ),
+            ];
         }
 
         public function dismiss_ai_flag( WP_REST_Request $request )
@@ -1253,17 +1554,6 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Admin' ) ):
             ) );
         }
 
-        public function rest_convert_utf8mb4( WP_REST_Request $request ) {
-            if ( class_exists( 'Better_Messages_Rest_Api_DB_Migrate' ) ) {
-                Better_Messages_Rest_Api_DB_Migrate()->update_collate();
-            }
-
-            return rest_ensure_response( array(
-                'success' => true,
-                'message' => 'Database was converted',
-            ) );
-        }
-
         public function rest_reset_database( WP_REST_Request $request ) {
             if ( class_exists( 'Better_Messages_Rest_Api_DB_Migrate' ) ) {
                 $migrate = Better_Messages_Rest_Api_DB_Migrate();
@@ -1302,6 +1592,10 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Admin' ) ):
         public function rest_get_settings( WP_REST_Request $request ) {
             $settings = Better_Messages_Options::instance()->settings;
 
+            if ( ! function_exists( 'get_editable_roles' ) ) {
+                require_once ABSPATH . 'wp-admin/includes/user.php';
+            }
+
             $all_roles = get_editable_roles();
             $roles = array();
             foreach ( $all_roles as $role_key => $role_data ) {
@@ -1328,6 +1622,95 @@ if ( !class_exists( 'Better_Messages_Rest_Api_Admin' ) ):
                 'settings' => $settings,
                 'roles'    => $roles,
                 'pages'    => $pages,
+            ) );
+        }
+
+        public function rest_database_inspect( WP_REST_Request $request ){
+            return rest_ensure_response( Better_Messages_Rest_Api_DB_Migrate()->get_full_inspect() );
+        }
+
+        public function rest_database_repair_table( WP_REST_Request $request ){
+            $table   = sanitize_key( (string) $request->get_param( 'table' ) );
+            $migrate = Better_Messages_Rest_Api_DB_Migrate();
+
+            if ( ! isset( $migrate->get_schemas()[ $table ] ) ) {
+                return new WP_Error( 'unknown_table', "Unknown table: {$table}", array( 'status' => 400 ) );
+            }
+
+            $ok = $migrate->repair_table( $table );
+
+            return rest_ensure_response( array(
+                'success' => $ok,
+                'inspect' => $migrate->get_full_inspect(),
+            ) );
+        }
+
+        public function rest_database_drop_columns( WP_REST_Request $request ){
+            $table   = sanitize_key( (string) $request->get_param( 'table' ) );
+            $columns = array_values( array_filter( array_map( function( $c ){
+                return is_string( $c ) && preg_match( '/^[a-zA-Z0-9_]+$/', $c ) ? $c : '';
+            }, (array) $request->get_param( 'columns' ) ) ) );
+
+            $migrate = Better_Messages_Rest_Api_DB_Migrate();
+
+            if ( ! isset( $migrate->get_schemas()[ $table ] ) ) {
+                return new WP_Error( 'unknown_table', "Unknown table: {$table}", array( 'status' => 400 ) );
+            }
+
+            $result = $migrate->drop_columns( $table, $columns );
+
+            return rest_ensure_response( array(
+                'dropped' => $result['dropped'],
+                'errors'  => $result['errors'],
+                'inspect' => $migrate->get_full_inspect(),
+            ) );
+        }
+
+        public function rest_database_drop_indexes( WP_REST_Request $request ){
+            $table   = sanitize_key( (string) $request->get_param( 'table' ) );
+            $indexes = array_values( array_filter( array_map( function( $i ){
+                return is_string( $i ) && preg_match( '/^[a-zA-Z0-9_]+$/', $i ) ? $i : '';
+            }, (array) $request->get_param( 'indexes' ) ) ) );
+
+            $migrate = Better_Messages_Rest_Api_DB_Migrate();
+
+            if ( ! isset( $migrate->get_schemas()[ $table ] ) ) {
+                return new WP_Error( 'unknown_table', "Unknown table: {$table}", array( 'status' => 400 ) );
+            }
+
+            $result = $migrate->drop_indexes( $table, $indexes );
+
+            return rest_ensure_response( array(
+                'dropped' => $result['dropped'],
+                'errors'  => $result['errors'],
+                'inspect' => $migrate->get_full_inspect(),
+            ) );
+        }
+
+        public function rest_database_fix_collation( WP_REST_Request $request ){
+            $table   = sanitize_key( (string) $request->get_param( 'table' ) );
+            $migrate = Better_Messages_Rest_Api_DB_Migrate();
+
+            if ( ! isset( $migrate->get_schemas()[ $table ] ) ) {
+                return new WP_Error( 'unknown_table', "Unknown table: {$table}", array( 'status' => 400 ) );
+            }
+
+            $ok = $migrate->fix_collation( $table );
+
+            return rest_ensure_response( array(
+                'success' => $ok,
+                'inspect' => $migrate->get_full_inspect(),
+            ) );
+        }
+
+        public function rest_database_repair_all( WP_REST_Request $request ){
+            $migrate = Better_Messages_Rest_Api_DB_Migrate();
+            $result  = $migrate->repair_all();
+
+            return rest_ensure_response( array(
+                'repaired'        => $result['repaired'],
+                'collation_fixed' => $result['collation_fixed'],
+                'inspect'         => $migrate->get_full_inspect(),
             ) );
         }
     }

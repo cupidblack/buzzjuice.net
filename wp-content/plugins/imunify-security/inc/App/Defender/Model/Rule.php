@@ -117,6 +117,15 @@ class Rule {
 	private $cveLink;
 
 	/**
+	 * Probe data collected during condition evaluation.
+	 *
+	 * @since 3.0.4
+	 *
+	 * @var string
+	 */
+	private $probeData = '';
+
+	/**
 	 * Rule severity level (CVSS score 0-10).
 	 *
 	 * @var float
@@ -344,6 +353,42 @@ class Rule {
 	 */
 	public function getSeverity() {
 		return $this->severity;
+	}
+
+	/**
+	 * Internal rules use the TEST- prefix (heartbeat, probes) and are
+	 * hidden from the WP admin UI / hit stats.
+	 *
+	 * @since 3.0.4
+	 *
+	 * @return bool
+	 */
+	public function isInternal() {
+		return 0 === strpos( $this->id, 'TEST-' );
+	}
+
+	/**
+	 * Get probe data attached to this rule.
+	 *
+	 * @since 3.0.4
+	 *
+	 * @return string
+	 */
+	public function getProbeData() {
+		return $this->probeData;
+	}
+
+	/**
+	 * Set probe data on this rule.
+	 *
+	 * @since 3.0.4
+	 *
+	 * @param string $probeData Probe result string.
+	 *
+	 * @return void
+	 */
+	public function setProbeData( $probeData ) {
+		$this->probeData = $probeData;
 	}
 
 	/**

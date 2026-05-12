@@ -32,6 +32,7 @@ if ( ! class_exists( 'Better_Messages_Fluent_Community_Spaces' ) ) {
 
             add_filter('better_messages_groups_active', array($this, 'enabled') );
             add_filter('better_messages_get_groups', array($this, 'get_groups'), 10, 2 );
+            add_filter('better_messages_user_has_groups', array($this, 'user_has_groups'), 10, 2 );
 
             add_filter('better_messages_thread_title', array( $this, 'group_thread_title' ), 10, 3 );
             add_filter('better_messages_thread_image', array( $this, 'group_thread_image' ), 10, 3 );
@@ -317,6 +318,20 @@ if ( ! class_exists( 'Better_Messages_Fluent_Community_Spaces' ) ) {
             return true;
         }
 
+        public function user_has_groups( $has, $user_id ) {
+            if ( $has ) return true;
+            $user = User::find( $user_id );
+            if ( ! $user ) return false;
+            $spaces = $user->spaces;
+            if ( ! $spaces || count( $spaces ) === 0 ) return false;
+            foreach ( $spaces as $space ) {
+                if ( $this->is_group_messages_enabled( $space->id ) ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public function get_groups( $groups, $user_id ){
             $user = User::find( $user_id );
 
@@ -366,10 +381,14 @@ if ( ! class_exists( 'Better_Messages_Fluent_Community_Spaces' ) ) {
             }
 
             if( ! $thread_id ) {
+                if( ! $this->is_group_messages_enabled( $group_id ) ){
+                    return false;
+                }
+
                 $wpdb->query( $wpdb->prepare( "
-                DELETE  
-                FROM `" . bm_get_table('threadsmeta') . "` 
-                WHERE `meta_key` = 'fluentcommunity_group_id' 
+                DELETE
+                FROM `" . bm_get_table('threadsmeta') . "`
+                WHERE `meta_key` = 'fluentcommunity_group_id'
                 AND   `meta_value` = %s
                 ", $group_id ) );
 
