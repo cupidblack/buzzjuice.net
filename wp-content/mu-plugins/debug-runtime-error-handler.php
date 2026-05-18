@@ -19,7 +19,7 @@ $BZJ_INTERVALS = [
     'utf8'         => 200,
     'elementor'    => 180,
     'woocs'        => 60,
-    'bp-charges'   => 30,
+//    'bp-charges'   => 30,
     // add more as needed
 ];
 
@@ -137,14 +137,14 @@ set_error_handler(function ($errno, $errstr, $errfile = null, $errline = null) u
     }
 
     // 4. myCred/BP charges/special cases
-    if (
+/*    if (
         strpos($errstr, 'bp_charge') !== false ||
         strpos($errstr, 'headers already sent') !== false ||
         strpos((string)$errfile, 'mycred-bp-charges') !== false
     ) {
         bzj_log_once('debug-bp-charges.log', $errstr, $errfile, $errline, $BZJ_INTERVALS['bp-charges']);
         return true; // Suppress
-    }
+    } */
     
     // Add before general log fallback:
     if (
@@ -169,10 +169,10 @@ set_error_handler(function ($errno, $errstr, $errfile = null, $errline = null) u
         return true;
     }
     
-    if (strpos($errstr, 'load_textdomain_just_in_time') !== false) {
+/*    if (strpos($errstr, 'load_textdomain_just_in_time') !== false) {
         bzj_log_once('debug-mycred-bp-charges.log', $errstr, $errfile, $errline, 600);
         return true;
-    }
+    } */
     
     if (
         strpos($errfile, 'mycred-learndash') !== false &&

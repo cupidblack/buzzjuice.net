@@ -1,0 +1,20 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"name": "mycred-woocommerce-plus/mycred-woo-payment-gateway",
+	"version": "1.0.0",
+	"title": "myCred WooCommerce",
+	"category": "woocommerce",
+    "parent": [ "woocommerce/checkout-payment-block" ],
+	"attributes": {
+		"lock": {
+			"type": "object",
+			"default": {
+				"remove": false,
+				"move": false
+			}
+		}
+	},
+	"textdomain": "mycred-woocommerce-plus",
+	"editorScript": "file:./build/payment/index.js"
+}

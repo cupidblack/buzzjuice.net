@@ -1,0 +1,199 @@
+select#point-type-select {
+    margin-bottom: 15px;
+}
+.mycred-woo-order-total-label-plus, .mycred-woo-total-credit-label-plus {
+    flex-grow: 1;
+}
+.mwp-my-account-item {
+    border: 1px solid gainsboro;
+    float: left;
+    width: 45%;
+    margin: 10px;
+    padding: 5px;
+    min-height: 160px;
+    border-radius: 5px;
+    box-shadow: 12px 10px 16px -17px rgba(0,0,0,0.75);
+}
+
+.mwp-my-account-item > h4 {
+    padding: 0px;
+    margin: 0px;
+    margin-left: 4px;
+}
+
+.mwp-my-account-item.level .mwp-my-account-item-body {
+    margin-left: 4px;
+    text-align: center;
+    font-size: 50px;
+}
+
+.mwp-my-account-item.balance .mwp-my-account-item-body .loop {
+    border-bottom: 1px solid #e2e2e2;
+    margin-left: 4px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+.mwp-my-account-item.ranks .mwp-my-account-item-body .loop {
+    border-bottom: 1px solid #e2e2e2;
+    margin-left: 4px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+.mwp-my-account-item.ranks .mwp-my-account-item-body .loop:last-child {
+    border-bottom: none;
+}
+.mwp-my-account-item.balance .mwp-my-account-item-body .loop:last-child {
+    border-bottom: none;
+}
+
+.mwp-history-container > .mwp-history-pagination-wrapper {
+    text-align: right;
+}
+
+.mwp-history-container > .mwp-history-pagination-wrapper > .page-numbers {
+    text-decoration: none;
+    border: 1px solid #000000;
+    cursor: pointer;
+    padding: 5px 10px;
+    line-height: 18px;
+}
+
+.mwp-history-container > .mwp-history-pagination-wrapper > span.page-numbers.current {
+    opacity: 0.3;
+}
+
+.mwp-prod-ref-generator-heading {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.mwp-prod-ref-generator-form button {
+    margin-top: 15px;
+}
+
+.mwp-prod-ref-generator-links {
+    margin-top: 20px;
+    background: #ffffff;
+    padding: 15px 20px 25px 20px;
+}
+
+.mwp-prod-ref-generator-links legend {
+    font-size: 22px;
+    font-weight: 500;
+}
+
+.mwp-prod-ref-generator-links .mwp-prod-ref-generator-links-url {
+    font-style: italic;
+}
+
+.mwp-prod-ref-generator-links-ref-url {
+    margin-top: 20px;
+}
+
+.mwp-prod-ref-generator-links-ref-url > div {
+    position: relative;
+}
+
+.mwp-prod-ref-generator-ref-url {
+    width: calc( 100% - 75px );
+    display: block;
+    font-size: 14px;
+    padding: 0.9rem 1.1rem;
+    padding-right: 52px;
+}
+
+.mwp-prod-ref-generator-links-ref-url > div > button {
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
+    right: 3px;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    padding-right: 10px;
+}
+
+.mwp-prod-ref-generator-links-ref-url > div > button > span.dashicons-clipboard {
+    transform: rotateZ(317deg);
+}
+
+.mwp-prod-ref-generator-links-ref-url > div > button > span.dashicons-saved {
+    color: green;
+}
+
+.mwp-prod-ref-generator-links {
+    display: none;
+}
+
+.mwp-prod-ref-generator-links.show {
+    display: block;
+}
+
+.mwp-button-spinner {
+    position: relative;
+}
+
+.mwp-button-spinner:after {
+    animation: mwp_spinner_animation 1s linear infinite;
+    backface-visibility: hidden;
+    border: 0.2em solid;
+    border-left: 0.2em solid transparent;
+    border-radius: 50%;
+    box-sizing: border-box;
+    content: " ";
+    height: 1em;
+    left: 50%;
+    margin: -0.5em 0 0 -0.5em;
+    position: absolute;
+    top: 50%;
+    transform: translateZ(0) scale(.5);
+    transform-origin: 50% 50%;
+    width: 1em;
+}
+
+.mwp-button-spinner > .mwp__text {
+    visibility: hidden;
+}
+
+@keyframes mwp_spinner_animation {
+    0% {
+        animation-timing-function: cubic-bezier(.5856,.0703,.4143,.9297);
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(1turn);
+    }
+}
+
+select.mwp-prod-ref-generator-products {
+    height: 3.5rem;
+    font-size: var(--wp--preset--font-size--small);
+    padding: 0.9rem 1.1rem 0.9rem calc( 1.1rem + 4px );
+    background-color: #fff;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    color: #444;
+    line-height: 28px;
+}
+
+.mwp-prod-ref-generator-links > h3 {
+    margin: 0 0 15px 0;
+}
+
+div#mycred-coupon-action {
+    padding: 20px;
+}
+
+#rewards_points_wrap span.rewards_span {
+    background-color: #eeeeee;
+    padding: 5px;
+    margin: 5px;
+    display: inline-block;
+    border-radius: 21px;
+    padding-right: 12px;
+    padding-left: 12px;
+}

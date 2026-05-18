@@ -538,10 +538,11 @@
                 "theme": "edgeless",
                 "position": "bottom-left",
                 "content": {
-                    "message": "<?php echo __('This website uses cookies to ensure you get the best experience on our website.');?>",
+                    "message": "<?php echo __('Web apps store data on devices to improve functionality and experience.');?>",
                     "dismiss": "<?php echo __('Got It!');?>",
                     "link": "<?php echo __('Learn More');?>",
-                    "href": "<?php echo $site_url;?>/privacy"
+                    // "href": "<?php // echo $site_url;?>/privacy"
+                    "href": "https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API?utm_source=chatgpt.com"
                 }
             });
         });

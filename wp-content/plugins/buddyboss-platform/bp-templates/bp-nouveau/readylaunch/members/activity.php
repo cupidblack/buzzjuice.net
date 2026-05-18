@@ -20,7 +20,6 @@ bp_nouveau_activity_member_post_form();
 bp_get_template_part( 'common/search-and-filters-bar' );
 bp_nouveau_member_hook( 'before', 'activity_content' );
 ?>
-<div class="bb-rl-screen-content">
 	<div id="bb-rl-activity-stream" class="activity single-user" data-bp-list="activity" data-ajax="<?php echo esc_attr( $is_send_ajax_request ? 'true' : 'false' ); ?>">
 	<?php
 	if ( $is_send_ajax_request ) {
@@ -53,7 +52,6 @@ bp_nouveau_member_hook( 'before', 'activity_content' );
 	}
 	?>
 	</div><!-- .activity -->
-</div><!-- .bb-rl-screen-content -->
 
 <?php
 bp_nouveau_member_hook( 'after', 'activity_content' );

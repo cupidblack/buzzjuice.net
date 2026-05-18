@@ -325,7 +325,7 @@ class BB_SSO {
 			add_action( 'bp_settings_setup_nav', 'BB_SSO::bb_settings_setup_nav', 999999 );
 			add_filter( 'bp_settings_admin_nav', 'BB_SSO::bb_settings_admin_nav', 999999 );
 
-			if ( bp_enable_site_registration() ) {
+			if ( bp_enable_site_registration() && bb_enable_sso_reg_options() ) {
 				add_action( 'bp_after_register_page', 'BB_SSO::bp_register_form' );
 			}
 

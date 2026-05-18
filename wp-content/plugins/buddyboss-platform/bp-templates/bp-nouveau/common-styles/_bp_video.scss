@@ -1646,8 +1646,7 @@ div.video-js {
 		z-index: 999991;
 	}
 
-	&.no_ffmpeg,
-	&.ffmpeg_failed {
+	&.no_ffmpeg {
 
 		.video-thumbnail-content {
 

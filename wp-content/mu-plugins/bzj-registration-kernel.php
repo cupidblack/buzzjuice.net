@@ -1,271 +1,325 @@
 <?php
 /**
- * BZJ Registration Kernel v35 — Transaction-safe, stateless, robust human code challenge for BuddyBoss/BuddyPress.
- * - Human users only; code resets every GET visit; never lost on error reload
- * - Error always shows above 'Create Account' button
- * - Registration works if and only if challenge VERIFIED on THIS submission, sso_secret correct, nonce correct, all fields filled.
- * - All log entries separated for clarity
- * - TODO: secret requires sso token for approval. Code only required user to be on register page and for codes to match. Consider sending registration page code to email, telegram, sms or whatsapp.
+ * BZJ Registration Kernel v41 — Unified Registration Event Bus (UREB)
+ * - Human code challenge on all registration UIs (BuddyBoss, GiveWP, Woo, AffiliateWP)
+ * - Backend only enforces on flows where UI was present (avoids API/CLI pitfalls!)
+ * - Logs in rotating files, date-stamped, up to 20 x 512KB.
+ * - Button-styling enforced even in React/multi-step forms.
+ * - Handles legacy PHP. MutationObserver for React.
  */
 
 if (!defined('ABSPATH')) exit;
 
-define('BZJ_CHALLENGE_TTL', 20 * MINUTE_IN_SECONDS);
-if (!defined('BZJ_LOG_DIR')) {
-    define('BZJ_LOG_DIR', ABSPATH . '/data/logs/');
-}
+/* ============================================================================
+   CONFIGURATION
+============================================================================ */
 
-/** ===== LOAD BUZZ_SSO_SECRET FROM ENV ===== */
+define('BZJ_TTL', 20 * MINUTE_IN_SECONDS); // Code timeout
+define('BZJ_REG_KNL_LOG_DIR', ABSPATH . '/data/logs/bzj-registration-kernel/');
+
+/* ============================================================================
+   SSO SECRET LOAD
+============================================================================ */
+
 if (!defined('BZJ_SSO_SECRET')) {
-    if (file_exists(ABSPATH . '/shared/db_helpers.php')) {
-        require_once ABSPATH . '/shared/db_helpers.php';
-    }
-    if (defined('BUZZ_SSO_SECRET')) {
-        define('BZJ_SSO_SECRET', BUZZ_SSO_SECRET);
-    } elseif (getenv('BUZZ_SSO_SECRET')) {
-        define('BZJ_SSO_SECRET', getenv('BUZZ_SSO_SECRET'));
-    } else {
-        define('BZJ_SSO_SECRET', 'missing-BUZZ_SSO_SECRET');
-    }
+    if (file_exists(ABSPATH . '/shared/db_helpers.php')) require_once ABSPATH . '/shared/db_helpers.php';
+    define('BZJ_SSO_SECRET', defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : (getenv('BUZZ_SSO_SECRET') ?: 'missing-secret'));
 }
 
-/** ===== LOG UTILITY (with separator) ===== */
-function bzj_sanitize_log_data($data) {
+/* ============================================================================
+   LOGGING: ROTATING, SANITIZED, MAX 20 FILES, 512KB EACH
+============================================================================ */
+
+function bzj_log_file() {
+    if (!file_exists(BZJ_REG_KNL_LOG_DIR)) wp_mkdir_p(BZJ_REG_KNL_LOG_DIR);
+
+    $files = glob(BZJ_REG_KNL_LOG_DIR . '*.log') ?: [];
+    usort($files, function($a, $b) { return filemtime($b) <=> filemtime($a); });
+    $latest = $files[0] ?? null;
+
+    if (!$latest || filesize($latest) > 512 * 1024) {
+        $latest = BZJ_REG_KNL_LOG_DIR . 'bzj-' . date('Y-m-d-H-i-s') . '.log';
+    }
+    if (count($files) > 20) {
+        usort($files, function($a, $b) { return filemtime($a) <=> filemtime($b); });
+        while (count($files) > 20) @unlink(array_shift($files));
+    }
+    return $latest;
+}
+function bzj_sanitize($data) {
     if (!is_array($data)) return $data;
-
-    $clean = [];
-
-    foreach ($data as $key => $value) {
-        // Normalize key for detection
-        $k = strtolower($key);
-
-        // Remove anything containing 'pass'
-        $danger_keys = ['pass', 'password', 'pwd', /* 'secret', */ 'token', 'auth'];
-        
-        foreach ($danger_keys as $needle) {
-            if (strpos($k, $needle) !== false) {
-                $clean[$key] = '[REDACTED]';
-                continue 2;
-            }
-        }
-        
-/*        if (strpos($k, 'email') !== false) {
-            $clean[$key] = substr((string)$value, 0, 4) . '****';
+    $out = [];
+    foreach ($data as $k => $v) {
+        if (preg_match('/pass|pwd|token|auth|secret/i', $k)) {
+            $out[$k] = '[REDACTED]';
             continue;
         }
-*/        
-        // Recurse into nested arrays
-        if (is_array($value)) {
-            $clean[$key] = bzj_sanitize_log_data($value);
-        } else {
-            $clean[$key] = $value;
-        }
-        
+        $out[$k] = is_array($v) ? bzj_sanitize($v) : $v;
     }
-
-    return $clean;
+    return $out;
 }
-
 function bzj_log($type, $data = []) {
-
-    if (!file_exists(BZJ_LOG_DIR)) {
-        @mkdir(BZJ_LOG_DIR, 0755, true);
-    }
-
-    $log_file = BZJ_LOG_DIR . 'bzj-registration-kernel.log';
-
-    if (file_exists($log_file) && filesize($log_file) > 5 * 1024 * 1024) {
-        unlink($log_file);
-    }
-
     $payload = [
-        'when' => date('c'),
-        'ip'   => $_SERVER['REMOTE_ADDR'] ?? '',
-        'ua'   => $_SERVER['HTTP_USER_AGENT'] ?? '',
+        'ts' => date('c'),
+        'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
+        'ua' => $_SERVER['HTTP_USER_AGENT'] ?? '',
         'type' => $type,
-        'data' => bzj_sanitize_log_data($data),
-        'post' => bzj_sanitize_log_data(array_diff_key($_POST, array_flip([
-            'signup_password',
-            'user_pass',
-            'password',
-            'pass',
-            'bzj_sso_secret'
-        ]))),
+        'context' => bzj_context(),
+        'data' => bzj_sanitize($data),
+        'post' => bzj_sanitize($_POST),
     ];
-
     file_put_contents(
-        $log_file,
-        json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
-        . "\n==========\n",
+        bzj_log_file(),
+        json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n---\n",
         FILE_APPEND
     );
 }
 
-/** ===== Visitor fingerprint ===== */
+/* ============================================================================
+   CONTEXT DETECTION (PLATFORM)
+============================================================================ */
+
+function bzj_context() {
+    if (function_exists('bp_is_register_page') && bp_is_register_page()) return 'buddyboss';
+    if (!empty($_POST['give-form-id']) || (strpos($_SERVER['REQUEST_URI'] ?? '', 'give') !== false)) return 'givewp';
+    if (!empty($_POST['affwp_register_nonce'])) return 'affiliatewp';
+    if (!empty($_POST['woocommerce-register-nonce']) || !empty($_POST['createaccount']) || (function_exists('is_checkout') && is_checkout())) return 'woocommerce';
+    return 'unknown';
+}
+
+/* ============================================================================
+   CHALLENGE STATE, FINGERPRINT, UTILITIES
+============================================================================ */
+
 function bzj_fp() {
     return substr(hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? '') . '|' . ($_SERVER['HTTP_USER_AGENT'] ?? '')), 0, 32);
 }
+function bzj_state() {
+    return get_transient("bzj_state_" . bzj_fp());
+}
+function bzj_set_state($val) {
+    set_transient("bzj_state_" . bzj_fp(), $val, BZJ_TTL);
+}
+function bzj_del_state() {
+    delete_transient("bzj_state_" . bzj_fp());
+    delete_transient("bzj_code_" . bzj_fp());
+}
 
-/** ===== Challenge lifecycle: reset ONLY ON GET (never on POST fail) ===== */
+/* ============================================================================
+   SAFELY RESET CHALLENGE — ONLY ON GET ON REGISTRATION UI
+============================================================================ */
+
 add_action('template_redirect', function () {
-    if (
-        function_exists('bp_is_register_page') &&
-        bp_is_register_page() &&
-        !is_user_logged_in() &&
-        ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET'
-    ) {
-        $fp = bzj_fp();
-        set_transient("bzj_state_$fp", [
-            'verified'     => false,
-            'created'      => time(),
-            'challenge_id' => wp_generate_password(8, false)
-        ], BZJ_CHALLENGE_TTL);
-        delete_transient("bzj_code_$fp");
+    if (!is_user_logged_in() && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET' && bzj_should_inject_ui()) {
+        bzj_set_state(['verified' => false, 'context' => bzj_context()]);
+        delete_transient("bzj_code_" . bzj_fp());
     }
 }, 1);
 
-/** ===== AJAX: Code generator ===== */
+function bzj_should_inject_ui() {
+    // Also allow on registration page loads for all supported forms
+    return (
+        (function_exists('bp_is_register_page') && bp_is_register_page()) ||
+        (function_exists('is_checkout') && is_checkout()) ||
+        (isset($_SERVER['REQUEST_URI']) && (strpos($_SERVER['REQUEST_URI'], 'give') !== false || strpos($_SERVER['REQUEST_URI'], 'affiliate-area') !== false))
+    );
+}
+
+/* ============================================================================
+   AJAX: CODE GENERATION / VERIFICATION
+============================================================================ */
+
 add_action('wp_ajax_nopriv_bzj_generate_code', function () {
     $fp = bzj_fp();
     $code = strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
-    set_transient("bzj_code_$fp", $code, BZJ_CHALLENGE_TTL);
-    bzj_log('challenge_code_generated', ['fp' => $fp, 'code'=> $code]);
+    set_transient("bzj_code_$fp", $code, BZJ_TTL);
+    bzj_set_state(['verified' => false, 'context' => bzj_context()]);
+    bzj_log('code_generated', ['code' => $code]);
     wp_send_json_success(['code' => $code]);
 });
-
-/** ===== AJAX: Code verifier (side-effect: sets request cache) ===== */
-global $bzj_request_verified;
-$bzj_request_verified = false;
-
 add_action('wp_ajax_nopriv_bzj_verify_code', function () {
-    global $bzj_request_verified;
     $fp = bzj_fp();
     $input = strtoupper(trim($_POST['code'] ?? ''));
     $stored = get_transient("bzj_code_$fp");
-    $state  = get_transient("bzj_state_$fp");
-    if (!$stored || $input !== $stored || empty($state)) {
-        bzj_log('challenge_verify_failed', ['fp'=>$fp, 'code'=>$input, 'expected'=>$stored]);
-        wp_send_json_error(['msg'=>'invalid_code']);
+    if (!$stored || $input !== $stored) {
+        bzj_log('verify_failed', compact('input', 'stored'));
+        wp_send_json_error(['msg' => 'invalid']);
     }
-    $state['verified'] = true;
-    set_transient("bzj_state_$fp", $state, BZJ_CHALLENGE_TTL);
-    $bzj_request_verified = true;
-    bzj_log('challenge_verify_success', ['fp'=>$fp, 'code'=>$input]);
-    wp_send_json_success(['msg'=>'ok']);
+    bzj_set_state(['verified' => true, 'context' => bzj_context()]);
+    bzj_log('verify_success', ['code' => $input]);
+    wp_send_json_success(['msg' => 'ok']);
 });
 
-/** ===== Transaction-safe: request-level or transient verification ===== */
-function bzj_auth_decision() {
+/* ============================================================================
+   BACKEND ENFORCEMENT — ONLY IF MARKER PRESENT (UI shown)
+============================================================================ */
 
-    global $bzj_request_verified;
+function bzj_can_register() {
+    // Main fix: if marker NOT present, do not enforce (API/CLI flows safe, UI flows gated)
+    if (empty($_POST['bzj_form_marker'])) return true;
 
-    $fp = bzj_fp();
-    $state = get_transient("bzj_state_$fp");
+    $state = bzj_state();
+    if (!empty($state['verified'])) return true;
 
-    $code_valid = (
-        $bzj_request_verified === true ||
-        (!empty($state) && !empty($state['verified']))
-    );
-
-    $secret_valid = (
-        !empty($_POST['bzj_sso_secret']) &&
-        hash_equals($_POST['bzj_sso_secret'], BZJ_SSO_SECRET)
-    );
-
-    $has_nonce = (
-        !empty($_POST['_wpnonce']) &&
-        wp_verify_nonce($_POST['_wpnonce'], 'bp_new_signup')
-    );
-
-    $has_marker = (
-        !empty($_POST['bzj_form_marker']) &&
-        $_POST['bzj_form_marker'] === '1'
-    );
-
-    if (!$has_nonce || !$has_marker) {
-        return false;
-    }
-
-    /**
-     * FINAL RULE:
-     * - Code verification alone is enough
-     * - OR secret override only if code is NOT verified
-     */
-    if ($code_valid) {
+    if (!empty($_POST['bzj_sso_secret']) && hash_equals($_POST['bzj_sso_secret'], BZJ_SSO_SECRET)) {
         return true;
     }
-
-    if ($secret_valid) {
-        return true;
-    }
-    
-    bzj_log('AUTH_DECISION_DEBUG', [
-        'result' => bzj_auth_decision(),
-        'code_valid' => $code_valid ?? null,
-        'secret_present' => !empty($_POST['bzj_sso_secret']),
-        'post_keys' => array_keys($_POST),
-        'verified_flag' => $bzj_request_verified ?? false
-    ]);
 
     return false;
 }
 
-/** ====== UI row: challenge + error placement always directly above Create Account ====== */
-add_action('bp_before_registration_submit_buttons', function () {
-    // Error placement above button, never above nickname.
-    if (!empty($GLOBALS['bzj_error_above_button'])) {
-        echo '<div id="bzj-error-above-btn" style="margin:12px 0;padding:8px;background:#ffefef;border:1.5px solid #ee6565;color:#b0000b;border-radius:7px;text-align:center;font-weight:bold;font-size:14px;">'
-            . esc_html($GLOBALS['bzj_error_above_button'])
-            . '</div>';
+// Unified enforcement, triggers for all known registration events
+function bzj_enforce($user_id = null, $context = '') {
+    if (bzj_can_register()) return true;
+
+    bzj_log('blocked_registration', [
+        'context' => $context,
+        'user_id' => $user_id,
+        'post' => $_POST,
+    ]);
+    if ($user_id) {
+        require_once ABSPATH . 'wp-admin/includes/user.php';
+        wp_delete_user($user_id);
     }
-    
-    ?>
-<div class="bzj-registration-challenge" style="margin-top:10px;padding:6px 8px;border:1.5px solid #e1e1e5;border-radius:7px;text-align:center;">
-    <div style="display:flex;align-items:center;gap:10px;justify-content: center;">
-        <span id="bzj-code" style="font-family:monospace;font-size:1.2em;font-weight:bold;padding:2px 18px;border:1px solid #d0d1d7;border-radius:5px;background:#fafafd;">-----</span>
-        <button type="button" aria-label="Refresh code" id="bzj-refresh" title="Generate or refresh code" style="font-size:1.2em;padding:0 7px 1px 7px;margin:0 3px 0 4px;border-radius:5px;">⟳</button>
-        <input type="text" id="bzj-input" placeholder="Type code" maxlength="5" autocomplete="off" style="width:85px;border: 1px solid #d0d1d7;border-radius:5px;padding:3px;">
+    return false;
+}
+add_action('user_register', function($id){ bzj_enforce($id, bzj_context()); }, 1);
+add_action('woocommerce_created_customer', function($id){ bzj_enforce($id, 'woocommerce'); }, 10);
+add_action('give_insert_user', function($id){ bzj_enforce($id, 'givewp'); }, 10);
+add_action('affwp_register_user', function($id){ bzj_enforce($id, 'affiliatewp'); }, 10);
+
+add_filter('registration_errors', function($errors){
+    if (!bzj_can_register()) $errors->add('bzj_block', 'Verification required before account creation.');
+    return $errors;
+}, 1);
+
+/* ============================================================================
+   CHALLENGE UI INJECTION — PLATFORM-SPECIFIC, ALWAYS INCLUDES MARKER
+============================================================================ */
+
+function bzj_render_ui($targetSelector, $statusText = 'Match codes to continue') { ?>
+<div class="bzj-registration-challenge" data-target="<?php echo esc_attr($targetSelector); ?>"
+     style="margin-top:10px;padding:6px 8px;border:1.5px solid #e1e1e5;border-radius:7px;text-align:center;">
+    <div style="display:flex;align-items:center;gap:10px;justify-content:center;">
+        <span class="bzj-code"
+              style="font-family:monospace;font-size:1.2em;font-weight:bold;padding:2px 18px;border:1px solid #d0d1d7;border-radius:5px;background:#fafafd;">-----</span>
+        <button type="button" class="bzj-refresh"
+                style="font-size:1.2em;padding:0 7px 1px 7px;margin:0 3px;border-radius:5px;">⟳</button>
+        <input type="text" class="bzj-input"
+               placeholder="Type code" maxlength="5" autocomplete="off"
+               style="width:85px;border: 1px solid #d0d1d7;border-radius:5px;padding:3px;">
     </div>
     <div>
-        <small id="bzj-status" style="margin-top:3px;color:#737373;">Match codes to create account</small>
+        <small class="bzj-status" style="margin-top:3px;color:#737373;"><?php echo esc_html($statusText); ?></small>
     </div>
+    <input type="hidden" name="bzj_form_marker" value="1">
+    <input type="hidden" name="bzj_sso_secret" value="">
+    <input type="hidden" name="bzj_context" value="<?php echo esc_attr(bzj_context()); ?>">
 </div>
-<style>
-    .bzj-registration-challenge input#bzj-input { margin-bottom: 0 !important; }
-    input#signup_submit.disabled {
-        background-color: #E3E6ED !important;
-        border: 1px solid #D4D9E2 !important;
-    }
-    #bzj-error-above-btn { margin-bottom:7px }
-</style>
-<input type="hidden" name="bzj_form_marker" value="1">
-<input type="hidden" name="bzj_sso_secret" value="">
+<?php }
 
+// BuddyBoss
+add_action('bp_before_registration_submit_buttons', function() {
+    bzj_render_ui('#signup-form > div.submit input[type=submit], #signup_submit, #signup-form button[type=submit], button[name=signup_submit]', 'Match codes to create account');
+}, 20);
+
+// Give Donation Form
+add_action('give_donation_form_before_submit', function() {
+    bzj_render_ui('#givewp-donation-form-step-0 > div > button', 'Match codes to submit donation');
+}, 20);
+
+// AffiliateWP Register
+add_action('affwp_register_fields_before_submit', function() {
+    bzj_render_ui('#affwp-register-form > fieldset > input.button', 'Match codes to register');
+}, 20);
+
+// WooCommerce checkout/register (mostly block theme, React)
+add_action('woocommerce_after_checkout_registration_form', function() {
+    bzj_render_ui('div.wc-block-components-sidebar-layout.wc-block-checkout.is-large > div.wc-block-components-main.wc-block-checkout__main.wp-block-woocommerce-checkout-fields-block > form > div.wc-block-checkout__actions.wp-block-woocommerce-checkout-actions-block > div.wc-block-checkout__actions_row > button, #post-50 > div > div > div.wc-block-components-sidebar-layout.wc-block-checkout.is-large > div.wc-block-components-main.wc-block-checkout__main.wp-block-woocommerce-checkout-fields-block > form > div.wc-block-checkout__actions.wp-block-woocommerce-checkout-actions-block > div.wc-block-checkout__actions_row > button > div, #post-50 > div > div > div.wc-block-components-sidebar-layout.wc-block-checkout.is-large > div.wc-block-components-main.wc-block-checkout__main.wp-block-woocommerce-checkout-fields-block > form > div.wc-block-checkout__actions.wp-block-woocommerce-checkout-actions-block > div.wc-block-checkout__actions_row > button > div > div', 'Match codes to place order');
+}, 20);
+
+/* ============================================================================
+   STYLE ENFORCEMENT FOR DISABLED BUTTONS (PER REQUIREMENT)
+============================================================================ */
+add_action('wp_head', function() {
+?>
+<style>
+.bzj-registration-challenge input.bzj-input { margin-bottom: 0 !important; }
+button.disabled,
+input.disabled,
+.wc-block-components-button[disabled],
+.bzj-registration-challenge .btn[disabled] {
+    background-color: #E3E6ED !important;
+    border: 1px solid #D4D9E2 !important;
+    opacity: 0.85;
+    cursor: not-allowed;
+}
+</style>
+<?php
+});
+
+/* ============================================================================
+   JS: MUTATIONSAFE, MULTIPLATFORM BUTTON GATE, AJAX CODE HANDLING
+============================================================================ */
+
+add_action('wp_footer', function() { ?>
 <script>
 (function(){
-    const codeBox = document.getElementById('bzj-code');
-    const refresh = document.getElementById('bzj-refresh');
-    const input   = document.getElementById('bzj-input');
-    const status  = document.getElementById('bzj-status');
-    let currentCode = '';
-    function findSubmitBtn() {
-        return (
-            document.querySelector('#signup_submit') ||
-            document.querySelector('#signup-form > div.submit input[type=submit]') ||
-            document.querySelector('#signup-form button[type=submit]') ||
-            document.querySelector('button[name=signup_submit]')
-        );
-    }
+const STYLES = { backgroundColor: "#E3E6ED", border: "1px solid #D4D9E2" };
+function applyDisabledStyles(btn) {
+    if (!btn) return;
+    btn.disabled = true;
+    btn.classList.add('disabled');
+    btn.style.backgroundColor = STYLES.backgroundColor;
+    btn.style.border = STYLES.border;
+    btn.style.opacity = 0.85;
+}
+function removeDisabledStyles(btn) {
+    if (!btn) return;
+    btn.disabled = false;
+    btn.classList.remove('disabled');
+    btn.style.backgroundColor = "";
+    btn.style.border = "";
+    btn.style.opacity = "";
+}
+function findTargetButton(sel){
+    // Support comma-separated selectors (first match)
+    var btn = null;
+    sel.split(',').forEach(function(s){
+        if (!btn) btn = document.querySelector(s.trim());
+    });
+    return btn;
+}
+function observeButton(sel, handler) {
+    var btn = findTargetButton(sel);
+    if (btn) return handler(btn);
+    // React/SPA/step forms: Watch for dynamic load
+    var observer = new MutationObserver(function() {
+        var b = findTargetButton(sel);
+        if (b) handler(b);
+    });
+    observer.observe(document.body, {childList:true, subtree:true});
+}
+function initBox(box){
+    if (box._bzjBound) return; box._bzjBound = true;
+    var btnSel = box.dataset.target;
+    var codeBox = box.querySelector('.bzj-code');
+    var refresh = box.querySelector('.bzj-refresh');
+    var input = box.querySelector('.bzj-input');
+    var status = box.querySelector('.bzj-status');
+    var btn = null, currentCode = '';
+
     function disable() {
-        const btn = findSubmitBtn();
-        if(btn) { btn.disabled = true; btn.classList.add('disabled'); }
+        observeButton(btnSel, function(_btn){
+            btn = _btn; applyDisabledStyles(btn);
+        });
     }
     function enable() {
-        const btn = findSubmitBtn();
-        if(btn) { btn.disabled = false; btn.classList.remove('disabled'); }
+        observeButton(btnSel, function(_btn){
+            btn = _btn; removeDisabledStyles(btn);
+        });
     }
-    // Always show initial message
-    status.innerText = 'Match codes to create account';
+    status.innerText = box.dataset.statusText || 'Match codes to continue';
     status.style.color = '#737373';
     input.value = '';
     input.disabled = true;
@@ -275,7 +329,7 @@ add_action('bp_before_registration_submit_buttons', function () {
         codeBox.textContent = '.....';
         currentCode = '';
         disable();
-        status.innerText = 'Match codes to create account';
+        status.innerText = box.dataset.statusText || 'Match codes to continue';
         status.style.color = '#737373';
         input.value = '';
         input.disabled = true;
@@ -287,14 +341,12 @@ add_action('bp_before_registration_submit_buttons', function () {
                 currentCode = json.data.code;
                 input.disabled = false;
             } else {
-                codeBox.textContent = 'ERR';
-                input.disabled = true;
+                codeBox.textContent = 'ERR'; input.disabled = true;
                 status.innerText = 'Could not generate code (reload?)';
                 status.style.color = 'red';
             }
         } catch(e) {
-            codeBox.textContent = 'ERR';
-            input.disabled = true;
+            codeBox.textContent = 'ERR'; input.disabled = true;
             status.innerText = 'Could not generate code (reload?)';
             status.style.color = 'red';
         }
@@ -303,20 +355,20 @@ add_action('bp_before_registration_submit_buttons', function () {
     async function verify() {
         const val = input.value.trim().toUpperCase();
         if (!val || !currentCode || val.length !== currentCode.length) {
-            status.innerText = 'Match codes to create account';
+            status.innerText = box.dataset.statusText || 'Match codes to continue';
             status.style.color = '#737373';
             disable();
             return;
         }
         try {
-            const res = await fetch('/wp-admin/admin-ajax.php?action=bzj_verify_code', {
-                method:'POST',
-                headers: {'Content-Type':'application/x-www-form-urlencoded'},
-                body: 'code=' + encodeURIComponent(val)
+            const res = await fetch('/wp-admin/admin-ajax.php?action=bzj_verify_code',{
+              method:'POST',
+              headers:{'Content-Type':'application/x-www-form-urlencoded'},
+              body:'code='+encodeURIComponent(val)
             });
             const json = await res.json();
             if(json.success) {
-                status.innerText = 'Verified! Create your account';
+                status.innerText = 'Verified! Continue...';
                 status.style.color = 'green';
                 enable();
             } else {
@@ -330,106 +382,35 @@ add_action('bp_before_registration_submit_buttons', function () {
             disable();
         }
     }
-    refresh.addEventListener('click', () => {
-        generate();
-        input.value = '';
-        status.innerText = 'Match codes to create account';
+    refresh.addEventListener('click', function(){
+        generate(); input.value = '';
+        status.innerText = box.dataset.statusText || 'Match codes to continue';
         status.style.color = '#737373';
     });
     input.addEventListener('input', verify);
     generate();
+}
+// Initial binding and dynamic (mutation observer)
+function bindAll(){
+    document.querySelectorAll('.bzj-registration-challenge').forEach(initBox);
+}
+bindAll();
+var observer = new MutationObserver(bindAll);
+observer.observe(document.body, { childList: true, subtree: true });
 })();
 </script>
 <?php
 });
 
-/**
- * Validation: only show BP-compatible error, above the button, if code is not verified
- */
-
-add_filter('bp_core_validate_user_signup', function ($result) {
-    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') return $result;
-    if (!bzj_auth_decision()) {
-        $GLOBALS['bzj_error_above_button'] = 'Verify code to create your account.';
-        $auth = bzj_auth_decision();
-        bzj_log('blocked_signup', [
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
-            'auth_result' => bzj_auth_decision(),
-            'post' => $_POST
-        ]);
-    }
-    return $result;
-}, 1);
-
-/** 
- * Failsafe: user_register only succeeds for truly verified submissions;
- * Only here do we consume/delete the challenge.
- */
-add_action('user_register', function ($user_id) {
-    global $bzj_request_verified;
-    bzj_log('user_register_event', [
-        'user_id' => $user_id,
-        'verified' => $bzj_request_verified,
-        'post' => $_POST
-    ]);
-    if (!bzj_auth_decision()) {
-        require_once ABSPATH.'wp-admin/includes/user.php';
-        wp_delete_user($user_id);
-        bzj_log('deleted_user', [
-            'user_id'=>$user_id, 'post'=>$_POST
-        ]);
-    } else {
-        $fp = bzj_fp();
-        delete_transient("bzj_state_$fp");
-        delete_transient("bzj_code_$fp");
-    }
-}, 1);
-
-add_filter('registration_errors', function($errors) {
-
-    if (!bzj_auth_decision()) {
-        $errors->add('bzj_block', 'Verification required before account creation.');
-        
-        bzj_log('BLOCK_registration_errors', [
-            'post' => $_POST
-        ]);
-    }
-
-    return $errors;
-
-}, 1);
-
-add_filter('wp_pre_insert_user_data', function($data, $update) {
-
-    if ($update) return $data;
-
-    if (!bzj_auth_decision()) {
-        bzj_log('BLOCK_pre_insert_user', [
-            'data' => $data,
-            'post' => $_POST
-        ]);
-
-        // HARD STOP (correct WordPress pattern)
-        wp_die(
-            'Registration blocked: verification failed.',
-            'Blocked',
-            ['response' => 403]
-        );
-    }
-
-    return $data;
-
-}, 1, 2);
-
-//Elementor Form for Redirection to the BuddyBoss register page.
+/* ============================================================================
+   (Optional) ELEMENTOR EMAIL PREFILL, KEPT FOR COMPAT
+============================================================================ */
 add_action('wp_footer', function() {
-    if ( is_page('register') ) { // Or use your register page ID/slug.
-        ?>
+    if (function_exists('is_page') && is_page('register')) { ?>
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             function getQueryVar(name) {
-                let url = new URL(window.location.href);
-                return url.searchParams.get(name) || '';
+                let url = new URL(window.location.href); return url.searchParams.get(name) || '';
             }
             var email = getQueryVar('prefill_email');
             if (email) {
@@ -438,6 +419,5 @@ add_action('wp_footer', function() {
             }
         });
         </script>
-        <?php
-    }
+    <?php }
 });

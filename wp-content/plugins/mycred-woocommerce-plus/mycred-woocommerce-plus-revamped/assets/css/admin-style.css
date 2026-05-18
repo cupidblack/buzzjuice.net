@@ -1,0 +1,58 @@
+.mwp-badge-coupon-reward-item {
+	position: relative;
+	margin-top: 30px;
+}
+
+.mwp-badge-coupon-reward-header {
+	position: absolute;
+    background: #f0f0f0;
+    padding: 4px 4px;
+    top: -13px;
+    left: 12px;
+    font-weight: bolder;
+    font-size: 14px;
+}
+
+.mwp-badge-coupon-reward-body {
+	padding: 22px 10px 10px 10px;
+    border: 1px solid #a59b9b;
+    margin-bottom: 15px;
+}
+
+.mwp-restrict-product-wrapper {
+    padding: 5px 0 0 0 !important; 
+    border-radius: 0 !important;
+    margin: 0 !important;
+}
+
+.mwp-restrict-product-wrapper hr.mb-3 {
+    margin-bottom: 12px;
+}
+
+.mwp-restrict-product-wrapper .mwp-restrict-product-content,
+.mwp-restrict-product-wrapper .mwp-restrict-product-inner {
+    display: none;
+}
+
+.mwp-restrict-product-wrapper .mwp-restrict-product-content.show,
+.mwp-restrict-product-wrapper .mwp-restrict-product-inner.show {
+    display: block;
+}
+
+.mwp-restrict-product-wrapper .mwp-restrict-product-content > p {
+    margin-bottom: 3px;
+}
+
+.mwp-restrict-product-content.rank > h3 {
+    margin: 15px 0 5px 0px;
+}
+
+.mwp-myaccount-tab-lable {
+    max-width: 200px;
+}
+span.select2.select2-container.select2-container--default {
+    width: 100% !important;
+}
+.mycred-checkbox-radio-wrapper {
+    padding-top: 10px;
+}

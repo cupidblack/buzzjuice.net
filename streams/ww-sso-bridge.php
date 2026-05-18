@@ -876,28 +876,21 @@ function Wo_SSO_Login() {
         // Safely normalizes, maps, and updates only supported fields
         // =========================================================
 // ==============================================================================
-// WordPress → WoWonder Meta Sync (All Profile Fields, Avatar, Cover, Failover)
+// WORDPRESS → WOWONDER AUTHORITATIVE META SYNC (DIRECT SQL ONLY)
 // ==============================================================================
 
-// --------------------------------------------------------
-// 1. SAFETY / VALUE PREP HELPERS
-// --------------------------------------------------------
+// 1. SAFETY HELPERS
 
 if (!function_exists('bz_maybe_unserialize')) {
     function bz_maybe_unserialize($value) {
-        // If already array/object, leave as is
         if (is_array($value) || is_object($value)) return $value;
         if (!is_string($value)) return $value;
         $trim = trim($value);
-        // Empty string shortcut
-        if ($trim === '') return '';
-        if ($trim === 'N;') return null;
-        // Try unserialize, revert if not serializable
+        if ($trim === '' || $trim === 'N;') return '';
         $test = @unserialize($trim);
         return ($test !== false || $trim === 'b:0;') ? $test : $value;
     }
 }
-
 if (!function_exists('bz_clean_scalar')) {
     function bz_clean_scalar($value) {
         $value = bz_maybe_unserialize($value);
@@ -908,132 +901,104 @@ if (!function_exists('bz_clean_scalar')) {
     }
 }
 
-// --------------------------------------------------------
-// 2. MEDIA NORMALIZATION HELPERS
-// --------------------------------------------------------
+// 2. MEDIA URL NORMALIZATION & EXISTENCE CHECK
 
 if (!function_exists('bz_normalize_media_url')) {
     function bz_normalize_media_url($value) {
         $value = bz_clean_scalar($value);
         if ($value === '') return '';
+        $value = str_replace('\\', '/', $value);
         $value = preg_replace('#(?<!:)//+#', '/', $value);
-
-        // CASE 1: Already WoWonder-style upload folder, do not change
-        if (preg_match('#^upload/photos/#i', $value))
-            return $value;
-
-        // CASE 2: streams/social/upload/photos/ → upload/photos/
+        // Strip leading ../streams/ or ./streams/
+        $value = preg_replace('#^(\.\.?/)?streams/#i', '', $value);
+        // WoWonder style? Use as-is.
+        if (preg_match('#^upload/photos/#i', $value)) return $value;
+        // streams/social/upload/photos/ to upload/photos/
         if (preg_match('#^(streams|social)/upload/photos/#i', $value))
             return preg_replace('#^(streams|social)/#i', '', $value);
-
-        // CASE 3: Full WoWonder upload URL: https://buzzjuice.net/streams/upload/photos/ → upload/photos/
+        // https://buzzjuice.net/streams/upload/photos/ to upload/photos/
         if (preg_match('#^https?://[^/]+/streams/upload/photos/#i', $value))
             return preg_replace('#^https?://[^/]+/streams/#i', '', $value);
-
-        // CASE 4: Fix accidental /streams/wp-content/ (bad), should be /wp-content/
+        // /streams/wp-content/ or /social/wp-content/ to /wp-content/
         $value = preg_replace('#^https?://([^/]+)/(streams|social)/wp-content/#i', 'https://$1/wp-content/', $value);
-
-        // CASE 5: Relative wp-content paths – turn into absolute
+        // /wp-content/ → absolute
         if (strpos($value, '/wp-content/') === 0)
             return 'https://buzzjuice.net' . $value;
         if (strpos($value, 'wp-content/') === 0)
             return 'https://buzzjuice.net/' . $value;
-
-        // CASE 6: Already absolute URL elsewhere (external), allow as is
+        // Absolute (external) URLs as-is
         if (preg_match('#^https?://#i', $value)) return $value;
-
-        // Otherwise, no known mapping. Treat as missing.
+        // Unknown/missing mapping
         return '';
     }
 }
-
-// File existence check
 if (!function_exists('bz_media_exists')) {
     function bz_media_exists($value) {
         if (!$value) return false;
-        // Native WoWonder relative upload
+        // Native WoWonder upload (relative)
         if (preg_match('#^upload/photos/#i', $value)) {
-            $file = $_SERVER['DOCUMENT_ROOT'] . '/streams/' . $value;
+            $file = $_SERVER['DOCUMENT_ROOT'] . '/streams/' . ltrim($value, '/');
             return file_exists($file);
         }
-        // WordPress upload
+        // BuzzJuice site absolute
         if (preg_match('#^https?://buzzjuice\.net(/.+)$#i', $value, $m)) {
-            $f = $_SERVER['DOCUMENT_ROOT'] . $m[1];
-            return file_exists($f);
+            return file_exists($_SERVER['DOCUMENT_ROOT'] . $m[1]);
         }
-        // External: Assume valid
-        if (preg_match('#^https?#i', $value) && strpos($value, 'buzzjuice.net') === false)
+        // External URLs: always "exist"
+        if (preg_match('#^https?://#i', $value) && stripos($value, 'buzzjuice.net') === false)
             return true;
         return false;
     }
 }
 
-// --------------------------------------------------------
-// 3. LOAD IDS & CHECK
-// --------------------------------------------------------
+// 3. IDS, DB CONNECTIONS, SCHEMA
 
 $wp_user_id = (int)($_SESSION['wp_user_id'] ?? 0);
 $wo_user_id = (int)($_SESSION['wo_user_id'] ?? 0);
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/shared/db_helpers.php';
+
 if (!$wp_user_id || !$wo_user_id) {
-    bz_bridge_log('WP→Wo sync aborted: missing user ids');
+    bz_bridge_log('WP→Wo sync aborted: missing user ids', ['wp_user_id'=>$wp_user_id, 'wo_user_id'=>$wo_user_id]);
     return;
 }
 $wp_conn  = function_exists('get_wp_db_conn') ? get_wp_db_conn() : null;
-$sqlConn  = $GLOBALS['sqlConnect'] ?? null;
+$sqlConn  = function_exists('get_wowonder_db') ? get_wowonder_db() : null;
 if (!$wp_conn || !$sqlConn) {
     bz_bridge_log('WP→Wo sync aborted: missing DB connection');
     return;
 }
 $wo_table = defined('T_USERS') ? T_USERS : 'Wo_Users';
 
-// --------------------------------------------------------
-// 4. LOAD WoWonder Schema
-// --------------------------------------------------------
-
+// WoWonder schema cache
 static $wo_schema = null;
 if ($wo_schema === null) {
     $wo_schema = [];
-    $q = mysqli_query($sqlConn, "SHOW COLUMNS FROM {$wo_table}");
-    while ($q && $row = mysqli_fetch_assoc($q)) $wo_schema[$row['Field']] = true;
+    $schema = mysqli_query($sqlConn, "SHOW COLUMNS FROM {$wo_table}");
+    while ($schema && $row = mysqli_fetch_assoc($schema)) $wo_schema[$row['Field']] = true;
 }
 
-// --------------------------------------------------------
-// 5. LOAD METADATA MAPPING
-// --------------------------------------------------------
+// 4. META MAPPING
 
-// Load meta mapping as an array of [wp_field => wo_field], using buzz_metadata.json
 $metadata_file = $_SERVER['DOCUMENT_ROOT'] . '/shared/buzz_metadata.json';
 $meta_map = [];
 if (file_exists($metadata_file)) {
     $json = json_decode(file_get_contents($metadata_file), true);
-    // Accept both new (flat: field => field) and old (object) schema.
     if (isset($json['private_secure_fields']) && isset($json['public_open_fields'])) {
         $meta_map = array_merge($json['private_secure_fields'], $json['public_open_fields']);
     } else if (is_array($json)) {
-        // This might be a direct map of 'field' => 'field'
         $meta_map = $json;
     }
 }
 
-// --------------------------------------------------------
-// 6. LOAD WORDPRESS PROFILE DATA
-// --------------------------------------------------------
+// 5. ACQUIRE ALL WP PROFILE DATA
 
 $wp_data     = function_exists('wp_get_full_user_data') ? wp_get_full_user_data($wp_conn, $wp_user_id) : [];
 $wp_meta     = $wp_data['meta'] ?? [];
 $wp_xprofile = $wp_data['xprofile'] ?? [];
 $wp_core     = $wp_data;
 
-// Unified meta search order: xprofile → usermeta → core
-$wp_all_meta = [];
-// Core/base
-foreach ($wp_core as $k => $v) $wp_all_meta[$k] = $v;
-foreach ($wp_meta as $k => $v) $wp_all_meta[$k] = $v;
-foreach ($wp_xprofile as $k => $v) $wp_all_meta[$k] = $v;
-
-// --------------------------------------------------------
-// 7. AVATAR / COVER RAW EXTRACTION & CANDIDATE LOGIC
-// --------------------------------------------------------
+// 6. AVATAR/COVER CANDIDATES AND FALLBACK
 
 $default_icon      = 'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.03-icon192x192.png';
 $bb_avatar_default = '/wp-content/plugins/buddyboss-platform/bp-core/images/profile-avatar-buddyboss.png';
@@ -1042,7 +1007,6 @@ $bb_cover_fallback = '/wp-content/plugins/buddyboss-platform/bp-core/images/cove
 
 $wp_avatar_raw = '';
 $wp_cover_raw  = '';
-// Prefer xprofile (case-insensitive)
 foreach ($wp_xprofile as $k => $v) {
     $lk = strtolower(trim($k));
     if ($lk === 'avatar' && $v) $wp_avatar_raw = $v;
@@ -1051,7 +1015,6 @@ foreach ($wp_xprofile as $k => $v) {
 if (!$wp_avatar_raw && !empty($wp_meta['bp_profile_avatar'])) $wp_avatar_raw = $wp_meta['bp_profile_avatar'];
 if (!$wp_cover_raw  && !empty($wp_meta['bp_profile_cover']))  $wp_cover_raw  = $wp_meta['bp_profile_cover'];
 
-// Main candidate arrays
 $avatar_candidates = [
     bz_normalize_media_url($wp_avatar_raw),
     bz_normalize_media_url($bb_avatar_default),
@@ -1079,103 +1042,103 @@ foreach ($cover_candidates as $cand) {
     }
 }
 
-// --------------------------------------------------------
-// 8. BUILD FIELD PAYLOAD
-// --------------------------------------------------------
+// 7. BUILD UPDATE PAYLOAD (MAP + FORCE AVATAR/COVER)
 
 $update = [];
 foreach ($meta_map as $wp_field => $wo_field) {
     if (!isset($wo_schema[$wo_field])) continue;
-
-    // Avatar/Cover special-case handled below, always override with robust selection
-    if ($wo_field === 'avatar') {
-        $update['avatar'] = $avatar_url;
-        continue;
-    }
-    if ($wo_field === 'cover') {
-        $update['cover'] = $cover_url;
-        continue;
-    }
-
-    // Value search order: xprofile → meta → core
+    if ($wo_field === 'avatar') { $update['avatar'] = $avatar_url; continue; }
+    if ($wo_field === 'cover')  { $update['cover']  = $cover_url;  continue; }
     $v = null;
     if     (isset($wp_xprofile[$wp_field])) $v = $wp_xprofile[$wp_field];
     elseif (isset($wp_meta[$wp_field]))     $v = $wp_meta[$wp_field];
     elseif (isset($wp_core[$wp_field]))     $v = $wp_core[$wp_field];
-
     $val = bz_clean_scalar($v);
     if ($val !== '' && $val !== null) $update[$wo_field] = $val;
 }
+// Always forcibly write identity fields if present in schema
+if (isset($wo_schema['wp_user_id']))    $update['wp_user_id'] = $wp_user_id;
+if (!empty($_SESSION['wp_user_email']) && isset($wo_schema['email']))
+    $update['email'] = trim($_SESSION['wp_user_email']);
+if (!empty($_SESSION['wp_user_login']) && isset($wo_schema['username']))
+    $update['username'] = trim($_SESSION['wp_user_login']);
+if (isset($wo_schema['avatar'])) $update['avatar'] = $avatar_url;
+if (isset($wo_schema['cover']))  $update['cover']  = $cover_url;
 
-// Enforce main identity fields
-$update['wp_user_id'] = $wp_user_id;
-if (!empty($_SESSION['wp_user_email']))  $update['email']    = trim($_SESSION['wp_user_email']);
-if (!empty($_SESSION['wp_user_login']))  $update['username'] = trim($_SESSION['wp_user_login']);
-
-// --------------------------------------------------------
-// 9. WRITE TO WoWonder (force update at every login)
-// --------------------------------------------------------
-
-// Write hash for full "sync" record (optional but useful for debug; does not affect field update logic)
 ksort($update);
-$new_hash = md5(json_encode($update, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
-$update['wp_meta_hash'] = $new_hash;
+$update['wp_meta_hash'] = md5(json_encode($update, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
 
-// Main update
-$write_result = false;
-if (function_exists('Wo_UpdateUserData')) {
-    try {
-        $write_result = Wo_UpdateUserData($wo_user_id, $update);
-        bz_bridge_log('WP→Wo sync fields updated', [
-            'user_id'         => $wo_user_id,
-            'updated_fields'  => array_keys($update),
-            'result'          => $write_result,
-            'payload'         => $update
-        ]);
-    } catch (Throwable $e) {
-        bz_bridge_log('WP→Wo sync: ERROR during Wo_UpdateUserData', [
-            'user_id' => $wo_user_id,
-            'error'   => $e->getMessage()
-        ]);
-    }
+// Log ready-to-write payload
+bz_bridge_log('WP→Wo sync payload', [
+    'wo_user_id'=>$wo_user_id,
+    'avatar'=>$avatar_url,
+    'cover'=>$cover_url,
+    'fields'=>array_keys($update),
+    'payload'=>$update
+]);
+
+// 8. DO DIRECT DATABASE UPDATE ONLY (NO Wo_UpdateUserData)
+
+$set = [];
+foreach ($update as $field => $value) {
+    if (!isset($wo_schema[$field])) continue;
+    $safe_field = preg_replace('/[^a-zA-Z0-9_]/','',$field);
+    $safe_value = mysqli_real_escape_string($sqlConn, (string)$value);
+    $set[] = "`{$safe_field}`='{$safe_value}'";
+}
+if (!empty($set)) {
+    $sql = "UPDATE {$wo_table} SET " . implode(',', $set) . " WHERE user_id=".(int)$wo_user_id." LIMIT 1";
+    $write_result = mysqli_query($sqlConn, $sql);
+    bz_bridge_log('WP→Wo sync DB update', [
+        'wo_user_id'=>$wo_user_id,
+        'result'=>$write_result ? 'OK' : 'FAIL',
+        'mysql_error'=>mysqli_error($sqlConn),
+        'sql'=>$sql
+    ]);
 }
 
-// --------------------------------------------------------
-// 10. POST-WRITE: VERIFY & REPAIR IF NECCESSARY
-// --------------------------------------------------------
+// 9. POST-WRITE: VERIFY & REPAIR LOOP
 
 $post = mysqli_query($sqlConn, "SELECT * FROM {$wo_table} WHERE user_id=".(int)$wo_user_id." LIMIT 1");
 $vrow = $post ? mysqli_fetch_assoc($post) : [];
 $repair = [];
 foreach ($update as $field => $value) {
+    if (!isset($wo_schema[$field])) continue;
     if (isset($vrow[$field]) && (string)$vrow[$field] !== (string)$value) {
         $repair[$field] = $value;
     }
 }
-
 if (!empty($repair)) {
-    $set = [];
-    foreach ($repair as $field=>$value) {
+    $repair_set = [];
+    foreach ($repair as $field=>$val) {
         $safe_field = preg_replace('/[^a-zA-Z0-9_]/','',$field);
-        $safe_val = mysqli_real_escape_string($sqlConn, $value);
-        $set[] = "`{$safe_field}`='{$safe_val}'";
+        $safe_val = mysqli_real_escape_string($sqlConn, (string)$val);
+        $repair_set[] = "`{$safe_field}`='{$safe_val}'";
     }
-    mysqli_query($sqlConn, "UPDATE {$wo_table} SET ".implode(',', $set)." WHERE user_id=".(int)$wo_user_id);
-    bz_bridge_log('WP→Wo sync: POST-WRITE REPAIR APPLIED', [
-        'user_id'=>$wo_user_id,
-        'fields'=>$repair
+    $repair_sql = "UPDATE {$wo_table} SET " . implode(',', $repair_set) . " WHERE user_id=".(int)$wo_user_id." LIMIT 1";
+    mysqli_query($sqlConn, $repair_sql);
+    bz_bridge_log('WP→Wo sync repair applied', [
+        'wo_user_id'   => $wo_user_id,
+        'repair_fields'=> array_keys($repair),
+        'repair_data'  => $repair
     ]);
 }
 
-// Final verification log, especially for avatar/cover First Name/About
-$verify = mysqli_query($sqlConn, "SELECT avatar, cover, first_name, about FROM {$wo_table} WHERE user_id=".(int)$wo_user_id." LIMIT 1");
-$final = $verify ? mysqli_fetch_assoc($verify) : [];
+// 10. FINAL LOG FOR VERIFICATION
+
+$verify = mysqli_query(
+    $sqlConn,
+    "SELECT avatar,cover,first_name,about FROM {$wo_table} WHERE user_id=".(int)$wo_user_id." LIMIT 1"
+);
+$snapshot = $verify ? mysqli_fetch_assoc($verify) : [];
 bz_bridge_log('WP→Wo sync final verification', [
-    'user_id' => $wo_user_id,
-    'avatar'  => $final['avatar'] ?? null,
-    'cover'   => $final['cover'] ?? null,
-    'first_name' => $final['first_name'] ?? null,
-    'about'      => $final['about'] ?? null
+    'wo_user_id'=>$wo_user_id,
+    'avatar'    =>$snapshot['avatar']??null,
+    'cover'     =>$snapshot['cover']??null,
+    'first_name'=>$snapshot['first_name']??null,
+    'about'     =>$snapshot['about']??null,
+    'expected_avatar'=>$avatar_url,
+    'expected_cover' =>$cover_url
 ]);
 
         // todo: Advanced field mapping implementation and 

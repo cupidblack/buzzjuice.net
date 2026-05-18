@@ -261,10 +261,6 @@
             'key' => 'wp_using_ext_object_cache()',
             'val' => wp_using_ext_object_cache() ? 'true' : 'false',
         ),
-        array(
-            'key' => 'Freemius::get_unfiltered_site_url()',
-            'val' => Freemius::get_unfiltered_site_url(),
-        ),
     )
 ?>
 <br>
@@ -288,13 +284,8 @@
         <?php endforeach ?>
     </tbody>
 </table>
-<h2>
-    <button class="fs-debug-table-toggle-button" aria-expanded="true">
-        <span class="fs-debug-table-toggle-icon">▼</span>
-    </button>
-    <?php fs_esc_html_echo_x_inline( 'SDK Versions', 'as software development kit versions', 'sdk-versions' ) ?>
-</h2>
-<table id="fs_sdks" class="widefat fs-debug-table">
+<h2><?php fs_esc_html_echo_x_inline( 'SDK Versions', 'as software development kit versions', 'sdk-versions' ) ?></h2>
+<table id="fs_sdks" class="widefat">
     <thead>
     <tr>
         <th><?php fs_esc_html_echo_x_inline( 'Version', 'product version' ) ?></th>
@@ -328,13 +319,8 @@
 <?php foreach ( $module_types as $module_type ) : ?>
     <?php $modules = fs_get_entities( $fs_options->get_option( $module_type . 's' ), FS_Plugin::get_class_name() ) ?>
     <?php if ( is_array( $modules ) && count( $modules ) > 0 ) : ?>
-        <h2>
-            <button class="fs-debug-table-toggle-button" aria-expanded="true">
-                <span class="fs-debug-table-toggle-icon">▼</span>
-            </button>
-            <?php echo esc_html( ( WP_FS__MODULE_TYPE_PLUGIN == $module_type ) ? fs_text_inline( 'Plugins', 'plugins' ) : fs_text_inline( 'Themes', 'themes' ) ) ?>
-        </h2>
-        <table id="fs_<?php echo $module_type ?>" class="widefat fs-debug-table">
+        <h2><?php echo esc_html( ( WP_FS__MODULE_TYPE_PLUGIN == $module_type ) ? fs_text_inline( 'Plugins', 'plugins' ) : fs_text_inline( 'Themes', 'themes' ) ) ?></h2>
+        <table id="fs_<?php echo $module_type ?>" class="widefat">
             <thead>
             <tr>
                 <th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
@@ -353,7 +339,6 @@
             </tr>
             </thead>
             <tbody>
-            <?php $alternate = false; ?>
             <?php foreach ( $modules as $slug => $data ) : ?>
                 <?php
                 if ( WP_FS__MODULE_TYPE_THEME !== $module_type ) {
@@ -377,12 +362,12 @@
                         $active_modules_by_id[ $data->id ] = true;
                     }
                 ?>
-                <tr<?php if ( $alternate ) { echo ' class="alternate" '; } ?><?php if ( $is_active ) {
+                <tr<?php if ( $is_active ) {
                     $has_api_connectivity = $fs->has_api_connectivity();
 
                     if ( true === $has_api_connectivity && $fs->is_on() ) {
                         echo ' style="background: #E6FFE6; font-weight: bold"';
-                    } else if ( false === $has_api_connectivity || ! $fs->is_on() ) {
+                    } else {
                         echo ' style="background: #ffd0d0; font-weight: bold"';
                     }
                 } ?>>
@@ -390,14 +375,14 @@
                     <td><?php echo $slug ?></td>
                     <td><?php echo $data->version ?></td>
                     <td><?php echo $data->title ?></td>
-                    <td<?php if ( $is_active && false === $has_api_connectivity ) {
+                    <td<?php if ( $is_active && true !== $has_api_connectivity ) {
                         echo ' style="color: red; text-transform: uppercase;"';
                     } ?>><?php if ( $is_active ) {
                             echo esc_html( true === $has_api_connectivity ?
                                 fs_text_x_inline( 'Connected', 'as connection was successful' ) :
                                 ( false === $has_api_connectivity ?
                                     fs_text_x_inline( 'Blocked', 'as connection blocked' ) :
-                                    fs_text_x_inline( 'No requests yet', 'API connectivity state is unknown' ) )
+                                    fs_text_x_inline( 'Unknown', 'API connectivity state is unknown' ) )
                             );
                         } ?></td>
                     <td<?php if ( $is_active && ! $fs->is_on() ) {
@@ -451,7 +436,6 @@
                         <?php endif ?>
                     </td>
                 </tr>
-            <?php $alternate = ! $alternate ?>
             <?php endforeach ?>
             </tbody>
         </table>
@@ -468,17 +452,12 @@
     $all_plans = false;
     ?>
     <?php if ( is_array( $sites_map ) && count( $sites_map ) > 0 ) : ?>
-        <h2>
-            <button class="fs-debug-table-toggle-button" aria-expanded="true">
-                <span class="fs-debug-table-toggle-icon">▼</span>
-            </button>
-            <?php echo esc_html( sprintf(
+        <h2><?php echo esc_html( sprintf(
             /* translators: %s: 'plugin' or 'theme' */
                 fs_text_inline( '%s Installs', 'module-installs' ),
                 ( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin', 'plugin' ) : fs_text_inline( 'Theme', 'theme' ) )
-            ) ) ?> / <?php fs_esc_html_echo_x_inline( 'Sites', 'like websites', 'sites' ) ?>
-        </h2>
-        <table id="fs_<?php echo $module_type ?>_installs" class="widefat fs-debug-table">
+            ) ) ?> / <?php fs_esc_html_echo_x_inline( 'Sites', 'like websites', 'sites' ) ?></h2>
+        <table id="fs_<?php echo $module_type ?>_installs" class="widefat">
             <thead>
             <tr>
                 <th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
@@ -588,13 +567,8 @@
     $addons = $VARS['addons'];
 ?>
 <?php foreach ( $addons as $plugin_id => $plugin_addons ) : ?>
-    <h2>
-        <button class="fs-debug-table-toggle-button" aria-expanded="true">
-            <span class="fs-debug-table-toggle-icon">▼</span>
-        </button>
-        <?php echo esc_html( sprintf( fs_text_inline( 'Add Ons of module %s', 'addons-of-x' ), $plugin_id ) ) ?>
-    </h2>
-    <table id="fs_addons" class="widefat fs-debug-table">
+    <h2><?php echo esc_html( sprintf( fs_text_inline( 'Add Ons of module %s', 'addons-of-x' ), $plugin_id ) ) ?></h2>
+    <table id="fs_addons" class="widefat">
         <thead>
         <tr>
             <th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
@@ -652,13 +626,8 @@
 
 ?>
 <?php if ( is_array( $users ) && 0 < count( $users ) ) : ?>
-    <h2>
-        <button class="fs-debug-table-toggle-button" aria-expanded="true">
-            <span class="fs-debug-table-toggle-icon">▼</span>
-        </button>
-        <?php fs_esc_html_echo_inline( 'Users' ) ?>
-    </h2>
-    <table id="fs_users" class="widefat fs-debug-table">
+    <h2><?php fs_esc_html_echo_inline( 'Users' ) ?></h2>
+    <table id="fs_users" class="widefat">
         <thead>
         <tr>
             <th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
@@ -706,13 +675,8 @@
      */
     $licenses = $VARS[ $module_type . '_licenses' ] ?>
     <?php if ( is_array( $licenses ) && count( $licenses ) > 0 ) : ?>
-        <h2>
-            <button class="fs-debug-table-toggle-button" aria-expanded="true">
-                <span class="fs-debug-table-toggle-icon">▼</span>
-            </button>
-            <?php echo esc_html( sprintf( fs_text_inline( '%s Licenses', 'module-licenses' ), ( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin', 'plugin' ) : fs_text_inline( 'Theme', 'theme' ) ) ) ) ?>
-        </h2>
-        <table id="fs_<?php echo $module_type ?>_licenses" class="widefat fs-debug-table">
+        <h2><?php echo esc_html( sprintf( fs_text_inline( '%s Licenses', 'module-licenses' ), ( WP_FS__MODULE_TYPE_PLUGIN === $module_type ? fs_text_inline( 'Plugin', 'plugin' ) : fs_text_inline( 'Theme', 'theme' ) ) ) ) ?></h2>
+        <table id="fs_<?php echo $module_type ?>_licenses" class="widefat">
             <thead>
             <tr>
                 <th><?php fs_esc_html_echo_inline( 'ID', 'id' ) ?></th>
@@ -750,10 +714,6 @@
         </table>
     <?php endif ?>
 <?php endforeach ?>
-<?php
-    $page_params = array( 'is_fs_debug_page' => true );
-    fs_require_template( 'debug/scheduled-crons.php', $page_params );
-?>
 <?php if ( FS_Logger::is_storage_logging_on() ) : ?>
 
     <h2><?php fs_esc_html_echo_inline( 'Debug Log', 'debug-log' ) ?></h2>
@@ -928,24 +888,3 @@
         });
     </script>
 <?php endif ?>
-<script type="text/javascript">
-    // JavaScript to toggle the visibility of the table body and change the caret icon
-    jQuery( document ).ready( function ( $ ) {
-        $( '.fs-debug-table-toggle-button' ).on( 'click', function () {
-            const button     = $( this );
-            const table      = button.closest( 'h2' ).next( 'table' );
-            const isExpanded = ( 'false' === button.attr( 'aria-expanded' ) );
-
-            button.attr( 'aria-expanded', isExpanded );
-            button.find( '.fs-debug-table-toggle-icon' ).text( isExpanded ? '▼' : '▶' );
-
-            table.css( {
-                display          : isExpanded ? 'table' : 'block',
-                borderBottomWidth: isExpanded ? '1px' : '0',
-                maxHeight        : isExpanded ? 'auto' : '0',
-            } );
-        } );
-
-        $( '.fs-debug-table-toggle-button:last' ).click();
-    } );
-</script>

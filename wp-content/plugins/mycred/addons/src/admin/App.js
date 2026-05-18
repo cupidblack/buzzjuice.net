@@ -1,24 +1,37 @@
 import React, { useState, useEffect } from "react";
 import {
+  DialogActions,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   AppBar,
   Toolbar,
   Typography,
   TextField,
+  Button,
   InputAdornment,
+  IconButton,
   Box,
+  FormControl,
   Grid,
   Card,
   CardContent,
+  CardActions,
   Snackbar,
   Skeleton,
-  Link,
-  FormControlLabel,
-  Switch,
 } from "@mui/material";
+import Link from '@mui/material/Link';
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import SearchIcon from "@mui/icons-material/Search";
 import { __ } from "@wordpress/i18n";
+import Switch from "@mui/material/Switch";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import CloseIcon from "@mui/icons-material/Close";
 import { ReactComponent as MyCredLogo } from "./icons/mycred-logo.svg";
+import { ReactComponent as MyCredDialogLogo } from "./icons/mycred-dialog-logo.svg";
+import { ReactComponent as UpgradeVector } from "./icons/upgrade-vector.svg";
+import { ReactComponent as BackgroundSVG } from "./icons/popup-background.svg";
 import { styled } from "@mui/material/styles";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import "@fontsource/figtree";
@@ -34,62 +47,72 @@ const theme = createTheme({
   typography: { fontFamily: "Roboto, sans-serif" },
 });
 
-const ToggleSwitch = styled(Switch)(({ theme }) => ({
-  width: 42,
-  height: 20,
-  padding: 0,
-  display: "flex",
-  "&:active": {
-    "& .MuiSwitch-thumb": {
-      width: 15,
-    },
-    "& .MuiSwitch-switchBase.Mui-checked": {
-      transform: "translateX(22px)",
-    },
-  },
-  "& .MuiSwitch-switchBase": {
-    padding: 2,
-    "&.Mui-checked": {
-      transform: "translateX(22px)",
-      color: "#fff",
-      "& + .MuiSwitch-track": {
-        opacity: 1,
-        backgroundColor: "#5F2CED",
-      },
-    },
-  },
-  "& .MuiSwitch-thumb": {
-    boxShadow: "0 2px 4px 0 rgb(0 35 11 / 20%)",
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    transition: theme.transitions.create(["width"], {
-      duration: 200,
-    }),
-  },
-  "& .MuiSwitch-track": {
-    borderRadius: 10,
-    opacity: 1,
-    backgroundColor: "#E0E0E0",
-    boxSizing: "border-box",
-  },
-}));
-
 const App = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [Addons, setAddons] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [open, setOpen] = useState(false);
+  const [addonsData, setAddonsData] = useState(addOnsData);
 
-  const contains = (data, value) => {
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const ToggleSwitch = styled(Switch)(({ theme }) => ({
+    width: 42,
+    height: 20,
+    padding: 0,
+    display: "flex",
+    "&:active": {
+      "& .MuiSwitch-thumb": {
+        width: 15,
+      },
+      "& .MuiSwitch-switchBase.Mui-checked": {
+        transform: "translateX(22px)",
+      },
+    },
+    "& .MuiSwitch-switchBase": {
+      padding: 2,
+      "&.Mui-checked": {
+        transform: "translateX(22px)",
+        color: "#fff",
+        "& + .MuiSwitch-track": {
+          opacity: 1,
+          backgroundColor: "#5F2CED",
+        },
+      },
+    },
+    "& .MuiSwitch-thumb": {
+      boxShadow: "0 2px 4px 0 rgb(0 35 11 / 20%)",
+      width: 16,
+      height: 16,
+      borderRadius: 16 / 2,
+      transition: theme.transitions.create(["width"], {
+        duration: 200,
+      }),
+    },
+    "& .MuiSwitch-track": {
+      borderRadius: 20 / 2,
+      opacity: 1,
+      backgroundColor: "#E0E0E0",
+      boxSizing: "border-box",
+    },
+  }));
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  function contains(data, value) {
     if (Array.isArray(data)) {
-      return data.includes(value);
+        return data.includes(value);
     } else if (data && typeof data === "object") {
-      return Object.values(data).includes(value);
+        return Object.values(data).includes(value);
     }
     return false;
-  };
+}
 
   const fetchAddOns = async () => {
     try {
@@ -99,7 +122,7 @@ const App = () => {
       const response = await fetch(siteUrl, {
         method: "GET",
         headers: {
-          "X-WP-Nonce": window.mycredAddonsData.nonce,
+          'X-WP-Nonce': window.mycredAddonsData.nonce,
           "Content-Type": "application/json",
         },
       });
@@ -108,8 +131,9 @@ const App = () => {
         throw new Error("Network response was not ok");
       }
 
-      const addonsResponse = await response.json();
-      setAddons(addonsResponse);
+      const Addons = await response.json();
+
+      setAddons(Addons);
     } catch (error) {
       setSnackbarMessage("Error fetching add-ons: " + error.message);
       setSnackbarOpen(true);
@@ -123,38 +147,39 @@ const App = () => {
   }, []);
 
   const handleToggleClick = async (addOn) => {
-    if (loading) return;
+  if (loading) return;
 
-    setLoading(true);
-    try {
-      const siteUrl = `${window.mycredAddonsData.root}mycred/v1/enable-core-addon`;
+  setLoading(true);
+  try {
+    const siteUrl = `${window.mycredAddonsData.root}mycred/v1/enable-core-addon`;
 
-      const response = await fetch(siteUrl, {
-        method: "POST",
-        headers: {
-          "X-WP-Nonce": window.mycredAddonsData.nonce,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          addOnSlug: addOn.slug,
-          addOnTitle: addOn.title,
-        }),
-      });
+    const response = await fetch(siteUrl, {
+      method: "POST",
+      headers: {
+        'X-WP-Nonce': window.mycredAddonsData.nonce,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        addOnSlug: addOn.slug,
+        addOnTitle: addOn.title,
+      }),
+    });
 
-      const result = await response.json();
+   const result = await response.json();
       fetchAddOns();
       setSnackbarMessage(result.message);
       setSnackbarOpen(true);
-    } catch (error) {
-      setSnackbarMessage("Error toggling addon");
-      setSnackbarOpen(true);
-    } finally {
-      setLoading(false);
-    }
+  } catch (error) {
+
+    setSnackbarOpen(true);
+  } finally {
+    setLoading(false);
+  }
   };
 
+
   const handleSearchData = (event) => {
-    setSearchTerm(event.target.value);
+      setSearchTerm(event.target.value);
   };
 
   const renderSVG = (iconSlug) => {
@@ -171,6 +196,7 @@ const App = () => {
         );
       }
 
+      // If it's recognized as a React component
       return <IconComponent width={24} height={24} />;
     } catch (error) {
       console.error(`SVG not found for icon name: ${iconSlug}`);
@@ -178,9 +204,10 @@ const App = () => {
     }
   };
 
-  const filteredAddons = addOnsData.filter((addOn) =>
-    addOn.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAddons = addonsData
+    .filter((addOn) =>
+      addOn.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   return (
     <ThemeProvider theme={theme}>
@@ -219,7 +246,12 @@ const App = () => {
                 padding: "14px",
               }}
               InputProps={{
-                startAdornment: <InputAdornment position="start" />,
+                startAdornment: (
+                  <InputAdornment
+                    position="start"
+                    sx={{ color: "#036666" }}
+                  ></InputAdornment>
+                ),
                 sx: {
                   "& .MuiOutlinedInput-notchedOutline": {
                     border: "none",
@@ -257,7 +289,7 @@ const App = () => {
               <Card
                 sx={{
                   width: "100%",
-                  height: "100%",
+                  height: "auto",
                   position: "relative",
                   borderRadius: "8px",
                   border: "1px solid transparent",
@@ -265,21 +297,32 @@ const App = () => {
                   flexDirection: "column",
                 }}
               >
-                <CardContent sx={{ flexGrow: 1 }}>
+                {/* Card Content */}
+                <CardContent>
                   {loading ? (
                     <>
-                      <Box mb={2}>
-                        <Skeleton variant="circular" width={50} height={50} />
+                      <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="flex-start"
+                        mb={2}
+                      >
+                        <Skeleton variant="circular" width={40} height={40} />
+                        <Skeleton variant="circular" width={24} height={24} />
                       </Box>
-                      <Skeleton variant="text" width="60%" height={32} sx={{ mb: 1 }} />
-                      <Skeleton variant="text" width="100%" />
-                      <Skeleton variant="text" width="90%" />
-                      <Skeleton variant="text" width="70%" />
+                      <Skeleton variant="text" width="50%" height={32} />
+                      <Skeleton variant="text" width="80%" />
+                      <Skeleton variant="text" width="60%" />
                     </>
                   ) : (
                     <>
-                      <Box mb={2}>
-                        {renderSVG(addOn.slug)}
+                      <Box
+                        display="flex"
+                        justifyContent="space-between"
+                        alignItems="flex-start"
+                        mb={2}
+                      >
+                        <Box>{renderSVG(addOn.slug)}</Box>
                       </Box>
 
                       <Typography sx={{ color: "#2D1572" }} variant="h6" mb={1}>
@@ -301,51 +344,50 @@ const App = () => {
                     alignItems: "center",
                     justifyContent: "space-between",
                     padding: "16px",
-                    mt: "auto",
                   }}
                 >
-                  {loading ? (
-                    <>
-                      <Skeleton variant="text" width={80} />
-                      <Skeleton variant="rectangular" width={80} height={24} />
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        component="a"
-                        href={addOn.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        variant="body2"
-                        sx={{
-                          color: "#9496C1",
-                          textDecoration: "none",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Learn More
-                      </Link>
+                  
+                  <Link
+                    component="a"
+                    href={addOn.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="body2"
+                    color="primary"
+                    sx={{
+                      color: "#9496C1",
+                      textDecoration: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Learn More
+                  </Link>
 
-                      <FormControlLabel
-                        control={
-                          <ToggleSwitch
-                            checked={contains(Addons, addOn.slug)}
-                            onChange={() => handleToggleClick(addOn)}
-                            disabled={loading}
-                             sx={{
-                              marginRight: "16px",
-                            }}
-                          />
-                        }
-                        label={contains(Addons, addOn.slug) ? "Enabled" : "Disabled"}
-                        labelPlacement="start"
-                        sx={{
-                          gap: "10px",
-                          color: contains(Addons, addOn.slug) ? "#5F2CED" : "#9496C1",
-                        }}
-                      />
-                    </>
-                  )}
+                   <FormControlLabel
+              control={
+                <ToggleSwitch
+                  checked={contains(Addons, addOn.slug)}
+                  onChange={() => handleToggleClick(addOn)}
+                  disabled={loading}
+                  sx={{
+                    marginRight: "16px",
+                  }}
+                />
+              }
+              label={
+                loading
+                  ? "Loading..."
+                  : contains(Addons, addOn.slug)
+                  ? "Enable"
+                  : "Disable"
+              }
+              labelPlacement="start"
+              sx={{
+                marginLeft: "10px",
+                gap: "10px",
+                color: contains(Addons, addOn.slug) ? "#5F2CED" : "#9496C1",
+              }}
+            />
                 </Box>
               </Card>
             </Grid>

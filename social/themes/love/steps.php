@@ -177,7 +177,7 @@
                            </span>
                         </span>
                         <?php } ?>
-                        <button class="btn-image" onclick="document.getElementById('avatar_img').click(); return false"><?php echo __( 'Browse Image' );?></button>
+                        <button class="btn-image" onclick="document.getElementById('avatar_img').click(); return false"><?php echo __( 'Add a Picture' );?></button>
                         <input type="file" id="avatar_img" class="hide" accept="image/x-png, image/gif, image/jpeg" name="avatar">
                         <div class="progress hide" style="width: 180px;margin: auto;margin-top: 25px;padding-top: 4px;">
                            <div class="determinate" style="width: 0%"></div >

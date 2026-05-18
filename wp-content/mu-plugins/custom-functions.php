@@ -226,3 +226,18 @@ add_shortcode('current_username', function () {
 
 
 add_filter('http_request_timeout', function($timeout) { return 30; });
+
+
+
+/**
+ * BuddyBoss - Customize post-registration activation message
+ * File: /wp-content/mu-plugins/custom-functions.php
+ */
+
+add_filter('gettext', function($translated, $text, $domain) {
+    // Only affect BuddyBoss messages
+    if ($domain === 'buddyboss' && trim($text) === 'Before you can login, you need to confirm your email address via the email we just sent to you.') {
+        return 'To login, check your inbox/junk/spam for our email then tap on the link to activate your account.';
+    }
+    return $translated;
+}, 20, 3);

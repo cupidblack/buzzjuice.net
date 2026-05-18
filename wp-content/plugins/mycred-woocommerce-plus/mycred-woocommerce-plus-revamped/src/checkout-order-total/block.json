@@ -1,0 +1,23 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"name": "mycredwooplus/mycred-wooplus-cart-order-total",
+	"version": "1.0.0",
+	"title": "MyCred WooCommerce Plus",
+	"category": "woocommerce",
+	"parent": [ "woocommerce/checkout-totals-block" ],
+	"attributes": {
+		"lock": {
+			"type": "object",
+			"default": {
+				"remove": true,
+				"move": true
+			}
+		},
+		"text": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"textdomain": "mycredwooplus"
+}

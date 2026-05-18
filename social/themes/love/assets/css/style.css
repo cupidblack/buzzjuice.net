@@ -1677,7 +1677,7 @@ color: #433E42;margin: 0 0 30px;}
 .dt_contact svg.contct_svg {width: 300px;height: 300px;}
 
 /*Register Steps*/
-.dt_signup_steps {background: linear-gradient(0deg, #BD39B2 0%, #9A2299 100%);margin: 60px auto 20px;padding: 10px 20px;box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);border-radius: 6px;overflow: hidden;width: 718.07px;position: relative;color: #fff;}
+.dt_signup_steps {background: linear-gradient(135deg, #13912e 0%, #FF8200 100%);margin: 60px auto 20px;padding: 10px 20px;box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);border-radius: 6px;overflow: hidden;width: 718.07px;position: relative;color: #fff;}
 .dt_signup_steps:before {
 	    content: '';
     background-image: url(../img/login-lines.png);
@@ -1766,7 +1766,7 @@ body .dt_signup_steps h5.empty_state {
 .slider-ctr {width: 100%;overflow: hidden;}
 .slider {overflow: hidden;width: 2040px;-webkit-transition: .3s all ease;transition: .3s all ease;-webkit-transform: translate(0px) scale(1);-ms-transform: translate(0px) scale(1);transform: translate(0px) scale(1);height: 500px;}
 .slider-one, .slider-two, .slider-three {-webkit-transition: .3s all ease;transition: .3s all ease;}
-.slider-form {float: left;width: 680px;text-align: center;height: 100%;position: relative;padding: 56px 50px 56px;}
+.slider-form {float: left;width: 680px;text-align: center;height: 100%;position: relative;padding: 32px 50px 32px;}
 .slider-form .dropdown-content {max-height: 250px;}
 .slider-form.slider-two {padding: 60px 50px 10px;}
 .dt_signup_steps .input-field .select-wrapper .caret, .dt_hdr_filters .input-field .select-wrapper .caret {
@@ -1780,7 +1780,7 @@ body .dt_signup_steps h5.empty_state {
     padding: 14px 25px 5px;
     height: 120px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;}
 .slider-form .step_footer p {
 	font: normal normal normal 16px/32px Montserrat;
@@ -6147,7 +6147,7 @@ nav li.credit > .boost-div {
 
 @media (max-width : 675px) {
 .dt_testimonial_slide .slide_head img {width: 40px;height: 40px;}
-.slider-form {padding: 56px 10px 56px;}
+.slider-form {padding: 32px 10px 32px;}
 .slider-form.slider-two {padding: 10px 0px;}
 .page_footer .footer-copyright .container {flex-direction: column;}
 .dt_fotr_spn {margin: 0;}

@@ -1,0 +1,16 @@
+pipelines:
+  branches:
+    release/2.0-revamped:
+      - step:
+          name: QIT Security Test
+          image: composer:2.0
+          script:
+            - composer require woocommerce/qit-cli --dev
+            - QIT_DISABLE_ONBOARDING=yes ./vendor/bin/qit partner:add --user="wooexpert" --application_password="EV8j p80F g9Ax Prvw 5rNJ xF39"
+            - rm -f bitbucket-pipelines.yml
+            - rm -f .gitignore
+            - rm -rf .git
+            - zip -r gamification-for-woocommerce.zip .
+            - ./vendor/bin/qit run:security gamification-for-woocommerce --zip=gamification-for-woocommerce.zip
+            - ./vendor/bin/qit run:woo-e2e gamification-for-woocommerce --zip=gamification-for-woocommerce.zip
+            - ./vendor/bin/qit run:phpcompatibility gamification-for-woocommerce --zip=gamification-for-woocommerce.zip

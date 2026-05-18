@@ -249,7 +249,7 @@ function bb_sso_reg_option_callback() {
 			<?php esc_html_e( 'Disable', 'buddyboss-pro' ); ?>
 		</label>
 		<p>
-			<?php esc_html_e( 'Does not allow registration but allows sign in from those who already have an account.', 'buddyboss-pro' ); ?>
+			<?php esc_html_e( 'Hides social login options on the registration page.', 'buddyboss-pro' ); ?>
 		</p>
 	</div>
 	<?php

@@ -1,15 +1,14 @@
 <?php
 /**
  * Plugin Name: Buzzjuice Dashboard Quick Stats Panel
- * Description: [bz_dashboard_quickstats] — Wallet, points (WoWonder), referral link, earnings/estimate.
- * Author: Buzzjuice
+ * Description: [bz_dashboard_quickstats] — Wallet (WoWonder), Points (mycred), left sidebar status panel.
  */
 
 if (!defined('ABSPATH')) exit;
 
-// Load bridge for WoWonder DB
-$bz_bridge = ABSPATH . 'shared/wwqd_bridge.php';
-if (file_exists($bz_bridge)) require_once $bz_bridge;
+require_once ABSPATH . 'shared/wwqd_bridge.php'; // for get_wowonder_db()
+require_once ABSPATH . 'shared/palmier/palmier-helpers.php';
+require_once ABSPATH . 'wp-content/mu-plugins/palmier-lowbalance-modal.php';
 
 add_action('init', function() {
     add_shortcode('bz_dashboard_quickstats', 'bz_dashboard_quickstats_shortcode');
@@ -17,124 +16,141 @@ add_action('init', function() {
 
 function bz_dashboard_quickstats_shortcode() {
     if (!is_user_logged_in()) return '';
+    $user      = wp_get_current_user();
+    $user_id   = $user->ID;
+    $username  = $user->user_login;
 
-    $conn = get_wowonder_db();;
-    $user = wp_get_current_user();
-    $username = $user->user_login;
-    $roles = (array) $user->roles;
-    $is_affiliate = in_array('jewel_affiliate', $roles);
-
-    // ----- WOWONDER DATA -----
-    $wallet = 0; $points = 0; $referrals = 0;
-    if (isset($conn)) {
-        $query = mysqli_query($conn, "SELECT wallet, points, referrer FROM Wo_Users WHERE username = '" . mysqli_real_escape_string($conn, $username) . "' LIMIT 1");
-        if ($query && mysqli_num_rows($query)) {
-            $row = mysqli_fetch_assoc($query);
-            $wallet    = isset($row['wallet']) ? (float) $row['wallet'] : 0;
-            $points    = isset($row['points']) ? (int) $row['points'] : 0;
-            $referrals = isset($row['referrer']) ? (int) $row['referrer'] : 0;
-        }
-    }
-
-    // ----- REFERRAL LINK -----
-    if ($is_affiliate && shortcode_exists('affiliate_referral_url')) {
-        $ref_link = strip_tags(do_shortcode('[affiliate_referral_url format="username"]'));
+    // Fetch wallet from WoWonder
+    $wallet = 0;
+    $cache_key = 'bzqs_wallet_' . $user_id;
+    $cached = get_transient($cache_key);
+    if ($cached !== false) {
+        $wallet = $cached;
     } else {
-        $ref_link = site_url('/register?ref=' . $username);
+        $conn = get_wowonder_db();
+        if ($conn) {
+            $query = mysqli_query($conn, "SELECT wallet FROM Wo_Users WHERE username='" . mysqli_real_escape_string($conn, $username) . "' LIMIT 1");
+            if ($query && mysqli_num_rows($query)) {
+                $row = mysqli_fetch_assoc($query);
+                $wallet = isset($row['wallet']) ? (float)$row['wallet'] : 0;
+            }
+        }
+        set_transient($cache_key, $wallet, 60);
     }
 
-    // ----- AFFILIATEWP DATA -----
-    $affiliate_earnings = '0';
-    $affiliate_referrals = $referrals;
-    if ($is_affiliate && function_exists('affwp_get_affiliate_id')) {
-        $aff_id = affwp_get_affiliate_id($user->ID);
-        if ($aff_id && class_exists('Affiliate_WP_Referrals_DB')) {
-            $ref_db = new Affiliate_WP_Referrals_DB();
-            $affiliate_referrals = (int)$ref_db->count(['affiliate_id' => $aff_id]);
-        }
-        if (shortcode_exists('affiliate_earnings')) {
-            $earn = strip_tags(do_shortcode('[affiliate_earnings status="unpaid"]'));
-            if ($earn !== '') $affiliate_earnings = $earn;
+    // Get Palmier points from mycred_default
+    $points = bz_get_palmier_balance($user_id);
+    
+    // Plan map - add/adjust as appropriate for your system & naming
+    $roles = (array) $user->roles;
+    $plan_roles = [
+        'classic_lifestyle'   => 'Classic Lifestye Subscription',
+        'silver_lifestyle'    => 'Silver Lifestye Subscription',
+        'rockstar_lifestyle'  => 'Rockstar Lifestye Subscription',
+        'premium_lifestyle'   => 'Premium Lifestye Subscription',
+        'jewel_affiliate'     => 'Jewel Affiliate Subscription'
+    ];
+    $plan_label = 'No active subscription';
+    foreach( $plan_roles as $role => $label ) {
+        if ( in_array($role, $roles) ) {
+            $plan_label = $label;
+            break;
         }
     }
 
-    // ----- NON-AFFILIATE ESTIMATE -----
-    $est_ghc = !$is_affiliate ? $referrals * 5 : 0;
-    $est_points = !$is_affiliate ? $referrals * 50 : 0;
+    // Get expiry date from WooCommerce Memberships or custom user meta if needed
+    $expiry = '';
+    if ( function_exists('wc_memberships_get_user_active_memberships') ) {
+        $memberships = wc_memberships_get_user_active_memberships($user->ID);
+        if ($memberships && !empty($memberships[0])) {
+            $end_date = $memberships[0]->get_end_date('j F, Y');
+            if ($end_date && strtolower($end_date) !== 'unlimited') {
+                $expiry = $end_date;
+            }
+        }
+    }
 
-    ob_start(); ?>
+    ob_start();
+    ?>
     <div class="bzqs">
-        <div class="bzqs-row">
-            <span>Wallet</span><strong>GHS <?php echo number_format($wallet,2); ?></strong>
+
+<!--    <div class="bzqs-title">Quick Stats</div> -->
+
+        <!-- PALMIERS -->
+        <a class="bzqs-card" 
+            onclick="bzOpenPalmierModal()"  href="#">
+                <div class="bzqs-label">₱almiers</div>
+                <div class="bzqs-value"><?php echo '₱' . number_format($points); ?></div>
+        </a>
+
+        <!-- WALLET
+        <a class="bzqs-card"
+           onclick="bzOpenPalmierModal()"  href="#">
+            <div class="bzqs-label">Wallet</div>
+            <div class="bzqs-value">GHS <?php // echo number_format($wallet, 2); ?></div>
+        </a>  -->
+
+        <?php if ($points <= 0): ?>
+        <div class="bzqs-warning">
+            <button type="button" onclick="bzOpenPalmierModal()" tabindex="0">Low balance. Add Points</button>
         </div>
-        <div class="bzqs-row">
-            <span>Points</span><strong><?php echo number_format($points); ?></strong>
-        </div>
-        
-        
-        
-        
-        <?php if ($is_affiliate): ?>
-        <div class="bzqs-row">
-            <span>Referrals</span><strong><?php echo number_format($referrals); ?></strong>
-        </div>
-        <div class="bzqs-link">
-            <input type="text" id="bzqs-link" value="<?php echo esc_attr($ref_link); ?>" readonly>
-            <button onclick="bzqsCopy()">Copy</button>
-        </div>
-            <div class="bzqs-aff-hz">
-                <span>Earnings: <strong><?php echo $affiliate_earnings; ?></strong></span>
-                <span>Referrals: <strong><?php echo $affiliate_referrals; ?></strong></span>
-            </div>
         <?php endif; ?>
         
-        
-        
-        
-        
+        <span class="bz-plan-label"><?php echo esc_html($plan_label); ?></span>
+        <?php if ($expiry): ?>
+            <span class="bz-plan-expiry">(Expiry: <?php echo esc_html($expiry); ?>)</span>
+        <?php endif; ?>
+
     </div>
+
     <style>
-    .bzqs { background:#fff; border:1px solid #D6D9DD; border-radius:10px; padding:12px; margin-top: 5px;margin-bottom: 5px}
-    .bzqs-row { display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px;}
-    .bzqs-row span { color:#888;}
-    .bzqs-row strong { color:#23272a; font-weight:600;}
-    .bzqs-link { display:flex; align-items:center; gap:6px; margin:8px 0;}
-    .bzqs-link input { flex:1; border-radius:4px; padding:3px 7px; font-size:12px;max-width: 72%;height:auto;}
-    .bzqs-link button { background:#385DFF; border:none; font-size:12px!important; border-radius:4px; padding:3px 9px; cursor:pointer; }
-    .bzqs-est { background:#fff7e0; color:#754600; border-radius:5px; margin-top:8px; padding:6px 10px; font-size:12px; }
-    .bzqs-aff-hz { display:flex; justify-content:space-between; border-top:1px solid #fae57a; margin-top:8px; padding-top:8px; font-size:12px;}
-    @media (max-width:650px){
-        .bzqs-row { flex-direction:row; gap:2px;}
-        .bzqs-aff-hz { flex-direction:column; gap:2px;}
-        .bzqs-link { flex-direction:row; }
+    .bzqs {
+        background: #fff;
+        margin-bottom: 10px;
+        text-align: -webkit-center;
+    }
+    .bzqs-title{font-size:15px;font-weight:700;margin-bottom:14px;}
+    .bzqs-card{display:flex;justify-content:space-between;align-items:center;padding:14px;border-radius:16px;background:#f8f9fc;margin-bottom:10px;text-decoration:none;color:#111;transition:.2s;}
+    .bzqs-card:hover{background:#eef2ff;}
+    .bzqs-label{font-size:13px;color:#666;}
+    .bzqs-value{font-size:16px;font-weight:700;}
+    .bzqs-warning{margin-top:-2px;margin-bottom:14px;}
+    .bzqs-warning button{border:none;background:none;padding:0;color:#c0392b;font-size:12px;font-weight:600;cursor:pointer;}
+    .bzqs-section-title{margin-top:16px;margin-bottom:10px;font-size:12px;font-weight:700;text-transform:uppercase;color:#666;}
+    .bzqs-actions{display:grid;grid-template-columns:1fr;gap:8px;}
+    .bzqs-actions button, .bzqs-actions a{border:none;background:#385DFF;color:#fff;border-radius:12px;padding:11px 14px;text-decoration:none;cursor:pointer;font-size:13px;text-align:center;}
+    @media(max-width:650px){.bzqs{border-radius:14px;}}
+    
+    .bz-plan-widget {
+        margin:5px 0 5px 0;
+        border:1px solid #D6D9DD;
+        border-radius:10px;
+        display:flex;
+        align-items:center;
+        gap:10px;
+    }
+    .bz-plan-label {
+        font-size:14px;
+        font-weight:600;
+        color:#2764a4;
+        background:#eceaff;
+        border-radius:5px;
+        padding:2px 14px;
+        letter-spacing:0.5px;
+        display:inline-block;
+        text-align: -webkit-center;
+    }
+    .bz-plan-expiry {
+        font-size:13px;
+        color:#725b10;
+        font-style:italic;
+        background: #fff3ce;
+        border-radius:4px;
+        padding:2px 8px;
+        margin-left:5px;
+        display:inline-block;
     }
     </style>
-    <script>
-    function bzqsCopy(){
-        var el = document.getElementById("bzqs-link");
-        el.select();
-        el.setSelectionRange(0,99999);
-        document.execCommand('copy');
-    }
-    function bzqsShare(){
-        var link = document.getElementById("bzqs-link").value;
-        if (navigator.share) {
-            navigator.share({
-                title: "Join me on Buzzjuice",
-                text: "Sign up using my invite link:",
-                url: link
-            });
-        } else if (navigator.clipboard) {
-            navigator.clipboard.writeText(link);
-            alert("Link copied! You can paste it anywhere.");
-        } else {
-            var el = document.getElementById("bzqs-link");
-            el.select();
-            document.execCommand('copy');
-            alert("Link copied! You can paste it anywhere.");
-        }
-    }
-    </script>
     <?php
     return ob_get_clean();
 }

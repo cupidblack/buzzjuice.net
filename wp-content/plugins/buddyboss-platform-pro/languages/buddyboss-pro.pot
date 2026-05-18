@@ -2,9 +2,9 @@
 # This file is distributed under the GPLv2 or later (license.txt).
 msgid ""
 msgstr ""
-"Project-Id-Version: BuddyBoss Platform Pro 2.13.1\n"
+"Project-Id-Version: BuddyBoss Platform Pro 2.13.2\n"
 "Report-Msgid-Bugs-To: https://www.buddyboss.com/contact/\n"
-"POT-Creation-Date: 2026-02-19 13:12:20+00:00\n"
+"POT-Creation-Date: 2026-04-22 09:20:34+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -8034,9 +8034,7 @@ msgid "Disable"
 msgstr ""
 
 #: includes/sso/bb-sso-actions.php:252
-msgid ""
-"Does not allow registration but allows sign in from those who already have "
-"an account."
+msgid "Hides social login options on the registration page."
 msgstr ""
 
 #: includes/sso/includes/class-bb-sso-oauth2.php:116

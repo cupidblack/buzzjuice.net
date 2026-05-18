@@ -31,7 +31,6 @@ bp_nouveau_template_notices();
 bp_nouveau_before_single_activity_content();
 ?>
 
-<div class="bb-rl-screen-content">
 <div class="activity" data-bp-single="<?php echo esc_attr( bp_current_action() ); ?>">
 	<?php
 	do_action( 'bp_before_single_activity_content' );
@@ -72,5 +71,4 @@ bp_nouveau_before_single_activity_content();
 	do_action( 'bp_after_single_activity_content' );
 	?>
 </div>
-</div><!-- .bb-rl-screen-content -->
 </div>
