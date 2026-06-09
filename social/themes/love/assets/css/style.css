@@ -1375,7 +1375,7 @@ color: #433E42;margin: 0 0 30px;}
     padding-bottom: 50px;
 }
 .page_footer > .container{padding: 30px 0px;}
-.page_footer > .container_new {padding: 0 15px;}
+.page_footer > .container_new {padding: 0 15px;display: none;}
 .page_footer .footer-copyright {
 	padding: 10px;
     border-top: 1px solid rgb(130 128 130 / 25%);

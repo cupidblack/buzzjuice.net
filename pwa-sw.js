@@ -1,4 +1,4 @@
-const CACHE_VERSION = '1.7.85.7';
+const CACHE_VERSION = '1.7.86.2';
 
 const BASE_CACHE_FILES = [
     'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.03-icon192x192.png',
@@ -81,8 +81,31 @@ const CACHE_BLACKLIST =  [
 //        return !str.includes('/wp-admin/') || !str.startsWith('https://buzzjuice.net//wp-admin/');
 //    },
 ];
-const neverCacheUrls = [/\/wp-admin/,/\/wp-login/,/preview=true/,/\/cart/,/ajax/,/login/,/https:\/\/buzzjuice.net\/courses\/academy-dashboard\//,/https:\/\/buzzjuice.net\/academy\/create-new-forum\//,/https:\/\/buzzjuice.net\/account-management\//,/https:\/\/buzzjuice.net\/wp-login.php/,/https:\/\/buzzjuice.net\/wp-admin\//,/https:\/\/buzzjuice.net\/shop-account\//,/https:\/\/buzzjuice.net\/streams/,/https:\/\/buzzjuice.net\/social/,/https:\/\/buzzjuice.net\/course/];
+const neverCacheUrls = [/\/wp-admin/,/\/wp-login/,/preview=true/,/\/cart/,/ajax/,/login/,/https:\/\/buzzjuice.net\/courses\/academy-dashboard\//,/https:\/\/buzzjuice.net\/academy\/create-new-forum\//,/https:\/\/buzzjuice.net\/account-management\//,/https:\/\/buzzjuice.net\/wp-login.php/,/https:\/\/buzzjuice.net\/wp-admin\//,/https:\/\/buzzjuice.net\/shop-account\//,/https:\/\/buzzjuice.net\/streams/,/https:\/\/buzzjuice.net\/social/,/https:\/\/buzzjuice.net\/course/,/https:\/\/buzzjuice.net\/affiliate-area\//];
 
+const PWA_VISIBILITY_BYPASS_PATHS = [];
+
+/**
+ * Same path rules as frontend visibility_excludes: exact path or subpaths.
+ * @param {string} pathname request URL pathname
+ * @returns {boolean}
+ */
+function pwaForWpVisibilityBypassPath(pathname) {
+    if (!PWA_VISIBILITY_BYPASS_PATHS.length) {
+        return false;
+    }
+    var norm = pathname.replace(/\/+$/, '');
+    if (norm === '') {
+        norm = '/';
+    }
+    for (var i = 0; i < PWA_VISIBILITY_BYPASS_PATHS.length; i++) {
+        var prefix = String(PWA_VISIBILITY_BYPASS_PATHS[i]).replace(/\/+$/, '');
+        if (norm === prefix || norm.indexOf(prefix + '/') === 0) {
+            return true;
+        }
+    }
+    return false;
+}
 
 const SUPPORTED_METHODS = [
     'GET',
@@ -674,8 +697,11 @@ self.addEventListener(
         }
 
         const url = new URL(event.request.url);
-        
-        
+
+        if (pwaForWpVisibilityBypassPath(url.pathname)) {
+            return;
+        }
+
         path_array = url.pathname.split('/')
         if (event.request.method === 'POST' && path_array.includes('activity')) {
             return event.respondWith((async () => {

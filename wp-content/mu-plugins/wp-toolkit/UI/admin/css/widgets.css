@@ -1,0 +1,79 @@
+div.wp-toolkit-vulnerabilities-display .counter {
+  font-style: normal;
+  font-weight: 500;
+  font-family: Montserrat, sans-serif;
+  font-size: 2.2857rem;
+  line-height: 2.8571rem;
+}
+div.wp-toolkit-vulnerabilities-display .label {
+  font-style: normal;
+  font-weight: 500;
+  font-family: Roboto, sans-serif;
+  font-size: 1.1429rem;
+  line-height: 1.7143rem;
+  letter-spacing: 0.0107rem;
+}
+div.vulnerabilities-display-empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+div.vulnerabilities-display-empty img.empty-icon {
+  height: 5rem;
+  margin-right: 1.71rem;
+}
+div.vulnerabilities-display-empty p {
+  color: var(--mui-palette-surface-contrastText);
+  font-family: Roboto, sans-serif;
+  font-size: 0.8571rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.1429rem;
+  letter-spacing: 0.0286rem;
+}
+div.vulnerabilities-display-empty p.empty-title {
+  font-size: 1.1429rem;
+  line-height: 1.7143rem;
+  letter-spacing: 0.0357rem;
+}
+
+div.segmented-bar-container {
+  display: flex;
+  width: 100%;
+  gap: 0.17rem;
+}
+div.segmented-bar-container .segment {
+  height: 0.9rem;
+  border-radius: 4px;
+  min-width: 1.7rem;
+  transition: background-color 0.3s ease;
+}
+div.segmented-bar-container .segment .MuiLinearProgress-bar {
+  transition: background-color 0.3s ease;
+}
+div.segmented-bar-container .segment:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+div.segmented-bar-container .segment:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+div.wp-toolkit-attacks-display .counter {
+  font-style: normal;
+  font-weight: 500;
+  font-family: Montserrat, sans-serif;
+  font-size: 2.2857rem;
+  line-height: 2.8571rem;
+}
+div.wp-toolkit-attacks-display .label {
+  font-style: normal;
+  font-weight: 500;
+  font-family: Roboto, sans-serif;
+  font-size: 1.1429rem;
+  line-height: 1.7143rem;
+  letter-spacing: 0.0107rem;
+}
+

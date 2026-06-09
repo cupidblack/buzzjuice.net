@@ -2,4 +2,4 @@
 if ( ! defined( 'WPINC' ) ) {
 	exit;
 }
-return json_decode( '{"ts": 1778991473.8620687, "rules": []}', true );
+return json_decode( '{"ts": 1779423511.3548858, "rules": []}', true );
