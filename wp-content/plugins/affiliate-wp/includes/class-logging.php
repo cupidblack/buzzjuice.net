@@ -20,6 +20,12 @@ class Affiliate_WP_Logging {
 	 */
 	public function __construct() {
 		$this->init();
+
+		// Hook the migration method to the scheduled event.
+		add_action( 'affwp_move_old_log_files', [ $this, 'move_old_log_files' ] );
+
+		// Check if we need to schedule log migration.
+		add_action( 'admin_init', [ $this, 'maybe_schedule_log_migration' ] );
 	}
 
 	/**
@@ -100,8 +106,58 @@ class Affiliate_WP_Logging {
 		if ( ! is_writeable( $this->affwp_dir ) ) {
 			$this->is_writable = false;
 		}
+	}
 
-		$this->move_old_log_files();
+	/**
+	 * Schedule the log file cleanup event.
+	 *
+	 * @since 2.24.1
+	 * @since 2.30.0 Updated to use Action Scheduler instead of WP Cron.
+	 */
+	public static function schedule_log_migration() {
+
+		// Check if Action Scheduler is available.
+		if ( ! function_exists( 'as_has_scheduled_action' ) || ! function_exists( 'as_schedule_recurring_action' ) ) {
+			return; // Action Scheduler not available.
+		}
+
+		$schedule_callback = function () {
+			// Only schedule once.
+			if ( as_has_scheduled_action( 'affwp_move_old_log_files', [], 'affiliatewp' ) ) {
+				return;
+			}
+
+			// Schedule to run twice daily (every 12 hours).
+			as_schedule_recurring_action( time(), 12 * HOUR_IN_SECONDS, 'affwp_move_old_log_files', [], 'affiliatewp' );
+		};
+
+		// If wp_loaded has already fired, run immediately. Otherwise, defer to wp_loaded.
+		if ( did_action( 'wp_loaded' ) ) {
+			$schedule_callback();
+		} else {
+			add_action( 'wp_loaded', $schedule_callback );
+		}
+	}
+
+	/**
+	 * Check if log migration needs to be scheduled.
+	 *
+	 * During plugin activation, Action Scheduler isn't fully initialized, so we flag
+	 * that scheduling is needed and do it on the first admin_init after activation.
+	 *
+	 * @since 2.30.0
+	 */
+	public function maybe_schedule_log_migration() {
+		// Check if we have the flag from activation.
+		if ( ! get_option( 'affwp_needs_log_migration_schedule' ) ) {
+			return;
+		}
+
+		// Clear the flag.
+		delete_option( 'affwp_needs_log_migration_schedule' );
+
+		// Now schedule the migration (Action Scheduler is ready now).
+		self::schedule_log_migration();
 	}
 
 	/**
@@ -109,7 +165,7 @@ class Affiliate_WP_Logging {
 	 *
 	 * @since 2.24.1
 	 */
-	private function move_old_log_files() : void {
+	public function move_old_log_files() : void {
 
 		foreach ( glob( "{$this->upload_dir}/affwp-debug-log*.log" ) as $old_log_file ) {
 
@@ -155,7 +211,7 @@ class Affiliate_WP_Logging {
 	 *                             Default empty array.
 	 * @return void
 	 */
-	public function log( $message, $data = array() ) {
+	public function log( $message, $data = [] ) {
 		$message = date( 'Y-n-d H:i:s' ) . ' - ' . $message . "\r\n";
 
 		if ( ! empty( $data ) ) {
@@ -173,7 +229,6 @@ class Affiliate_WP_Logging {
 
 			$message .= $data;
 		}
-
 
 		$this->write_to_log( $message );
 	}
@@ -215,7 +270,7 @@ class Affiliate_WP_Logging {
 	 * @return void
 	 */
 	protected function write_to_log( $message ) {
-		$file = $this->get_file();
+		$file  = $this->get_file();
 		$file .= $message;
 
 		@file_put_contents( $this->file, $file );
@@ -293,5 +348,4 @@ class Affiliate_WP_Logging {
 
 		return $filesize;
 	}
-
 }

@@ -3,13 +3,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 exit;
 }
 	
-	// Require file containing the class or
-	// define the class in this function
+
 if ( ! class_exists( 'mycred_tutor_lms_Specific_Quiz_Hook_Class' ) ) :
 	class mycred_tutor_lms_Specific_Quiz_Hook_Class extends myCRED_Hook {
 
-
-		
 	 /**
 	 * Construct
 	 * Used to set the hook id and default settings.
@@ -44,9 +41,9 @@ if ( ! class_exists( 'mycred_tutor_lms_Specific_Quiz_Hook_Class' ) ) :
 			add_action( 'tutor_quiz/attempt_ended', array( $this, 'my_cred_quiz_specific_func' ) , 10 , 1);   
 		}
 	
-	/**
-	* tutor_lms qiuz submission
-	**/
+		/**
+		* tutor_lms qiuz submission
+		**/
 		public function my_cred_quiz_specific_func( $attempt ) {
 		
 			// Check if user is excluded (required) 
@@ -94,7 +91,7 @@ return;
 					}
 
 					if ( !empty( $this->prefs['tutor_lms_quiz_fail']['creds'] ) && isset( $this->prefs['tutor_lms_quiz_fail']['creds'][ $hook_index ] ) && !empty( $this->prefs['tutor_lms_quiz_fail']['log'] ) && !empty( $this->prefs['tutor_lms_quiz_fail']['log'][ $hook_index ] ) ) {
-						if ( !$this->core->has_entry( 'tutor_lms_quiz_fail' , null , $user_id , $ref_type, $this->mycred_type ) ) {
+						
 							if ( $percent_obtained < $passing_percentage ) {
 								// Execute
 								$this->core->add_creds(
@@ -107,11 +104,12 @@ return;
 								$this->mycred_type
 								);
 							}
-						}
+						
 					}           
-				} elseif ( !$this->core->has_entry( 'tutor_lms_quiz_fail' , null , $user_id , $ref_type, $this->mycred_type ) ) {
+				} 
+				else {
 
-						//Fail
+					//Fail
 					if ( $percent_obtained < $passing_percentage ) {
 						// Execute
 						$this->core->add_creds(
@@ -124,16 +122,18 @@ return;
 						$this->mycred_type
 						);
 					}
-				}
+				
 			}
 		}
+
+	}
 	
 
 	/**
 	 * Hook Settings
 	 * Needs to be set if the hook has settings.
 	 */
-		public function preferences() {
+	public function preferences() {
 
 			$prefs = $this->prefs;
 			$select_parm = array(
@@ -217,11 +217,11 @@ return;
 			<?php
 		}
 
-	/**
-	 * Sanitize Preferences
-	 * If the hook has settings, this method must be used
-	 * to sanitize / parsing of settings.
-	 */
+		/**
+		 * Sanitize Preferences
+		 * If the hook has settings, this method must be used
+		 * to sanitize / parsing of settings.
+		 */
 		public function sanitise_preferences( $data ) {
 
 			$new_data = array();

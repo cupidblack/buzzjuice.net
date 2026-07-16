@@ -9,7 +9,7 @@ final class DashboardIntegration
 {
     const WP_DASHBOARD_SCREEN_ID = 'dashboard';
     const WIDGET_ATTACKS_ID = 'wp_toolkit_attacks_widget';
-    const WIDGET_VULNERABILITIES_ID = 'wp_toolkit_vulnerabilities_widget';
+    const WIDGET_DASHBOARD_SECURITY_RISK_ID = 'wp_toolkit_dashboard_security_risk_widget';
 
     /**
      * @var TranslatorInterface
@@ -28,10 +28,10 @@ final class DashboardIntegration
     {
         add_action('wp_dashboard_setup', function () use ($config) {
             wp_add_dashboard_widget(
-                self::WIDGET_VULNERABILITIES_ID,
-                $this->translator->translate('dashboard.widget.vulnerabilities.title', ['productName' => esc_html($config->getDisplayName())]),
+                self::WIDGET_DASHBOARD_SECURITY_RISK_ID,
+                $this->translator->translate('dashboard.widget.securityRisk.title', ['productName' => esc_html($config->getDisplayName())]),
                 function () {
-                    $this->renderVulnerabilitiesWidget();
+                    $this->renderDashboardSecurityRiskWidget();
                 },
                 null,
                 null,
@@ -63,13 +63,13 @@ final class DashboardIntegration
     /**
      * @return void
      */
-    public function renderVulnerabilitiesWidget()
+    public function renderDashboardSecurityRiskWidget()
     {
         $text = $this->translator->translate('dashboard.widget.noJsText');
         echo <<<HTML
             <div>
                 <noscript>{$text}</noscript>
-                <div id="wp-toolkit-vulnerabilities-widget-root"></div>
+                <div id="wp-toolkit-dashboard-security-risk-widget-root"></div>
             </div>
 HTML;
     }

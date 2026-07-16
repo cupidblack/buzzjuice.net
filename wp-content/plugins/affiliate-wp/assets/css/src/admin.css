@@ -1,0 +1,216 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@plugin "tailwindcss-scoped-preflight" {
+	isolationStrategy: inside;
+	selector: .affwp-ui;
+}
+
+
+:root {
+	--affwp-brand: #2271b1; /* WP blue */
+	--affwp-brand-hover: #135e96; /* WP blue hover */
+	--affwp-admin-error: #d63638; /* WP error color */
+}
+
+@theme {
+	--color-affwp-brand-500: var(--affwp-brand);
+	--color-affwp-brand-600: var(--affwp-brand-hover);
+	--color-affwp-brand-700: var(--affwp-brand-hover);
+	--color-affwp-error: var(--affwp-admin-error);
+	--color-affwp-button-border: var(--color-gray-300);
+	--color-affwp-button-text: var(--color-gray-700);
+}
+
+@layer base {
+
+
+
+	/* Modern */
+	.admin-color-modern {
+		--color-affwp-brand-500: #3858e9;
+		--color-affwp-brand-600: #2e47d0;
+		--color-affwp-brand-700: #2339b5;
+		--color-affwp-button-border: #667eea;
+		--color-affwp-button-text: #132ea8;
+	}
+
+	/* Light */
+	.admin-color-light {
+		--color-affwp-brand-500: #04a4cc;
+		--color-affwp-brand-600: #0490b3;
+		--color-affwp-brand-700: #037c9a;
+	}
+
+	/* Blue */
+	.admin-color-blue {
+		--color-affwp-brand-500: #096484;
+		--color-affwp-brand-600: #085470;
+		--color-affwp-brand-700: #07445c;
+	}
+
+	/* Coffee */
+	.admin-color-coffee {
+		--color-affwp-brand-500: #c7a589;
+		--color-affwp-brand-600: #b89476;
+		--color-affwp-brand-700: #a98363;
+	}
+
+	/* Ectoplasm */
+	.admin-color-ectoplasm {
+		--color-affwp-brand-500: #a3b745;
+		--color-affwp-brand-600: #93a43d;
+		--color-affwp-brand-700: #839135;
+	}
+
+	/* Midnight */
+	.admin-color-midnight {
+		--color-affwp-brand-500: #e14d43;
+		--color-affwp-brand-600: #d93a30;
+		--color-affwp-brand-700: #c5332a;
+	}
+
+	/* Ocean */
+	.admin-color-ocean {
+		--color-affwp-brand-500: #9ebaa0;
+		--color-affwp-brand-600: #8fab90;
+		--color-affwp-brand-700: #809c80;
+	}
+
+	/* Sunrise */
+	.admin-color-sunrise {
+		--color-affwp-brand-500: #dd823b;
+		--color-affwp-brand-600: #d47229;
+		--color-affwp-brand-700: #c56520;
+	}
+}
+
+/* Reset styles for Tailwind components in admin */
+.affwp-ui.affwp-ui *:not(.preserve-styles *),
+.affwp-ui.affwp-ui *:not(.preserve-styles *)::before,
+.affwp-ui.affwp-ui *:not(.preserve-styles *)::after {
+	all: revert-layer;
+}
+
+table.fixed {
+	position: static;
+}
+
+/* Modal shake animation for non-dismissible backdrop clicks */
+@keyframes affwp-shake {
+	0%, 100% { transform: translateX(0); }
+	20% { transform: translateX(-4px); }
+	40% { transform: translateX(4px); }
+	60% { transform: translateX(-3px); }
+	80% { transform: translateX(2px); }
+}
+
+@utility affwp-modal-shake {
+	animation: affwp-shake 0.4s ease-in-out;
+}
+
+/* Tippy */
+.tippy-box[data-theme~="affiliatewp"] {
+	background-color: white;
+	border: 1px solid rgb(0 0 0 / 0.1);
+	border-radius: 0.5rem;
+	box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.tippy-box[data-theme~="affiliatewp"] .tippy-content {
+	padding: 0;
+}
+
+/* Tippy scale-subtle animation */
+.tippy-box[data-animation='scale-subtle'][data-state='hidden'] {
+	opacity: 0;
+	transform: scale(0.8);
+}
+
+/* Tippy SVG arrow base styles */
+.tippy-svg-arrow {
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	fill: currentColor;
+	text-align: initial;
+}
+
+.tippy-svg-arrow svg {
+	display: block;
+	position: absolute;
+}
+
+.tippy-box[data-placement^='top'] > .tippy-svg-arrow {
+	bottom: 0;
+}
+
+.tippy-box[data-placement^='top'] > .tippy-svg-arrow::after,
+.tippy-box[data-placement^='top'] > .tippy-svg-arrow > svg {
+	top: 16px;
+	transform: rotate(180deg);
+}
+
+.tippy-box[data-placement^='bottom'] > .tippy-svg-arrow {
+	top: 0;
+}
+
+.tippy-box[data-placement^='bottom'] > .tippy-svg-arrow > svg {
+	bottom: 16px;
+}
+
+.tippy-box[data-placement^='left'] > .tippy-svg-arrow {
+	right: 0;
+}
+
+.tippy-box[data-placement^='left'] > .tippy-svg-arrow::after,
+.tippy-box[data-placement^='left'] > .tippy-svg-arrow > svg {
+	transform: rotate(90deg);
+	top: calc(50% - 3px);
+	left: 11px;
+}
+
+.tippy-box[data-placement^='right'] > .tippy-svg-arrow {
+	left: 0;
+}
+
+.tippy-box[data-placement^='right'] > .tippy-svg-arrow::after,
+.tippy-box[data-placement^='right'] > .tippy-svg-arrow > svg {
+	transform: rotate(-90deg);
+	top: calc(50% - 3px);
+	right: 11px;
+}
+
+/* Tippy SVG arrow color */
+.tippy-box[data-theme~="affiliatewp"] .tippy-svg-arrow {
+	fill: white;
+}
+
+/* Notifications sub-menu indicator */
+#toplevel_page_affiliate-wp a[href*="affiliate-wp-notifications"] {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+#toplevel_page_affiliate-wp .affwp-menu-notification-indicator {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background-color: #d63638;
+	flex-shrink: 0;
+	margin-left: auto;
+	animation: affwp-menu-notification-indicator-pulse 1.5s infinite;
+}
+
+@keyframes affwp-menu-notification-indicator-pulse {
+	0% {
+		box-shadow: 0 0 #ca4a1f80;
+	}
+	100% {
+		box-shadow: 0 0 0 10px #ca4a1f00;
+	}
+}
+
+@import "./admin-legacy.css";

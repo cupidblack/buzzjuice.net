@@ -32,6 +32,24 @@ $next_pending_affiliate_id    = get_next_pending_affiliate_id( $exclude_affiliat
 $undecided_affiliates         = $_REQUEST['undecided'] ?? ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- We validate this data later.
 $suggestion                   = sprintf( '<span style="display:none;" class="recommendation-label">%s</span>', esc_html__( 'Recommendation', 'affiliate-wp' ) );
 
+// Check for fraud alerts to determine default decision.
+$has_fraud_alerts  = false;
+$ip_velocity_flag  = affwp_get_affiliate_meta( $affiliate_id, 'ip_velocity_flag', true );
+if ( ! empty( $ip_velocity_flag ) ) {
+	$has_fraud_alerts = true;
+}
+if ( ! $has_fraud_alerts ) {
+	// Check for rejected or flagged referrals.
+	$rejected_count = affiliate_wp()->referrals->count( [ 'affiliate_id' => $affiliate_id, 'status' => 'rejected' ] );
+	$flagged_count  = affiliate_wp()->referrals->count( [ 'affiliate_id' => $affiliate_id, 'status' => 'pending', 'flag' => [ 'self_referral', 'referring_site', 'conversion_rate', 'ppc_traffic' ] ] );
+	if ( $rejected_count > 0 || $flagged_count > 0 ) {
+		$has_fraud_alerts = true;
+	}
+}
+
+// Default decision: no selection when fraud alerts exist, accept otherwise.
+$default_decision = $has_fraud_alerts ? '' : 'accept';
+
 ?>
 
 <div class="wrap">
@@ -186,7 +204,7 @@ $suggestion                   = sprintf( '<span style="display:none;" class="rec
 						<label for="decision-accept">
 
 							<input
-								checked
+								<?php checked( 'accept', $default_decision ); ?>
 								type="radio"
 								value="accept"
 								name="decision"
@@ -199,6 +217,7 @@ $suggestion                   = sprintf( '<span style="display:none;" class="rec
 						<label for="decision-reject">
 
 							<input
+								<?php checked( 'reject', $default_decision ); ?>
 								type="radio"
 								value="reject"
 								name="decision"
@@ -234,7 +253,7 @@ $suggestion                   = sprintf( '<span style="display:none;" class="rec
 
 			</tr>
 
-			<tr class="form-row hidden" id="affwp-rejection-reason">
+			<tr class="form-row<?php echo 'reject' !== $default_decision ? ' hidden' : ''; ?>" id="affwp-rejection-reason">
 
 				<th scope="row">
 					<?php esc_html_e( 'Rejection Reason', 'affiliate-wp' ); ?>
@@ -266,10 +285,22 @@ $suggestion                   = sprintf( '<span style="display:none;" class="rec
 
 		<?php wp_nonce_field( 'affwp_moderate_affiliates_nonce', 'affwp_moderate_affiliates_nonce' ); ?>
 
+		<?php
+		$button_labels = [
+			'accept'    => __( 'Accept Affiliate', 'affiliate-wp' ),
+			'reject'    => __( 'Reject Affiliate', 'affiliate-wp' ),
+			'undecided' => __( 'Skip Affiliate', 'affiliate-wp' ),
+		];
+
+		$no_decision     = empty( $default_decision );
+		$button_label    = $no_decision ? __( 'Select a Decision', 'affiliate-wp' ) : $button_labels[ $default_decision ];
+		?>
 		<input
 			type="submit"
 			name="continue"
-			value="<?php esc_attr_e( 'Accept Affiliate', 'affiliate-wp' ); ?>" class="button button-primary"
+			value="<?php echo esc_attr( $button_label ); ?>"
+			class="button button-primary"
+			<?php disabled( $no_decision ); ?>
 			data-value-reject="<?php esc_attr_e( 'Reject Affiliate', 'affiliate-wp' ); ?>"
 			data-value-accept="<?php esc_attr_e( 'Accept Affiliate', 'affiliate-wp' ); ?>"
 			data-value-undecided="<?php esc_attr_e( 'Skip Affiliate', 'affiliate-wp' ); ?>"

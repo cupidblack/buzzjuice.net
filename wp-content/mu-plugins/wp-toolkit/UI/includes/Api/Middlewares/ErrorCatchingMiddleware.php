@@ -20,7 +20,6 @@ class ErrorCatchingMiddleware implements RequestHandlerInterface
     }
 
     /**
-     * @param \WP_REST_Request $request
      * @return \WP_REST_Response
      */
     public function handleRequest(\WP_REST_Request $request)

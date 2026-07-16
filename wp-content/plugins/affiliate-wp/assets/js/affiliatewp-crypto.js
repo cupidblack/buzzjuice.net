@@ -6,6 +6,8 @@
  *
  * @author Darvin da Silveira <ddasilveira@awesomemotive.com>
  * @since 2.17.0
+ * @since AFFWPN `windowObjectToDelete` parameter is still false, but won't delete `window.crypto` anymore due
+ *               to improvements to `window.affiliatewp.attach()`.
  */
 
 /* eslint-disable padded-blocks */

@@ -90,6 +90,18 @@ jQuery( document ).ready( function() {
 					this.$( 'input[name="decision"]' ).on( 'change', this.$switchButtonTexts );
 					this.$( 'input[name="decision"]' ).on( 'change', this.$undecidedAffiliate );
 
+					// Sync initial state with the pre-selected radio button.
+					const initialDecision = this.$( 'input[name="decision"]:checked' ).val();
+					if ( initialDecision ) {
+						this.syncActionButtonTextsWithDecision( initialDecision );
+						if ( 'reject' === initialDecision ) {
+							this.$( '#affwp-rejection-reason' ).removeClass( 'hidden' );
+						}
+					}
+
+					// Enable the submit button when a decision is made (for flagged affiliates with no default).
+					this.$( 'input[name="decision"]' ).on( 'change', this.$enableSubmitButton );
+
 					// Review with AI.
 					this.$( 'button[name="ask-ai"]' ).on( 'click', this.$askAI );
 				},
@@ -137,6 +149,18 @@ jQuery( document ).ready( function() {
 					}
 
 					$skip.val( $skip.val().replace( `,${ affiliateID }`, '' ) );
+				},
+
+				/**
+				 * Enable submit button on decision change.
+				 *
+				 * When fraud alerts exist, no radio is pre-selected and the
+				 * submit button starts disabled. Selecting any decision enables it.
+				 *
+				 * @since 2.31.2
+				 */
+				$enableSubmitButton() {
+					affiliatewp.affiliateReview.$( 'input[name="continue"]' ).prop( 'disabled', false );
 				},
 
 				/**

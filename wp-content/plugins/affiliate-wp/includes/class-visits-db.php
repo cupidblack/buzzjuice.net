@@ -493,6 +493,7 @@ class Affiliate_WP_Visits_DB extends Affiliate_WP_DB {
 	 *     @type string $rest_id      REST ID (site:objectId) combination.
 	 *     @type string $ip           IP address recorded for the visit. Will be ignored if disable_ip_logging
 	 *                                setting is enabled.
+	 *     @type string $flag         Fraud detection flag (e.g., 'self_referral', 'ppc_traffic', 'conversion_rate', 'referring_site').
 	 *     @type string $date         Date the visit was recorded.
 	 * }
 	 * @return int|false ID of the added visit, otherwise false.
@@ -511,9 +512,9 @@ class Affiliate_WP_Visits_DB extends Affiliate_WP_DB {
 			$data['context'] = sanitize_key( substr( $data['context'], 0, 50 ) );
 		}
 
-		if ( ! empty( $args['flag'] ) ) {
+		if ( ! empty( $data['flag'] ) ) {
 			// Force flag to lowercase for system-wide compatibility.
-			$args['flag'] = strtolower( $args['flag'] );
+			$data['flag'] = strtolower( $data['flag'] );
 		}
 
 		$rest_id_error = false;
@@ -636,9 +637,9 @@ class Affiliate_WP_Visits_DB extends Affiliate_WP_DB {
 			$args['context'] = sanitize_key( substr( $data['context'], 0, 50 ) );
 		}
 
-		if ( ! empty( $args['flag'] ) ) {
+		if ( ! empty( $data['flag'] ) ) {
 			// Force flag to lowercase for system-wide compatibility.
-			$args['flag'] = strtolower( $args['flag'] );
+			$data['flag'] = strtolower( $data['flag'] );
 		}
 
 		if ( ! empty( $data['affiliate_id'] ) ) {

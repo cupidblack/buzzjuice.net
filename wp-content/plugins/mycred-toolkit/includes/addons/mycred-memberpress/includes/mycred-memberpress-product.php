@@ -77,11 +77,15 @@ if(!class_exists('MycredMembr_PurchaseASpecificSubsProduct')):
                 // For new subscriptions (first payment)
                 if ( $subscription->txn_count == 1 ) {
                     $is_first_payment = true;
-                } 
+                }
                 // For recurring payments (beyond the first)
                 else if ( $subscription->txn_count > 1 ) {
                     $is_recurring_payment = true;
                 }
+            } else {
+                // One-time purchase (no subscription): MemberPress creates only a transaction.
+                // Treat as initial purchase so the configured product creds/log are awarded once.
+                $is_first_payment = true;
             }
 
             // Process first payment rewards (only when it's actually the first payment)

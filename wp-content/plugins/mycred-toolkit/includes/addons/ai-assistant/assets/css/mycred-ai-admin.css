@@ -1,0 +1,677 @@
+/**
+ * myCred AI Assistant Admin Stylesheet
+ *
+ * Glassmorphic, state-of-the-art UI styling with modern typography, harmonic HSL color palettes,
+ * smooth transitions, and sleek micro-animations.
+ *
+ * @package myCred
+ * @subpackage AI
+ * @since 1.0.0
+ */
+
+/* Main Container System */
+.mycred-ai-assistant-wrapper {
+    margin: 20px 20px 0 0;
+    max-width: 1400px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+/* Beautiful background blurred gradient mesh blobs for ultra premium feel */
+.mycred-ai-assistant-container {
+    position: relative;
+    min-height: 800px;
+}
+
+.mycred-ai-assistant-container::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    left: -40px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(79, 70, 229, 0.12) 0%, rgba(124, 58, 237, 0) 70%);
+    filter: blur(60px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.mycred-ai-assistant-container::after {
+    content: '';
+    position: absolute;
+    bottom: -60px;
+    right: -40px;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, rgba(192, 132, 252, 0.1) 0%, rgba(244, 63, 94, 0) 75%);
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Chat Interface Layout (Sidebar + Main Chat) */
+.mycred-ai-chat-interface {
+    display: flex;
+    gap: 24px;
+    position: relative;
+    z-index: 1;
+    align-items: stretch;
+    height: 750px;
+}
+
+@media (max-width: 960px) {
+    .mycred-ai-chat-interface {
+        flex-direction: column;
+        height: auto;
+    }
+}
+
+/* Glassmorphic Sidebar */
+.mycred-ai-sidebar {
+    width: 340px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    flex-shrink: 0;
+    overflow-y: auto;
+}
+
+.mycred-ai-brand {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding-bottom: 16px;
+}
+
+.mycred-ai-brand h2 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    line-height: 1.3;
+    color: #1e293b;
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    background: linear-gradient(135deg, #4f46e5 0%, #c084fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.ai-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #10b981;
+    font-weight: 500;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.ai-status span {
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.mycred-ai-intro p {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.mycred-ai-intro .mycred-ai-read-more {
+    color: #4f46e5;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.mycred-ai-intro .mycred-ai-read-more:hover {
+    color: #4338ca;
+    text-decoration: underline;
+}
+
+.mycred-ai-sidebar-section h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #64748b;
+    margin: 0 0 16px 0;
+    font-weight: 600;
+}
+
+/* Sidebar Lists */
+/* Ability chips */
+.abilities-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ability-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px 6px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: #334155;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+    cursor: default;
+    max-width: 100%;
+}
+
+.abilities-chips--active .ability-chip:hover {
+    border-color: rgba(79, 70, 229, 0.25);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.08);
+    transform: translateY(-1px);
+}
+
+.mycred-ai-upcoming-block {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px dashed rgba(100, 116, 139, 0.25);
+}
+
+.mycred-ai-upcoming-heading {
+    margin-bottom: 6px !important;
+}
+
+.mycred-ai-upcoming-note {
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.5;
+    margin: 0 0 12px 0;
+}
+
+.ability-chip--upcoming {
+    color: #64748b;
+    background: rgba(248, 250, 252, 0.9);
+    border: 1px dashed rgba(148, 163, 184, 0.45);
+    box-shadow: none;
+    cursor: help;
+    padding-right: 8px;
+}
+
+.ability-chip--upcoming:hover {
+    transform: none;
+    border-color: rgba(148, 163, 184, 0.55);
+    box-shadow: none;
+}
+
+.ability-chip--upcoming .ability-chip__icon {
+    background: #f1f5f9;
+    color: #94a3b8;
+}
+
+.ability-chip__badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #7c3aed;
+    background: #ede9fe;
+    padding: 2px 6px;
+    border-radius: 999px;
+    line-height: 1.2;
+    flex-shrink: 0;
+}
+
+.ability-chip--upcoming .ability-chip__label {
+    white-space: normal;
+}
+
+.ability-chip__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 14px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.ability-chip__icon::before {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+}
+
+.ability-chip__label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ability-chip--balance .ability-chip__icon { background: #dcfce7; color: #16a34a; }
+.ability-chip--summary .ability-chip__icon { background: #dbeafe; color: #2563eb; }
+.ability-chip--award .ability-chip__icon { background: #fae8ff; color: #c026d3; }
+.ability-chip--deduct .ability-chip__icon { background: #ffe4e6; color: #e11d48; }
+.ability-chip--hooks .ability-chip__icon { background: #fef3c7; color: #d97706; }
+.ability-chip--point-type .ability-chip__icon { background: #e0e7ff; color: #4f46e5; }
+.ability-chip--ranks .ability-chip__icon { background: #ede9fe; color: #7c3aed; }
+.ability-chip--badges .ability-chip__icon { background: #fef9c3; color: #ca8a04; }
+
+/* Glassmorphic Main Chat Window */
+.mycred-ai-chat-main {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.mycred-ai-chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    background: rgba(255, 255, 255, 0.7);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+.chat-header-title h3 {
+    margin: 0 0 4px 0;
+    font-family: 'Outfit', sans-serif;
+    font-size: 20px;
+    color: #1e293b;
+}
+
+.chat-header-title p {
+    margin: 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.clear-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+.clear-btn:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Chat Messages Area */
+.mycred-ai-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.mycred-ai-message-row {
+    display: flex;
+    gap: 20px;
+    max-width: 85%;
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.mycred-ai-message-row.ai-row,
+.mycred-ai-message-row.assistant-row {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.mycred-ai-message-row.user-row {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+@keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Premium Avatars */
+.message-avatar {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
+    min-height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.message-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: 50%;
+}
+
+.message-avatar.assistant-avatar,
+.message-avatar.ai-avatar {
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(94, 44, 237, 0.2);
+    overflow: visible;
+    z-index: 2;
+    position: relative;
+}
+
+.message-avatar.assistant-avatar img,
+.message-avatar.ai-avatar img {
+    width: 58px;
+    height: 56px;
+    max-width: none;
+    object-fit: contain;
+    border-radius: 0;
+}
+
+.message-avatar.user-avatar {
+    background: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
+}
+
+/* Chat Bubbles */
+.message-bubble {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ai-bubble .message-content {
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.05);
+    border-radius: 2px 20px 20px 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    padding: 16px 20px;
+    color: #334155;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.ai-bubble .message-content a {
+    color: #4f46e5;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.ai-bubble .message-content a:hover {
+    color: #4338ca;
+}
+
+.user-bubble .message-content {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: #ffffff;
+    border-radius: 20px 2px 20px 20px;
+    padding: 16px 20px;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* Content Formatting */
+.message-content p {
+    margin: 0 0 10px 0;
+}
+
+.message-content p:last-child {
+    margin: 0;
+}
+
+.message-content code {
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #e11d48;
+}
+
+.user-bubble .message-content code {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+.suggestion-list {
+    margin: 12px 0 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.suggested-query {
+    display: inline-block;
+    padding: 8px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #4f46e5;
+    text-decoration: none;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.suggested-query:hover {
+    background: #eef2ff;
+    border-color: #c7d2fe;
+}
+
+/* Chat Input Footer */
+.mycred-ai-chat-footer {
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.7);
+    border-top: 1px solid rgba(0,0,0,0.04);
+}
+
+.mycred-ai-input-wrapper {
+    display: flex;
+    align-items: flex-end;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 16px;
+    padding: 8px 12px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.mycred-ai-input-wrapper:focus-within {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+#mycred-ai-chat-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    resize: none;
+    padding: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    color: #1e293b;
+    max-height: 150px;
+    overflow-y: auto;
+    outline: none;
+    box-shadow: none;
+}
+
+#mycred-ai-send-btn {
+    background: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    line-height: 0;
+}
+
+#mycred-ai-send-btn svg {
+    display: block;
+}
+
+#mycred-ai-send-btn:hover {
+    background: #4338ca;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+/* Typing Indicator */
+.mycred-ai-message-row.typing-placeholder {
+    align-items: flex-start;
+}
+
+.typing-placeholder .message-bubble {
+    display: flex;
+    align-items: center;
+    align-self: flex-start;
+}
+
+.mycred-ai-typing-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+}
+
+.mycred-ai-typing-indicator {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    height: 12px;
+    line-height: 1;
+}
+
+.mycred-ai-typing-indicator span {
+    display: block;
+    width: 10px;
+    height: 10px;
+    background-color: #a78bfa;
+    border-radius: 50%;
+    flex-shrink: 0;
+    animation: typingBounce 1.2s infinite ease-in-out both;
+}
+
+.mycred-ai-typing-indicator span:nth-child(1) { animation-delay: 0s; }
+.mycred-ai-typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+.mycred-ai-typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes typingBounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.35;
+    }
+    30% {
+        transform: translateY(-3px);
+        opacity: 1;
+    }
+}
+
+/* Markdown Table Styling */
+.mycred-ai-table-wrapper {
+    overflow-x: auto;
+    margin: 12px 0;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+}
+
+.mycred-ai-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: left;
+}
+
+.mycred-ai-table th,
+.mycred-ai-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.mycred-ai-table th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #475569;
+}
+
+.mycred-ai-table tr:last-child td {
+    border-bottom: none;
+}
+
+.user-bubble .mycred-ai-table-wrapper {
+    border-color: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+}
+
+.user-bubble .mycred-ai-table th {
+    background: rgba(0,0,0,0.1);
+    color: #ffffff;
+}
+
+.user-bubble .mycred-ai-table th,
+.user-bubble .mycred-ai-table td {
+    border-bottom-color: rgba(255,255,255,0.1);
+}
+
+/* Hidden scrollbars (scroll still works) */
+.mycred-ai-assistant-wrapper .mycred-ai-sidebar,
+.mycred-ai-assistant-wrapper .mycred-ai-chat-messages,
+.mycred-ai-assistant-wrapper #mycred-ai-chat-input {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.mycred-ai-assistant-wrapper .mycred-ai-sidebar::-webkit-scrollbar,
+.mycred-ai-assistant-wrapper .mycred-ai-chat-messages::-webkit-scrollbar,
+.mycred-ai-assistant-wrapper #mycred-ai-chat-input::-webkit-scrollbar {
+    display: none;
+}

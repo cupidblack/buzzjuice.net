@@ -49,7 +49,7 @@ if ( ! class_exists( 'ms_buyCRED_Toolkit_Square_Gateway_Core' ) ) :
 			}
 		}
 		public function __construct() {
-
+		
 			//check woosquare install or not
 			$this->mcs_check_woosquare();
 
@@ -83,9 +83,15 @@ if ( ! class_exists( 'ms_buyCRED_Toolkit_Square_Gateway_Core' ) ) :
 			) {
 
 				$message = __('To use "My Cred Square " Woosquare and myCred must be activated!', 'mycred-toolkit');
-				printf(sprintf('<br><div class="%1$s"><p>%2$s</p></div>', esc_attr($class), esc_html($message)));
+
+				if ( ! ( defined( 'REST_REQUEST' ) && REST_REQUEST ) && ! wp_doing_ajax() ) {
+					printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $message ) );
+				}
+
 				include_once ABSPATH . 'wp-admin/includes/plugin.php' ;
-				deactivate_plugins('mycred-square/mycred-square.php');
+				if ( function_exists( 'deactivate_plugins' ) && is_plugin_active( 'mycred-square/mycred-square.php' ) ) {
+					deactivate_plugins( 'mycred-square/mycred-square.php' );
+				}
 				//wp_die('','Plugin Activation Error',  array( 'response'=>200, 'back_link'=>TRUE ) );
 			}
 		}

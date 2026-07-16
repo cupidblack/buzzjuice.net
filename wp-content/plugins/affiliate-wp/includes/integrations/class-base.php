@@ -781,6 +781,27 @@ abstract class Affiliate_WP_Base {
 	}
 
 	/**
+	 * Marks a referral as rejected.
+	 *
+	 * Used when a referral should be rejected (e.g., self-referral detection).
+	 *
+	 * @since 2.31.0
+	 *
+	 * @param int $referral_id The referral ID to reject.
+	 * @return bool Whether the referral was successfully rejected.
+	 */
+	public function mark_referral_rejected( $referral_id ) {
+		$referral = affwp_get_referral( $referral_id );
+		$rejected = $this->reject_referral( $referral, true );
+
+		if ( $rejected ) {
+			affiliate_wp()->utils->log( sprintf( 'Referral #%d marked as rejected.', $referral_id ) );
+		}
+
+		return $rejected;
+	}
+
+	/**
 	 * Hydrates a draft referral.
 	 *
 	 * Completes a referral with the missing data.
@@ -926,7 +947,13 @@ abstract class Affiliate_WP_Base {
 			return false;
 		}
 
-		if ( is_object( $referral ) && $referral->status != 'pending' && $referral->status != 'rejected' ) {
+		// Check if referral was rejected by the fraud prevention system.
+		if ( 'rejected' === $referral->status ) {
+			affiliate_wp()->utils->log( 'Referral not marked as complete because it was rejected by fraud prevention.' );
+			return false;
+		}
+
+		if ( is_object( $referral ) && $referral->status != 'pending' ) {
 			// This referral has already been completed, or paid
 			return false;
 		}

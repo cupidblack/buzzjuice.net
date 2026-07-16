@@ -157,10 +157,8 @@ $payout = affwp_get_payout( intval( $_GET['payout_id'] ) );
 
 			<td>
 				<?php
-				printf( '<span class="affwp-status %1$s"><i></i>%2$s</span>',
-					esc_attr( $payout->status ),
-					affwp_get_payout_status_label( $payout )
-				);
+				// Use the new payout status badge helper.
+				affwp_payout_status_badge( $payout->status );
 				?>
 			</td>
 

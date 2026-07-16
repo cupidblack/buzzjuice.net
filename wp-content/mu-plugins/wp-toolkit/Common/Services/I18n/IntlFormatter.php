@@ -5,9 +5,6 @@ namespace Webpros\WptkWpPlugin\WpToolkit\Common\Services\I18n;
 
 final class IntlFormatter implements MessageFormatterInterface
 {
-    /**
-     *
-     */
     public function __construct()
     {
         if (!class_exists(\MessageFormatter::class)) {
@@ -17,8 +14,8 @@ final class IntlFormatter implements MessageFormatterInterface
 
     /**
      * @param string $messageTemplate
-     * @param array $parameters
      * @param string $localeCode
+     *
      * @return string
      */
     public function format($messageTemplate, array $parameters, $localeCode)
@@ -35,7 +32,7 @@ final class IntlFormatter implements MessageFormatterInterface
             try {
                 $cache[$localeCode][$messageTemplate] = $formatter = new \MessageFormatter($localeCode, $messageTemplate);
             } catch (\IntlException $e) {
-                throw new \InvalidArgumentException(sprintf('Invalid message format (error #%d): %s', \intl_get_error_code(), \intl_get_error_message()), 0, $e);
+                throw new \InvalidArgumentException(\sprintf('Invalid message format (error #%d): %s', intl_get_error_code(), intl_get_error_message()), 0, $e);
             }
         }
 
@@ -43,7 +40,7 @@ final class IntlFormatter implements MessageFormatterInterface
         if ($formatter instanceof \MessageFormatter
             && ($message = $formatter->format($parameters)) === false
         ) {
-            throw new \InvalidArgumentException(sprintf('Unable to format message (error #%s): %s', $formatter->getErrorCode(), $formatter->getErrorMessage()));
+            throw new \InvalidArgumentException(\sprintf('Unable to format message (error #%s): %s', $formatter->getErrorCode(), $formatter->getErrorMessage()));
         }
 
         return $message;

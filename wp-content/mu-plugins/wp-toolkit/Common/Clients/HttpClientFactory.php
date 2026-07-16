@@ -5,7 +5,7 @@ namespace Webpros\WptkWpPlugin\WpToolkit\Common\Clients;
 
 use Webpros\WptkWpPlugin\WpToolkit\Common\Services\ApiTokenParser;
 
-class HttpClientFactory
+class HttpClientFactory implements HttpClientFactoryInterface
 {
     /**
      * @return HttpClientInterface

@@ -214,20 +214,24 @@ final class Connector extends \AffiliateWP\Admin\Connector {
 			return $title;
 		}
 
-		return affwp_text_tooltip(
-			str_replace(
-				array(
-					"&nbsp;{$email}",
-					'&nbsp;&mdash;',
-				),
-				array(
-					'',
-					'',
-				),
-				$title
+		$tooltip_html = affwp_tooltip( $email );
+		
+		$trigger_content = str_replace(
+			array(
+				"&nbsp;{$email}",
+				'&nbsp;&mdash;',
 			),
-			$email,
-			false
+			array(
+				'',
+				'',
+			),
+			$title
+		);
+
+		return sprintf(
+			'<span class="cursor-help underline decoration-dotted" data-tooltip-html="%s">%s</span>',
+			esc_attr( $tooltip_html ),
+			$trigger_content
 		);
 	}
 

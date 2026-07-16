@@ -111,3 +111,95 @@ add_action('wp_logout', function() {
         delete_user_meta($user_id, BZ_SLIDING_META_REMEMBER);
     }
 });
+
+
+
+/**
+ * -----------------------------------------------------------------------------
+ * REMEMBER ME LOGIC
+ * -----------------------------------------------------------------------------
+ */
+ 
+ add_action('login_form', function () {
+
+    if (!apply_filters('bz_remember_me_default_enabled', true)) {
+        return;
+    }
+
+    global $rememberme;
+
+    $rememberme = true;
+
+}, 5);
+
+
+add_action('wp_footer', function () {
+
+    if (is_user_logged_in()) {
+        return;
+    }
+
+    if (!apply_filters('bz_remember_me_default_enabled', true)) {
+        return;
+    }
+
+?>
+<script>
+(function () {
+
+    function enableRemember(root) {
+
+        (root || document)
+            .querySelectorAll('input[name="rememberme"]')
+            .forEach(function (box) {
+
+                if (!box.checked) {
+                    box.checked = true;
+                }
+
+            });
+
+    }
+
+    if (document.readyState === "loading") {
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            enableRemember(document);
+
+        });
+
+    } else {
+
+        enableRemember(document);
+
+    }
+
+    new MutationObserver(function (mutations) {
+
+        mutations.forEach(function (mutation) {
+
+            mutation.addedNodes.forEach(function (node) {
+
+                if (node.nodeType === 1) {
+
+                    enableRemember(node);
+
+                }
+
+            });
+
+        });
+
+    }).observe(document.body, {
+
+        childList: true,
+        subtree: true
+
+    });
+
+})();
+</script>
+<?php
+
+}, 100);

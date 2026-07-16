@@ -43,14 +43,14 @@ class SMTP {
 	 *
 	 * @var array
 	 */
-	private $config = array(
+	private $config = [
 		'lite_plugin'       => 'wp-mail-smtp/wp_mail_smtp.php',
 		'lite_wporg_url'    => 'https://wordpress.org/plugins/wp-mail-smtp/',
 		'lite_download_url' => 'https://downloads.wordpress.org/plugin/wp-mail-smtp.zip',
 		'pro_plugin'        => 'wp-mail-smtp-pro/wp_mail_smtp.php',
 		'smtp_settings_url' => 'admin.php?page=wp-mail-smtp',
 		'smtp_wizard_url'   => 'admin.php?page=wp-mail-smtp-setup-wizard',
-	);
+	];
 
 	/**
 	 * Runtime data used for generating page HTML.
@@ -59,7 +59,7 @@ class SMTP {
 	 *
 	 * @var array
 	 */
-	private $output_data = array();
+	private $output_data = [];
 
 	/**
 	 * Constructor.
@@ -105,7 +105,7 @@ class SMTP {
 	private function hooks() {
 
 		if ( wp_doing_ajax() ) {
-			add_action( 'wp_ajax_affwp_am_smtp_page_check_plugin_status', array( $this, 'ajax_check_plugin_status' ) );
+			add_action( 'wp_ajax_affwp_am_smtp_page_check_plugin_status', [ $this, 'ajax_check_plugin_status' ] );
 		}
 
 		// Check what page we are on.
@@ -116,8 +116,8 @@ class SMTP {
 			return;
 		}
 
-		add_action( 'admin_init', array( $this, 'redirect_to_smtp_settings' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+		add_action( 'admin_init', [ $this, 'redirect_to_smtp_settings' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
 	}
 
 	/**
@@ -141,15 +141,15 @@ class SMTP {
 		wp_enqueue_script(
 			'affiliate-wp-lity',
 			"{$plugin_url}/assets/js/lity{$min}.js",
-			array( 'jquery' ),
+			[ 'jquery' ],
 			'2.4.1',
 			true
 		);
 
 		// SMTP page style and script.
 		wp_enqueue_style(
-			'affiliate-wp-smtp',
-			"{$plugin_url}/assets/css/smtp{$min}.css",
+			'affiliate-wp-am-plugin-page',
+			"{$plugin_url}/assets/css/am-plugin-page{$min}.css",
 			null,
 			AFFILIATEWP_VERSION
 		);
@@ -157,7 +157,7 @@ class SMTP {
 		wp_enqueue_script(
 			'affiliate-wp-smtp',
 			"{$plugin_url}/assets/js/smtp{$min}.js",
-			array( 'jquery' ),
+			[ 'jquery' ],
 			AFFILIATEWP_VERSION,
 			true
 		);
@@ -181,11 +181,11 @@ class SMTP {
 		$error_could_not_install = sprintf(
 			wp_kses( /* translators: %s - Lite plugin download URL. */
 				__( 'Could not install the plugin automatically. Please <a href="%s">download</a> it and install it manually.', 'affiliate-wp' ),
-				array(
-					'a' => array(
+				[
+					'a' => [
 						'href' => true,
-					),
-				)
+					],
+				]
 			),
 			esc_url( $this->config['lite_download_url'] )
 		);
@@ -193,16 +193,16 @@ class SMTP {
 		$error_could_not_activate = sprintf(
 			wp_kses( /* translators: %s - Lite plugin download URL. */
 				__( 'Could not activate the plugin. Please activate it on the <a href="%s">Plugins page</a>.', 'affiliate-wp' ),
-				array(
-					'a' => array(
+				[
+					'a' => [
 						'href' => true,
-					),
-				)
+					],
+				]
 			),
 			esc_url( admin_url( 'plugins.php' ) )
 		);
 
-		return array(
+		return [
 			'nonce'                    => wp_create_nonce( 'affiliate-wp-admin' ),
 			'ajax_url'                 => admin_url( 'admin-ajax.php' ),
 			'installing'               => esc_html__( 'Installing...', 'affiliate-wp' ),
@@ -220,7 +220,7 @@ class SMTP {
 			'smtp_wizard'              => esc_html__( 'Open Setup Wizard', 'affiliate-wp' ),
 			'smtp_settings_url'        => esc_url( $this->config['smtp_settings_url'] ),
 			'smtp_wizard_url'          => esc_url( $this->config['smtp_wizard_url'] ),
-		);
+		];
 	}
 
 	/**
@@ -258,7 +258,7 @@ class SMTP {
 			esc_url( AFFILIATEWP_PLUGIN_URL . 'assets/images/smtp/logo-lockup.svg' ),
 			esc_attr__( 'AffiliateWP ♥ WP Mail SMTP', 'affiliate-wp' ),
 			esc_html__( 'Making Email Deliverability Easy for WordPress', 'affiliate-wp' ),
-			esc_html__( 'WP Mail SMTP fixes deliverability problems with your WordPress emails and form notifications. It\'s built by the same folks behind WPForms.', 'affiliate-wp' )
+			esc_html__( 'WP Mail SMTP ensures your critical affiliate emails (referral notifications, payout alerts, approvals) reach your affiliates\' inboxes reliably. It\'s built by the same folks behind WPForms.', 'affiliate-wp' )
 		);
 	}
 
@@ -307,13 +307,13 @@ class SMTP {
 		}
 
 		$button_format       = '<button class="button %3$s" data-plugin="%1$s" data-action="%4$s">%2$s</button>';
-		$button_allowed_html = array(
-			'button' => array(
+		$button_allowed_html = [
+			'button' => [
 				'class'       => true,
 				'data-plugin' => true,
 				'data-action' => true,
-			),
-		);
+			],
+		];
 
 		if (
 			! $this->output_data['plugin_installed'] &&
@@ -321,18 +321,18 @@ class SMTP {
 			! current_user_can( 'install_plugins' )
 		) {
 			$button_format       = '<a class="link" href="%1$s" target="_blank" rel="nofollow noopener">%2$s <span aria-hidden="true" class="dashicons dashicons-external"></span></a>';
-			$button_allowed_html = array(
-				'a'    => array(
+			$button_allowed_html = [
+				'a'    => [
 					'class'  => true,
 					'href'   => true,
 					'target' => true,
 					'rel'    => true,
-				),
-				'span' => array(
+				],
+				'span' => [
 					'class'       => true,
 					'aria-hidden' => true,
-				),
-			);
+				],
+			];
 		}
 
 		$button = sprintf( $button_format, esc_attr( $step['plugin'] ), esc_html( $step['button_text'] ), esc_attr( $step['button_class'] ), esc_attr( $step['button_action'] ) );
@@ -402,7 +402,7 @@ class SMTP {
 	 */
 	private function get_data_step_install() {
 
-		$step = array();
+		$step = [];
 
 		$step['heading']     = esc_html__( 'Install and Activate WP Mail SMTP', 'affiliate-wp' );
 		$step['description'] = esc_html__( 'Install WP Mail SMTP from the WordPress.org plugin repository.', 'affiliate-wp' );
@@ -448,9 +448,9 @@ class SMTP {
 	 */
 	private function get_data_step_setup() {
 
-		$step = array(
+		$step = [
 			'icon' => 'step-2.svg',
-		);
+		];
 
 		if ( $this->output_data['plugin_activated'] ) {
 			$step['section_class'] = '';
@@ -481,25 +481,25 @@ class SMTP {
 		// Security check.
 		if ( ! check_ajax_referer( 'affiliate-wp-admin', 'nonce', false ) ) {
 			wp_send_json_error(
-				array(
+				[
 					'error' => esc_html__( 'You do not have permission.', 'affiliate-wp' ),
-				)
+				]
 			);
 		}
 
 		if ( ! $this->is_smtp_activated() ) {
 			wp_send_json_error(
-				array(
+				[
 					'error' => esc_html__( 'Plugin unavailable.', 'affiliate-wp' ),
-				)
+				]
 			);
 		}
 
 		wp_send_json_success(
-			array(
+			[
 				'setup_status'  => (int) $this->is_smtp_configured(),
 				'license_level' => wp_mail_smtp()->get_license_type(),
-			)
+			]
 		);
 	}
 

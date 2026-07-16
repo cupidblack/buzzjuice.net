@@ -78,9 +78,9 @@ abstract class Base {
 	 * Retrieve the section tooltip content.
 	 *
 	 * @since 2.26.1
-	 * @return string The tooltip content.
+	 * @return string|array The tooltip content.
 	 */
-	protected function get_tooltip() : string {
+	protected function get_tooltip() {
 		return '';
 	}
 

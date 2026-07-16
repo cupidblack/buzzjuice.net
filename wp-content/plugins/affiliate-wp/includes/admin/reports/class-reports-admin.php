@@ -197,5 +197,7 @@ class Reports {
 		new \AffWP\Affiliate\Payout\Admin\Reports\Tab;
 		new \AffWP\Visit\Admin\Reports\Tab;
 		new \AffWP\Campaign\Admin\Reports\Tab;
+		// Fraud reports tab removed — not ready for initial release.
+		// new \AffWP\Fraud\Admin\Reports\Tab;
 	}
 }

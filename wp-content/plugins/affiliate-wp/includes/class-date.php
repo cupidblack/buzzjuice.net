@@ -29,7 +29,7 @@ final class Date extends \DateTime {
 	 *
 	 * @since 2.1.9
 	 */
-	public function __construct( $time = 'now', \DateTimeZone $timezone = null ) {
+	public function __construct( $time = 'now', ?\DateTimeZone $timezone = null ) {
 		if ( null === $timezone ) {
 			$timezone = new \DateTimeZone( affwp_get_timezone() );
 		}
@@ -54,7 +54,6 @@ final class Date extends \DateTime {
 	 * @return string|int|\DateTime Formatted date string, timestamp if `$type` is timestamp,
 	 *                              or a DateTime object if `$type` is 'object'.
 	 */
-
 	#[\ReturnTypeWillChange]
 	public function format( $format ) {
 
@@ -62,7 +61,7 @@ final class Date extends \DateTime {
 			$format = 'datetime';
 		}
 
-		switch( $format ) {
+		switch ( $format ) {
 			case 'date':
 			case 'time':
 			case 'datetime':
@@ -105,5 +104,4 @@ final class Date extends \DateTime {
 	public function getWPTimestamp() {
 		return $this->getTimestamp() + affiliate_wp()->utils->wp_offset;
 	}
-
 }

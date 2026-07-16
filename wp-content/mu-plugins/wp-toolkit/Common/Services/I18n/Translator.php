@@ -31,7 +31,7 @@ final class Translator implements TranslatorInterface
         $messages = $this->localeContainer->getMessagesBackend();
         $message = isset($messages[$id]) ? $messages[$id] : null;
 
-        return !is_null($message) ? $this->formatMessage($message, $context) : "[[$id]]";
+        return !\is_null($message) ? $this->formatMessage($message, $context) : "[[$id]]";
     }
 
     /**
@@ -54,7 +54,8 @@ final class Translator implements TranslatorInterface
      * Substitutes params in localized message template
      *
      * @param string $messageTemplate
-     * @param array $params Array of <name> => <value>
+     * @param array  $params          Array of <name> => <value>
+     *
      * @return string
      */
     private function formatMessage($messageTemplate, $params = [])

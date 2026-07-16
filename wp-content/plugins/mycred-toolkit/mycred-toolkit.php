@@ -1,15 +1,15 @@
 <?php
 /**
- * Plugin Name: myCred Toolkit
+ * Plugin Name: myCred Addons
  * Plugin URI: https://mycred.me
- * Description: The myCred Toolkit is a powerful add-on, designed to enhance user engagement by offering additional tools and addons.
- * Version: 1.4.2
+ * Description: myCred Addons is a powerful package of free add-ons, designed to enhance user engagement through gamification and loyalty rewards.
+ * Version: 1.4.6
  * Tags: toolkit, credit, loyalty program, engagement, reward, woocommerce rewards
  * Author: myCred
  * Author URI: https://wpexperts.io
  * Author Email: support@mycred.me
  * Requires at least: 4.8
- * Tested up to: 6.9
+ * Tested up to: 7.0
  * Text Domain: mycred-toolkit
  * Requires Plugins:  mycred
  * License: GPLv2 or later
@@ -22,7 +22,7 @@ if ( ! class_exists( 'MyCRED_Toolkit_Core' ) ) :
 	final class MyCRED_Toolkit_Core { 
 
 		// Plugin Version
-		public $version             = '1.4.2';
+		public $version             = '1.4.6';
 
 		// Plugin slug
 		public $slug                = 'mycred-toolkit';
@@ -83,10 +83,12 @@ if ( ! class_exists( 'MyCRED_Toolkit_Core' ) ) :
 			$this->define( 'MYCRED_TOOLKIT_FILE_URL', plugin_dir_url( __FILE__ ) );
 			$this->define( 'MYCRED_TOOLKIT_ROOT_DIR', plugin_dir_path( MYCRED_TOOLKIT_THIS ) );
 			$this->define( 'MYCRED_TOOLKIT_INCLUDES_DIR', MYCRED_TOOLKIT_ROOT_DIR . 'includes/' );
+			$this->define( 'MYCRED_TOOLKIT_UNIFIED_ADDONS', true );
 		}
 
 		public function includes() {
 			include_once MYCRED_TOOLKIT_ROOT_DIR . 'includes/main-mycred-toolkit.php';
+			include_once MYCRED_TOOLKIT_ROOT_DIR . 'includes/mycred-toolkit-addon-expansion.php';
 			include_once MYCRED_TOOLKIT_ROOT_DIR . 'includes/controllers/mycred_rest_api.php';
 		}
 
@@ -98,7 +100,9 @@ if ( ! class_exists( 'MyCRED_Toolkit_Core' ) ) :
 
 			if ( class_exists( 'EE_Addon' ) ) {
 
-				$enabled_addons = get_option( 'mycred_enabled_addons', array() );
+				$enabled_addons = function_exists( 'mycred_get_active_addon_slugs' )
+					? mycred_get_active_addon_slugs()
+					: get_option( 'mycred_enabled_addons', array() );
 
 				if ( in_array( 'mycred-ee', $enabled_addons, true ) ) {
 

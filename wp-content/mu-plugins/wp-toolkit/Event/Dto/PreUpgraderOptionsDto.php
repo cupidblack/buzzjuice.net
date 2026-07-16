@@ -25,6 +25,7 @@ class PreUpgraderOptionsDto
 
     /**
      * @param string|null $theme
+     *
      * @return void
      */
     public function setTheme($theme)
@@ -42,6 +43,7 @@ class PreUpgraderOptionsDto
 
     /**
      * @param string|null $plugin
+     *
      * @return void
      */
     public function setPlugin($plugin)
@@ -50,16 +52,13 @@ class PreUpgraderOptionsDto
     }
 
     /**
-     * @param array $options
      * @return PreUpgraderOptionsDto|null
      */
     public static function fromArray(array $options)
     {
-        if (!isset($options['theme']) && !isset($options['plugin'])) {
-            return null;
-        }
-
-        if (!is_string($options['theme']) && !is_string($options['plugin'])) {
+        if (!\is_string(isset($options['theme']) ? $options['theme'] : null)
+            && !\is_string(isset($options['plugin']) ? $options['plugin'] : null)
+        ) {
             return null;
         }
 

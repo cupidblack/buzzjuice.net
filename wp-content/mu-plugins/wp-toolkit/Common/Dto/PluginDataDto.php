@@ -44,6 +44,7 @@ class PluginDataDto
 
     /**
      * @param string $slug
+     *
      * @return void
      */
     public function setSlug($slug)
@@ -61,6 +62,7 @@ class PluginDataDto
 
     /**
      * @param string $name
+     *
      * @return void
      */
     public function setName($name)
@@ -78,6 +80,7 @@ class PluginDataDto
 
     /**
      * @param string $version
+     *
      * @return void
      */
     public function setVersion($version)
@@ -87,7 +90,7 @@ class PluginDataDto
 
     /**
      * @param string $pluginFile
-     * @param array $data
+     *
      * @return PluginDataDto
      */
     public static function fromArrayWithFile($pluginFile, array $data)
@@ -100,16 +103,16 @@ class PluginDataDto
 
     /**
      * @param string $slug
-     * @param array $data
+     *
      * @return PluginDataDto
      */
     public static function fromArray($slug, array $data)
     {
         $name = isset($data['Name']) ? $data['Name'] : '';
-        $name = is_string($name) ? $name : '';
+        $name = \is_string($name) ? $name : '';
 
         $version = isset($data['Version']) ? $data['Version'] : '';
-        $version = is_string($version) ? $version : '';
+        $version = \is_string($version) ? $version : '';
 
         return new PluginDataDto(
             $slug,

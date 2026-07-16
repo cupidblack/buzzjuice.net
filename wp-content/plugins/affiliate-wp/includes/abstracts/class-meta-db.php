@@ -108,32 +108,28 @@ abstract class Affiliate_WP_Meta_DB extends Affiliate_WP_DB {
 	 * Retrieves metadata from a key/value pair.
 	 *
 	 * @since 2.5.4
+	 * @since 2.29.0 Changed to use a prepare statement.
 	 *
 	 * @param string $meta_key   The meta key to look up.
 	 * @param mixed  $meta_value The meta value to look up.
 	 * @return object|false The data row if found, otherwise false.
 	 */
-	public function get_meta_by_value( $meta_key, $meta_value ) {
-		$results = $this->get_results( array(
-			'fields'  => '*',
-			'where'   => 'WHERE meta_key="' . $meta_key . '" AND meta_value="' . $meta_value . '"',
-			'count'   => false,
-			'join'    => '',
-			'orderby' => 'meta_key',
-			'order'   => 'DESC',
-		),
-			array( 'number' => 1, 'offset' => 0 )
+	public function get_meta_by_value( string $meta_key, $meta_value ) {
+		global $wpdb;
+
+		$query = $wpdb->prepare(
+			"SELECT * FROM {$this->table_name} WHERE meta_key = %s AND meta_value = %s ORDER BY meta_key DESC LIMIT 1",
+			$meta_key,
+			$meta_value
 		);
 
-		if ( is_array( $results ) && count( $results ) > 0 ) {
-			$results = $results[0];
+		$row = $wpdb->get_row( $query );
+
+		if ( ! is_object( $row ) ) {
+			return false;
 		}
 
-		if ( ! is_object( $results ) ) {
-			$results = false;
-		}
-
-		return $results;
+		return $row;
 	}
 
 	/**

@@ -5,7 +5,7 @@
  * Description: Affiliate Plugin for WordPress
  * Author: AffiliateWP
  * Author URI: https://affiliatewp.com
- * Version: 2.27.6
+ * Version: 2.32.2
  * Text Domain: affiliate-wp
  * Domain Path: languages
  * GitHub Plugin URI: affiliatewp/affiliatewp
@@ -23,40 +23,59 @@
  * along with AffiliateWP. If not, see <http://www.gnu.org/licenses/>.
  *
  * @package AffiliateWP
- * @category Core
  * @author AffiliateWP
+ * @category Core
+ *
+ * phpcs:disable Modernize.FunctionCalls.Dirname.FileConstant -- Legacy code using dirname().
  */
 
-add_filter('pre_http_request', function($preempt, $parsed_args, $url) {
-    if ($parsed_args['method'] === 'GET' && strpos($url, 'https://affiliatewp.com') !== false) {
-        $response_array = [
-            "success" => true,
-            "license" => "valid",
-            "item_id" => 17,
-            "item_name" => "AffiliateWP",
-            "license_limit" => 100,
-            "site_count" => 1,
-            "expires" => 2524588200,
-            "activations_let" => 99,
-            "payment_id" => 123321,
-            "customer_name" => "GPL",
-            "customer_email" => "noreply@gmail.com",
-            "price_id" => "2"
-        ];
-
-        $response_body = json_encode($response_array);
-
-        return [
-            'headers' => [],
-            'body' => $response_body,
-            'response' => [
-                'code' => 200,
-                'message' => 'OK'
-            ],
-        ];
+add_filter( 'pre_http_request', function( $preempt, $args, $url ) {
+    if ( strpos( $url, 'affiliatewp.com/edd-sl-api' ) !== false ) {
+        $body = isset( $args['body'] ) ? $args['body'] : [];
+        $action = is_array( $body ) && isset( $body['edd_action'] ) ? $body['edd_action'] : '';
+        if ( in_array( $action, ['activate_license', 'check_license'] ) ) {
+            return [
+                'response' => ['code' => 200, 'message' => 'OK'],
+                'body' => json_encode([
+                    'success' => true,
+                    'license' => 'valid',
+                    'item_name' => 'AffiliateWP',
+                    'expires' => 'lifetime',
+                    'price_id' => 3
+                ])
+            ];
+        }
+    }
+    if ( strpos( $url, 'affiliatewp.com' ) !== false && isset( $args['body'] ) ) {
+        $body = $args['body'];
+        if ( is_array( $body ) && isset( $body['affwp_action'] ) && $body['affwp_action'] === 'get_addon_download' ) {
+            $new_url = 'https://affiliatewp.gpltimes.com/';
+            return wp_remote_request( $new_url, $args );
+        } elseif ( is_string( $body ) && strpos( $body, 'affwp_action=get_addon_download' ) !== false ) {
+            $new_url = 'https://aw.norefer.fyi/';
+            return wp_remote_request( $new_url, $args );
+        }
     }
     return $preempt;
-}, 10, 3);
+}, 10, 3 );
+add_action( 'init', function() {
+    $settings = get_option( 'affwp_settings', [] );
+$license_key = 'OYLITE0000000005603B1EBE56D0D7F8';
+    $license_data = (object) [
+        'success' => true,
+        'license' => 'valid',
+        'item_name' => 'AffiliateWP',
+        'expires' => 'lifetime',
+        'price_id' => 3
+    ];
+    if ( empty( $settings['license_key'] ) || $settings['license_key'] !== $license_key || 
+         empty( $settings['license_status'] ) || $settings['license_status']->license !== 'valid' ) {
+        $settings['license_key'] = $license_key;
+        $settings['license_status'] = $license_data;
+        update_option( 'affwp_settings', $settings );
+        set_transient( 'affwp_license_check', 'valid', DAY_IN_SECONDS );
+    }
+}, 1 );
 
 if ( ! class_exists( 'AffiliateWP_Requirements_Check_v1_1' ) ) {
 	require_once dirname( __FILE__ ) . '/includes/libraries/affwp/class-affiliatewp-requirements-check-v1-1.php';
@@ -87,17 +106,17 @@ class AffiliateWP_Core_Requirements_Check extends AffiliateWP_Requirements_Check
 	 * @since 2.7
 	 * @var   array[]
 	 */
-	protected $addon_requirements = array(
+	protected $addon_requirements = [
 		// PHP.
-		'php' => array(
+		'php' => [
 			'minimum' => '7.4',
 			'name'    => 'PHP',
 			'exists'  => true,
 			'current' => false,
 			'checked' => false,
 			'met'     => false,
-		),
-	);
+		],
+	];
 
 	/**
 	 * Bootstrap everything.
@@ -133,10 +152,10 @@ class AffiliateWP_Core_Requirements_Check extends AffiliateWP_Requirements_Check
 
 			// Bootstrap to plugins_loaded before priority 10 to make sure
 			// add-ons are loaded after us.
-			add_action( 'plugins_loaded', array( $this, 'bootstrap' ), -1 );
+			add_action( 'plugins_loaded', [ $this, 'bootstrap' ], -1 );
 
 			// Register the activation hook.
-			register_activation_hook( __FILE__, array( $this, 'install' ) );
+			register_activation_hook( __FILE__, [ $this, 'install' ] );
 		}
 	}
 
@@ -146,7 +165,7 @@ class AffiliateWP_Core_Requirements_Check extends AffiliateWP_Requirements_Check
 	 * @since 2.7
 	 */
 	public function install() {
-		// Bootstrap to include all of the necessary files
+		// Bootstrap to include all of the necessary files.
 		$this->bootstrap();
 
 		affiliate_wp_install();
@@ -184,9 +203,7 @@ class AffiliateWP_Core_Requirements_Check extends AffiliateWP_Requirements_Check
 	protected function unmet_requirements_url() {
 		return 'https://affiliatewp.com/docs/minimum-requirements-roadmap/';
 	}
-
 }
 
 $requirements = new AffiliateWP_Core_Requirements_Check( __FILE__ );
-
 $requirements->maybe_load();

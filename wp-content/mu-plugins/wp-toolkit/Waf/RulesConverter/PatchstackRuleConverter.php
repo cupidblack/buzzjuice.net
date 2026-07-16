@@ -5,12 +5,12 @@ namespace Webpros\WptkWpPlugin\WpToolkit\Waf\RulesConverter;
 
 final class PatchstackRuleConverter implements RuleConverterInterface
 {
-    public static function convert(array $rule)
+    public static function convert($id, array $rule)
     {
         return [
-            'id' => \crc32($rule['vulnerabilityId']),
+            'id'    => $id,
             'rules' => $rule['rules'],
-            'type' => 'BLOCK',
+            'type'  => 'BLOCK',
         ];
     }
 }

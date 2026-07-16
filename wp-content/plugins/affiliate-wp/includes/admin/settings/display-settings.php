@@ -10,7 +10,9 @@
  */
 
 // Exit if accessed directly
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * AffWP Admin Header
@@ -26,7 +28,7 @@ function affwp_admin_header() {
 	$number_notifications     = affiliate_wp()->notifications->count_active_notifications();
 	$notifications_panel_file = AFFILIATEWP_PLUGIN_DIR . 'includes/components/notifications/views/notifications-panel.php';
 
-	if ( file_exists( $notifications_panel_file ) ){
+	if ( file_exists( $notifications_panel_file ) ) {
 		require_once $notifications_panel_file;
 	}
 	?>
@@ -34,17 +36,13 @@ function affwp_admin_header() {
 		<div id="affwp-header-wrapper">
 			<section class="affwp-header-title">
 				<img width="190" height="32" alt="AffiliateWP logo" src="<?php echo AFFILIATEWP_PLUGIN_URL . 'assets/images/logo-affiliatewp.svg'; ?>" />
-
-				<?php if ( 'affiliate-wp-setup-screen' === affwp_get_current_screen() ) : ?>
-					<h1><?php echo esc_html__( 'Setup Guide', 'affiliate-wp' ); ?></h1>
-				<?php endif; ?>
 			</section>
 			<div id="affwp-header-actions">
 				<button
 					id="affwp-notification-button"
 					class="affwp-round"
 					x-data
-					x-init="$store.affwpNotifications.numberActiveNotifications = <?php echo esc_js( $number_notifications ); ?>"
+					x-init="$store.affwpNotifications.onInit(<?php echo esc_js( $number_notifications ); ?>)"
 					@click="$store.affwpNotifications.openPanel()"
 				>
 					<span
@@ -60,12 +58,12 @@ function affwp_admin_header() {
 								'<span class="screen-reader-text">',
 								'</span>'
 							),
-							array(
-								'span' => array(
-									'class' => true,
+							[
+								'span' => [
+									'class'  => true,
 									'x-text' => true,
-								)
-							)
+								],
+							]
 						);
 						?>
 					</span>
@@ -73,7 +71,7 @@ function affwp_admin_header() {
 					<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="affwp-notifications-icon"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.8333 2.5H4.16667C3.25 2.5 2.5 3.25 2.5 4.16667V15.8333C2.5 16.75 3.24167 17.5 4.16667 17.5H15.8333C16.75 17.5 17.5 16.75 17.5 15.8333V4.16667C17.5 3.25 16.75 2.5 15.8333 2.5ZM15.8333 15.8333H4.16667V13.3333H7.13333C7.70833 14.325 8.775 15 10.0083 15C11.2417 15 12.3 14.325 12.8833 13.3333H15.8333V15.8333ZM11.675 11.6667H15.8333V4.16667H4.16667V11.6667H8.34167C8.34167 12.5833 9.09167 13.3333 10.0083 13.3333C10.925 13.3333 11.675 12.5833 11.675 11.6667Z" fill="currentColor"></path></svg>
 				</button>
 				<span class="affwp-round">
-					<a href="https://affiliatewp.com/docs/" target="_blank" rel="noopener noreferrer">
+					<a href="<?php echo esc_url( affwp_utm_link( 'https://affiliatewp.com/docs/', 'settings-header', 'Documentation Help Icon' ) ); ?>" target="_blank" rel="noopener noreferrer">
 						<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.6665 10.0001C1.6665 5.40008 5.39984 1.66675 9.99984 1.66675C14.5998 1.66675 18.3332 5.40008 18.3332 10.0001C18.3332 14.6001 14.5998 18.3334 9.99984 18.3334C5.39984 18.3334 1.6665 14.6001 1.6665 10.0001ZM10.8332 13.3334V15.0001H9.1665V13.3334H10.8332ZM9.99984 16.6667C6.32484 16.6667 3.33317 13.6751 3.33317 10.0001C3.33317 6.32508 6.32484 3.33341 9.99984 3.33341C13.6748 3.33341 16.6665 6.32508 16.6665 10.0001C16.6665 13.6751 13.6748 16.6667 9.99984 16.6667ZM6.6665 8.33341C6.6665 6.49175 8.15817 5.00008 9.99984 5.00008C11.8415 5.00008 13.3332 6.49175 13.3332 8.33341C13.3332 9.40251 12.6748 9.97785 12.0338 10.538C11.4257 11.0695 10.8332 11.5873 10.8332 12.5001H9.1665C9.1665 10.9824 9.9516 10.3806 10.6419 9.85148C11.1834 9.43642 11.6665 9.06609 11.6665 8.33341C11.6665 7.41675 10.9165 6.66675 9.99984 6.66675C9.08317 6.66675 8.33317 7.41675 8.33317 8.33341H6.6665Z" fill="currentColor"></path></svg>
 					</a>
 				</span>
@@ -130,11 +128,11 @@ function affwp_do_settings_fields( string $page, string $section ) {
 			continue; // Can't render sections without fields.
 		}
 
-		$section_classes = array(
+		$section_classes = [
 			'affwp-section',
 			'affwp-accordion-item',
 			$tab_section['class'] ?? '',
-		);
+		];
 
 		$template = $tab_section['template'] ?? '';
 
@@ -167,7 +165,40 @@ function affwp_do_settings_fields( string $page, string $section ) {
 					<?php endif; ?>
 
 					<?php if ( ! empty( $tab_section['tooltip'] ) ) : ?>
-						<?php affiliatewp_tooltip( $tab_section['tooltip'] ); ?>
+						<?php
+						// Build tooltip HTML content.
+						$tooltip_html = '';
+						if ( is_array( $tab_section['tooltip'] ) ) {
+							foreach ( $tab_section['tooltip'] as $item ) {
+								if ( is_string( $item ) ) {
+									$tooltip_html .= '<p class="mb-2">' . esc_html( $item ) . '</p>';
+								} elseif ( is_array( $item ) && isset( $item['type'] ) && $item['type'] === 'link' ) {
+									$link_text  = isset( $item['text'] ) ? $item['text'] : __( 'Learn more', 'affiliate-wp' );
+									$link_url   = isset( $item['url'] ) ? $item['url'] : '#';
+									$external   = isset( $item['external'] ) && $item['external'];
+									$link_attrs = $external ? 'target="_blank" rel="noopener noreferrer"' : '';
+
+									$tooltip_html .= sprintf(
+										'<a href="%s" class="text-affwp-brand-600 hover:text-affwp-brand-800 underline" %s>%s</a>',
+										esc_url( $link_url ),
+										$link_attrs,
+										esc_html( $link_text )
+									);
+								}
+							}
+						} else {
+							$tooltip_html = $tab_section['tooltip'];
+						}
+
+						// Generate tooltip content.
+						$tooltip_content = affwp_tooltip( $tooltip_html );
+
+						// Output the icon with tooltip.
+						printf(
+							'<span class="dashicons dashicons-editor-help cursor-help" data-tooltip-html="%s"></span>',
+							esc_attr( $tooltip_content )
+						);
+						?>
 					<?php endif; ?>
 				</h2>
 				<?php if ( ! empty( $tab_section['help_text'] ) ) : ?>
@@ -253,7 +284,7 @@ function affiliatewp_section_template_table( string $page, string $section, arra
 				<?php
 
 				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Content already escaped.
-				echo affiliatewp_tag_attr( 'id', $field['args']['id'] );
+				echo affiliatewp_tag_attr( 'id', ! empty( $field['args']['row_id'] ) ? $field['args']['row_id'] : $field['args']['id'] );
 
 				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Content already escaped.
 				echo affiliatewp_tag_attr( 'class', trim( $classes ) );
@@ -295,14 +326,69 @@ function affiliatewp_section_template_table( string $page, string $section, arra
 							<span class="affwp-settings-label-pro">Pro</span>
 						<?php endif; ?>
 
-						<?php if ( ! empty( $field['args']['tooltip'] ) && is_string( $field['args']['tooltip'] ) ) : ?>
-							<?php affiliatewp_tooltip( $field['args']['tooltip'] ); ?>
+						<?php if ( ! empty( $field['args']['tooltip'] ) ) : ?>
+							<?php
+							// Handle different tooltip formats.
+							$tooltip_content = '';
+
+							// Check if it's already HTML (contains HTML tags).
+							if ( is_string( $field['args']['tooltip'] ) && strpos( $field['args']['tooltip'], '<' ) !== false ) {
+								// Already HTML, use directly.
+								$tooltip_content = $field['args']['tooltip'];
+							} elseif ( is_array( $field['args']['tooltip'] ) ) {
+								// Array format - build HTML.
+								foreach ( $field['args']['tooltip'] as $item ) {
+									if ( is_string( $item ) ) {
+										$tooltip_content .= '<p class="mb-2">' . esc_html( $item ) . '</p>';
+									} elseif ( is_array( $item ) && isset( $item['type'] ) && $item['type'] === 'link' ) {
+										$link_text  = isset( $item['text'] ) ? $item['text'] : __( 'Learn more', 'affiliate-wp' );
+										$link_url   = isset( $item['url'] ) ? $item['url'] : '#';
+										$external   = isset( $item['external'] ) && $item['external'];
+										$link_attrs = $external ? 'target="_blank" rel="noopener noreferrer"' : '';
+
+										$tooltip_content .= sprintf(
+											'<a href="%s" class="text-affwp-brand-600 hover:text-affwp-brand-800 underline" %s>%s</a>',
+											esc_url( $link_url ),
+											$link_attrs,
+											esc_html( $link_text )
+										);
+									}
+								}
+							} else {
+								// Plain text.
+								$tooltip_content = esc_html( $field['args']['tooltip'] );
+							}
+
+							// Generate tooltip wrapper.
+							$tooltip_html = affwp_tooltip( $tooltip_content );
+
+							// Output the icon with tooltip.
+							printf(
+								'<span class="dashicons dashicons-editor-help cursor-help" data-tooltip-html="%s"></span>',
+								esc_attr( $tooltip_html )
+							);
+							?>
 						<?php endif; ?>
 
 					</div>
 				</th>
 				<?php if ( is_callable( $field['callback'] ) ) : ?>
-					<td><?php call_user_func( $field['callback'], $field['args'] ); ?></td>
+					<td>
+						<?php call_user_func( $field['callback'], $field['args'] ); ?>
+						<?php
+
+						/**
+						 * Fires after a settings field is rendered inside its table cell.
+						 *
+						 * @since 2.32.0
+						 *
+						 * @param string $field_id The setting field ID (e.g. 'cookie_exp').
+						 * @param array  $args     The field arguments.
+						 */
+						do_action( "affwp_after_setting_field_{$field['args']['id']}", $field['args'] );
+
+						?>
+					</td>
 				<?php endif; ?>
 			</tr>
 
@@ -366,7 +452,7 @@ function affiliatewp_section_template_affiliate_signup_widget( string $page, str
 									<?php
 
 									// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Content already escaped.
-									echo affiliatewp_section_template_table( $page, $section, $group['settings'] ?? array() );
+									echo affiliatewp_section_template_table( $page, $section, $group['settings'] ?? [] );
 
 									?>
 
@@ -387,6 +473,427 @@ function affiliatewp_section_template_affiliate_signup_widget( string $page, str
 		</div>
 
 	</div>
+	<?php
+
+	return ob_get_clean();
+}
+
+/**
+ * Render a section using the affiliate_security template.
+ *
+ * @since 2.28.0
+ *
+ * @param string $page    Slug title of the admin page whose settings field you want to show.
+ * @param string $section Slug title of the settings section whose fields you want to show.
+ * @param array  $fields  The array of fields to render.
+ *
+ * @return string
+ */
+function affiliatewp_section_template_affiliate_security( string $page, string $section, array $fields ) : string {
+
+	ob_start();
+
+	?>
+
+	<div class="affwp-security-section-wrapper">
+
+		<div class="affwp-captcha-options-wrapper">
+
+		<div class="affwp-captcha-type-selector">
+			<?php
+			// Render the CAPTCHA type radio field first
+			$captcha_type_field = affiliatewp_get_field_from_settings( $page, $section, 'captcha_type' );
+			if ( false !== $captcha_type_field && is_callable( $captcha_type_field['callback'] ) ) {
+				?>
+				<table class="form-table">
+					<tr>
+						<th scope="row">
+							<label><?php echo wp_kses( $captcha_type_field['title'], affwp_kses() ); ?></label>
+						</th>
+						<td>
+							<div class="captcha-selector-container">
+
+							<?php if ( ! empty( $captcha_type_field['args']['desc'] ) ) : ?>
+								<div class="captcha-selector__description">
+									<?php if ( is_array( $captcha_type_field['args']['desc'] ) ) : ?>
+										<?php foreach ( $captcha_type_field['args']['desc'] as $desc_paragraph ) : ?>
+											<p class="description"><?php echo wp_kses( $desc_paragraph, affwp_kses() ); ?></p>
+										<?php endforeach; ?>
+									<?php else : ?>
+										<p class="description"><?php echo wp_kses( $captcha_type_field['args']['desc'], affwp_kses() ); ?></p>
+									<?php endif; ?>
+								</div>
+								<?php endif; ?>
+
+								<div class="captcha-selector">
+								<?php
+								$options       = $captcha_type_field['args']['options'];
+								$current_value = affiliate_wp()->settings->get( 'captcha_type', 'none' );
+
+								foreach ( $options as $key => $label ) {
+									$checked        = ( $current_value === $key ) ? 'checked' : '';
+									$selected_class = ( $current_value === $key ) ? 'selected' : '';
+
+									// Choose icon based on option
+									$icon_content = '';
+									switch ( $key ) {
+										case 'none':
+											$icon_content = \AffiliateWP\Utils\Icons::generate( 'captcha-none', '', [ 'width' => '64', 'height' => '64' ] );
+											break;
+										case 'recaptcha':
+											$icon_content = '<img src="' . AFFILIATEWP_PLUGIN_URL . 'assets/images/captcha/recaptcha.svg" alt="' . esc_attr__( 'Google reCAPTCHA', 'affiliate-wp' ) . '" />';
+											break;
+										case 'hcaptcha':
+											$icon_content = '<img src="' . AFFILIATEWP_PLUGIN_URL . 'assets/images/captcha/hcaptcha.svg" alt="' . esc_attr__( 'hCaptcha', 'affiliate-wp' ) . '" />';
+											break;
+										case 'turnstile':
+											$icon_content = '<img src="' . AFFILIATEWP_PLUGIN_URL . 'assets/images/captcha/turnstile.svg" alt="' . esc_attr__( 'Cloudflare Turnstile', 'affiliate-wp' ) . '" />';
+											break;
+									}
+									?>
+									<label class="captcha-selector__option <?php echo $current_value === $key ? 'captcha-selector__option--selected' : ''; ?>" data-value="<?php echo esc_attr( $key ); ?>">
+										<input type="radio"
+												name="affwp_settings[captcha_type]"
+												value="<?php echo esc_attr( $key ); ?>"
+												class="captcha-selector__option-input"
+												<?php echo $checked; ?> />
+										<div class="captcha-selector__option-icon <?php echo $key === 'turnstile' ? 'captcha-selector__option-icon--turnstile' : ''; ?> <?php echo $key === 'none' ? 'captcha-selector__option-icon--none' : ''; ?>"><?php echo $icon_content; ?></div>
+										<span class="captcha-selector__option-label"><?php echo esc_html( $label ); ?></span>
+									</label>
+									<?php
+								}
+								?>
+								</div>
+
+
+
+
+								<?php
+								/*
+								 * CAPTCHA Info Boxes
+								 */
+								$captcha_info_boxes = [
+									'recaptcha' => [
+										'description'   => __( 'Google reCAPTCHA is a free anti-spam service that filters automated abuse from your forms with either a familiar "I\'m not a robot" checkbox or an invisible background check, keeping real users on track.', 'affiliate-wp' ),
+										'doc_text'      => __( 'For more details on how Google reCAPTCHA works, as well as a step by step setup guide, please check out our %s.', 'affiliate-wp' ),
+										'doc_url'       => affwp_utm_link( 'https://affiliatewp.com/docs/how-to-set-up-and-use-recaptcha-in-affiliatewp/', 'captcha-security', 'recaptcha-info-box', 'security-settings' ),
+										'has_lightbulb' => true,
+									],
+									'hcaptcha'  => [
+										'description'   => __( 'hCaptcha is a free and privacy-oriented spam-prevention service that adds a quick human-verification step to your forms, blocking bots while letting legitimate visitors straight through.', 'affiliate-wp' ),
+										'doc_text'      => __( 'For more details on how hCaptcha works, as well as a step by step setup guide, please check out our %s.', 'affiliate-wp' ),
+										'doc_url'       => affwp_utm_link( 'https://affiliatewp.com/docs/how-to-set-up-and-use-hcaptcha-in-affiliatewp/', 'captcha-security', 'hcaptcha-info-box', 'security-settings' ),
+										'has_lightbulb' => true,
+									],
+									'turnstile' => [
+										'description'   => __( 'Cloudflare Turnstile is a free, puzzle-less CAPTCHA alternative that quietly validates visitors and stops bots without disruptive challenges, maintaining a seamless experience.', 'affiliate-wp' ),
+										'doc_text'      => __( 'For more details on how Cloudflare Turnstile works, as well as a step by step setup guide, please check out our %s.', 'affiliate-wp' ),
+										'doc_url'       => affwp_utm_link( 'https://affiliatewp.com/docs/how-to-set-up-and-use-turnstile-in-affiliatewp/', 'captcha-security', 'turnstile-info-box', 'security-settings' ),
+										'has_lightbulb' => true,
+									],
+									'none'      => [
+										'has_lightbulb' => false,
+									],
+								];
+								?>
+								<div class="captcha-selector__info-boxes">
+									<?php foreach ( $captcha_info_boxes as $captcha_type => $info ) : ?>
+										<div class="captcha-selector__info-box captcha-selector__info-box--<?php echo esc_attr( $captcha_type ); ?>" data-captcha-type="<?php echo esc_attr( $captcha_type ); ?>">
+											<div class="captcha-selector__info-box-content">
+												<div class="captcha-selector__info-box-icon">
+													<?php if ( $info['has_lightbulb'] ) : ?>
+														<?php \AffiliateWP\Utils\Icons::render( 'lightbulb' ); ?>
+													<?php elseif ( 'none' === $captcha_type ) : ?>
+														<?php \AffiliateWP\Utils\Icons::render( 'captcha-none' ); ?>
+													<?php endif; ?>
+												</div>
+												<?php if ( $info['has_lightbulb'] ) : ?>
+													<div class="captcha-selector__info-box-text">
+														<p class="captcha-selector__info-box-description"><?php echo esc_html( $info['description'] ); ?></p>
+														<p class="captcha-selector__info-box-link">
+															<?php
+															printf(
+																/* translators: %s: Link to documentation */
+																esc_html( $info['doc_text'] ),
+																'<a href="' . esc_url( $info['doc_url'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'documentation', 'affiliate-wp' ) . '</a>'
+															);
+															?>
+														</p>
+													</div>
+												<?php endif; ?>
+											</div>
+										</div>
+									<?php endforeach; ?>
+								</div>							</div>
+
+
+
+
+
+						</td>
+					</tr>
+
+					<?php
+					// Add CAPTCHA configuration fields to the main table
+					// Define which fields are CAPTCHA-related vs general security settings
+					$captcha_fields = [
+						'recaptcha_type',
+						'recaptcha_site_key',
+						'recaptcha_secret_key',
+						'recaptcha_score_threshold',
+						'hcaptcha_site_key',
+						'hcaptcha_secret_key',
+						'turnstile_site_key',
+						'turnstile_secret_key',
+						'captcha_protect_login',
+					];
+
+					// Function to render a field with proper CAPTCHA type data attribute
+					$render_captcha_field = function ( $field_key ) use ( $page, $section ) {
+						$field = affiliatewp_get_field_from_settings( $page, $section, $field_key );
+
+						if ( false === $field ) {
+							return; // Field doesn't exist, skip it.
+						}
+
+						// Fix visibility structure for JavaScript compatibility
+						if ( isset( $field['args']['visibility'] ) ) {
+							$visibility = $field['args']['visibility'];
+
+							if ( isset( $visibility['rule'] ) && isset( $visibility['field'] ) ) {
+								// Check if this is a multi-rule case that's already properly structured
+								if ( isset( $visibility['rule']['rule'] ) && is_array( $visibility['rule']['rule'] ) ) {
+									$field['args']['visibility'] = [ 'rule' => $visibility['rule']['rule'] ];
+								} else {
+									$field['args']['visibility'] = [ 'rule' => $visibility['rule'] ];
+								}
+							} elseif ( ! isset( $visibility['rule'] ) && isset( $visibility['required_field'] ) ) {
+								$field['args']['visibility'] = [ 'rule' => $visibility ];
+							}
+						}
+
+						// Determine which CAPTCHA type this field belongs to
+						$captcha_type = '';
+						if ( strpos( $field_key, 'recaptcha' ) === 0 ) {
+							$captcha_type = 'recaptcha';
+						} elseif ( strpos( $field_key, 'hcaptcha' ) === 0 ) {
+							$captcha_type = 'hcaptcha';
+						} elseif ( strpos( $field_key, 'turnstile' ) === 0 ) {
+							$captcha_type = 'turnstile';
+						} elseif ( 'captcha_protect_login' === $field_key ) {
+							$captcha_type = 'all'; // This field applies to all CAPTCHA types
+						}
+
+						$classes = array_filter(
+							[
+								'affwp-settings-field',
+								'affwp-captcha-config-field',
+								$field['args']['class'] ?? '',
+							]
+						);
+
+						// Special styling for recaptcha_version field
+						if ( 'recaptcha_version' === $field_key ) {
+							$classes[] = 'affwp-recaptcha-version-field';
+						}
+
+						?>
+						<tr class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>"
+							data-captcha-type="<?php echo esc_attr( $captcha_type ); ?>"
+							<?php
+							echo affiliatewp_tag_attr( 'id', $field['args']['id'] );
+							echo affiliatewp_tag_attr( 'data-visibility', $field['args']['visibility'] );
+							?>
+						>
+							<th scope="row">
+								<div>
+									<?php if ( empty( $field['args']['label_for'] ) ) : ?>
+
+										<?php
+										$label_for = sprintf(
+											'affwp_settings[%s]%s',
+											$field['args']['id'],
+											isset( $field['args']['options'] ) && ! empty( $field['args']['options'] )
+												? sprintf( '[%s]', array_keys( $field['args']['options'] )[0] )
+												: ''
+										);
+										?>
+
+										<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Content already escaped. ?>
+										<label<?php echo affiliatewp_tag_attr( 'for', $label_for ); ?>>
+											<?php echo wp_kses( $field['title'], affwp_kses() ); ?>
+										</label>
+
+									<?php else : ?>
+
+										<?php // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Content already escaped. ?>
+										<label<?php echo affiliatewp_tag_attr( 'for', $field['args']['label_for'] ); ?>>
+											<?php echo wp_kses( $field['title'], affwp_kses() ); ?>
+										</label>
+
+									<?php endif; ?>
+
+									<?php if ( ! empty( $field['args']['tooltip'] ) ) : ?>
+										<?php
+										// Handle different tooltip formats.
+										$tooltip_content = '';
+
+										// Check if it's already HTML (contains HTML tags).
+										if ( is_string( $field['args']['tooltip'] ) && strpos( $field['args']['tooltip'], '<' ) !== false ) {
+											// Already HTML, use directly.
+											$tooltip_content = $field['args']['tooltip'];
+										} elseif ( is_array( $field['args']['tooltip'] ) ) {
+											// Array format - build HTML.
+											foreach ( $field['args']['tooltip'] as $item ) {
+												if ( is_string( $item ) ) {
+													$tooltip_content .= '<p class="mb-2">' . esc_html( $item ) . '</p>';
+												} elseif ( is_array( $item ) && isset( $item['type'] ) && $item['type'] === 'link' ) {
+													$link_text  = isset( $item['text'] ) ? $item['text'] : __( 'Learn more', 'affiliate-wp' );
+													$link_url   = isset( $item['url'] ) ? $item['url'] : '#';
+													$external   = isset( $item['external'] ) && $item['external'];
+													$link_attrs = $external ? 'target="_blank" rel="noopener noreferrer"' : '';
+
+													$tooltip_content .= sprintf(
+														'<a href="%s" class="text-affwp-brand-600 hover:text-affwp-brand-800 underline" %s>%s</a>',
+														esc_url( $link_url ),
+														$link_attrs,
+														esc_html( $link_text )
+													);
+												}
+											}
+										} else {
+											// Plain text.
+											$tooltip_content = esc_html( $field['args']['tooltip'] );
+										}
+
+										// Generate tooltip wrapper.
+										$tooltip_html = affwp_tooltip( $tooltip_content );
+
+										// Output the icon with tooltip.
+										printf(
+											'<span class="dashicons dashicons-editor-help cursor-help" data-tooltip-html="%s"></span>',
+											esc_attr( $tooltip_html )
+										);
+										?>
+									<?php endif; ?>
+								</div>
+							</th>
+							<td>
+								<?php if ( is_callable( $field['callback'] ) ) : ?>
+									<?php call_user_func( $field['callback'], $field['args'] ); ?>
+								<?php endif; ?>
+							</td>
+						</tr>
+						<?php
+					};
+
+					// Render all CAPTCHA configuration fields
+				foreach ( $captcha_fields as $field_key ) {
+					if ( 'captcha_type' === $field_key ) {
+						continue; // Skip the type field as we already rendered it
+					}
+					$render_captcha_field( $field_key );
+				}
+				?>
+
+				</table>
+				<?php
+			}
+			?>
+		</div>
+
+		<?php
+		// Separate non-CAPTCHA fields for the security settings section
+		$non_captcha_fields = [];
+		$captcha_field_list = [
+			'recaptcha_type',
+			'recaptcha_site_key',
+			'recaptcha_secret_key',
+			'recaptcha_score_threshold',
+			'hcaptcha_site_key',
+			'hcaptcha_secret_key',
+			'turnstile_site_key',
+			'turnstile_secret_key',
+			'captcha_protect_login',
+		];
+
+		foreach ( $fields as $field_key ) {
+			if ( 'captcha_type' === $field_key ) {
+				continue; // Skip the type field as we already rendered it
+			}
+
+			if ( ! in_array( $field_key, $captcha_field_list, true ) ) {
+				$non_captcha_fields[] = $field_key;
+			}
+		}
+		?>
+
+	</div>
+
+	<!-- Non-CAPTCHA Security Settings (always visible) -->
+	<?php if ( ! empty( $non_captcha_fields ) ) : ?>
+		<div class="affwp-security-settings">
+			<table class="form-table">
+				<?php
+				// Render non-CAPTCHA fields
+				foreach ( $non_captcha_fields as $field_key ) {
+					$field = affiliatewp_get_field_from_settings( $page, $section, $field_key );
+
+					if ( false === $field ) {
+						continue; // Field doesn't exist, skip it.
+					}
+
+					// Fix visibility structure for JavaScript compatibility
+					if ( isset( $field['args']['visibility'] ) ) {
+						$visibility = $field['args']['visibility'];
+
+						if ( isset( $visibility['rule'] ) && isset( $visibility['field'] ) ) {
+							// Check if this is a multi-rule case that's already properly structured
+							if ( isset( $visibility['rule']['rule'] ) && is_array( $visibility['rule']['rule'] ) ) {
+								$field['args']['visibility'] = [ 'rule' => $visibility['rule']['rule'] ];
+							} else {
+								$field['args']['visibility'] = [ 'rule' => $visibility['rule'] ];
+							}
+						} elseif ( ! isset( $visibility['rule'] ) && isset( $visibility['required_field'] ) ) {
+							$field['args']['visibility'] = [ 'rule' => $visibility ];
+						}
+					}
+
+					$classes = array_filter(
+						[
+							'affwp-settings-field',
+							'affwp-security-setting-field',
+							$field['args']['class'] ?? '',
+						]
+					);
+
+					?>
+					<tr class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>"
+						<?php
+						echo affiliatewp_tag_attr( 'id', $field['args']['id'] );
+						echo affiliatewp_tag_attr( 'data-visibility', $field['args']['visibility'] );
+						?>
+					>
+						<th scope="row">
+							<label for="<?php echo esc_attr( $field['args']['id'] ); ?>">
+								<?php echo wp_kses( $field['title'], affwp_kses() ); ?>
+							</label>
+						</th>
+						<td>
+							<?php if ( is_callable( $field['callback'] ) ) : ?>
+								<?php call_user_func( $field['callback'], $field['args'] ); ?>
+							<?php endif; ?>
+						</td>
+					</tr>
+					<?php
+				}
+				?>
+			</table>
+		</div>
+	<?php endif; ?>
+
+	</div>
+
 	<?php
 
 	return ob_get_clean();
@@ -436,15 +943,47 @@ function affwp_settings_admin() {
 
 	<div class="wrap">
 		<h2 class="nav-tab-wrapper">
-			<?php affwp_navigation_tabs( affwp_get_settings_tabs(), $active_tab, array( 'settings-updated' => false ) ); ?>
+			<?php affwp_navigation_tabs( affwp_get_settings_tabs(), $active_tab, [ 'settings-updated' => false ] ); ?>
 		</h2>
 		<div id="tab_container">
-			<form id="affwp-settings-form" method="post" action="options.php">
+			<form id="affwp-settings-form" method="post" action="options.php"
+					x-data="{ isSaving: false }"
+					@submit="isSaving = true"
+					@validation-failed.window="isSaving = false">
+
+
 				<?php
 				settings_fields( 'affwp_settings' );
-				affwp_do_settings_fields( 'affwp_settings_' . $active_tab, 'affwp_settings_' . $active_tab );
+
+				// Allow tabs to completely override the display with custom content.
+				if ( has_action( "affwp_settings_tab_{$active_tab}_content" ) ) {
+					/**
+					 * Fires to display custom tab content.
+					 *
+					 * The dynamic portion of the hook name, `$active_tab`, refers to the active settings tab.
+					 *
+					 * @since 2.29.0
+					 */
+					do_action( "affwp_settings_tab_{$active_tab}_content" );
+				} else {
+					affwp_do_settings_fields( 'affwp_settings_' . $active_tab, 'affwp_settings_' . $active_tab );
+				}
+
 				?>
-				<?php submit_button(); ?>
+
+				<?php
+					affwp_button(
+						[
+							'text'          => __( 'Save Changes', 'affiliate-wp' ),
+							'variant'       => 'primary',
+							'type'          => 'submit',
+							'name'          => 'submit',
+							'id'            => 'submit',
+							'loading_state' => 'isSaving',
+						]
+					);
+				?>
+
 			</form>
 		</div><!-- #tab_container-->
 	</div><!-- .wrap -->
@@ -478,19 +1017,18 @@ function affwp_get_settings_tabs() : array {
  */
 function affwp_check_license_before_settings_load() {
 
-	if( empty( $_GET['page'] ) || 'affiliate-wp-settings' !== $_GET['page'] ) {
+	if ( empty( $_GET['page'] ) || 'affiliate-wp-settings' !== $_GET['page'] ) {
 		return;
 	}
 
-	if( empty( $_GET['tab'] ) ) {
+	if ( empty( $_GET['tab'] ) ) {
 		return;
 	}
 
-	$active_tab = isset( $_GET[ 'tab' ] ) && array_key_exists( $_GET['tab'], affwp_get_settings_tabs() ) ? $_GET[ 'tab' ] : 'general';
+	$active_tab = isset( $_GET['tab'] ) && array_key_exists( $_GET['tab'], affwp_get_settings_tabs() ) ? $_GET['tab'] : 'general';
 
-	if( 'general' === $active_tab && affiliate_wp()->settings->get_license_key() ) {
+	if ( 'general' === $active_tab && affiliate_wp()->settings->get_license_key() ) {
 		affiliate_wp()->settings->check_license( true );
 	}
-
 }
 add_action( 'admin_init', 'affwp_check_license_before_settings_load', 0 );

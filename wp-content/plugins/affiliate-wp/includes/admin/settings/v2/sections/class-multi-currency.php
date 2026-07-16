@@ -19,12 +19,17 @@ use AffiliateWP\Utils\Icons;
 use function AffiliateWP\Multi_Currency\affiliate_wp_multi_currency;
 use function AffiliateWP\Multi_Currency\convert_rate_to_string;
 
+affwp_require_util_traits( 'db' );
+
 /**
  * Addons class.
  *
  * @since 2.26.1
  */
 final class Multi_Currency extends Base {
+
+	use \AffiliateWP\Utils\DB;
+
 	/**
 	 * Store the default AffiliateWP currency select for this site.
 	 *
@@ -284,6 +289,7 @@ final class Multi_Currency extends Base {
 	 * Gets a list of recent currencies from recent WooCommerce orders.
 	 *
 	 * @since 2.27.3
+	 * @since AFFWPN Notice prevented when WooCommerce isn't active.
 	 *
 	 * @param string $default_currency When there are none, this currency will be the default.
 	 *
@@ -293,6 +299,10 @@ final class Multi_Currency extends Base {
 
 		global $wpdb;
 		global $table_prefix;
+
+		if ( ! $this->table_exists( "{$table_prefix}wc_orders" ) ) {
+			return [ strtoupper( $default_currency ) ]; // No WooCommerce.
+		}
 
 		// Get the WooCommerce currencies from the last # of orders.
 		$recent_currencies = $wpdb->get_col(
@@ -368,22 +378,20 @@ final class Multi_Currency extends Base {
 	 * The tooltip includes a brief explanation of the addon's functionality and a link to learn more.
 	 *
 	 * @since 2.26.1
-	 * @return string The tooltip text.
+	 * @return array The tooltip content array.
 	 */
-	public function get_tooltip() : string {
-		return sprintf(
-			/* translators: 1: Link to the doc page on tiers. 2: Additional link attributes. 3: Accessibility text. */
-			'<p>' . __( 'The Multi-Currency addon ensures accurate affiliate commissions by converting the order\'s originating currency into the affiliate program\'s currency using real-time exchange rates.', 'affiliate-wp' ) . '</p>' .
-			'<p>' . __( 'Essential for stores operating in multiple currencies.', 'affiliate-wp' ) . '</p>' .
-			__( '<a href="%1$s" %2$s>Learn more%3$s</a>', 'affiliate-wp' ),
-			esc_url( 'https://affiliatewp.com/docs/multi-currency' ),
-			'target="_blank" rel="noopener"',
-			sprintf(
-				'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
-				/* translators: Hidden accessibility text. */
-				__( '(opens in a new tab)', 'affiliate-wp' )
-			)
-		);
+	public function get_tooltip() {
+		return [
+			__( 'The Multi-Currency addon ensures accurate affiliate commissions by converting the order\'s originating currency into the affiliate program\'s currency using real-time exchange rates.', 'affiliate-wp' ),
+			__( 'Essential for stores operating in multiple currencies.', 'affiliate-wp' ),
+			[
+				'type'     => 'link',
+				/* translators: Link text for Multi-Currency documentation */
+				'text'     => __( 'Learn more', 'affiliate-wp' ),
+				'url'      => affwp_utm_link( 'https://affiliatewp.com/docs/multi-currency', 'settings-commissions', 'Multi-Currency' ),
+				'external' => true,
+			],
+		];
 	}
 
 	/**
@@ -438,22 +446,17 @@ final class Multi_Currency extends Base {
 					'select2'    => [
 						'width' => '350px',
 					],
-					'tooltip'           => sprintf(
-						'<p>%1$s</p><p>%2$s</p>%3$s',
-						esc_html__( 'Select manual for full control over rates.', 'affiliate-wp' ),
-						esc_html__( 'Select an API provider to automatically update your exchange rates daily.', 'affiliate-wp' ),
-						sprintf(
-						/* translators: 1: Link to the doc page on tiers. 2: Additional link attributes. 3: Accessibility text. */
-							__( '<a href="%1$s" %2$s>Learn more%3$s</a>', 'affiliate-wp' ),
-							esc_url( 'https://affiliatewp.com/docs/multi-currency/#setting-up-exchange-rate-api' ),
-							'target="_blank" rel="noopener"',
-							sprintf(
-								'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
-								/* translators: Hidden accessibility text. */
-								esc_html__( '(opens in a new tab)', 'affiliate-wp' )
-							)
-						)
-					),
+					'tooltip'           => [
+						__( 'Select manual for full control over rates.', 'affiliate-wp' ),
+						__( 'Select an API provider to automatically update your exchange rates daily.', 'affiliate-wp' ),
+						[
+							'type'     => 'link',
+							/* translators: Link text for exchange rate API documentation */
+							'text'     => __( 'Learn more', 'affiliate-wp' ),
+							'url'      => affwp_utm_link( 'https://affiliatewp.com/docs/multi-currency/#setting-up-exchange-rate-api', 'settings-commissions', 'Multi-Currency Exchange Rate API' ),
+							'external' => true,
+						],
+					],
 				],
 				'multi_currency_api_key'                 => [
 					'name'              => __( 'API Key', 'affiliate-wp' ),

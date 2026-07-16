@@ -36,7 +36,21 @@ trait DB {
 	use \AffiliateWP\Utils\Data;
 
 	/**
+	 * Cache for table and column existence checks within a single request.
+	 *
+	 * @since 2.27.9
+	 * @var array
+	 */
+	private array $existence_cache = [
+		'table_exists'  => [],
+		'table_schemas' => [],
+	];
+
+	/**
 	 * Does a column (in a table) exist in the database?
+	 *
+	 * This method is optimized to run `DESC` on a table only once per request.
+	 * It caches the entire table schema on the first call for that table.
 	 *
 	 * @since  2.12.0
 	 * @since  2.18.0 Updated to use lower-level SQL.
@@ -63,35 +77,41 @@ trait DB {
 			throw new \InvalidArgumentException( '$column must be a non-empty string.' ); // Error.
 		}
 
-		if ( ! $this->table_exists( $table ) ) {
-			return false; // Test for the table first.
-		}
+		// Check if we have the schema for this table cached.
+		if ( ! isset( $this->existence_cache['table_schemas'][ $table ] ) ) {
 
-		global $wpdb;
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- We are trusting $table.
-		$results = $wpdb->get_results(
-			sprintf(
-				'DESC `%1$s` -- %2$s %3$s',
-				$table,
-				$column,
-				wp_generate_uuid4() // Avoids reporting duplicate queries to Query Monitor.
-			)
-		); // Note: Same as check_column() but will just check for Field.
-
-		if ( ! is_countable( $results ) ) {
-			return false;
-		}
-
-		foreach ( $results as $row ) {
-
-			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Snake case here comes from SQL.
-			if ( ( $row->Field ?? '' ) === $column ) {
-				return true;
+			// If the table doesn't exist, we can't get the schema.
+			// This check uses the table existence cache, so it's fast.
+			if ( ! $this->table_exists( $table ) ) {
+				$this->existence_cache['table_schemas'][ $table ] = []; // Cache empty schema.
+				return false;
 			}
+
+			// Not cached, so query the DB once for the schema.
+			global $wpdb;
+			$results = $wpdb->get_results(
+				sprintf(
+					'DESC `%s` -- %s',
+					$table,
+					wp_generate_uuid4()
+				)
+			);
+
+			$columns = [];
+			if ( is_countable( $results ) ) {
+				foreach ( $results as $row ) {
+					if ( isset( $row->Field ) ) {
+						$columns[] = $row->Field;
+					}
+				}
+			}
+
+			// Cache the list of columns for this table.
+			$this->existence_cache['table_schemas'][ $table ] = $columns;
 		}
 
-		return false;
+		// Now, check for the column in our cached schema.
+		return in_array( $column, $this->existence_cache['table_schemas'][ $table ], true );
 	}
 
 	/**
@@ -149,9 +169,13 @@ trait DB {
 			return false; // Empty table name.
 		}
 
+		if ( array_key_exists( $table, $this->existence_cache['table_exists'] ) ) {
+			return $this->existence_cache['table_exists'][ $table ];
+		}
+
 		global $wpdb;
 
-		return $table === $wpdb->get_var(
+		$result = $table === $wpdb->get_var(
 			$wpdb->prepare(
 				str_replace(
 					array(
@@ -172,6 +196,8 @@ trait DB {
 				$table
 			)
 		);
+
+		return $this->existence_cache['table_exists'][ $table ] = $result;
 	}
 
 	/**

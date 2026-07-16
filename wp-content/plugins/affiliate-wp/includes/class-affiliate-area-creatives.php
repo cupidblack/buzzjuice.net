@@ -52,10 +52,10 @@ class Affiliate_Area_Creatives {
 	 *
 	 * @var array|string[]
 	 */
-	private array $query_args = array(
+	private array $query_args = [
 		'orderby' => 'date_updated',
 		'order'   => 'desc',
-	);
+	];
 
 	/**
 	 * The collection of retrieved creatives.
@@ -64,7 +64,7 @@ class Affiliate_Area_Creatives {
 	 *
 	 * @var array
 	 */
-	private array $creatives = array();
+	private array $creatives = [];
 
 	/**
 	 * Parameters used to build URLs.
@@ -73,14 +73,14 @@ class Affiliate_Area_Creatives {
 	 *
 	 * @var string[]
 	 */
-	private array $allowed_url_args = array(
+	private array $allowed_url_args = [
 		'type',
 		'page',
 		'cat',
 		'order',
 		'orderby',
 		'view_type',
-	);
+	];
 
 	/**
 	 * The view type options.
@@ -89,10 +89,10 @@ class Affiliate_Area_Creatives {
 	 *
 	 * @var string[]
 	 */
-	private array $view_types = array(
+	private array $view_types = [
 		'list',
 		'grid',
-	);
+	];
 
 	/**
 	 * Kses for content filtering.
@@ -101,7 +101,7 @@ class Affiliate_Area_Creatives {
 	 *
 	 * @var array
 	 */
-	private array $content_kses = array();
+	private array $content_kses = [];
 
 	/**
 	 * Construct.
@@ -111,12 +111,12 @@ class Affiliate_Area_Creatives {
 	public function __construct() {
 
 		$this->content_kses = affwp_kses(
-			array(
-				'span' => array(
+			[
+				'span' => [
 					'data-url'      => true,
 					'data-settings' => true,
-				),
-			)
+				],
+			]
 		);
 
 		$this->hooks();
@@ -130,17 +130,17 @@ class Affiliate_Area_Creatives {
 	public function hooks() : void {
 
 		// General purpose hooks.
-		add_action( 'init', array( $this, 'save_view_type_cookie' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'load_scripts' ), 5 ); // Must run before form.css.
-		add_action( 'body_class', array( $this, 'body_class' ) );
+		add_action( 'init', [ $this, 'save_view_type_cookie' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'load_scripts' ], 5 ); // Must run before form.css.
+		add_action( 'body_class', [ $this, 'body_class' ] );
 
 		// Ajax hooks.
-		add_action( 'wp_ajax_affwp_show_creative_modal', array( $this, 'handle_modal_request' ) );
-		add_action( 'wp_ajax_affwp_creatives_load_more', array( $this, 'handle_infinite_scroll' ) );
+		add_action( 'wp_ajax_affwp_show_creative_modal', [ $this, 'handle_modal_request' ] );
+		add_action( 'wp_ajax_affwp_creatives_load_more', [ $this, 'handle_infinite_scroll' ] );
 
 		// UI hooks.
-		add_action( 'wp_footer', array( $this, 'modal_container' ) );
-		add_action( 'affwp_filter_creative_category_dropdown', array( $this, 'add_query_params_to_form' ), 10, 0 );
+		add_action( 'wp_footer', [ $this, 'modal_container' ] );
+		add_action( 'affwp_filter_creative_category_dropdown', [ $this, 'add_query_params_to_form' ], 10, 0 );
 	}
 
 	/**
@@ -181,38 +181,38 @@ class Affiliate_Area_Creatives {
 
 		affiliate_wp()->scripts->enqueue(
 			'affiliatewp-creatives',
-			array(
+			[
 				'affiliatewp-fancybox',
 				'affiliatewp-modal',
 				'affiliatewp-tooltip',
 				'affiliatewp-infinite-scroll',
 				'affiliatewp-qrcode',
-			)
+			]
 		);
 
 		$json = wp_json_encode(
-			array(
+			[
 				'nonce'           => wp_create_nonce( 'affwp-creatives-load-more' ),
 				'itemsPerPage'    => $this->per_page,
 				'page'            => $this->page,
 				'maxPages'        => $this->calc_max_pages(),
 				'queryArgs'       => wp_parse_args(
 					$this->get_args_from_url(),
-					array(
+					[
 						'view_type' => $this->get_user_view_type(),
-					)
+					]
 				),
 				'creativeAjaxUrl' => sprintf(
 					'%s?nonce=%s&action=affwp_show_creative_modal&creative_id=',
 					admin_url( 'admin-ajax.php' ),
 					wp_create_nonce( 'affwp-preview-creative' )
 				),
-				'i18n'            => array(
+				'i18n'            => [
 					'copyDisabled' => __( 'Error! Copy is not available.', 'affiliate-wp' ),
 					'copySuccess'  => __( 'Code Copied!', 'affiliate-wp' ),
 					'copyError'    => __( 'Error! Can not copy content.', 'affiliate-wp' ),
-				),
-			)
+				],
+			]
 		);
 
 		wp_add_inline_script( 'affiliatewp-creatives', "window.affiliatewpCreativesData={$json}", 'before' );
@@ -254,7 +254,6 @@ class Affiliate_Area_Creatives {
 		);
 
 		return $this;
-
 	}
 
 	/**
@@ -280,11 +279,11 @@ class Affiliate_Area_Creatives {
 					'affwp_affiliate_dashboard_creatives_args',
 					wp_parse_args(
 						$this->get_args_from_url(),
-						array(
+						[
 							'number' => apply_filters( 'affwp_unlimited', -1, 'creatives_type_count' ),
-							'fields' => array( 'creative_id', 'type' ),
+							'fields' => [ 'creative_id', 'type' ],
 							'type'   => 'any',
-						)
+						]
 					)
 				)
 			)
@@ -293,7 +292,6 @@ class Affiliate_Area_Creatives {
 		return 0 === $total
 			? $total
 			: ceil( $total / $this->get_items_per_page() );
-
 	}
 
 	/**
@@ -384,10 +382,10 @@ class Affiliate_Area_Creatives {
 			'affwp_affiliate_dashboard_creatives_args',
 			wp_parse_args(
 				$this->get_query_args(),
-				array(
+				[
 					'number' => $this->get_items_per_page(),
 					'offset' => $this->get_items_per_page() * ( $this->get_current_page() - 1 ),
-				)
+				]
 			)
 		);
 
@@ -483,10 +481,10 @@ class Affiliate_Area_Creatives {
 
 		ob_start();
 
-		$icons = array(
+		$icons = [
 			'list' => __( 'List', 'affiliate-wp' ),
 			'grid' => __( 'Grid', 'affiliate-wp' ),
-		);
+		];
 		?>
 
 		<ul class="affwp-view-switcher">
@@ -537,26 +535,25 @@ class Affiliate_Area_Creatives {
 
 		// Return only active creatives available for the current affiliate.
 		$creatives = affiliate_wp()->creative->get_affiliate_creatives(
-			array(
+			[
 				'number' => apply_filters( 'affwp_unlimited', -1, 'creatives_type_count' ),
-				'fields' => array( 'creative_id', 'type' ),
+				'fields' => [ 'creative_id', 'type' ],
 				'type'   => 'any',
-			)
+			]
 		);
 
 		if ( empty( $creatives ) ) {
-			return array();
+			return [];
 		}
 
 		return array_count_values(
 			array_map(
-				function( $creative ) {
+				function ( $creative ) {
 					return $creative->type;
 				},
 				$creatives
 			)
 		);
-
 	}
 
 	/**
@@ -586,7 +583,7 @@ class Affiliate_Area_Creatives {
 			<li<?php echo $this->is_tab_active( '' ) ? ' class="active"' : ''; ?>>
 				<a href="<?php echo esc_url_raw( $this->generate_tab_url_from_current_url( "type=&cat={$cat}" ) ); ?>">
 					<?php
-						echo sprintf(
+						printf(
 							'%s <span>(%d)</span>',
 							esc_html__( 'All', 'affiliate-wp' ),
 							esc_html( array_sum( array_values( $types_count ) ) )
@@ -611,7 +608,7 @@ class Affiliate_Area_Creatives {
 					<a href="<?php echo esc_url_raw( $this->generate_tab_url_from_current_url( "type={$type_key}&cat={$cat}" ) ); ?>">
 						<?php
 
-						echo sprintf(
+						printf(
 							'%s <span>(%d)</span>',
 							esc_html( $type_label ),
 							esc_html( $count )
@@ -647,7 +644,6 @@ class Affiliate_Area_Creatives {
 			wp_create_nonce( 'affwp-preview-creative' ),
 			$creative_id
 		);
-
 	}
 
 	/**
@@ -687,7 +683,7 @@ class Affiliate_Area_Creatives {
 			data-type="ajax"
 			data-src="<?php echo esc_url_raw( $this->creative_modal_url( $creative_id ) ); ?>"
 			data-slug="<?php echo esc_attr( "creative-{$creative_id}" ); ?>"
-		><?php Icons::render( $use_icon, $button_text ); ?></button>
+		><?php echo ! empty( $use_icon ) ? Icons::generate( $use_icon, $button_text ) : esc_html( $button_text ); ?></button>
 
 		<?php
 
@@ -737,10 +733,10 @@ class Affiliate_Area_Creatives {
 					<p><?php esc_html_e( 'Copy and paste the following', 'affiliate-wp' ); ?></p>
 				</div>
 
-				<textarea id="affwp-creative-html-code" readonly name="content" class="affwp-copy-textarea-content"><?php echo wp_kses( $creative->get_preview( 'full', 'referral_url', array( 'class' => '' ) ), $this->content_kses ); ?></textarea>
-				<button data-action="copy" type="submit" class="<?php echo esc_attr( $button_classes ); ?>">
-					<?php Icons::render( $use_icon, $button_text ); ?>
-				</button>
+				<textarea id="affwp-creative-html-code" readonly name="content" class="affwp-copy-textarea-content"><?php echo wp_kses( $creative->get_preview( 'full', 'referral_url', [ 'class' => '' ] ), $this->content_kses ); ?></textarea>
+			<button data-action="copy" type="submit" class="<?php echo esc_attr( $button_classes ); ?>">
+				<?php echo ! empty( $use_icon ) ? Icons::generate( $use_icon, $button_text ) : esc_html( $button_text ); ?>
+			</button>
 			</form>
 		</div>
 
@@ -802,7 +798,7 @@ class Affiliate_Area_Creatives {
 			data-type="<?php echo esc_attr( $creative_type ); ?>"
 			data-href="<?php echo esc_url_raw( 'qr_code' === $creative_type ? '' : $creative->get_image() ); ?>"
 		>
-			<?php Icons::render( $use_icon, $button_text ); ?>
+			<?php echo ! empty( $use_icon ) ? Icons::generate( $use_icon, $button_text ) : esc_html( $button_text ); ?>
 		</button>
 
 		<?php
@@ -876,11 +872,11 @@ class Affiliate_Area_Creatives {
 		$order      = $this->get_query_args( 'order' );
 		$ordered_by = $this->get_query_args( 'orderby' );
 
-		$sortable_columns = array(
+		$sortable_columns = [
 			'name'         => __( 'Name', 'affiliate-wp' ),
 			'type'         => __( 'Type', 'affiliate-wp' ),
 			'date_updated' => __( 'Last Updated', 'affiliate-wp' ),
-		);
+		];
 
 		ob_start();
 
@@ -893,13 +889,13 @@ class Affiliate_Area_Creatives {
 
 				foreach ( $sortable_columns as $field_name => $field_text ) {
 
-					$query_args = array(
-						'order'   => in_array( $order, array( '', 'desc' ), true ) ? 'asc' : 'desc',
+					$query_args = [
+						'order'   => in_array( $order, [ '', 'desc' ], true ) ? 'asc' : 'desc',
 						'orderby' => $field_name,
-					);
+					];
 
 					// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-					echo sprintf(
+					printf(
 						'<div class="affwp-creatives-table-cell" data-sorted="%s" data-column="%s" data-order="%s"><a href="%s">%s</a></div>',
 						$ordered_by === $query_args['orderby'] ? 'true' : 'false',
 						$query_args['orderby'],
@@ -1218,7 +1214,7 @@ class Affiliate_Area_Creatives {
 				<?php endif; ?>
 			</div>
 
-			<?php if ( in_array( $creative->get_type(), array( 'text_link', 'image' ), true ) ) : ?>
+			<?php if ( in_array( $creative->get_type(), [ 'text_link', 'image' ], true ) ) : ?>
 
 				<?php echo $this->copy_button( $creative->ID, '', '', true ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Content already escaped. ?>
 
@@ -1288,7 +1284,6 @@ class Affiliate_Area_Creatives {
 		echo $this->modal( $creative_id );
 
 		exit;
-
 	}
 
 	/**
@@ -1350,7 +1345,7 @@ class Affiliate_Area_Creatives {
 	 * }
 	 * @return string Creative's page URL.
 	 */
-	public function generate_tab_url_from_current_url( $args_to_replace = array() ) : string {
+	public function generate_tab_url_from_current_url( $args_to_replace = [] ) : string {
 
 		$parsed_url = wp_parse_url( esc_url_raw( $_SERVER['REQUEST_URI'] ) );
 		$query      = $parsed_url['query'] ?? '';
@@ -1373,7 +1368,6 @@ class Affiliate_Area_Creatives {
 		}
 
 		return $this->generate_tab_url( $query_args );
-
 	}
 
 	/**
@@ -1393,7 +1387,7 @@ class Affiliate_Area_Creatives {
 	 *
 	 * @return array The filtered args.
 	 */
-	public function parse_url_args( $query_args = array() ) : array {
+	public function parse_url_args( $query_args = [] ) : array {
 
 		// Empty args don't need to be in the final URL.
 		return array_filter(
@@ -1401,16 +1395,16 @@ class Affiliate_Area_Creatives {
 				// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments
 				$query_args = wp_parse_args(
 					$query_args,
-					array(
+					[
 						'type'      => '',
 						'cat'       => '',
 						'order'     => '',
 						'orderby'   => '',
 						'view_type' => '',
-					)
+					]
 				),
 				// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
-				array(
+				[
 					'type' => isset( $query_args['type'] ) && in_array( $query_args['type'], array_keys( affwp_get_creative_types() ), true )
 						? sanitize_text_field( $query_args['type'] )
 						: '',
@@ -1421,10 +1415,10 @@ class Affiliate_Area_Creatives {
 					'orderby' => isset( $query_args['orderby'] )
 						? sanitize_text_field( $query_args['orderby'] )
 						: '',
-					'view_type' => isset( $query_args['view_type'] ) && in_array( $query_args['view_type'], array( 'list', 'grid' ), true )
+					'view_type' => isset( $query_args['view_type'] ) && in_array( $query_args['view_type'], [ 'list', 'grid' ], true )
 						? sanitize_text_field( $query_args['view_type'] )
 						: '',
-				)
+				]
 				// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
 			)
 		);
@@ -1447,7 +1441,7 @@ class Affiliate_Area_Creatives {
 	 *
 	 * @return string The URL for the creatives tab URL.
 	 */
-	public function generate_tab_url( $query_args = array() ): string {
+	public function generate_tab_url( $query_args = [] ): string {
 
 		$base_url = affwp_get_affiliate_area_page_url( 'creatives' );
 
@@ -1465,7 +1459,6 @@ class Affiliate_Area_Creatives {
 				str_contains( $base_url, '?' ) ? '&' : '?',
 				http_build_query( $query_args )
 			);
-
 	}
 
 	/**
@@ -1500,7 +1493,7 @@ class Affiliate_Area_Creatives {
 	 * @param array $ignore_list Arguments to ignore, will not be printed, use argument key names.
 	 * @return array The query args.
 	 */
-	public function get_args_from_url( array $ignore_list = array() ) : array {
+	public function get_args_from_url( array $ignore_list = [] ) : array {
 
 		$allowed_url_args = $this->allowed_url_args;
 		$parsed_url       = wp_parse_url( esc_url_raw( $_SERVER['REQUEST_URI'] ) );
@@ -1510,7 +1503,7 @@ class Affiliate_Area_Creatives {
 
 		return array_filter(
 			array_unique( $query_args ),
-			function( $arg_key ) use ( $allowed_url_args, $ignore_list ) {
+			function ( $arg_key ) use ( $allowed_url_args, $ignore_list ) {
 
 				if ( ! in_array( $arg_key, $allowed_url_args, true ) ) {
 					return false;
@@ -1534,11 +1527,11 @@ class Affiliate_Area_Creatives {
 	 * @param array $ignore_list Arguments to ignore, will not be printed, use argument key names.
 	 * @return void
 	 */
-	public function add_query_params_to_form( array $ignore_list = array() ) : void {
+	public function add_query_params_to_form( array $ignore_list = [] ) : void {
 
 		foreach ( $this->get_args_from_url( $ignore_list ) as $arg_key => $arg_value ) {
 
-			echo sprintf(
+			printf(
 				'<input type="hidden" name="%s" value="%s">',
 				esc_attr( $arg_key ),
 				esc_attr( $arg_value )

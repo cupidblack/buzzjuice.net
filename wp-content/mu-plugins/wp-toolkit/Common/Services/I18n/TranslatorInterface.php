@@ -8,8 +8,9 @@ interface TranslatorInterface
     /**
      * Translates the given message
      *
-     * @param string $id The message id
-     * @param array $context An array of parameters for the message
+     * @param string $id      The message id
+     * @param array  $context An array of parameters for the message
+     *
      * @return string The translated string
      */
     public function translate($id, array $context = []);

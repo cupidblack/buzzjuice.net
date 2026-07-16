@@ -11,7 +11,9 @@
 use AffWP\Admin\List_Table;
 
 // Exit if accessed directly
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 #[\AllowDynamicProperties]
 
@@ -82,11 +84,14 @@ class AffWP_Payouts_Table extends List_Table {
 	 * @param array $args Optional. Arbitrary display and query arguments to pass through
 	 *                    the list table. Default empty array.
 	 */
-	public function __construct( $args = array() ) {
-		$args = wp_parse_args( $args, array(
-			'singular' => 'payout',
-			'plural'   => 'payouts',
-		) );
+	public function __construct( $args = [] ) {
+		$args = wp_parse_args(
+			$args,
+			[
+				'singular' => 'payout',
+				'plural'   => 'payouts',
+			]
+		);
 
 		parent::__construct( $args );
 
@@ -103,20 +108,23 @@ class AffWP_Payouts_Table extends List_Table {
 	 * @param string $input_id ID of the search box.
 	 */
 	public function search_box( $text, $input_id ) {
-		if ( empty( $_REQUEST['s'] ) && ! $this->has_items() )
+		if ( empty( $_REQUEST['s'] ) && ! $this->has_items() ) {
 			return;
+		}
 
 		$input_id = $input_id . '-search-input';
 
-		if ( ! empty( $_REQUEST['orderby'] ) )
+		if ( ! empty( $_REQUEST['orderby'] ) ) {
 			echo '<input type="hidden" name="orderby" value="' . esc_attr( $_REQUEST['orderby'] ) . '" />';
-		if ( ! empty( $_REQUEST['order'] ) )
+		}
+		if ( ! empty( $_REQUEST['order'] ) ) {
 			echo '<input type="hidden" name="order" value="' . esc_attr( $_REQUEST['order'] ) . '" />';
+		}
 		?>
 		<p class="search-box">
-			<label class="screen-reader-text" for="<?php echo $input_id ?>"><?php echo $text; ?>:</label>
-			<input type="search" id="<?php echo $input_id ?>" name="s" value="<?php _admin_search_query(); ?>" />
-			<?php submit_button( $text, 'button', false, false, array( 'ID' => 'search-submit' ) ); ?>
+			<label class="screen-reader-text" for="<?php echo $input_id; ?>"><?php echo $text; ?>:</label>
+			<input type="search" id="<?php echo $input_id; ?>" name="s" value="<?php _admin_search_query(); ?>" />
+			<?php submit_button( $text, 'button', false, false, [ 'ID' => 'search-submit' ] ); ?>
 		</p>
 		<?php
 	}
@@ -137,12 +145,12 @@ class AffWP_Payouts_Table extends List_Table {
 		$paid_count       = '&nbsp;<span class="count">(' . $this->paid_count . ')</span>';
 		$failed_count     = '&nbsp;<span class="count">(' . $this->failed_count . ')</span>';
 
-		$views = array(
+		$views = [
 			'all'        => sprintf( '<a href="%s"%s>%s</a>', esc_url( remove_query_arg( 'status', $base ) ), $current === 'all' || $current == '' ? ' class="current"' : '', _x( 'All', 'payouts', 'affiliate-wp' ) . $total_count ),
 			'processing' => sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'processing', $base ) ), $current === 'processing' ? ' class="current"' : '', __( 'Processing', 'affiliate-wp' ) . $processing_count ),
 			'paid'       => sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'paid', $base ) ), $current === 'paid' ? ' class="current"' : '', __( 'Paid', 'affiliate-wp' ) . $paid_count ),
 			'failed'     => sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'failed', $base ) ), $current === 'failed' ? ' class="current"' : '', __( 'Failed', 'affiliate-wp' ) . $failed_count ),
-		);
+		];
 
 		return $views;
 	}
@@ -156,7 +164,7 @@ class AffWP_Payouts_Table extends List_Table {
 	 * @return array $columns Array of all the payouts list table columns.
 	 */
 	public function get_columns() {
-		$columns = array(
+		$columns = [
 			'cb'              => '<input type="checkbox" />',
 			'payout_id'       => __( 'Payout ID', 'affiliate-wp' ),
 			'amount'          => _x( 'Amount', 'payout', 'affiliate-wp' ),
@@ -168,7 +176,7 @@ class AffWP_Payouts_Table extends List_Table {
 			'status'          => _x( 'Status', 'payout', 'affiliate-wp' ),
 			'date'            => _x( 'Date', 'payout', 'affiliate-wp' ),
 			'actions'         => __( 'Actions', 'affiliate-wp' ),
-		);
+		];
 
 		if ( ! affiliate_wp()->settings->get( 'enable_payouts_service' ) ) {
 			unset( $columns['service_account'] );
@@ -193,14 +201,14 @@ class AffWP_Payouts_Table extends List_Table {
 	 * @return array Array of all the sortable columns
 	 */
 	public function get_sortable_columns() {
-		$columns = array(
-			'payout_id'     => array( 'payout_id', false ),
-			'amount'        => array( 'amount', false ),
-			'affiliate'     => array( 'affiliate', false ),
-			'payout_method' => array( 'payout_method', false ),
-			'status'        => array( 'status', false ),
-			'date'          => array( 'date', false ),
-		);
+		$columns = [
+			'payout_id'     => [ 'payout_id', false ],
+			'amount'        => [ 'amount', false ],
+			'affiliate'     => [ 'affiliate', false ],
+			'payout_method' => [ 'payout_method', false ],
+			'status'        => [ 'status', false ],
+			'date'          => [ 'date', false ],
+		];
 
 		/**
 		 * Filters the payouts list table sortable columns.
@@ -282,16 +290,20 @@ class AffWP_Payouts_Table extends List_Table {
 	 * @return string Linked affiliate name and ID.
 	 */
 	function column_affiliate( $payout ) {
-		$url = affwp_admin_url( 'affiliates', array(
-			'action'       => 'view_affiliate',
-			'affiliate_id' => $payout->affiliate_id
-		) );
+		$url = affwp_admin_url(
+			'affiliates',
+			[
+				'action'       => 'view_affiliate',
+				'affiliate_id' => $payout->affiliate_id,
+			]
+		);
 
 		$name      = affiliate_wp()->affiliates->get_affiliate_name( $payout->affiliate_id );
 		$affiliate = affwp_get_affiliate( $payout->affiliate_id );
 
 		if ( $affiliate && $name ) {
-			$value = sprintf( '<a href="%1$s">%2$s</a> (ID: %3$s)',
+			$value = sprintf(
+				'<a href="%1$s">%2$s</a> (ID: %3$s)',
 				esc_url( $url ),
 				esc_html( $name ),
 				esc_html( $affiliate->ID )
@@ -322,10 +334,10 @@ class AffWP_Payouts_Table extends List_Table {
 	 */
 	public function column_referrals( $payout ) {
 		$referrals = affiliate_wp()->affiliates->payouts->get_referral_ids( $payout );
-		$links     = array();
+		$links     = [];
 
 		foreach ( $referrals as $referral_id ) {
-			$links[] = affwp_admin_link( 'referrals', esc_html( $referral_id ), array( 'action' => 'edit_referral', 'referral_id' => $referral_id ) );
+			$links[] = affwp_admin_link( 'referrals', esc_html( $referral_id ), [ 'action' => 'edit_referral', 'referral_id' => $referral_id ] );
 		}
 
 		$value = implode( ', ', $links );
@@ -358,10 +370,12 @@ class AffWP_Payouts_Table extends List_Table {
 			$user = get_user_by( 'id', $payout->owner );
 			// If the owner exists, use it.
 			if ( $user ) {
-				$value = sprintf( '%1$s %2$s',
-					affwp_admin_link( 'payouts', esc_html( $user->data->display_name ), array( 'owner' => $payout->owner ) ),
+				$value = sprintf(
+					'%1$s %2$s',
+					affwp_admin_link( 'payouts', esc_html( $user->data->display_name ), [ 'owner' => $payout->owner ] ),
 					/* translators: Payout owner ID */
-					sprintf( _x( '(User ID: %d)', 'payout owner ID', 'affiliate-wp' ),
+					sprintf(
+						_x( '(User ID: %d)', 'payout owner ID', 'affiliate-wp' ),
 						esc_html( $payout->owner )
 					)
 				);
@@ -464,28 +478,34 @@ class AffWP_Payouts_Table extends List_Table {
 	 */
 	function column_actions( $payout ) {
 
-		$base_query_args = array(
+		$base_query_args = [
 			'page'      => 'affiliate-wp-payouts',
-			'payout_id' => $payout->ID
-		);
+			'payout_id' => $payout->ID,
+		];
 
 		// View.
 		$row_actions['view'] = $this->get_row_action_link(
 			__( 'View', 'affiliate-wp' ),
-			array_merge( $base_query_args, array(
-				'action'       => 'view_payout',
-				'affwp_notice' => false,
-			) )
+			array_merge(
+				$base_query_args,
+				[
+					'action'       => 'view_payout',
+					'affwp_notice' => false,
+				]
+			)
 		);
 
 		if ( strtolower( $payout->status ) == 'failed' ) {
 			// Retry Payment.
 			$row_actions['retry'] = $this->get_row_action_link(
 				__( 'Retry Payment', 'affiliate-wp' ),
-				array_merge( $base_query_args, array(
-					'affwp_notice' => 'payout_retried',
-					'action'       => 'retry_payment',
-				) ),
+				array_merge(
+					$base_query_args,
+					[
+						'affwp_notice' => 'payout_retried',
+						'action'       => 'retry_payment',
+					]
+				),
 				'payout-nonce'
 			);
 		}
@@ -493,13 +513,16 @@ class AffWP_Payouts_Table extends List_Table {
 		// Delete.
 		$row_actions['delete'] = $this->get_row_action_link(
 			__( 'Delete', 'affiliate-wp' ),
-			array_merge( $base_query_args, array(
-				'affwp_action' => 'process_delete_payout'
-			) ),
-			array(
+			array_merge(
+				$base_query_args,
+				[
+					'affwp_action' => 'process_delete_payout',
+				]
+			),
+			[
 				'nonce' => 'affwp_delete_payout_nonce',
-				'class' => 'delete'
-			)
+				'class' => 'delete',
+			]
 		);
 		$row_actions['delete'] = '<span class="trash">' . $row_actions['delete'] . '</span>';
 
@@ -527,10 +550,8 @@ class AffWP_Payouts_Table extends List_Table {
 	 * @return string Payout status.
 	 */
 	public function column_status( $payout ) {
-		$value = sprintf( '<span class="affwp-status %1$s">%2$s</span>',
-			esc_attr( $payout->status ),
-			affwp_get_payout_status_label( $payout )
-		);
+		// Use the new payout status badge helper.
+		$value = affwp_get_payout_status_badge( $payout->status );
 
 		/**
 		 * Filters the value of the 'Status' column in the payouts list table.
@@ -588,10 +609,10 @@ class AffWP_Payouts_Table extends List_Table {
 	 * @return array $actions Array of the bulk actions.
 	 */
 	public function get_bulk_actions() {
-		$actions = array(
+		$actions = [
 			'retry_payment' => __( 'Retry Payment', 'affiliate-wp' ),
 			'delete'        => __( 'Delete', 'affiliate-wp' ),
-		);
+		];
 
 		/**
 		 * Filters the list of bulk actions for the payouts list table.
@@ -611,24 +632,24 @@ class AffWP_Payouts_Table extends List_Table {
 	 */
 	public function process_bulk_action() {
 
-		if( empty( $_REQUEST['_wpnonce'] ) ) {
+		if ( empty( $_REQUEST['_wpnonce'] ) ) {
 			return;
 		}
 
-		if( ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'bulk-payouts' ) && ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'payout-nonce' ) ) {
+		if ( ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'bulk-payouts' ) && ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'payout-nonce' ) ) {
 			return;
 		}
 
-		$ids = isset( $_GET['payout_id'] ) ? $_GET['payout_id'] : array();
+		$ids = isset( $_GET['payout_id'] ) ? $_GET['payout_id'] : [];
 
 		if ( ! is_array( $ids ) ) {
-			$ids = array( $ids );
+			$ids = [ $ids ];
 		}
 
 		$ids    = array_map( 'absint', $ids );
 		$action = ! empty( $_REQUEST['action'] ) ? $_REQUEST['action'] : false;
 
-		if( empty( $ids ) || empty( $action ) ) {
+		if ( empty( $ids ) || empty( $action ) ) {
 			return;
 		}
 
@@ -650,7 +671,6 @@ class AffWP_Payouts_Table extends List_Table {
 			 */
 			do_action( 'affwp_payouts_do_bulk_action_' . $this->current_action(), $id );
 		}
-
 	}
 
 	/**
@@ -661,18 +681,18 @@ class AffWP_Payouts_Table extends List_Table {
 	 */
 	public function get_payout_counts() {
 		$this->processing_count = affiliate_wp()->affiliates->payouts->count(
-			array_merge( $this->query_args, array( 'status' => 'processing' ) )
+			array_merge( $this->query_args, [ 'status' => 'processing' ] )
 		);
 
 		$this->paid_count = affiliate_wp()->affiliates->payouts->count(
-			array_merge( $this->query_args, array( 'status' => 'paid' ) )
+			array_merge( $this->query_args, [ 'status' => 'paid' ] )
 		);
 
 		$this->failed_count = affiliate_wp()->affiliates->payouts->count(
-			array_merge( $this->query_args, array( 'status' => 'failed' ) )
+			array_merge( $this->query_args, [ 'status' => 'failed' ] )
 		);
 
-		$this->total_count  = $this->processing_count + $this->paid_count + $this->failed_count;
+		$this->total_count = $this->processing_count + $this->paid_count + $this->failed_count;
 	}
 
 	/**
@@ -685,10 +705,10 @@ class AffWP_Payouts_Table extends List_Table {
 	 */
 	public function payouts_data() {
 
-		$page    = isset( $_GET['paged'] )   ? absint( $_GET['paged'] )         :           1;
-		$owner   = isset( $_GET['owner'] )   ? absint( $_GET['owner'] )         :           0;
-		$status  = isset( $_GET['status'] )  ? sanitize_key( $_GET['status'] )  :          '';
-		$order   = isset( $_GET['order'] )   ? sanitize_key( $_GET['order'] )   :      'DESC';
+		$page    = isset( $_GET['paged'] ) ? absint( $_GET['paged'] ) : 1;
+		$owner   = isset( $_GET['owner'] ) ? absint( $_GET['owner'] ) : 0;
+		$status  = isset( $_GET['status'] ) ? sanitize_key( $_GET['status'] ) : '';
+		$order   = isset( $_GET['order'] ) ? sanitize_key( $_GET['order'] ) : 'DESC';
 		$orderby = isset( $_GET['orderby'] ) ? sanitize_key( $_GET['orderby'] ) : 'payout_id';
 
 		$is_search = false;
@@ -708,10 +728,10 @@ class AffWP_Payouts_Table extends List_Table {
 		if ( isset( $_GET['referrals'] ) ) {
 			$referrals = sanitize_text_field( $_GET['referrals'] );
 		} else {
-			$referrals = array();
+			$referrals = [];
 		}
 
-		if( ! empty( $_GET['s'] ) ) {
+		if ( ! empty( $_GET['s'] ) ) {
 
 			$is_search = true;
 
@@ -726,7 +746,7 @@ class AffWP_Payouts_Table extends List_Table {
 					$payout_ids = absint( $search );
 				}
 			} elseif ( strpos( $search, 'referrals:' ) !== false ) {
-				$referrals = trim( str_replace( array( ' ', 'referrals:' ), '', $search ) );
+				$referrals = trim( str_replace( [ ' ', 'referrals:' ], '', $search ) );
 				if ( false !== strpos( $referrals, ',' ) ) {
 					$is_search = false;
 					$referrals = array_map( 'absint', explode( ',', $referrals ) );
@@ -734,7 +754,7 @@ class AffWP_Payouts_Table extends List_Table {
 					$referrals = absint( $referrals );
 				}
 			} elseif ( strpos( $search, 'affiliate:' ) !== false ) {
-				$affiliates = trim( str_replace( array( ' ', 'affiliate:' ), '', $search ) );
+				$affiliates = trim( str_replace( [ ' ', 'affiliate:' ], '', $search ) );
 				if ( false !== strpos( $affiliates, ',' ) ) {
 					$is_search  = false;
 					$affiliates = array_map( 'absint', explode( ',', $affiliates ) );
@@ -742,23 +762,25 @@ class AffWP_Payouts_Table extends List_Table {
 					$affiliates = absint( $affiliates );
 				}
 			}
-
 		}
 
 		$per_page = $this->get_items_per_page( 'affwp_edit_payouts_per_page', $this->per_page );
 
-		$args = wp_parse_args( $this->query_args, array(
-			'number'       => $per_page,
-			'offset'       => $per_page * ( $page - 1 ),
-			'payout_id'    => $payout_ids,
-			'referrals'    => $referrals,
-			'affiliate_id' => $affiliates,
-			'owner'        => $owner,
-			'status'       => $status,
-			'search'       => $is_search,
-			'orderby'      => $orderby,
-			'order'        => $order
-		) );
+		$args = wp_parse_args(
+			$this->query_args,
+			[
+				'number'       => $per_page,
+				'offset'       => $per_page * ( $page - 1 ),
+				'payout_id'    => $payout_ids,
+				'referrals'    => $referrals,
+				'affiliate_id' => $affiliates,
+				'owner'        => $owner,
+				'status'       => $status,
+				'search'       => $is_search,
+				'orderby'      => $orderby,
+				'order'        => $order,
+			]
+		);
 
 		$payouts = affiliate_wp()->affiliates->payouts->get_payouts( $args );
 
@@ -788,7 +810,7 @@ class AffWP_Payouts_Table extends List_Table {
 
 		$status = isset( $_GET['status'] ) ? $_GET['status'] : 'any';
 
-		switch( $status ) {
+		switch ( $status ) {
 			case 'processing':
 				$total_items = $this->processing_count;
 				break;
@@ -805,10 +827,12 @@ class AffWP_Payouts_Table extends List_Table {
 
 		$this->items = $data;
 
-		$this->set_pagination_args( array(
-			'total_items' => $total_items,
-			'per_page'    => $per_page,
-			'total_pages' => ceil( $total_items / $per_page )
-		) );
+		$this->set_pagination_args(
+			[
+				'total_items' => $total_items,
+				'per_page'    => $per_page,
+				'total_pages' => ceil( $total_items / $per_page ),
+			]
+		);
 	}
 }

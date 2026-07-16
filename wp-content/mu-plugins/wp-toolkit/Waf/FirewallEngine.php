@@ -12,9 +12,7 @@ use Webpros\WptkWpPlugin\WpToolkit\Waf\RulesConverter\PatchstackRuleConverter;
 final class FirewallEngine
 {
     const ENGINE_PATCHSTACK = 'fw-engine';
-
     const OPTION_ACTIVE_RULES = 'wp-toolkit_waf_active_rules';
-
     const OPTION_RULES = 'wp-toolkit_waf_rules';
 
     /**
@@ -64,7 +62,7 @@ final class FirewallEngine
      */
     public static function listActiveRules()
     {
-        return \array_keys(self::getFirewallRules());
+        return array_keys(self::getFirewallRules());
     }
 
     /**
@@ -101,11 +99,11 @@ final class FirewallEngine
      *
      * @return array
      */
-    private static function convertRule($rule)
+    private static function convertRule($id, $rule)
     {
         switch (self::getPreferredEngine()) {
             case self::ENGINE_PATCHSTACK:
-                return PatchstackRuleConverter::convert($rule);
+                return PatchstackRuleConverter::convert($id, $rule);
             default:
                 return $rule;
         }
@@ -119,13 +117,14 @@ final class FirewallEngine
     private static function filterActiveRules($groupedRules)
     {
         $activeRules = [];
+        $id = 0;
 
         foreach ($groupedRules as $vulnerabilityId => $rules) {
             $filteredRules = self::filterRulesByPreferredEngine($rules);
             if (\count($filteredRules) > 0) {
                 // We use first suitable rule for preferred engine
-                $rule = \array_shift($filteredRules);
-                $activeRules[$vulnerabilityId] = self::convertRule($rule);
+                $rule = array_shift($filteredRules);
+                $activeRules[$vulnerabilityId] = self::convertRule(++$id, $rule);
             }
         }
 
@@ -139,7 +138,7 @@ final class FirewallEngine
      */
     private static function filterRulesByPreferredEngine($rules)
     {
-        return \array_filter(
+        return array_filter(
             $rules,
             static function ($rule) {
                 return $rule['engine'] === self::getPreferredEngine();
@@ -170,7 +169,7 @@ final class FirewallEngine
      */
     private static function groupByVulnerabilityId($rules)
     {
-        return \array_reduce(
+        return array_reduce(
             $rules,
             static function ($groupedRules, $rule) {
                 $groupedRules[$rule['vulnerabilityId']][] = $rule;

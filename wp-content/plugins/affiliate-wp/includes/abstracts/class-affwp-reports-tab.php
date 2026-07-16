@@ -348,6 +348,11 @@ abstract class Tab {
 		 */
 		do_action( "affwp_reports_{$this->tab_id}_register_tiles", $this );
 
+		// Ensure tooltip function is available.
+		if ( ! function_exists( 'affwp_tooltip' ) ) {
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tooltips.php';
+		}
+
 		foreach ( $this->get_tiles() as $tile_id => $atts ) {
 			$args = array(
 				'meta_box_id'      => "{$this->tab_id}-{$tile_id}",
@@ -358,12 +363,6 @@ abstract class Tab {
 				'display_callback' => $atts['display_callback'],
 				'extra_args'       => $atts,
 			);
-
-			$tooltips = Registry::get_tooltips();
-			if ( ! empty( $tooltips ) ) {
-				wp_localize_script( 'affwp-tooltips', 'affwp_tooltips', array( 'tooltips' => $tooltips ) );
-				wp_enqueue_script( 'affwp-tooltips' );
-			}
 
 			new \AffWP\Admin\Meta_Box( $args );
 		}

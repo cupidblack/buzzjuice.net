@@ -111,18 +111,22 @@ function affwp_update_custom_link( array $data = array() ) : bool {
 }
 
 /**
- * Remove whitespaces from campaign name.
+ * Sanitize the campaign name to only allow URL-safe characters.
+ *
+ * Only lowercase alphanumeric characters, dashes, and underscores are allowed,
+ * following the same pattern as WordPress' sanitize_key().
  *
  * @since 2.14.0
+ * @since AFFWPN Restricted to alphanumeric characters, dashes, and underscores.
  *
  * @param string $campaign The campaign name.
  * @return string
  */
 function affwp_sanitize_campaign_field( string $campaign ) : string {
 	return preg_replace(
-		'/\s+/',
+		'/[^a-z0-9_\-]/',
 		'',
-		sanitize_text_field( $campaign )
+		strtolower( sanitize_text_field( $campaign ) )
 	);
 }
 

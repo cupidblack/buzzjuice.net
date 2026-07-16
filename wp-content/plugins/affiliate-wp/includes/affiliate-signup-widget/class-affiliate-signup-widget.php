@@ -27,30 +27,29 @@ class Affiliate_Signup_Widget {
 	 */
 	public function __construct() {
 		// Display widget preview in admin.
-		add_action( 'affwp_admin_affiliate_signup_widget_preview', array( $this, 'display' ) );
+		add_action( 'affwp_admin_affiliate_signup_widget_preview', [ $this, 'display' ] );
 
 		// Register the customer as an affiliate.
-		add_action( 'wp_ajax_affiliate_signup', array( $this, 'affiliate_signup' ) );
-		add_action( 'wp_ajax_nopriv_affiliate_signup', array( $this, 'affiliate_signup' ) );
+		add_action( 'wp_ajax_affiliate_signup', [ $this, 'affiliate_signup' ] );
+		add_action( 'wp_ajax_nopriv_affiliate_signup', [ $this, 'affiliate_signup' ] );
 
 		// Enqueue scripts.
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ), 10, 1 );
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ), 10, 1 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ], 10, 1 );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_scripts' ], 10, 1 );
 
 		/**
 		 * WooCommerce
 		 */
 		if ( class_exists( 'WooCommerce' ) ) {
 			// Add the widget to the WooCommerce My Account page.
-			add_action( 'woocommerce_account_dashboard', array( $this, 'maybe_display_account_dashboard' ) );
+			add_action( 'woocommerce_account_dashboard', [ $this, 'maybe_display_account_dashboard' ] );
 
 			// Maybe display widget on WooCommerce order confirmation page.
-			add_action( 'woocommerce_thankyou', array( $this, 'maybe_display_order_confirmation' ) );
+			add_action( 'woocommerce_thankyou', [ $this, 'maybe_display_order_confirmation' ] );
 
 			// Maybe display widget on WooCommerce order details page.
-			add_action( 'woocommerce_after_order_details', array( $this, 'maybe_display_order_details' ) );
+			add_action( 'woocommerce_after_order_details', [ $this, 'maybe_display_order_details' ] );
 		}
-
 	}
 
 	/**
@@ -95,10 +94,10 @@ class Affiliate_Signup_Widget {
 	private function hours_since_registration() {
 		$date_registered = affwp_get_affiliate_date_registered( affwp_get_affiliate_id() );
 
-		$now = new DateTime();
-		$registration_date = new DateTime($date_registered);
-		$interval = $now->diff($registration_date);
-		$hours_since_registration = $interval->h + ($interval->days * 24);
+		$now                      = new DateTime();
+		$registration_date        = new DateTime( $date_registered );
+		$interval                 = $now->diff( $registration_date );
+		$hours_since_registration = $interval->h + ( $interval->days * 24 );
 
 		return $hours_since_registration;
 	}
@@ -134,14 +133,16 @@ class Affiliate_Signup_Widget {
 		}
 
 		// Check if the user has at least one completed order.
-		if ( is_user_logged_in() ) {
-			$user_id = get_current_user_id();
-			$completed_orders = wc_get_orders( array(
-				'customer' => $user_id,
-				'status'   => 'completed',
-				'return'   => 'ids',
-				'limit'    => 1, // Limit to one to improve performance as we only need to know if there is at least one order.
-			) );
+		if ( is_user_logged_in() && function_exists( 'wc_get_orders' ) ) {
+			$user_id          = get_current_user_id();
+			$completed_orders = wc_get_orders(
+				[
+					'customer' => $user_id,
+					'status'   => 'completed',
+					'return'   => 'ids',
+					'limit'    => 1, // Limit to one to improve performance as we only need to know if there is at least one order.
+				]
+			);
 
 			if ( empty( $completed_orders ) ) {
 				return;  // No completed orders, so don't show the widget.
@@ -161,8 +162,8 @@ class Affiliate_Signup_Widget {
 	 */
 	public function generate_shades( $brand_color ) {
 		// Calculate luminance.
-		list( $r, $g, $b ) = sscanf( $brand_color, "#%02x%02x%02x" );
-		$luminance = ( 0.2126 * $r + 0.7152 * $g + 0.0722 * $b ) / 255;
+		list( $r, $g, $b ) = sscanf( $brand_color, '#%02x%02x%02x' );
+		$luminance         = ( 0.2126 * $r + 0.7152 * $g + 0.0722 * $b ) / 255;
 
 		// Determine whether the color is dark or light.
 		$isDark = $luminance < 0.5;
@@ -186,7 +187,7 @@ class Affiliate_Signup_Widget {
 	 * @param string $color The brand color.
 	 */
 	private function generate_dark_shades( $color ) {
-		return array(
+		return [
 			'100' => "color-mix(in srgb, $color 15%, white 85%)",
 			'105' => "color-mix(in srgb, $color 15%, white 85%)",
 			'110' => "color-mix(in srgb, $color 60%, white 40%)",
@@ -206,7 +207,7 @@ class Affiliate_Signup_Widget {
 			'300' => "color-mix(in srgb, $color 10%, white 90%)",
 			'305' => "color-mix(in srgb, $color 10%, white 90%)",
 			'500' => $color,
-		);
+		];
 	}
 
 	/**
@@ -217,7 +218,7 @@ class Affiliate_Signup_Widget {
 	 * @param string $color The brand color.
 	 */
 	private function generate_light_shades( $color ) {
-		return array(
+		return [
 			'100' => "color-mix(in srgb, $color 30%, black 70%)",
 			'105' => "color-mix(in srgb, $color 30%, black 70%)",
 			'110' => "color-mix(in srgb, $color 30%, black 70%)",
@@ -238,7 +239,7 @@ class Affiliate_Signup_Widget {
 			'300' => "color-mix(in srgb, $color 30%, black 70%)",
 			'305' => "color-mix(in srgb, $color 30%, black 70%)",
 			'500' => $color,
-		);
+		];
 	}
 
 	/**
@@ -255,7 +256,7 @@ class Affiliate_Signup_Widget {
 		$css_variables = $this->generate_shades( $brand_color );
 
 		// Build the output string
-		$output = '<style id="brand-colors">:host {';
+		$output  = '<style id="brand-colors">:host {';
 		$output .= $css_variables;
 		$output .= '}</style>';
 
@@ -287,7 +288,7 @@ class Affiliate_Signup_Widget {
 
 		$affiliate = is_user_logged_in() && affwp_is_affiliate();
 
-		return array(
+		return [
 			'image'                => $image,
 			'heading'              => $heading,
 			'text'                 => nl2br( $text ),
@@ -304,8 +305,7 @@ class Affiliate_Signup_Widget {
 			'display_confirmation' => $affiliate && $this->hours_since_registration() < 24 ? true : false,
 			'error_text'           => $error_text,
 			'error_heading'        => $error_heading,
-		);
-
+		];
 	}
 
 	/**
@@ -322,13 +322,18 @@ class Affiliate_Signup_Widget {
 			return;
 		}
 
+		// Only enqueue if WooCommerce integration is enabled.
+		if ( ! affwp_is_integration_active( 'woocommerce' ) ) {
+			return;
+		}
+
 		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 
-		wp_enqueue_script( 'affiliate-signup-widget-admin', AFFILIATEWP_PLUGIN_URL . 'assets/js/admin-affiliate-signup-widget' . $suffix . '.js', array(), AFFILIATEWP_VERSION, true );
+		wp_enqueue_script( 'affiliate-signup-widget-admin', AFFILIATEWP_PLUGIN_URL . 'assets/js/admin-affiliate-signup-widget' . $suffix . '.js', [], AFFILIATEWP_VERSION, true );
 
-		$admin_script_data = array(
+		$admin_script_data = [
 			'affiliateLinkPreview' => $this->affiliate_link_preview(),
-		);
+		];
 
 		$data = array_merge( $admin_script_data, $this->get_script_data() );
 
@@ -347,7 +352,7 @@ class Affiliate_Signup_Widget {
 		if (
 			class_exists( 'WooCommerce' ) &&
 			(
-				is_order_received_page() ||  // Purchase confirmation page.
+				is_order_received_page() || // Purchase confirmation page.
 				( is_account_page() && ! is_wc_endpoint_url() ) || // Dashboard tab only.
 				( is_account_page() && is_wc_endpoint_url( 'view-order' ) ) // Order details page only.
 			)
@@ -371,7 +376,7 @@ class Affiliate_Signup_Widget {
 
 		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 
-		wp_enqueue_script( 'affiliate-signup-widget', AFFILIATEWP_PLUGIN_URL . 'assets/js/affiliate-signup-widget' . $suffix . '.js', array(), AFFILIATEWP_VERSION, true );
+		wp_enqueue_script( 'affiliate-signup-widget', AFFILIATEWP_PLUGIN_URL . 'assets/js/affiliate-signup-widget' . $suffix . '.js', [], AFFILIATEWP_VERSION, true );
 
 		wp_localize_script( 'affiliate-signup-widget', 'affiliateWidgetParams', $this->get_script_data() );
 	}
@@ -383,7 +388,7 @@ class Affiliate_Signup_Widget {
 	 */
 	protected function get_script_data() {
 		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
-		$data = $this->data();
+		$data   = $this->data();
 		extract( $data );
 		ob_start();
 
@@ -391,12 +396,12 @@ class Affiliate_Signup_Widget {
 		include AFFILIATEWP_PLUGIN_DIR . 'includes/affiliate-signup-widget/template/index.php';
 		$widget_html = ob_get_clean();
 
-		return array(
+		return [
 			'cssUrl'     => AFFILIATEWP_PLUGIN_URL . 'assets/css/affiliate-signup-widget' . $suffix . '.css',
 			'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
 			'widgetHtml' => $widget_html,
 			'data'       => $data,
-		);
+		];
 	}
 
 	/**
@@ -408,7 +413,7 @@ class Affiliate_Signup_Widget {
 	public function affiliate_link_preview() {
 
 		if ( affwp_is_affiliate() ) {
-			$link = esc_url( urldecode( affwp_get_affiliate_referral_url( array( 'affiliate_id' => affwp_is_affiliate() ) ) ) );
+			$link = esc_url( urldecode( affwp_get_affiliate_referral_url( [ 'affiliate_id' => affwp_is_affiliate() ] ) ) );
 		} else {
 			// Create a demo link
 			$link = esc_url( add_query_arg( affiliate_wp()->tracking->get_referral_var(), '123', home_url( '/' ) ) );
@@ -436,7 +441,7 @@ class Affiliate_Signup_Widget {
 		<?php endif; ?>
 
 		<div class="<?php echo esc_attr( $this->widget_container_class ); ?>"></div>
-	<?php
+		<?php
 	}
 
 	/**
@@ -460,7 +465,7 @@ class Affiliate_Signup_Widget {
 	 * @since 2.18.0
 	 */
 	private function get_affiliate_link( $affiliate_id ) {
-		return esc_url( urldecode( affwp_get_affiliate_referral_url( array( 'affiliate_id' => $affiliate_id ) ) ) );
+		return esc_url( urldecode( affwp_get_affiliate_referral_url( [ 'affiliate_id' => $affiliate_id ] ) ) );
 	}
 
 	/**
@@ -476,15 +481,15 @@ class Affiliate_Signup_Widget {
 		// Get the order key from the query string.
 		$order_key = isset( $_POST['order_key'] ) ? sanitize_text_field( $_POST['order_key'] ) : '';
 
-		if ( $order_key ) {
+		if ( $order_key && function_exists( 'wc_get_order' ) ) {
 			$order_id = $this->get_order_id_by_order_key( $order_key );
-			$order = wc_get_order( $order_id );
+			$order    = wc_get_order( $order_id );
 
 			// Check if the order exists and it's a guest order.
 			if ( $order && ! $order->get_user_id() ) {
-				$guest_email = $order->get_billing_email();
+				$guest_email      = $order->get_billing_email();
 				$guest_first_name = $order->get_billing_first_name();
-				$guest_last_name = $order->get_billing_last_name();
+				$guest_last_name  = $order->get_billing_last_name();
 			}
 		}
 
@@ -501,14 +506,14 @@ class Affiliate_Signup_Widget {
 
 			$random_pass = true;
 
-			$args = array(
+			$args = [
 				'user_login'   => $user_email,
 				'user_email'   => $user_email,
 				'user_pass'    => $user_pass,
 				'first_name'   => $user_first,
 				'last_name'    => $user_last,
 				'display_name' => trim( $user_first . ' ' . $user_last ),
-			);
+			];
 
 			$user_id = wp_insert_user( $args );
 
@@ -516,31 +521,30 @@ class Affiliate_Signup_Widget {
 				// Remember that we generated the password for the user.
 				update_user_meta( $user_id, 'affwp_generated_pass', true );
 			}
-
-
 		} else {
 			// Logged in users.
 			$new_user = false;
-			$user_id = get_current_user_id();
-			$user    = (array) get_userdata( $user_id );
+			$user_id  = get_current_user_id();
+			$user     = (array) get_userdata( $user_id );
 
 			if ( isset( $user['data'] ) ) {
 				$args = (array) $user['data'];
 			} else {
-				$args = array();
+				$args = [];
 			}
-
 		}
 
 		$status = 'active';
 
-		affwp_add_affiliate( array(
-			'user_id'             => $user_id,
-			'status'              => $status,
-			'dynamic_coupon'      => 1,
-			'registration_method' => 'affiliate_signup_widget',
-			'registration_url'    => esc_url_raw( get_permalink( $post_id ) ),
-		) );
+		affwp_add_affiliate(
+			[
+				'user_id'             => $user_id,
+				'status'              => $status,
+				'dynamic_coupon'      => 1,
+				'registration_method' => 'affiliate_signup_widget',
+				'registration_url'    => esc_url_raw( get_permalink( $post_id ) ),
+			]
+		);
 
 		if ( ! is_user_logged_in() ) {
 			$this->log_user_in( $user_id, $user_login );
@@ -567,7 +571,7 @@ class Affiliate_Signup_Widget {
 
 		$affiliate_link = $this->get_affiliate_link( $affiliate_id );
 
-		wp_send_json_success( array( 'affiliate_link' => $affiliate_link ) );
+		wp_send_json_success( [ 'affiliate_link' => $affiliate_link ] );
 	}
 
 	/**
@@ -584,8 +588,9 @@ class Affiliate_Signup_Widget {
 	private function log_user_in( $user_id = 0, $user_login = '', $remember = false ) {
 
 		$user = get_userdata( $user_id );
-		if ( ! $user )
+		if ( ! $user ) {
 			return;
+		}
 
 		wp_set_auth_cookie( $user_id, $remember );
 		wp_set_current_user( $user_id, $user_login );
@@ -598,8 +603,6 @@ class Affiliate_Signup_Widget {
 		 * @param  stdClass $user       The user object.
 		 */
 		do_action( 'wp_login', $user_login, $user );
-
 	}
-
 }
-new Affiliate_Signup_Widget;
+new Affiliate_Signup_Widget();

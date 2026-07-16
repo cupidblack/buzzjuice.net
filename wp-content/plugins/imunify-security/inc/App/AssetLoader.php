@@ -72,6 +72,11 @@ class AssetLoader {
 					'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
 					'snoozeNonce'          => wp_create_nonce( Widget::WIDGET_SNOOZE_NONCE_NAME ),
 					'wafMonitoringTooltip' => $this->widget->getWafMonitoringTooltipData(),
+					'botProtection'        => array(
+						'action'       => \CloudLinux\Imunify\App\Views\BotProtectionWidgetSection::AJAX_ACTION,
+						'nonce'        => wp_create_nonce( \CloudLinux\Imunify\App\Views\BotProtectionWidgetSection::NONCE_ACTION ),
+						'errorMessage' => __( 'Could not update bot protection settings. Please try again.', 'imunify-security' ),
+					),
 				)
 			);
 		}

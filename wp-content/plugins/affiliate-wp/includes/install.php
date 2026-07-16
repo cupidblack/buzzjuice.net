@@ -22,25 +22,25 @@ use AffWP\Components\Notifications\Notifications_DB;
 function affiliate_wp_install() {
 
 	// Create affiliate caps
-	$roles = new Affiliate_WP_Capabilities;
+	$roles = new Affiliate_WP_Capabilities();
 	$roles->add_caps();
 
 	$affiliate_wp_install                 = new stdClass();
-	$affiliate_wp_install->affiliates     = new Affiliate_WP_DB_Affiliates;
-	$affiliate_wp_install->affiliate_meta = new Affiliate_WP_Affiliate_Meta_DB;
-	$affiliate_wp_install->customers      = new Affiliate_WP_Customers_DB;
-	$affiliate_wp_install->customer_meta  = new Affiliate_WP_Customer_Meta_DB;
-	$affiliate_wp_install->referrals      = new Affiliate_WP_Referrals_DB;
-	$affiliate_wp_install->referral_meta  = new Affiliate_WP_Referral_Meta_DB;
-	$affiliate_wp_install->visits         = new Affiliate_WP_Visits_DB;
-	$affiliate_wp_install->campaigns      = new Affiliate_WP_Campaigns_DB;
-	$affiliate_wp_install->creatives      = new Affiliate_WP_Creatives_DB;
+	$affiliate_wp_install->affiliates     = new Affiliate_WP_DB_Affiliates();
+	$affiliate_wp_install->affiliate_meta = new Affiliate_WP_Affiliate_Meta_DB();
+	$affiliate_wp_install->customers      = new Affiliate_WP_Customers_DB();
+	$affiliate_wp_install->customer_meta  = new Affiliate_WP_Customer_Meta_DB();
+	$affiliate_wp_install->referrals      = new Affiliate_WP_Referrals_DB();
+	$affiliate_wp_install->referral_meta  = new Affiliate_WP_Referral_Meta_DB();
+	$affiliate_wp_install->visits         = new Affiliate_WP_Visits_DB();
+	$affiliate_wp_install->campaigns      = new Affiliate_WP_Campaigns_DB();
+	$affiliate_wp_install->creatives      = new Affiliate_WP_Creatives_DB();
 	$affiliate_wp_install->creative_meta  = new AffiliateWP\Creatives\Meta\DB();
-	$affiliate_wp_install->sales          = new Affiliate_WP_Sales_DB;
-	$affiliate_wp_install->settings       = new Affiliate_WP_Settings;
-	$affiliate_wp_install->rewrites       = new Affiliate_WP_Rewrites;
-	$affiliate_wp_install->REST           = new Affiliate_WP_REST;
-	$affiliate_wp_install->notifications  = new Notifications_DB;
+	$affiliate_wp_install->sales          = new Affiliate_WP_Sales_DB();
+	$affiliate_wp_install->settings       = new Affiliate_WP_Settings();
+	$affiliate_wp_install->rewrites       = new Affiliate_WP_Rewrites();
+	$affiliate_wp_install->REST           = new Affiliate_WP_REST();
+	$affiliate_wp_install->notifications  = new Notifications_DB();
 	$affiliate_wp_install->custom_links   = new Affiliate_WP_Custom_Links_DB();
 
 	$affiliate_wp_install->affiliates->create_table();
@@ -65,19 +65,18 @@ function affiliate_wp_install() {
 		// Update settings.
 		$affiliate_wp_install->settings->set(
 			[
-				'affiliates_page'              => Installation_Tools::get_instance()->create_affiliate_area_page(false, false ),
+				'affiliates_page'              => Installation_Tools::get_instance()->create_affiliate_area_page( false, false ),
 				'affiliates_login_page'        => Installation_Tools::get_instance()->create_login_page( false, false ),
 				'affiliates_registration_page' => Installation_Tools::get_instance()->create_registration_page( false, false ),
 				'require_approval'             => true,
 				'allow_affiliate_registration' => true,
 				'revoke_on_refund'             => true,
 				'referral_pretty_urls'         => true,
-				'enable_payouts_service'       => 1,
 				'commission_holding_period'    => 0,
-				'required_registration_fields' => array(
+				'required_registration_fields' => [
 					'your_name'   => __( 'Your Name', 'affiliate-wp' ),
 					'website_url' => __( 'Website URL', 'affiliate-wp' ),
-				),
+				],
 				'email_notifications'          => $affiliate_wp_install->settings->email_notifications( true ),
 			],
 			true
@@ -100,10 +99,13 @@ function affiliate_wp_install() {
 		update_option( 'affwp_display_setup_screen', true );
 	}
 
+	// Flag that we need to schedule log migration on next admin load.
+	update_option( 'affwp_needs_log_migration_schedule', true );
+
 	$affiliate_wp_install->rewrites->rewrites(); // Add rewrite rules.
 	$affiliate_wp_install->rewrites->flush_rewrites(); // Flush rewrite cache.
 
-	$completed_upgrades = array(
+	$completed_upgrades = [
 		'upgrade_v20_recount_unpaid_earnings',
 		'upgrade_v22_create_customer_records',
 		'upgrade_v245_create_customer_affiliate_relationship_records',
@@ -116,7 +118,7 @@ function affiliate_wp_install() {
 		'upgrade_v2160_update_creative_names',
 		'upgrade_v2276_clean_empty_registration_form_meta',
 		'upgrade_v2250_create_login_registration_pages',
-	);
+	];
 
 	// Set past upgrade routines complete for all sites.
 	if ( is_multisite() ) {
@@ -127,7 +129,7 @@ function affiliate_wp_install() {
 
 		} else {
 
-			$sites = get_sites( array( 'fields' => 'ids' ) );
+			$sites = get_sites( [ 'fields' => 'ids' ] );
 
 		}
 
@@ -138,7 +140,6 @@ function affiliate_wp_install() {
 
 			restore_current_blog();
 		}
-
 	} else {
 
 		update_option( 'affwp_completed_upgrades', $completed_upgrades );
@@ -152,7 +153,6 @@ function affiliate_wp_install() {
 
 	// Add the transient to redirect
 	set_transient( '_affwp_activation_redirect', true, MINUTE_IN_SECONDS / 2 );
-
 }
 register_activation_hook( AFFILIATEWP_PLUGIN_FILE, 'affiliate_wp_install' );
 

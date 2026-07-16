@@ -26,6 +26,10 @@ if ( ! class_exists( 'MyCRED_Toolkit' ) ) :
 		 */
 		
 		public function mycred_toolkit_menu() {
+			if ( function_exists( 'mycred_addons_is_unified' ) && mycred_addons_is_unified() ) {
+				return;
+			}
+
 			mycred_add_main_submenu( 
 				__( 'Toolkit', 'mycred-toolkit' ),
 				__( 'Toolkit', 'mycred-toolkit' ),

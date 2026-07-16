@@ -135,9 +135,13 @@ class AffWP_AddOn_Updater {
 	 * @return \stdClass|false
 	 */
 	public function get_repo_api_data() {
-		$version_info = $this->get_cached_version_info();
+
+		$version_info = isset( $_GET['force-check'] )
+			? false // When force check used, don't use cached information.
+			: $this->get_cached_version_info();
 
 		if ( false === $version_info ) {
+
 			$version_info = $this->api_request(
 				'plugin_latest_version',
 				array(
@@ -344,6 +348,9 @@ class AffWP_AddOn_Updater {
 	 * @param string $_action The requested action.
 	 * @param array $_data Parameters for the API action.
 	 * @return false|object|void
+	 *
+	 * @since AFFWPN Updated to more quickly avoid cache issues, causing updates
+	 *               about updated addons to happen quicker when using force-check=1.
 	 */
 	private function api_request( $_action, $_data ) {
 
@@ -365,7 +372,7 @@ class AffWP_AddOn_Updater {
 			return;
 		}
 
-		if ( $this->request_recently_failed() ) {
+		if ( ! isset( $_GET['force-check'] ) && $this->request_recently_failed() ) {
 			return false;
 		}
 
@@ -380,23 +387,33 @@ class AffWP_AddOn_Updater {
 			'wp_version'    => $wp_version,
 		);
 
-		$request = wp_remote_post( $this->api_url, array( 'timeout' => 15, 'sslverify' => false, 'body' => $api_params ) );
+		$request = wp_remote_post(
+			add_query_arg(
+				'_bust_cache',
+				time(),
+				$this->api_url
+			),
+			array(
+				'timeout' => 15,
+				'sslverify' => false,
+				'body' => $api_params
+			)
+		);
 
 		if ( ! is_wp_error( $request ) && ( 200 === wp_remote_retrieve_response_code( $request ) ) ) {
+
 			$request = json_decode( wp_remote_retrieve_body( $request ) );
-			if( $request && isset( $request->sections ) ) {
+
+			if ( $request && isset( $request->sections ) ) {
 				$request->sections = maybe_unserialize( $request->sections );
 			}
 
 			return $request;
-
-		} else {
-			$this->log_failed_request();
-
-			return false;
-
 		}
 
+		$this->log_failed_request();
+
+		return false;
 	}
 
 	/**

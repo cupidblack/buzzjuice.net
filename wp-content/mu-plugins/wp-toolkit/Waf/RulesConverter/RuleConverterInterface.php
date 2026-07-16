@@ -6,7 +6,9 @@ namespace Webpros\WptkWpPlugin\WpToolkit\Waf\RulesConverter;
 interface RuleConverterInterface
 {
     /**
+     * @param int $id
+     *
      * @return array
      */
-    public static function convert(array $rule);
+    public static function convert($id, array $rule);
 }

@@ -51,6 +51,11 @@ $wafMonitoring  = isset( $data['wafMonitoring'] ) && $data['wafMonitoring'];
 $rules          = isset( $data['rules'] ) ? $data['rules'] : array();
 $ruleset        = isset( $data['ruleset'] ) ? $data['ruleset'] : '';
 
+// Phase-1 bot protection section markup (DEF-42031). BotProtectionWidgetSection
+// builds the HTML with its own escaping, so we echo it without re-escaping.
+$botProtectionRowHtml  = isset( $data['botProtectionRowHtml'] ) ? $data['botProtectionRowHtml'] : '';
+$botProtectionPaneHtml = isset( $data['botProtectionPaneHtml'] ) ? $data['botProtectionPaneHtml'] : '';
+
 // Calculate total incidents count for navigation link.
 $totalIncidentsCount = 0;
 if ( ! empty( $rules ) ) {
@@ -170,6 +175,13 @@ use CloudLinux\Imunify\App\Helpers\PathFormatter;
 			</div>
 				<?php endif; ?>
 			<?php endif; ?>
+
+			<?php
+			// Bot Protection row (DEF-42031). Rendered by BotProtectionWidgetSection so
+			// the escaping + nonce handling live next to the state logic.
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- section renders pre-escaped markup.
+			echo $botProtectionRowHtml;
+			?>
 		</div>
 
 		<!-- Widget Actions -->
@@ -282,6 +294,12 @@ use CloudLinux\Imunify\App\Helpers\PathFormatter;
 		</div>
 	</div>
 	<?php endif; ?>
+
+	<?php
+	// Bot Protection pane (DEF-42031). Rendered by BotProtectionWidgetSection.
+	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- section renders pre-escaped markup.
+	echo $botProtectionPaneHtml;
+	?>
 </div>
 
 <div class="imunify-security__snooze-panel" style="display: none;">

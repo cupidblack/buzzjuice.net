@@ -16,7 +16,7 @@ final class UrlsParams implements \JsonSerializable
     private $pages = [];
 
     /**
-     * @param string $restApiUrl
+     * @param string       $restApiUrl
      * @param PageParams[] $pages
      */
     public function __construct($restApiUrl, $pages = [])
@@ -28,7 +28,6 @@ final class UrlsParams implements \JsonSerializable
     }
 
     /**
-     * @param PageParams $pageParams
      * @return self
      */
     public function addPage(PageParams $pageParams)

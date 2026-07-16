@@ -11,7 +11,6 @@ class LoginCommand extends SwitchableCommand
     const TTL_PARAM = 'ttl';
     const TTL_MAX_VALUE = 300;
     const TTL_MIN_VALUE = 0;
-
     const TTL_DEFAULT_VALUE = 60;
 
     /**
@@ -31,8 +30,8 @@ class LoginCommand extends SwitchableCommand
 
     /**
      * @param TokenGenerator $tokenGenerator
-     * @param TokenStorage $tokenStorage
-     * @param UserProvider $userProvider
+     * @param TokenStorage   $tokenStorage
+     * @param UserProvider   $userProvider
      */
     public function __construct($tokenGenerator, $tokenStorage, $userProvider)
     {
@@ -50,6 +49,7 @@ class LoginCommand extends SwitchableCommand
     /**
      * @param array $args
      * @param array $assoc_args
+     *
      * @return void
      * @throws WP_CLI\ExitException
      */
@@ -61,7 +61,7 @@ class LoginCommand extends SwitchableCommand
         $login = WP_CLI::read_value($login, $assoc_args);
         $user = $this->userProvider->getAdminByLogin($login);
         if (!$user instanceof \WP_User) {
-            WP_CLI::error(sprintf('Login name "%s" is not an administrator login', $login));
+            WP_CLI::error(\sprintf('Login name "%s" is not an administrator login', $login));
         }
 
         $ttl = self::TTL_DEFAULT_VALUE;
@@ -85,6 +85,7 @@ class LoginCommand extends SwitchableCommand
 
     /**
      * @param string $token
+     *
      * @return string
      */
     private function getAuthLink($token)

@@ -90,15 +90,15 @@ class Affiliate_WP_Upgrades {
 
 		$this->utils    = $utils;
 		$this->version  = get_option( 'affwp_version' );
-		$this->registry = new \AffWP\Utils\Upgrades\Registry;
+		$this->registry = new \AffWP\Utils\Upgrades\Registry();
 
-		add_action( 'init', array( $this, 'init' ), -9999 );
+		add_action( 'init', [ $this, 'init' ], -9999 );
 
-		add_action( 'init', array( $this, 'schedule_v2270_upgrade' ), 20 );
-		add_action( 'affwp_schedule_v2270_upgrade_batches', array( $this, 'schedule_v2270_upgrade_batches' ) );
-		add_action( 'affwp_v2270_process_affiliate_batch', array( $this, 'process_v2270_affiliate_batch' ), 10, 3 );
+		add_action( 'init', [ $this, 'schedule_v2270_upgrade' ], 20 );
+		add_action( 'affwp_schedule_v2270_upgrade_batches', [ $this, 'schedule_v2270_upgrade_batches' ] );
+		add_action( 'affwp_v2270_process_affiliate_batch', [ $this, 'process_v2270_affiliate_batch' ], 10, 3 );
 
-		$settings = new Affiliate_WP_Settings;
+		$settings    = new Affiliate_WP_Settings();
 		$this->debug = (bool) $settings->get( 'debug_mode', false );
 
 		$this->register_core_upgrades();
@@ -271,6 +271,18 @@ class Affiliate_WP_Upgrades {
 			$this->v2270_upgrade();
 		}
 
+		if ( version_compare( $this->version, '2.28.0', '<' ) ) {
+			$this->upgrade_v2280_migrate_captcha_settings();
+		}
+
+		if ( version_compare( $this->version, '2.30.0', '<' ) ) {
+			$this->upgrade_v2300_schedule_log_migration();
+		}
+
+		if ( version_compare( $this->version, '2.31.0', '<' ) ) {
+			$this->upgrade_v2310_migrate_allow_own_referrals_addon();
+		}
+
 		// Inconsistency between current and saved version.
 		if ( version_compare( $this->version, AFFILIATEWP_VERSION, '<>' ) ) {
 			$this->upgraded = true;
@@ -293,125 +305,164 @@ class Affiliate_WP_Upgrades {
 	 * @see \Affiliate_WP_Upgrades::add_routine()
 	 */
 	private function register_core_upgrades() {
-		$this->add_routine( 'upgrade_v20_recount_unpaid_earnings', array(
-			'version' => '2.0',
-			'compare' => '<',
-			'batch_process' => array(
-				'id'    => 'recount-affiliate-stats-upgrade',
-				'class' => 'AffWP\Utils\Batch_Process\Upgrade_Recount_Stats',
-				'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/upgrades/class-batch-upgrade-recount-affiliate-stats.php'
-			)
-		) );
+		$this->add_routine(
+			'upgrade_v20_recount_unpaid_earnings',
+			[
+				'version'       => '2.0',
+				'compare'       => '<',
+				'batch_process' => [
+					'id'    => 'recount-affiliate-stats-upgrade',
+					'class' => 'AffWP\Utils\Batch_Process\Upgrade_Recount_Stats',
+					'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/upgrades/class-batch-upgrade-recount-affiliate-stats.php',
+				],
+			]
+		);
 
-		$this->add_routine( 'upgrade_v22_create_customer_records', array(
-			'version' => '2.2',
-			'compare' => '<',
-			'batch_process' => array(
-				'id'    => 'create-customers-upgrade',
-				'class' => 'AffWP\Utils\Batch_Process\Upgrade_Create_Customers',
-				'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/upgrades/class-batch-upgrade-create-customers.php'
-			)
-		) );
+		$this->add_routine(
+			'upgrade_v22_create_customer_records',
+			[
+				'version'       => '2.2',
+				'compare'       => '<',
+				'batch_process' => [
+					'id'    => 'create-customers-upgrade',
+					'class' => 'AffWP\Utils\Batch_Process\Upgrade_Create_Customers',
+					'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/upgrades/class-batch-upgrade-create-customers.php',
+				],
+			]
+		);
 
-		$this->add_routine( 'upgrade_v245_create_customer_affiliate_relationship_records', array(
-			'version' => '2.4.5',
-			'compare' => '<',
-			'batch_process' => array(
-				'id'    => 'create-customer-affiliate-relationship-upgrade',
-				'class' => 'AffWP\Utils\Batch_Process\Upgrade_Create_Customer_Affiliate_Relationship',
-				'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/upgrades/class-batch-upgrade-create-customer-affiliate-relationship.php'
-			)
-		) );
+		$this->add_routine(
+			'upgrade_v245_create_customer_affiliate_relationship_records',
+			[
+				'version'       => '2.4.5',
+				'compare'       => '<',
+				'batch_process' => [
+					'id'    => 'create-customer-affiliate-relationship-upgrade',
+					'class' => 'AffWP\Utils\Batch_Process\Upgrade_Create_Customer_Affiliate_Relationship',
+					'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/upgrades/class-batch-upgrade-create-customer-affiliate-relationship.php',
+				],
+			]
+		);
 
-		$this->add_routine( 'upgrade_v26_create_dynamic_coupons', array(
-			'version' => '2.6',
-			'compare' => '<',
-			'batch_process' => array(
-				'id'    => 'create-dynamic-coupons-upgrade',
-				'class' => 'AffWP\Utils\Batch_Process\Upgrade_Create_Dynamic_Coupons',
-				'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/upgrades/class-batch-upgrade-create-dynamic-coupons.php',
-			),
-		) );
+		$this->add_routine(
+			'upgrade_v26_create_dynamic_coupons',
+			[
+				'version'       => '2.6',
+				'compare'       => '<',
+				'batch_process' => [
+					'id'    => 'create-dynamic-coupons-upgrade',
+					'class' => 'AffWP\Utils\Batch_Process\Upgrade_Create_Dynamic_Coupons',
+					'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/upgrades/class-batch-upgrade-create-dynamic-coupons.php',
+				],
+			]
+		);
 
-		$this->add_routine( 'upgrade_v261_utf8mb4_compat', array(
-			'version' => '2.6.1',
-			'compare' => '<',
-			'batch_process' => array(
-				'id'    => 'upgrade-db-utf8mb4',
-				'class' => 'AffWP\Utils\Batch_Process\Upgrade_Database_ut8mb4_Compat',
-				'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/upgrades/class-batch-upgrade-db-utf8mb4.php',
-			),
-		) );
+		$this->add_routine(
+			'upgrade_v261_utf8mb4_compat',
+			[
+				'version'       => '2.6.1',
+				'compare'       => '<',
+				'batch_process' => [
+					'id'    => 'upgrade-db-utf8mb4',
+					'class' => 'AffWP\Utils\Batch_Process\Upgrade_Database_ut8mb4_Compat',
+					'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/upgrades/class-batch-upgrade-db-utf8mb4.php',
+				],
+			]
+		);
 
-		$this->add_routine( 'upgrade_v27_calculate_campaigns', array(
-			'version' => '2.7',
-			'compare' => '<',
-		) );
+		$this->add_routine(
+			'upgrade_v27_calculate_campaigns',
+			[
+				'version' => '2.7',
+				'compare' => '<',
+			]
+		);
 
-		$this->add_routine( 'upgrade_v274_calculate_campaigns', array(
-			'version' => '2.7.4',
-			'compare' => '<',
-		) );
+		$this->add_routine(
+			'upgrade_v274_calculate_campaigns',
+			[
+				'version' => '2.7.4',
+				'compare' => '<',
+			]
+		);
 
-		$this->add_routine( 'migrate_affiliate_user_meta', array(
-			'version'       => '2.8',
-			'compare'       => '<',
-			'batch_process' => array(
-				'id'    => 'migrate-affiliate-user-meta',
-				'class' => 'AffWP\Utils\Batch_Process\Batch_Migrate_Affiliate_User_Meta',
-				'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/class-batch-migrate-affwp-user-meta.php',
-			),
-		) );
+		$this->add_routine(
+			'migrate_affiliate_user_meta',
+			[
+				'version'       => '2.8',
+				'compare'       => '<',
+				'batch_process' => [
+					'id'    => 'migrate-affiliate-user-meta',
+					'class' => 'AffWP\Utils\Batch_Process\Batch_Migrate_Affiliate_User_Meta',
+					'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/class-batch-migrate-affwp-user-meta.php',
+				],
+			]
+		);
 
-		$this->add_routine( 'upgrade_v281_convert_failed_referrals', array(
-			'version'       => '2.8.1',
-			'compare'       => '<',
-			'batch_process' => array(
-				'id'    => 'upgrade-convert-failed-referrals',
-				'class' => 'AffWP\Utils\Batch_Process\Batch_Upgrade_Convert_Failed_Referrals',
-				'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/upgrades/class-batch-upgrade-convert-failed-referrals.php',
-			),
-		) );
+		$this->add_routine(
+			'upgrade_v281_convert_failed_referrals',
+			[
+				'version'       => '2.8.1',
+				'compare'       => '<',
+				'batch_process' => [
+					'id'    => 'upgrade-convert-failed-referrals',
+					'class' => 'AffWP\Utils\Batch_Process\Batch_Upgrade_Convert_Failed_Referrals',
+					'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/upgrades/class-batch-upgrade-convert-failed-referrals.php',
+				],
+			]
+		);
 
-		$this->add_routine( 'upgrade_v2140_set_creative_type', array(
-			'version'       => '2.14.0',
-			'compare'       => '<',
-			'batch_process' => array(
-				'id'    => 'set-creative-type',
-				'class' => 'AffWP\Utils\Batch_Process\Batch_Set_Creative_Type',
-				'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/class-batch-set-creative-type.php',
-			),
-		) );
+		$this->add_routine(
+			'upgrade_v2140_set_creative_type',
+			[
+				'version'       => '2.14.0',
+				'compare'       => '<',
+				'batch_process' => [
+					'id'    => 'set-creative-type',
+					'class' => 'AffWP\Utils\Batch_Process\Batch_Set_Creative_Type',
+					'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/class-batch-set-creative-type.php',
+				],
+			]
+		);
 
-		$this->add_routine( 'upgrade_v2160_update_creative_names', array(
-			'version'       => '2.16.0',
-			'compare'       => '<',
-			'batch_process' => array(
-				'id'    => 'update-creative-names',
-				'class' => 'AffWP\Utils\Batch_Process\Batch_Update_Creative_Names',
-				'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/class-batch-update-creative-names.php',
-			),
-		) );
+		$this->add_routine(
+			'upgrade_v2160_update_creative_names',
+			[
+				'version'       => '2.16.0',
+				'compare'       => '<',
+				'batch_process' => [
+					'id'    => 'update-creative-names',
+					'class' => 'AffWP\Utils\Batch_Process\Batch_Update_Creative_Names',
+					'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/class-batch-update-creative-names.php',
+				],
+			]
+		);
 
-		$this->add_routine( 'upgrade_v2276_clean_empty_registration_form_meta', array(
-			'version'       => '2.27.6',
-			'compare'       => '<',
-			'batch_process' => array(
-				'id'    => 'clean-empty-registration-form-meta',
-				'class' => 'AffWP\Utils\Batch_Process\Batch_Clean_Empty_Registration_Form_Meta',
-				'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/class-batch-clean-empty-registration-form-meta.php',
-			),
-		) );
+		$this->add_routine(
+			'upgrade_v2276_clean_empty_registration_form_meta',
+			[
+				'version'       => '2.27.6',
+				'compare'       => '<',
+				'batch_process' => [
+					'id'    => 'clean-empty-registration-form-meta',
+					'class' => 'AffWP\Utils\Batch_Process\Batch_Clean_Empty_Registration_Form_Meta',
+					'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/class-batch-clean-empty-registration-form-meta.php',
+				],
+			]
+		);
 
-		$this->add_routine( 'upgrade_v2250_create_login_registration_pages', array(
-			'version'       => '2.25.0',
-			'compare'       => '<',
-			'batch_process' => array(
-				'id'    => 'create-login-registration-pages',
-				'class' => 'AffWP\Utils\Batch_Process\Batch_Create_Login_Registration_Pages',
-				'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/class-batch-create-login-registration-pages.php',
-			),
-		) );
+		$this->add_routine(
+			'upgrade_v2250_create_login_registration_pages',
+			[
+				'version'       => '2.25.0',
+				'compare'       => '<',
+				'batch_process' => [
+					'id'    => 'create-login-registration-pages',
+					'class' => 'AffWP\Utils\Batch_Process\Batch_Create_Login_Registration_Pages',
+					'file'  => AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/class-batch-create-login-registration-pages.php',
+				],
+			]
+		);
 	}
 
 	/**
@@ -447,20 +498,29 @@ class Affiliate_WP_Upgrades {
 			// Log an error if it's too late to register the batch process.
 			if ( did_action( 'affwp_batch_process_init' ) ) {
 
-				$utils->log( sprintf( 'The %s batch process was registered too late. Registrations must occur while/before <code>affwp_batch_process_init</code> fires.',
-					esc_html( $args['batch_process']['id'] )
-				) );
+				$utils->log(
+					sprintf(
+						'The %s batch process was registered too late. Registrations must occur while/before <code>affwp_batch_process_init</code> fires.',
+						esc_html( $args['batch_process']['id'] )
+					)
+				);
 
 				return false;
 
 			} else {
 
-				add_action( 'affwp_batch_process_init', function() use ( $utils, $batch ) {
-					$utils->batch->register_process( $batch['id'], array(
-						'class' => $batch['class'],
-						'file'  => $batch['file'],
-					) );
-				} );
+				add_action(
+					'affwp_batch_process_init',
+					function () use ( $utils, $batch ) {
+						$utils->batch->register_process(
+							$batch['id'],
+							[
+								'class' => $batch['class'],
+								'file'  => $batch['file'],
+							]
+						);
+					}
+				);
 
 			}
 
@@ -501,13 +561,12 @@ class Affiliate_WP_Upgrades {
 	 *
 	 * @access  private
 	 * @since   1.1
-	*/
+	 */
 	private function v11_upgrades() {
 
 		@affiliate_wp()->affiliates->create_table();
 
 		$this->upgraded = true;
-
 	}
 
 	/**
@@ -515,13 +574,12 @@ class Affiliate_WP_Upgrades {
 	 *
 	 * @access  private
 	 * @since   1.2.1
-	*/
+	 */
 	private function v121_upgrades() {
 
 		@affiliate_wp()->creatives->create_table();
 
 		$this->upgraded = true;
-
 	}
 
 	/**
@@ -538,7 +596,6 @@ class Affiliate_WP_Upgrades {
 		flush_rewrite_rules();
 
 		$this->upgraded = true;
-
 	}
 
 	/**
@@ -553,7 +610,6 @@ class Affiliate_WP_Upgrades {
 		@affiliate_wp()->referrals->create_table();
 
 		$this->upgraded = true;
-
 	}
 
 	/**
@@ -575,7 +631,6 @@ class Affiliate_WP_Upgrades {
 		$this->v17_upgrade_nforms();
 
 		$this->upgraded = true;
-
 	}
 
 	/**
@@ -589,7 +644,6 @@ class Affiliate_WP_Upgrades {
 		$this->v17_upgrade_referral_rates();
 
 		$this->upgraded = true;
-
 	}
 
 	/**
@@ -609,10 +663,10 @@ class Affiliate_WP_Upgrades {
 			foreach ( $results as $result ) {
 				$wpdb->update(
 					"{$prefix}affiliate_wp_affiliates",
-					array( 'rate' => floatval( $result->rate ) * 100 ),
-					array( 'affiliate_id' => $result->affiliate_id ),
-					array( '%d' ),
-					array( '%d' )
+					[ 'rate' => floatval( $result->rate ) * 100 ],
+					[ 'affiliate_id' => $result->affiliate_id ],
+					[ '%d' ],
+					[ '%d' ]
 				);
 			}
 		}
@@ -693,7 +747,6 @@ class Affiliate_WP_Upgrades {
 			);
 
 		}
-
 	}
 
 	/**
@@ -745,7 +798,6 @@ class Affiliate_WP_Upgrades {
 			);
 
 		}
-
 	}
 
 	/**
@@ -759,12 +811,12 @@ class Affiliate_WP_Upgrades {
 		$settings = affiliate_wp()->settings->get_all();
 
 		// Ensures settings are not lost if the duplicate email/subject fields were used before they were removed
-		if( ! empty( $settings['rejected_email'] ) && empty( $settings['rejection_email'] ) ) {
+		if ( ! empty( $settings['rejected_email'] ) && empty( $settings['rejection_email'] ) ) {
 			$settings['rejection_email'] = $settings['rejected_email'];
 			unset( $settings['rejected_email'] );
 		}
 
-		if( ! empty( $settings['rejected_subject'] ) && empty( $settings['rejection_subject'] ) ) {
+		if ( ! empty( $settings['rejected_subject'] ) && empty( $settings['rejection_subject'] ) ) {
 			$settings['rejection_subject'] = $settings['rejected_subject'];
 			unset( $settings['rejected_subject'] );
 		}
@@ -773,7 +825,6 @@ class Affiliate_WP_Upgrades {
 		affiliate_wp()->settings->set( $settings, $save = true );
 
 		$this->upgraded = true;
-
 	}
 
 	/**
@@ -787,7 +838,6 @@ class Affiliate_WP_Upgrades {
 		@affiliate_wp()->visits->create_table();
 
 		$this->upgraded = true;
-
 	}
 
 	/**
@@ -836,14 +886,16 @@ class Affiliate_WP_Upgrades {
 		@affiliate_wp()->capabilities->add_caps();
 		@affiliate_wp()->utils->log( 'Upgrade: Core capabilities have been upgraded.' );
 
-
 		// Update settings
-		@affiliate_wp()->settings->set( array(
-			'required_registration_fields' => array(
-				'your_name'   => __( 'Your Name', 'affiliate-wp' ),
-				'website_url' => __( 'Website URL', 'affiliate-wp' )
-			)
-		), $save = true );
+		@affiliate_wp()->settings->set(
+			[
+				'required_registration_fields' => [
+					'your_name'   => __( 'Your Name', 'affiliate-wp' ),
+					'website_url' => __( 'Website URL', 'affiliate-wp' ),
+				],
+			],
+			$save = true
+		);
 		@affiliate_wp()->utils->log( 'Upgrade: The default required registration field settings have been configured.' );
 
 		// Affiliate schema update.
@@ -954,7 +1006,7 @@ class Affiliate_WP_Upgrades {
 		 * clear out the email notification array, essentially disabling all notifications.
 		 */
 		if ( affiliate_wp()->settings->get( $disable_all_emails ) ) {
-			$email_notifications = array();
+			$email_notifications = [];
 		}
 
 		// Enable the new admin affiliate registration email if it was previously enabled.
@@ -974,33 +1026,35 @@ class Affiliate_WP_Upgrades {
 		}
 
 		// Make the required changes to the Email Notifications.
-		@affiliate_wp()->settings->set( array(
-			'email_notifications' => $email_notifications
-		), $save = true );
+		@affiliate_wp()->settings->set(
+			[
+				'email_notifications' => $email_notifications,
+			],
+			$save = true
+		);
 
 		// Get all settings.
 		$settings = affiliate_wp()->settings->get_all();
 
 		// Remove old "Disable All Emails" setting.
-		if ( isset( $settings[$disable_all_emails] ) ) {
-			unset( $settings[$disable_all_emails] );
+		if ( isset( $settings[ $disable_all_emails ] ) ) {
+			unset( $settings[ $disable_all_emails ] );
 		}
 
 		// Remove old "Notify Admin" setting.
-		if ( isset( $settings[$registration_notifications] ) ) {
-			unset( $settings[$registration_notifications] );
+		if ( isset( $settings[ $registration_notifications ] ) ) {
+			unset( $settings[ $registration_notifications ] );
 		}
 
 		// Remove old "Notify Admin of Referrals" setting.
-		if ( isset( $settings[$admin_referral_notifications] ) ) {
-			unset( $settings[$admin_referral_notifications] );
+		if ( isset( $settings[ $admin_referral_notifications ] ) ) {
+			unset( $settings[ $admin_referral_notifications ] );
 		}
 
 		// Update affwp_settings option.
 		update_option( 'affwp_settings', $settings );
 
 		$this->upgraded = true;
-
 	}
 
 	/**
@@ -1011,7 +1065,7 @@ class Affiliate_WP_Upgrades {
 	private function v222_upgrade() {
 		foreach ( $this->get_sites_for_upgrade() as $site_id ) {
 
-			if( is_multisite() ) {
+			if ( is_multisite() ) {
 				switch_to_blog( $site_id );
 			}
 
@@ -1028,9 +1082,11 @@ class Affiliate_WP_Upgrades {
 			@affiliate_wp()->utils->log( sprintf( 'Upgrade: The rest_id column has been added to the Visits table for site #%1$s.', $site_id ) );
 
 			// Populate the date and status columns for existing consumers.
-			$consumers = affiliate_wp()->REST->consumers->get_consumers( array(
-				'number' => -1
-			) );
+			$consumers = affiliate_wp()->REST->consumers->get_consumers(
+				[
+					'number' => -1,
+				]
+			);
 
 			if ( ! empty( $consumers ) ) {
 				$date = get_post_field( 'post_date', affwp_get_affiliate_area_page_id() );
@@ -1043,14 +1099,17 @@ class Affiliate_WP_Upgrades {
 
 				foreach ( $consumers as $consumer ) {
 
-					affiliate_wp()->REST->consumers->update( $consumer->ID, array(
-						'date'   => $date,
-						'status' => 'active'
-					) );
+					affiliate_wp()->REST->consumers->update(
+						$consumer->ID,
+						[
+							'date'   => $date,
+							'status' => 'active',
+						]
+					);
 				}
 			}
 
-			if( is_multisite() ) {
+			if ( is_multisite() ) {
 				restore_current_blog();
 			}
 		}
@@ -1150,9 +1209,12 @@ class Affiliate_WP_Upgrades {
 		@affiliate_wp()->utils->log( 'Upgrade: The coupons table has been created.' );
 
 		// Enable the affiliate coupons setting (will not cause unexpected behavior).
-		@affiliate_wp()->settings->set( array(
-			'affiliate_coupons'  => true,
-		), $save = true );
+		@affiliate_wp()->settings->set(
+			[
+				'affiliate_coupons' => true,
+			],
+			$save = true
+		);
 
 		$this->upgraded = true;
 	}
@@ -1215,10 +1277,10 @@ class Affiliate_WP_Upgrades {
 		affiliate_wp()->utils->log( 'Upgrade: The coupons table has been updated to support lengthier coupon codes and types.' );
 
 		// Set default coupon format and hyphen delimeter.
-		$coupons_settings = array(
-		    'coupon_format'           => '{coupon_code}',
-		    'coupon_hyphen_delimiter' => 1,
-		);
+		$coupons_settings = [
+			'coupon_format'           => '{coupon_code}',
+			'coupon_hyphen_delimiter' => 1,
+		];
 
 		affiliate_wp()->settings->set( $coupons_settings, $save = true );
 
@@ -1245,12 +1307,12 @@ class Affiliate_WP_Upgrades {
 		$new_type = 'dynamic';
 
 		$wpdb->query(
-				$wpdb->prepare(
-					"UPDATE $table_name SET type = %s where type = %s;",
-					$new_type,
-					$old_type
-				)
-			);
+			$wpdb->prepare(
+				"UPDATE $table_name SET type = %s where type = %s;",
+				$new_type,
+				$old_type
+			)
+		);
 
 		affiliate_wp()->utils->log( 'Upgrade: All dynamic coupons now have a "dynamic" type in the coupons table.' );
 
@@ -1264,7 +1326,7 @@ class Affiliate_WP_Upgrades {
 	 *
 	 * @access  private
 	 * @since   2.9.5
-	*/
+	 */
 	private function v295_upgrade() {
 		affiliate_wp()->notifications->create_table();
 		affiliate_wp()->utils->log( 'Upgrade: The in-plugin notifications table has been created.' );
@@ -1322,20 +1384,20 @@ class Affiliate_WP_Upgrades {
 			return; // We can't fix it.
 		}
 
-		foreach ( array(
+		foreach ( [
 			'affwp_monthly_email_summaries',
 			'affwp_daily_scheduled_events',
-		) as $action ) {
+		] as $action ) {
 
 			if ( count(
 				// Get all schedule actions (there may be many) for $action.
 				as_get_scheduled_actions(
-					array(
+					[
 						'hook'     => $action,
 						'group'    => 'affiliatewp',
 						'status'   => ActionScheduler_Store::STATUS_PENDING,
 						'per_page' => -1,
-					)
+					]
 				)
 			) <= 1 ) {
 
@@ -1344,7 +1406,7 @@ class Affiliate_WP_Upgrades {
 			}
 
 			// Remove them all, there should only be one.
-			as_unschedule_all_actions( $action, array(), 'affiliatewp' );
+			as_unschedule_all_actions( $action, [], 'affiliatewp' );
 
 			// Tell the scheduler not to schedule an email summary for now.
 			if ( 'affwp_monthly_email_summaries' === $action ) {
@@ -1415,7 +1477,7 @@ class Affiliate_WP_Upgrades {
 		@affiliate_wp()->utils->log( 'Upgrade: The notes column has been added to the creatives table.' );
 
 		// Ensure this will never be overridden.
-		if ( ! in_array( get_option( 'affwp_creative_name_privacy', '' ), array( 'pending', 'private', 'public' ), true ) ) {
+		if ( ! in_array( get_option( 'affwp_creative_name_privacy', '' ), [ 'pending', 'private', 'public' ], true ) ) {
 
 			update_option( 'affwp_creative_name_upgrade_date', gmdate( 'Y-m-d H:i:s' ) );
 
@@ -1454,7 +1516,7 @@ class Affiliate_WP_Upgrades {
 		$usage_tracking->track_first_payout();
 
 		// Track first creative.
-		$usage_tracking->track_first_creative( 0, array() );
+		$usage_tracking->track_first_creative( 0, [] );
 
 		/**
 		 * Installs before v2.10.0 won't have the affwp_first_installed option row.
@@ -1511,13 +1573,139 @@ class Affiliate_WP_Upgrades {
 		$this->upgraded = true;
 	}
 
-	/* Perform database upgrades for version 2.27.0.
+	/*
+	Perform database upgrades for version 2.27.0.
 	*
 	* @since 2.27.0
 	*/
 	private function v2270_upgrade() {
 		// Set the Commission Delay Period to 0 to for existing users.
 		affiliate_wp()->settings->set( [ 'commission_holding_period' => 0 ], $save = true );
+
+		$this->upgraded = true;
+	}
+
+	/**
+	 * Perform database upgrades for version 2.28.0
+	 *
+	 * Migrate old reCAPTCHA settings to new CAPTCHA provider structure.
+	 *
+	 * Scenarios handled:
+	 * - recaptcha_type = 'v2' → captcha_type = 'recaptcha' (keep recaptcha_type = 'v2')
+	 * - recaptcha_type = 'v3' → captcha_type = 'recaptcha' (keep recaptcha_type = 'v3')
+	 * - recaptcha_type missing/other → captcha_type = 'none'
+	 * - captcha_type = 'none' + recaptcha_type = 'v2'/'v3' → captcha_type = 'recaptcha' (fixes inconsistent state)
+	 *
+	 * @access private
+	 * @since  2.28.0
+	 */
+	private function upgrade_v2280_migrate_captcha_settings() {
+		affiliate_wp()->utils->log( 'Upgrade v2.28.0: Starting CAPTCHA settings migration.' );
+
+		// Get all settings.
+		$settings = affiliate_wp()->settings->get_all();
+
+		// Debug: Log what we're seeing.
+		$captcha_type_status   = isset( $settings['captcha_type'] ) ? "'{$settings['captcha_type']}'" : 'NOT SET';
+		$recaptcha_type_status = isset( $settings['recaptcha_type'] ) ? "'{$settings['recaptcha_type']}'" : 'NOT SET';
+		affiliate_wp()->utils->log( "Upgrade v2.28.0: Current settings - captcha_type: $captcha_type_status, recaptcha_type: $recaptcha_type_status" );
+
+		// Migrate if captcha_type doesn't exist, or if it's 'none' but recaptcha_type indicates reCAPTCHA is configured
+		$should_migrate = ! isset( $settings['captcha_type'] )
+			|| ( 'none' === $settings['captcha_type'] && isset( $settings['recaptcha_type'] ) && in_array( $settings['recaptcha_type'], [ 'v2', 'v3' ] ) );
+
+		if ( $should_migrate ) {
+			affiliate_wp()->utils->log( 'Upgrade v2.28.0: Performing CAPTCHA settings migration.' );
+
+			// Check if recaptcha_type is set to v2 or v3 values
+			if ( isset( $settings['recaptcha_type'] ) && in_array( $settings['recaptcha_type'], [ 'v2', 'v3' ] ) ) {
+				// Set captcha_type to 'recaptcha' when reCAPTCHA is being used
+				$settings['captcha_type'] = 'recaptcha';
+				affiliate_wp()->utils->log( "Upgrade: Set captcha_type='recaptcha' for existing recaptcha_type='{$settings['recaptcha_type']}'." );
+			} else {
+				// No reCAPTCHA configuration found - set to none.
+				$settings['captcha_type'] = 'none';
+				$recaptcha_debug          = isset( $settings['recaptcha_type'] ) ? $settings['recaptcha_type'] : 'NOT SET';
+				affiliate_wp()->utils->log( "Upgrade: Set captcha_type='none' - recaptcha_type was '$recaptcha_debug'." );
+			}
+
+			// Update the affwp_settings option.
+			update_option( 'affwp_settings', $settings );
+			affiliate_wp()->utils->log( 'Upgrade v2.28.0: Settings updated successfully.' );
+		} else {
+			affiliate_wp()->utils->log( "Upgrade v2.28.0: captcha_type setting already exists ('{$settings['captcha_type']}') and is consistent, skipping migration." );
+		}
+
+		affiliate_wp()->utils->log( 'Upgrade v2.28.0: CAPTCHA settings migration completed.' );
+		$this->upgraded = true;
+	}
+
+	/**
+	 * Schedules the log file migration for v2.30.0.
+	 *
+	 * @since 2.30.0
+	 */
+	private function upgrade_v2300_schedule_log_migration() {
+		affiliate_wp()->utils->log( 'Upgrade v2.30.0: Scheduling log file migration.' );
+
+		// Schedule the log migration cron event.
+		Affiliate_WP_Logging::schedule_log_migration();
+
+		affiliate_wp()->utils->log( 'Upgrade v2.30.0: Log file migration scheduled successfully.' );
+		$this->upgraded = true;
+	}
+
+	/**
+	 * Migrates the Allow Own Referrals addon settings for v2.31.0.
+	 *
+	 * If the Allow Own Referrals addon was previously active, migrates the setting
+	 * to set fraud_prevention_self_referrals to 'allow'.
+	 *
+	 * @since 2.31.0
+	 */
+	private function upgrade_v2310_migrate_allow_own_referrals_addon() {
+		// Check if we've already run this migration.
+		if ( get_option( 'affwp_allow_own_referrals_migrated' ) ) {
+			affiliate_wp()->utils->log( 'Upgrade v2.31.0: Allow Own Referrals migration already completed. Skipping.' );
+			return;
+		}
+
+		affiliate_wp()->utils->log( 'Upgrade v2.31.0: Starting Allow Own Referrals addon migration.' );
+
+		// Check if the Allow Own Referrals addon was previously active.
+		$addon_path         = 'affiliatewp-allow-own-referrals/affiliatewp-allow-own-referrals.php';
+		$was_addon_active   = false;
+		$active_plugins     = get_option( 'active_plugins', [] );
+		$network_plugins    = is_multisite() ? get_site_option( 'active_sitewide_plugins', [] ) : [];
+
+		// Check regular active plugins.
+		if ( in_array( $addon_path, $active_plugins, true ) ) {
+			$was_addon_active = true;
+		}
+
+		// Check network-activated plugins.
+		if ( ! $was_addon_active && isset( $network_plugins[ $addon_path ] ) ) {
+			$was_addon_active = true;
+		}
+
+		// If the addon was active, set the self-referral setting to 'allow'.
+		if ( $was_addon_active ) {
+			affiliate_wp()->utils->log( 'Upgrade v2.31.0: Allow Own Referrals addon was previously active.' );
+
+			$settings = affiliate_wp()->settings->get_all();
+
+			// Set self-referral protection to 'allow'.
+			$settings['fraud_prevention_self_referrals'] = 'allow';
+
+			update_option( 'affwp_settings', $settings );
+			affiliate_wp()->utils->log( 'Upgrade v2.31.0: Set fraud_prevention_self_referrals to "allow".' );
+		} else {
+			affiliate_wp()->utils->log( 'Upgrade v2.31.0: Allow Own Referrals addon was not previously active. No migration needed.' );
+		}
+
+		// Mark the migration as complete.
+		update_option( 'affwp_allow_own_referrals_migrated', true );
+		affiliate_wp()->utils->log( 'Upgrade v2.31.0: Allow Own Referrals migration completed successfully.' );
 
 		$this->upgraded = true;
 	}
@@ -1538,13 +1726,12 @@ class Affiliate_WP_Upgrades {
 
 			} else {
 
-				$sites = get_sites( array( 'fields' => 'ids' ) );
+				$sites = get_sites( [ 'fields' => 'ids' ] );
 
 			}
-
 		} else {
 
-			$sites = array( get_current_blog_id() );
+			$sites = [ get_current_blog_id() ];
 
 		}
 
@@ -1553,23 +1740,21 @@ class Affiliate_WP_Upgrades {
 		// Only return sites AffWP is active on.
 		foreach ( $sites as $index => $site_id ) {
 
-
-			if( is_multisite() ) {
+			if ( is_multisite() ) {
 
 				switch_to_blog( $site_id );
 
 			}
 
-			if ( ! in_array( $plugin, get_option( 'active_plugins', array() ) ) ) {
+			if ( ! in_array( $plugin, get_option( 'active_plugins', [] ) ) ) {
 				unset( $sites[ $index ] );
 			}
 
-			if( is_multisite() ) {
+			if ( is_multisite() ) {
 
 				restore_current_blog();
 
 			}
-
 		}
 		return $sites;
 	}
@@ -1585,7 +1770,7 @@ class Affiliate_WP_Upgrades {
 	 */
 	public function schedule_v2270_upgrade() {
 		if ( version_compare( $this->version, '2.27.0', '<' ) ) {
-			as_enqueue_async_action( 'affwp_schedule_v2270_upgrade_batches', array(), 'affiliatewp' );
+			as_enqueue_async_action( 'affwp_schedule_v2270_upgrade_batches', [], 'affiliatewp' );
 		}
 	}
 
@@ -1637,11 +1822,11 @@ class Affiliate_WP_Upgrades {
 			as_schedule_single_action(
 				time() + ( ( $i - 1 ) * 30 ), // Add a 30-second delay between batches.
 				'affwp_v2270_process_affiliate_batch',
-				array(
+				[
 					'batch'            => $i,
 					'affiliate_ids'    => $batch_affiliate_ids,
 					'total_affiliates' => $total_affiliates,
-				),
+				],
 				'affiliatewp'
 			);
 
@@ -1677,17 +1862,17 @@ class Affiliate_WP_Upgrades {
 			foreach ( $affiliate_ids as $affiliate_id ) {
 				$result = $wpdb->update(
 					$affiliate_meta_table,
-					array( 'meta_value' => 'affiliate_registration_form_wpforms' ),
-					array(
+					[ 'meta_value' => 'affiliate_registration_form_wpforms' ],
+					[
 						'affiliate_id' => $affiliate_id,
 						'meta_key'     => 'registration_method',
 						'meta_value'   => 'affiliate_registration_form',
-					),
-					array( '%s' ),
-					array( '%d', '%s', '%s' )
+					],
+					[ '%s' ],
+					[ '%d', '%s', '%s' ]
 				);
 				if ( false !== $result ) {
-					$updated_count++;
+					++$updated_count;
 				}
 			}
 
@@ -1710,5 +1895,4 @@ class Affiliate_WP_Upgrades {
 			affiliate_wp()->utils->log( "v2270_upgrade: No affiliates to process for WPForms registration method update (Batch {$batch})." );
 		}
 	}
-
 }

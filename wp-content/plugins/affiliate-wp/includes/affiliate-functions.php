@@ -59,7 +59,7 @@ namespace {
 	function affwp_get_affiliate_id( $user_id = 0 ) {
 
 		if ( empty( $user_id ) ) {
-			$is_admin_doing_ajax = is_admin() || wp_doing_ajax();
+			$is_admin_doing_ajax = is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX );
 
 			if ( ! $is_admin_doing_ajax && ! is_user_logged_in() ) {
 				return false;
@@ -92,14 +92,12 @@ namespace {
 			$user_info = get_userdata( $affiliate->user_id );
 
 			if ( $user_info ) {
-				$username  = $user_info->user_login;
+				$username = $user_info->user_login;
 				return esc_html( $username );
 			}
-
 		}
 
 		return false;
-
 	}
 
 	/**
@@ -128,8 +126,8 @@ namespace {
 			return '';
 		}
 
-		$first_name   = esc_html( $user_info->first_name );
-		$last_name    = esc_html( $user_info->last_name );
+		$first_name = esc_html( $user_info->first_name );
+		$last_name  = esc_html( $user_info->last_name );
 
 		// Check if both names are set first.
 		if ( ! empty( $first_name ) && ! empty( $last_name ) ) {
@@ -175,7 +173,6 @@ namespace {
 		}
 
 		return esc_html( $user_info->last_name );
-
 	}
 
 	/**
@@ -201,7 +198,6 @@ namespace {
 		}
 
 		return esc_html( $user_info->first_name );
-
 	}
 
 	/**
@@ -249,7 +245,7 @@ namespace {
 	 * @since 2.23.2
 	 *
 	 * @param int|AffWP\Affiliate|string $affiliate The affiliate ID or affiliate object.
-	 * @param int $size The size to render the gravatar.
+	 * @param int                        $size The size to render the gravatar.
 	 *
 	 * @return string The user gravatar.
 	 */
@@ -366,7 +362,6 @@ namespace {
 
 			return true;
 		}
-
 	}
 
 	/**
@@ -509,10 +504,10 @@ namespace {
 	function affwp_affiliate_has_custom_rate( $affiliate = 0 ) {
 
 		if ( $affiliate = affwp_get_affiliate( $affiliate ) ) {
-			$custom_rate = $affiliate->has_custom_rate();
+			$custom_rate  = $affiliate->has_custom_rate();
 			$affiliate_id = $affiliate->ID;
 		} else {
-			$custom_rate = false;
+			$custom_rate  = false;
 			$affiliate_id = 0;
 		}
 
@@ -571,7 +566,6 @@ namespace {
 		 * @param int    $affiliate_id Affiliate ID.
 		 */
 		return apply_filters( 'affwp_get_affiliate_rate_type', $type, $affiliate_id );
-
 	}
 
 	/**
@@ -617,7 +611,6 @@ namespace {
 		 * @param int    $affiliate_id Affiliate ID.
 		 */
 		return apply_filters( 'affwp_get_affiliate_flat_rate_basis', $type, $affiliate_id );
-
 	}
 
 	/**
@@ -659,7 +652,7 @@ namespace {
 		$types = array(
 			'percentage' => __( 'Percentage (%)', 'affiliate-wp' ),
 			/* translators: Currency name */
-			'flat'       => sprintf( __( 'Flat %s', 'affiliate-wp' ), affwp_get_currency() )
+			'flat'       => sprintf( __( 'Flat %s', 'affiliate-wp' ), affwp_get_currency() ),
 		);
 
 		/**
@@ -670,7 +663,6 @@ namespace {
 		 * @param array $types Array of key/value pairs of rate types.
 		 */
 		return apply_filters( 'affwp_get_affiliate_rate_types', $types );
-
 	}
 
 	/**
@@ -696,7 +688,6 @@ namespace {
 		 * @param array $types Array of key/value pairs of rate types.
 		 */
 		return apply_filters( 'affwp_get_affiliate_flat_rate_basis_types', $types );
-
 	}
 
 	/**
@@ -721,7 +712,6 @@ namespace {
 		}
 
 		return $user->user_email;
-
 	}
 
 	/**
@@ -797,23 +787,29 @@ namespace {
 					affiliate_wp()->affiliate_meta->delete_meta( $affiliate_id, $meta_key );
 				}
 
-				$coupons = affiliate_wp()->affiliates->coupons->get_coupons( array(
-					'affiliate_id' => $affiliate_id,
-					'number'       => -1,
-					'fields'       => 'ids',
-				) );
+				$coupons = affiliate_wp()->affiliates->coupons->get_coupons(
+					array(
+						'affiliate_id' => $affiliate_id,
+						'number'       => -1,
+						'fields'       => 'ids',
+					)
+				);
 
-				$referrals = affiliate_wp()->referrals->get_referrals( array(
-					'affiliate_id' => $affiliate_id,
-					'number'       => -1,
-					'fields'       => 'ids',
-				) );
+				$referrals = affiliate_wp()->referrals->get_referrals(
+					array(
+						'affiliate_id' => $affiliate_id,
+						'number'       => -1,
+						'fields'       => 'ids',
+					)
+				);
 
-				$visits = affiliate_wp()->visits->get_visits( array(
-					'affiliate_id' => $affiliate_id,
-					'number'       => -1,
-					'fields'       => 'ids',
-				) );
+				$visits = affiliate_wp()->visits->get_visits(
+					array(
+						'affiliate_id' => $affiliate_id,
+						'number'       => -1,
+						'fields'       => 'ids',
+					)
+				);
 
 				foreach ( $coupons as $coupon_id ) {
 					affiliate_wp()->affiliates->coupons->delete( $coupon_id );
@@ -846,7 +842,6 @@ namespace {
 		}
 
 		return $deleted;
-
 	}
 
 	/**
@@ -928,12 +923,12 @@ namespace {
 			return false;
 		}
 
-		$earnings = affwp_get_affiliate_earnings( $affiliate->ID );
+		$earnings  = affwp_get_affiliate_earnings( $affiliate->ID );
 		$earnings += $amount;
-		$earnings = round( $earnings, affwp_get_decimal_count() );
+		$earnings  = round( $earnings, affwp_get_decimal_count() );
 
 		if ( affiliate_wp()->affiliates->update( $affiliate->ID, array( 'earnings' => $earnings ), '', 'affiliate' ) ) {
-			$alltime = get_option( 'affwp_alltime_earnings' );
+			$alltime  = get_option( 'affwp_alltime_earnings' );
 			$alltime += $amount;
 			update_option( 'affwp_alltime_earnings', $alltime );
 
@@ -944,7 +939,6 @@ namespace {
 			return false;
 
 		}
-
 	}
 
 	/**
@@ -966,9 +960,9 @@ namespace {
 			return false;
 		}
 
-		$earnings = affwp_get_affiliate_earnings( $affiliate->ID );
+		$earnings  = affwp_get_affiliate_earnings( $affiliate->ID );
 		$earnings -= $amount;
-		$earnings = round( $earnings, affwp_get_decimal_count() );
+		$earnings  = round( $earnings, affwp_get_decimal_count() );
 
 		if ( $earnings < 0 ) {
 			$earnings = 0;
@@ -976,7 +970,7 @@ namespace {
 
 		if ( affiliate_wp()->affiliates->update( $affiliate->ID, array( 'earnings' => $earnings ), '', 'affiliate' ) ) {
 
-			$alltime = get_option( 'affwp_alltime_earnings' );
+			$alltime  = get_option( 'affwp_alltime_earnings' );
 			$alltime -= $amount;
 			if ( $alltime < 0 ) {
 				$alltime = 0;
@@ -990,7 +984,6 @@ namespace {
 			return false;
 
 		}
-
 	}
 
 	/**
@@ -1020,7 +1013,7 @@ namespace {
 		}
 
 		$unpaid_earnings += $amount;
-		$unpaid_earnings = round( $unpaid_earnings, affwp_get_decimal_count() );
+		$unpaid_earnings  = round( $unpaid_earnings, affwp_get_decimal_count() );
 
 		if ( affiliate_wp()->affiliates->update( $affiliate->ID, array( 'unpaid_earnings' => $unpaid_earnings ), '', 'affiliate' ) ) {
 
@@ -1051,9 +1044,9 @@ namespace {
 			return false;
 		}
 
-		$unpaid_earnings = affwp_get_affiliate_unpaid_earnings( $affiliate );
+		$unpaid_earnings  = affwp_get_affiliate_unpaid_earnings( $affiliate );
 		$unpaid_earnings -= $amount;
-		$unpaid_earnings = round( $unpaid_earnings, affwp_get_decimal_count() );
+		$unpaid_earnings  = round( $unpaid_earnings, affwp_get_decimal_count() );
 
 		if ( $unpaid_earnings < 0 ) {
 			$unpaid_earnings = 0;
@@ -1068,7 +1061,6 @@ namespace {
 			return false;
 
 		}
-
 	}
 
 	/**
@@ -1104,7 +1096,7 @@ namespace {
 			return false;
 		}
 
-		$referrals = affwp_get_affiliate_referral_count( $affiliate->ID );
+		$referrals  = affwp_get_affiliate_referral_count( $affiliate->ID );
 		$referrals += 1;
 
 		if ( affiliate_wp()->affiliates->update( $affiliate->ID, array( 'referrals' => $referrals ), '', 'affiliate' ) ) {
@@ -1116,7 +1108,6 @@ namespace {
 			return false;
 
 		}
-
 	}
 
 	/**
@@ -1134,7 +1125,7 @@ namespace {
 			return false;
 		}
 
-		$referrals = affwp_get_affiliate_referral_count( $affiliate->ID );
+		$referrals  = affwp_get_affiliate_referral_count( $affiliate->ID );
 		$referrals -= 1;
 		if ( $referrals < 0 ) {
 			$referrals = 0;
@@ -1149,7 +1140,6 @@ namespace {
 			return false;
 
 		}
-
 	}
 
 	/**
@@ -1190,7 +1180,7 @@ namespace {
 			return false;
 		}
 
-		$visits = affwp_get_affiliate_visit_count( $affiliate->ID );
+		$visits  = affwp_get_affiliate_visit_count( $affiliate->ID );
 		$visits += 1;
 
 		if ( affiliate_wp()->affiliates->update( $affiliate->ID, array( 'visits' => $visits ), '', 'affiliate' ) ) {
@@ -1202,7 +1192,6 @@ namespace {
 			return false;
 
 		}
-
 	}
 
 	/**
@@ -1220,7 +1209,7 @@ namespace {
 			return false;
 		}
 
-		$visits = affwp_get_affiliate_visit_count( $affiliate->ID );
+		$visits  = affwp_get_affiliate_visit_count( $affiliate->ID );
 		$visits -= 1;
 
 		if ( $visits < 0 ) {
@@ -1236,7 +1225,6 @@ namespace {
 			return false;
 
 		}
-
 	}
 
 	/**
@@ -1282,7 +1270,6 @@ namespace {
 		 * @param array  $date_range   Date range the conversion rate represents.
 		 */
 		return apply_filters( 'affwp_get_affiliate_conversion_rate', $rate, $affiliate->ID, $date_range );
-
 	}
 
 	/**
@@ -1370,7 +1357,7 @@ namespace {
 		if ( ! empty( $data['user_email'] ) ) {
 
 			if ( ! empty( $data['user_name'] ) ) {
-				$username = sanitize_text_field(( $data['user_name'] ) );
+				$username = sanitize_text_field( ( $data['user_name'] ) );
 			} else {
 				$username = sanitize_user( $data['user_email'] );
 			}
@@ -1437,7 +1424,7 @@ namespace {
 			}
 
 			// Add registration method.
-			affwp_update_affiliate_meta( $affiliate_id, 'registration_method', ! empty( $args['registration_method']) ? $args['registration_method'] : 'api' );
+			affwp_update_affiliate_meta( $affiliate_id, 'registration_method', ! empty( $args['registration_method'] ) ? $args['registration_method'] : 'api' );
 
 			// Add registration URL.
 			if ( ! empty( $args['registration_url'] ) ) {
@@ -1462,7 +1449,6 @@ namespace {
 		}
 
 		return false;
-
 	}
 
 	/**
@@ -1630,10 +1616,12 @@ namespace {
 			) {
 				$account_email = sanitize_text_field( $data['account_email'] );
 
-				wp_update_user( array(
-					'ID'         => $user_id,
-					'user_email' => $account_email
-				) );
+				wp_update_user(
+					array(
+						'ID'         => $user_id,
+						'user_email' => $account_email,
+					)
+				);
 			}
 
 			return true;
@@ -1692,7 +1680,8 @@ namespace {
 		do_action( 'affwp_update_affiliate_profile_settings', $data );
 
 		if ( ! empty( $_POST['affwp_action'] ) ) {
-			wp_redirect( add_query_arg( 'affwp_notice', 'profile-updated' ) ); exit;
+			wp_redirect( add_query_arg( 'affwp_notice', 'profile-updated' ) );
+			exit;
 		}
 	}
 
@@ -1767,10 +1756,10 @@ namespace {
 		$url_parts = parse_url( $base_url );
 
 		// if fragment identifier exists in base URL, strip it and store in variable so we can append it later
-		$fragment        = array_key_exists( 'fragment', $url_parts ) ? '#' . $url_parts['fragment'] : '';
+		$fragment = array_key_exists( 'fragment', $url_parts ) ? '#' . $url_parts['fragment'] : '';
 
 		// if query exists in base URL, strip it and store in variable so we can append to the end of the URL
-		$query_string    = array_key_exists( 'query', $url_parts ) ? '?' . $url_parts['query'] : '';
+		$query_string = array_key_exists( 'query', $url_parts ) ? '?' . $url_parts['query'] : '';
 
 		$url_scheme      = isset( $url_parts['scheme'] ) ? $url_parts['scheme'] : 'http';
 		$url_host        = isset( $url_parts['host'] ) ? $url_parts['host'] : '';
@@ -1789,7 +1778,6 @@ namespace {
 		}
 
 		return $referral_url;
-
 	}
 
 	/**
@@ -1821,7 +1809,6 @@ namespace {
 		 * @param string Base URL.
 		 */
 		return apply_filters( 'affwp_affiliate_referral_url_base', $base_url );
-
 	}
 
 	/**
@@ -1940,15 +1927,43 @@ namespace {
 	function affwp_get_affiliate_terms_of_use_page_id() {
 		$affiliate_terms_page_id = affiliate_wp()->settings->get( 'terms_of_use', 0 );
 
-		/**
-		 * Filters the Affiliate Terms Of Use page ID.
-		 *
-		 * @since 2.9.6
-		 *
-		 * @param int $affiliate_terms_page_id Affiliate Terms Of Use page ID.
-		 */
-		return apply_filters( 'affwp_affiliate_terms_of_use_page_id', $affiliate_terms_page_id );
+	/**
+	 * Filters the Affiliate Terms Of Use page ID.
+	 *
+	 * @since 2.9.6
+	 *
+	 * @param int $affiliate_terms_page_id Affiliate Terms Of Use page ID.
+	 */
+	return apply_filters( 'affwp_affiliate_terms_of_use_page_id', $affiliate_terms_page_id );
+}
+
+/*
+ * WPML Compatibility: Translate page IDs to the current language.
+ *
+ * @since AFFWPN
+ */
+if ( ! function_exists( 'affwp_wpml_translate_page_id' ) ) {
+
+	/**
+	 * Translates a page ID to the current WPML language.
+	 *
+	 * @since AFFWPN
+	 *
+	 * @param int $page_id The page ID to translate.
+	 * @return int The translated page ID, or original if WPML is not active.
+	 */
+	function affwp_wpml_translate_page_id( $page_id ) {
+		if ( class_exists( 'SitePress' ) && ! empty( $page_id ) ) {
+			$page_id = apply_filters( 'wpml_object_id', $page_id, 'page', true );
+		}
+		return $page_id;
 	}
+
+	add_filter( 'affwp_affiliate_area_page_id', 'affwp_wpml_translate_page_id' );
+	add_filter( 'affiliatewp_affiliate_login_page_id', 'affwp_wpml_translate_page_id' );
+	add_filter( 'affiliatewp_affiliate_registration_page_id', 'affwp_wpml_translate_page_id' );
+	add_filter( 'affwp_affiliate_terms_of_use_page_id', 'affwp_wpml_translate_page_id' );
+}
 
 	/**
 	 * Retrieves the Affiliates Area page URL.
@@ -1996,7 +2011,8 @@ namespace {
 		 *
 		 * @param array $tabs Array of tabs.
 		 */
-		$tabs = apply_filters( 'affwp_affiliate_area_tabs',
+		$tabs = apply_filters(
+			'affwp_affiliate_area_tabs',
 			array(
 				'urls'      => __( 'Affiliate URLs', 'affiliate-wp' ),
 				'creatives' => __( 'Creatives', 'affiliate-wp' ),
@@ -2023,11 +2039,12 @@ namespace {
 	 * Get the default first Affiliate Area tab slug.
 	 *
 	 * @since 2.17.0
+	 * @since 2.27.8 The default is always the first tab configured in the list.
 	 *
 	 * @return string First tab
 	 */
-	function affwp_get_first_affiliate_area_tab(){
-		return 'urls';
+	function affwp_get_first_affiliate_area_tab() {
+		return current( array_keys( affwp_get_affiliate_area_tabs() ) );
 	}
 
 	/**
@@ -2050,12 +2067,12 @@ namespace {
 		}
 
 		$active_tab = sanitize_text_field( $_GET['tab'] );
-		$tabs = affwp_get_affiliate_area_tabs();
+		$tabs       = affwp_get_affiliate_area_tabs();
 
 		foreach ( $tabs as $tab_slug => $tab_title ) {
 
 			// This ensures that tabs registered prior to 2.1.7 (when tab titles were added to the array) continue to function
-			if( is_int( $tab_slug ) ) {
+			if ( is_int( $tab_slug ) ) {
 				$tabs[ sanitize_key( $tab_title ) ] = $tab_title;
 			}
 
@@ -2107,7 +2124,9 @@ namespace {
 	function affwp_render_affiliate_dashboard_tab( $tab = '' ) {
 
 		ob_start();
+
 		affiliate_wp()->templates->get_template_part( 'dashboard-tab', $tab );
+
 		$content = ob_get_clean();
 
 		/**
@@ -2131,8 +2150,7 @@ namespace {
 		 * @param string $content Contents of the tab.
 		 * @param string $tab     The tab slug.
 		 */
-		echo apply_filters( 'affwp_render_affiliate_dashboard_tab', $content, $tab );
-
+		echo apply_filters( 'affwp_render_affiliate_dashboard_tab', $content, $tab ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped previously.
 	}
 
 	/**
@@ -2148,9 +2166,11 @@ namespace {
 			return false;
 		}
 
-		$payouts = affiliate_wp()->affiliates->payouts->get_payouts( array(
-			'affiliate_id' => $affiliate->ID,
-		) );
+		$payouts = affiliate_wp()->affiliates->payouts->get_payouts(
+			array(
+				'affiliate_id' => $affiliate->ID,
+			)
+		);
 
 		/**
 		 * Filters the list of payouts associated with an affiliate.
@@ -2349,11 +2369,14 @@ namespace {
 		 *
 		 * @param array $fields list of meta keys to migrate.
 		 */
-		return apply_filters( 'affwp_pending_migrated_user_meta_fields', array(
-			'affwp_promotion_method',
-			'affwp_disable_affiliate_email',
-			'affwp_referral_notifications',
-		) );
+		return apply_filters(
+			'affwp_pending_migrated_user_meta_fields',
+			array(
+				'affwp_promotion_method',
+				'affwp_disable_affiliate_email',
+				'affwp_referral_notifications',
+			)
+		);
 	}
 
 	/**
@@ -2392,7 +2415,7 @@ namespace {
 	function affwp_get_top_earning_affiliates( $count = 5, $args = array() ) {
 
 		return array_map(
-			function( $affiliate ) use ( $args ) {
+			function ( $affiliate ) use ( $args ) {
 
 				if ( isset( $args['fields'] ) && 'ids' === $args['fields'] ) {
 					return $affiliate->affiliate_id;
@@ -2509,7 +2532,7 @@ namespace {
 			),
 
 			// Validate that the group that's connected is an affiliate-group group type.
-			function( $group_id ) {
+			function ( $group_id ) {
 
 				global $wpdb;
 
@@ -2563,7 +2586,7 @@ namespace {
 				WHERE meta_key = 'registration_method'
 				GROUP BY meta_value
 			",
-		ARRAY_A
+			ARRAY_A
 		);
 
 		// Check for any database errors.
@@ -2619,7 +2642,7 @@ namespace AffiliateWP\Functions\Affiliates {
 						'exclude' => is_array( $exclude )
 							? array_filter(
 								$exclude,
-								function( $value ) {
+								function ( $value ) {
 
 									return is_numeric( $value )
 										? absint( $value )
@@ -2663,7 +2686,7 @@ namespace AffiliateWP\Functions\Affiliates {
 						'exclude' => is_array( $exclude )
 							? array_filter(
 								$exclude,
-								function( $value ) {
+								function ( $value ) {
 
 									return is_numeric( $value )
 										? absint( $value )

@@ -1,0 +1,262 @@
+/* General */
+@font-face {
+	font-family: "affwp-dashicons";
+	src: url("../fonts/dashicons.eot");
+	src:
+		url("../fonts/dashicons.eot?#iefix") format("embedded-opentype"),
+		url("../fonts/dashicons.woff") format("woff"),
+		url("../fonts/dashicons.ttf") format("truetype"),
+		url("../fonts/dashicons.svg#dashicons") format("svg");
+}
+
+#adminmenu #toplevel_page_affiliate-wp div.wp-menu-image:before {
+	font-family: "affwp-dashicons" !important;
+	content: "\e000";
+}
+
+#affwp-dashboard-widgets-wrap .postbox h3 {
+	cursor: default;
+	font-weight: 600;
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+#affwp-dashboard-widgets-wrap p:last-child:not(.affwp-batch-success) {
+	margin-bottom: 0px;
+}
+
+#affwp-dashboard-widgets-wrap .muted {
+	color: #999;
+}
+
+#affwp-reports-widgets-wrap #dashboard-widgets {
+	overflow: visible;
+}
+
+#affwp-reports-widgets-wrap #dashboard-widgets .postbox-container {
+	width: 33.3%;
+}
+
+#affwp-reports-widgets-wrap
+	#dashboard-widgets
+	.postbox-container
+	.empty-container {
+	margin-top: 1px;
+}
+
+#affwp-reports-widgets-wrap #dashboard-widgets #primary-sortables {
+	margin-left: 0;
+}
+
+#affwp-reports-widgets-wrap #dashboard-widgets #tertiary-sortables {
+	margin-right: 0;
+}
+
+#affwp-reports-widgets-wrap .metabox-holder .empty-container {
+	height: 127px;
+}
+
+#affwp-reports-widgets-wrap #dashboard-widgets .postbox,
+#affwp-reports-widgets-wrap #dashboard-widgets .meta-box-sortables {
+	min-height: 127px;
+}
+
+#affwp-reports-widgets-wrap #dashboard-widgets .postbox.closed {
+	min-height: 0;
+}
+
+#affwp-reports-widgets-wrap h2.hndle {
+	padding: 8px 36px;
+	text-align: center;
+	font-weight: normal;
+	color: #999;
+}
+
+#affwp-reports-widgets-wrap .postbox .inside {
+	text-align: center;
+}
+
+#affwp-reports-widgets-wrap .inside span {
+	display: block;
+}
+
+#affwp-reports-widgets-wrap .inside .tile-value {
+	color: #21759b;
+	font-size: 3em;
+	line-height: 1;
+}
+
+#affwp-reports-widgets-wrap .inside .tile-value.tile-no-data {
+	color: #888;
+	font-size: 1.5em;
+	line-height: 1;
+}
+
+#affwp-reports-widgets-wrap .inside .tile-value.tile-url {
+	font-size: 1.5em;
+}
+
+#affwp-reports-widgets-wrap .inside .tile-compare {
+	color: #333;
+	padding-top: 10px;
+	font-size: 1.1em;
+}
+
+.affwp-dashboard-widget .dataset {
+	width: 50%;
+	float: left;
+	padding: 0 15px;
+	box-sizing: border-box;
+}
+
+/* Dashboard Widgets */
+.affwp-dashboard-widget .dataset-recent-referrals,
+.affwp-dashboard-widget table,
+.affwp-dashboard-widget dl {
+	width: 100%;
+	margin-block-start: 0;
+	margin-block-end: 0;
+}
+
+.affwp-dashboard-widget dd {
+	margin-left: 0;
+	margin-bottom: 5px;
+}
+
+/* Batch Processor */
+
+.affwp-batch-progress {
+	background: #ddd;
+	height: 15px;
+}
+.affiliates_page_affiliate-wp-referrals .affwp-batch-progress {
+	position: relative;
+}
+.affwp-batch-progress div {
+	background: #ccc;
+	height: 100%;
+	width: 0;
+}
+.notice-wrap {
+	border-style: solid;
+	border-width: 1px 0;
+	border-color: #eae9e9;
+	padding: 12px 12px 12px 0;
+	overflow: auto;
+}
+.notice-wrap #affwp-batch-success {
+	margin: 5px 0;
+}
+form .spinner {
+	margin: 4px 10px 8px;
+	position: relative;
+	float: none;
+}
+.affwp-batch-form--has-choices .affwp-batch-form__submit-container {
+	margin: 1rem 0;
+}
+.admin-color-fresh .affwp-batch-progress div {
+	background: #0073aa;
+}
+.admin-color-light .affwp-batch-progress div {
+	background: #888;
+}
+.admin-color-blue .affwp-batch-progress div {
+	background: #096484;
+}
+.admin-color-coffee .affwp-batch-progress div {
+	background: #c7a589;
+}
+.admin-color-ectoplasm .affwp-batch-progress div {
+	background: #a3b745;
+}
+.admin-color-midnight .affwp-batch-progress div {
+	background: #e14d43;
+}
+.admin-color-sunrise .affwp-batch-progress div {
+	background: #dd823b;
+}
+.wc-order-preview-affwp-referral {
+	padding: 1em 1.5em;
+	text-align: left;
+	border-top: 1px solid #eee;
+	width: 100%;
+	margin: 0;
+}
+.wc-order-preview-affwp-referral strong {
+	display: block;
+}
+
+.affwp-textcenter {
+	text-align: center;
+}
+
+#dashboard-widgets .affwp-dashboard-widget .dataset h4 {
+	color: #777;
+	border-bottom: 1px solid #ececec;
+	font-size: 13px;
+	padding: 3px 0;
+	margin-bottom: 3px;
+	margin-top: 3px;
+}
+
+#dashboard-widgets .dataset-referrals-totals {
+	margin-bottom: 30px;
+}
+
+#dashboard-widgets .affwp-dashboard-widget h3 {
+	display: inline;
+	margin-left: 10px;
+	color: #777;
+}
+
+#dashboard-widgets .dataset-title {
+	width: 100%;
+	border-bottom: 1px solid #ececec;
+	padding-bottom: 5px;
+	margin-bottom: 5px;
+}
+
+#dashboard-widgets .affwp-dashboard-widget dt,
+#dashboard-widgets .affwp-dashboard-widget dd {
+	width: 50%;
+	margin-bottom: 5px;
+}
+
+#dashboard-widgets .affwp-dashboard-widget dt {
+	float: left;
+	clear: left;
+	font-size: 12px;
+	color: #777;
+	margin-bottom: 15px;
+}
+
+#dashboard-widgets .affwp-dashboard-widget dd {
+	float: right;
+	text-align: right;
+	font-size: 14px;
+	font-family: Georgia, "Times New Roman", "Bitstream Charter", Times, serif;
+	font-weight: 400;
+}
+
+/* WooCommerce Order Screen: Affiliate Selector (Select2) */
+.select2-container--disabled #select2-affiliatewp-order-affiliate-container {
+	cursor: not-allowed !important;
+}
+
+/* WooCommerce Admin Tweaks */
+.affwp-woo-coupon-field .affwp-ajax-search-wrap {
+	position: relative;
+	display: block;
+	width: 100%;
+}
+.affwp-woo-coupon-field input#user_name.affwp-user-search {
+	width: 50%;
+}
+.affwp-woo-coupon-field .affwp-woo-coupon-input-wrap {
+	position: relative;
+}
+
+.widefat .column-referral {
+	width: 110px;
+}

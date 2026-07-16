@@ -16,7 +16,7 @@ final class LocaleParams implements \JsonSerializable
     private $messages = [];
 
     /**
-     * @param string $code
+     * @param string                $code
      * @param array<string, string> $messages
      */
     public function __construct($code, $messages = [])

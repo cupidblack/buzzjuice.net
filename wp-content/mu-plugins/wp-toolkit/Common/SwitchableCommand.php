@@ -16,6 +16,7 @@ abstract class SwitchableCommand extends WP_CLI_Command
 
     /**
      * @subcommand enable
+     *
      * @return void
      */
     public function enable()
@@ -25,6 +26,7 @@ abstract class SwitchableCommand extends WP_CLI_Command
 
     /**
      * @subcommand disable
+     *
      * @return void
      */
     public function disable()
@@ -34,6 +36,7 @@ abstract class SwitchableCommand extends WP_CLI_Command
 
     /**
      * @subcommand status
+     *
      * @return void
      */
     public function status()
@@ -53,7 +56,7 @@ abstract class SwitchableCommand extends WP_CLI_Command
     protected function ensureCommandEnabled()
     {
         if (!$this->isEnabled()) {
-            WP_CLI::error(sprintf("Command `%s` isn't enabled", get_class($this)));
+            WP_CLI::error(\sprintf("Command `%s` isn't enabled", \get_class($this)));
         }
     }
 }

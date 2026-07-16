@@ -220,7 +220,7 @@ class Affiliate_WP_RCP extends Affiliate_WP_Base {
 			// Customers cannot refer themselves.
 			if ( $this->is_affiliate_email( $user->user_email ) ) {
 				$this->log( 'Referral not created because affiliate\'s own account was used.' );
-				$this->mark_referral_failed( $referral_id );
+				$this->mark_referral_rejected( $referral_id );
 				return; // Customers cannot refer themselves
 			}
 

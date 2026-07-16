@@ -16,6 +16,7 @@ class WordPressHelper
 
     /**
      * @param string $pluginFile
+     *
      * @return PluginDataDto|null
      */
     public static function getInstalledPluginMeta($pluginFile)
@@ -34,10 +35,11 @@ class WordPressHelper
     }
 
     /**
-     * @param string $tag
+     * @param string   $tag
      * @param callable $callback
-     * @param int $priority
-     * @param int $acceptedArgs
+     * @param int      $priority
+     * @param int      $acceptedArgs
+     *
      * @return void
      */
     public static function addAction($tag, $callback, $priority, $acceptedArgs)
@@ -46,9 +48,9 @@ class WordPressHelper
         /**
          * @return void
          */
-        $callbackErrorHandler = function() use ($callback, $tag) {
+        $callbackErrorHandler = function () use ($callback, $tag) {
             try {
-                call_user_func_array($callback, func_get_args());
+                \call_user_func_array($callback, \func_get_args());
             } catch (\Exception $e) {
                 error_log("WP Toolkit error in action hook callback $tag: {$e->getMessage()}");
             }
@@ -61,29 +63,31 @@ class WordPressHelper
      * Function was copied from https://github.com/WordPress/wordpress-develop/blob/6.8.1/src/wp-includes/class-wp-plugin-dependencies.php#L872
      *
      * @param string $pluginFile
+     *
      * @return string
      */
     public static function convertFileNameToSlug($pluginFile)
     {
         return strpos($pluginFile, DIRECTORY_SEPARATOR) !== false
-            ? dirname($pluginFile)
+            ? \dirname($pluginFile)
             : str_replace('.php', '', $pluginFile);
     }
 
     /**
      * @param string $minimalVersion
+     *
      * @return bool
      */
     public static function isWpVersionSupported($minimalVersion)
     {
         // wp_get_wp_version return an unmodified WordPress version and is available since WordPress 6.7.0
         // @link https://developer.wordpress.org/reference/functions/wp_get_wp_version/
-        if (function_exists('wp_get_wp_version')) {
+        if (\function_exists('wp_get_wp_version')) {
             $currentWpVersion = wp_get_wp_version();
         } else {
             $currentWpVersion = $GLOBALS['wp_version'];
         }
 
-        return !is_null($currentWpVersion) && version_compare($currentWpVersion, $minimalVersion, '>=');
+        return !\is_null($currentWpVersion) && version_compare($currentWpVersion, $minimalVersion, '>=');
     }
 }

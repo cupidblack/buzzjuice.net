@@ -184,6 +184,8 @@ class License_Data {
 		// Save updated license status.
 		affiliate_wp()->settings->set( array( 'license_status' => 0 ), true );
 
+		set_transient( 'affwp_license_check', 'deactivated', DAY_IN_SECONDS );
+
 		return true;
 	}
 
@@ -235,12 +237,17 @@ class License_Data {
 	/**
 	 * Checks validity of the license key.
 	 *
+	 * Only updates the stored license status if the response contains a known valid status.
+	 * This prevents accidental license deactivation due to network issues or unexpected API responses.
+	 *
 	 * @since 1.0.0
 	 * @since 2.9.0  Extracted this from the Settings class and updated name.
 	 * @since 2.24.2 If the response fails, resulting in a `\WP_Error`, we've
 	 *               fixed the transient for checking again to not store the
 	 *               `\WP_Error` object, but store the current status until the
 	 *               site finally responds.
+	 * @since 2.27.2 Added HTTP response code check and status validation to prevent
+	 *               accidental license deactivation during network issues.
 	 *
 	 * @param bool $force Optional. Whether to force checking the license (bypass caching).
 	 * @return bool|mixed|void
@@ -268,24 +275,40 @@ class License_Data {
 				'body'      => $api_params,
 			) );
 
-			// Make sure the response came back okay.
-			if ( is_wp_error( $response ) ) {
+			$response_code = wp_remote_retrieve_response_code( $response );
 
-				// Connection failed, try again in three hours.
-				set_transient( 'affwp_license_check', $status, 3 * HOUR_IN_SECONDS );
+			// Handle request errors or invalid response codes.
+			if ( is_wp_error( $response ) || 200 !== $response_code ) {
+
+				// Preserve cached status if it exists to avoid accidental deactivation.
+				if ( false !== $status ) {
+					set_transient( 'affwp_license_check', $status, 3 * HOUR_IN_SECONDS );
+				}
 
 				return false;
 			}
 
 			$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
-			if ( isset( $license_data->license ) ) {
-				$status = $license_data->license;
-			} else {
-				$status = 'invalid';
+			$new_status = isset( $license_data->license ) ? $license_data->license : '';
+
+			// Known valid statuses - only update if we receive one of these.
+			$valid_statuses = array( 'valid', 'invalid', 'expired', 'disabled', 'site_inactive' );
+
+			// Validate that the status is a known value to prevent unexpected status changes.
+			if ( ! in_array( $new_status, $valid_statuses, true ) ) {
+
+				// Unknown status - preserve cached status and retry later.
+				if ( false !== $status ) {
+					set_transient( 'affwp_license_check', $status, 3 * HOUR_IN_SECONDS );
+				}
+
+				return false;
 			}
 
-			affiliate_wp()->settings->set( array( 'license_status' => $license_data ) );
+			$status = $new_status;
+
+			affiliate_wp()->settings->set( array( 'license_status' => $license_data ), true );
 
 			set_transient( 'affwp_license_check', $status, DAY_IN_SECONDS );
 

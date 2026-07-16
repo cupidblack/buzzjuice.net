@@ -58,26 +58,27 @@ class Affiliate_WP_Referral_Export extends Affiliate_WP_Export implements Export
 	 *
 	 * @since 1.0
 	 * @since 2.6.4 Added the 'type' column.
+	 * @since 2.27.9 - Removed translation functions from column headers for consistent export formatting
 	 *
 	 * @return array All the referrals columns to export.
 	 */
 	public function csv_cols() {
 		$cols = array(
-			'affiliate_id'  => __( 'Affiliate ID', 'affiliate-wp' ),
-			'email'         => __( 'Email', 'affiliate-wp' ),
-			'name'          => __( 'Name', 'affiliate-wp' ),
-			'payment_email' => __( 'Payment Email', 'affiliate-wp' ),
-			'username'      => __( 'Username', 'affiliate-wp' ),
-			'amount'        => __( 'Amount', 'affiliate-wp' ),
-			'currency'      => __( 'Currency', 'affiliate-wp' ),
-			'description'   => __( 'Description', 'affiliate-wp' ),
-			'campaign'      => __( 'Campaign', 'affiliate-wp' ),
-			'reference'     => __( 'Reference', 'affiliate-wp' ),
-			'context'       => __( 'Context', 'affiliate-wp' ),
-			'status'        => __( 'Status', 'affiliate-wp' ),
-			'type'          => __( 'Type', 'affiliate-wp' ),
-			'flag'          => __( 'Flag', 'affiliate-wp' ),
-			'date'          => __( 'Date', 'affiliate-wp' ),
+			'affiliate_id'  => 'Affiliate ID',
+			'email'         => 'Email',
+			'name'          => 'Name',
+			'payment_email' => 'Payment Email',
+			'username'      => 'Username',
+			'amount'        => 'Amount',
+			'currency'      => 'Currency',
+			'description'   => 'Description',
+			'campaign'      => 'Campaign',
+			'reference'     => 'Reference',
+			'context'       => 'Context',
+			'status'        => 'Status',
+			'type'          => 'Type',
+			'flag'          => 'Flag',
+			'date'          => 'Date',
 		);
 		return $cols;
 	}

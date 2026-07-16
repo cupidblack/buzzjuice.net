@@ -7,12 +7,13 @@ class UpgraderOptionsDto
 {
     const ACTION_INSTALL = 'install';
     const ACTION_UPDATE = 'update';
-
     const TYPE_PLUGIN = 'plugin';
     const TYPE_THEME = 'theme';
     const TYPE_CORE = 'core';
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     /**
      * @var string|null
@@ -49,6 +50,7 @@ class UpgraderOptionsDto
 
     /**
      * @param string|null $action
+     *
      * @return void
      */
     public function setAction($action)
@@ -66,6 +68,7 @@ class UpgraderOptionsDto
 
     /**
      * @param string|null $type
+     *
      * @return void
      */
     public function setType($type)
@@ -83,6 +86,7 @@ class UpgraderOptionsDto
 
     /**
      * @param bool|null $bulk
+     *
      * @return void
      */
     public function setBulk($bulk)
@@ -100,6 +104,7 @@ class UpgraderOptionsDto
 
     /**
      * @param string[]|null $plugins
+     *
      * @return void
      */
     public function setPlugins($plugins)
@@ -117,6 +122,7 @@ class UpgraderOptionsDto
 
     /**
      * @param string[]|null $themes
+     *
      * @return void
      */
     public function setThemes($themes)
@@ -125,25 +131,24 @@ class UpgraderOptionsDto
     }
 
     /**
-     * @param array $options
      * @return UpgraderOptionsDto
      */
     public static function fromArray(array $options)
     {
         $upgraderOptions = new UpgraderOptionsDto();
-        if (isset($options['action']) && is_string($options['action'])) {
+        if (isset($options['action']) && \is_string($options['action'])) {
             $upgraderOptions->setAction($options['action']);
         }
-        if (isset($options['type']) && is_string($options['type'])) {
+        if (isset($options['type']) && \is_string($options['type'])) {
             $upgraderOptions->setType($options['type']);
         }
-        if (isset($options['bulk']) && is_bool($options['bulk'])) {
+        if (isset($options['bulk']) && \is_bool($options['bulk'])) {
             $upgraderOptions->setBulk($options['bulk']);
         }
-        if (isset($options['plugins']) && is_array($options['plugins'])) {
+        if (isset($options['plugins']) && \is_array($options['plugins'])) {
             $upgraderOptions->setPlugins($options['plugins']);
         }
-        if (isset($options['themes']) && is_array($options['themes'])) {
+        if (isset($options['themes']) && \is_array($options['themes'])) {
             $upgraderOptions->setThemes($options['themes']);
         }
 

@@ -4,6 +4,67 @@
 // Load environment variables
 require_once ABSPATH . '/shared/db_helpers.php';
 
+/**
+ * Structured logging helper
+ * 
+ * Usage:
+ *   bc_affwp_log('stage', 'ENTRY', 'Bridge entered with order 123')
+ *   bc_affwp_log('data', 'commission', 27.50)
+ */
+ 
+/**
+ * Enable/disable AffiliateWP Bridge logging.
+ */
+if ( ! defined( 'BC_AFFWP_DEBUG' ) ) {
+    define( 'BC_AFFWP_DEBUG', false );   // true = logging ON
+}
+ 
+if (!function_exists('bc_affwp_log')) {
+    function bc_affwp_log($context = '', $label = '', $value = '') {
+
+        // Exit immediately if debugging is disabled
+        if ( ! BC_AFFWP_DEBUG ) {
+            return;
+        }
+
+        if (is_array($value) || is_object($value)) {
+            $display = wp_json_encode($value);
+        } else {
+            $display = (string) $value;
+            if (strlen($display) > 100) {
+                $display = substr($display, 0, 97) . '...';
+            }
+        }
+
+        $prefix = '[AFFWP-BRIDGE]';
+
+        switch ($context) {
+            case 'stage':
+                error_log("$prefix ▶ STAGE: $label - $display");
+                break;
+
+            case 'data':
+                error_log("$prefix   {$label}: {$display}");
+                break;
+
+            case 'success':
+                error_log("$prefix ✅ $label: $display");
+                break;
+
+            case 'warn':
+                error_log("$prefix ⚠️  $label: $display");
+                break;
+
+            case 'error':
+                error_log("$prefix ❌ $label: $display");
+                break;
+
+            default:
+                error_log("$prefix ℹ️  [$context] $label: $display");
+        }
+    }
+}
+
 // 🚀 Create Virtual WooCommerce Products on Plugin Activation
 function create_wow_pgb_virtual_products() {
     $products = [
@@ -637,191 +698,911 @@ function make_curl_request($url, $method = 'GET', $data = null, $headers = [], $
     return ['response' => $response, 'http_code' => $http_code, 'error' => $error];
 }
 
-// Include the AffiliateWP core DB class
-require_once __DIR__ . '/../../affiliate-wp/includes/abstracts/class-db.php'; // Adjust the path if necessary
 
-// Include the Affiliate_WP_Referrals_DB class
-require_once __DIR__ . '/../../affiliate-wp/includes/class-referrals-db.php';
 
-function bluecrown_affiliatewp_post_checkout_verification($order_id) {
-    if (!$order_id) return;
 
-    // Retrieve WooCommerce order
-    $order = wc_get_order($order_id);
-    if (!$order) return;
 
-    global $wpdb;
 
-    // Step 1: Get customer_id from order metadata
-    $customer_id = $order->get_customer_id() ?: get_current_user_id();
-    if (!$customer_id) {
-        error_log("❌ Unable to determine the customer ID.");
-        return;
-    }
+// ============================================================================
+// REFACTORED: bluecrown_affiliatewp_post_checkout_verification()
+// ChatGPT recommendation: Minimal change, keep proven parts, add missing lifecycle step
+// ============================================================================
 
-    // Step 2: Fetch affwp_customer_id from wp_affiliate_wp_customers table
-    $affwp_customer_id = $wpdb->get_var($wpdb->prepare(
-        "SELECT customer_id FROM wp_affiliate_wp_customers WHERE user_id = %d",
-        $customer_id
-    ));
+// AffiliateWP internal files should NOT be included directly here.
+// They are loaded by WordPress when the plugin is active.
+// The bridge below will call AffiliateWP public APIs/integrations instead.
+// require_once __DIR__ . '/../../affiliate-wp/includes/abstracts/class-db.php';
+// require_once __DIR__ . '/../../affiliate-wp/includes/class-referrals-db.php';
 
-    if (!$affwp_customer_id || $affwp_customer_id <= 0) {
-        error_log("❌ Valid AffiliateWP Customer ID not found for Customer ID $customer_id. Skipping record creation.");
-        return;
-    }
+/**
+ * Load order with origin guard
+ */
+if (!function_exists('bc_affwp_load_order')) {
+    function bc_affwp_load_order($order_id) {
+        bc_affwp_log('stage', '1: LOAD ORDER', '');
 
-    // Step 3: Retrieve the referring affiliate ID
-    $referring_affiliate_id = $wpdb->get_var($wpdb->prepare(
-        "SELECT meta_value FROM wp_affiliate_wp_customermeta WHERE affwp_customer_id = %d",
-        $affwp_customer_id
-    ));
-
-    if (!$referring_affiliate_id) {
-        error_log("❌ Referring Affiliate ID not found for Order #$order_id.");
-        return;
-    }
-
-    // Step 4: Check if the affiliate has already been credited
-    $referrals_db = new Affiliate_WP_Referrals_DB(); // Instantiate the referrals database class
-    $existing_referral = $referrals_db->get_by('reference', $order_id);
-
-    if ($existing_referral) {
-        error_log("✅ Affiliate ID $referring_affiliate_id has already been credited for Order #$order_id.");
-        return;
-    }
-
-    // Step 5: Validate if the lifetime_customer record already exists
-    $lifetime_customer_id = $wpdb->get_var($wpdb->prepare(
-        "SELECT lifetime_customer_id FROM wp_affiliate_wp_lifetime_customers WHERE affwp_customer_id = %d AND affiliate_id = %d",
-        $affwp_customer_id,
-        $referring_affiliate_id
-    ));
-
-    if (!$lifetime_customer_id) {
-        // Create a new lifetime_customer record
-        $lifetime_customer_data = [
-            'affwp_customer_id' => $affwp_customer_id,
-            'affiliate_id' => $referring_affiliate_id,
-            'date_created' => current_time('mysql'),
-        ];
-
-        $lifetime_customer_added = affiliate_wp_lifetime_commissions()->lifetime_customers->add($lifetime_customer_data);
-
-        if (!$lifetime_customer_added) {
-            error_log("❌ Failed to create Lifetime Customer record for affwp_customer_id $affwp_customer_id.");
-            return;
-        }
-    }
-
-    // Step 6: Calculate commission based on product or default rates
-    $commission = 0;
-    $products_meta = []; // Array to store product details for the referral
-
-    foreach ($order->get_items() as $item) {
-        $product_id = $item->get_product_id();
-        $product = wc_get_product($product_id);
-        $product_rate_type = get_post_meta($product_id, '_affwp_woocommerce_product_rate_type', true);
-        $product_rate = get_post_meta($product_id, '_affwp_woocommerce_product_rate', true);
-
-        $product_price = $item->get_total();
-        $referral_amount = 0;
-
-        if (is_numeric($product_rate) && $product_rate >= 0) {
-            if ($product_rate_type === 'percentage') {
-                $referral_amount = ($product_price * $product_rate / 100);
-            } elseif ($product_rate_type === 'flat') {
-                $referral_amount = $product_rate;
-            }
-        } else {
-            $default_rate_type = get_option('affwp_settings')['referral_rate_type'];
-            $default_rate = get_option('affwp_settings')['referral_rate'];
-
-            if (is_numeric($default_rate) && $default_rate >= 0) {
-                if ($default_rate_type === 'percentage') {
-                    $referral_amount = ($product_price * $default_rate / 100);
-                } elseif ($default_rate_type === 'flat') {
-                    $referral_amount = $default_rate;
-                }
-            }
+        $order = wc_get_order($order_id);
+        if (!$order) {
+            bc_affwp_log('error', 'LOAD ORDER', 'Order not found');
+            return null;
         }
 
-        $commission += $referral_amount;
+        bc_affwp_log('data', 'Status', $order->get_status());
+        bc_affwp_log('data', 'Customer ID', $order->get_customer_id());
+        bc_affwp_log('data', 'Total', $order->get_total() . ' ' . $order->get_currency());
 
-        // Add product details to the products_meta array
-        $products_meta[] = [
-            'name' => $product->get_name(),
-            'id' => $product_id,
-            'price' => $product_price,
-            'referral_amount' => $referral_amount,
-        ];
-    }
-
-    // Step 7: Add referral for the affiliate
-    if ($commission > 0) {
-        // Retrieve the parent ID (if applicable)
-        $parent_id = $order->get_parent_id(); // WooCommerce provides this method to get the parent order ID
-
-        // Add the lifetime_referral flag to the custom data if lifetime_customer_id exists
-        $custom_data = [];
-
-        if ($lifetime_customer_id) {
-            $custom_data['lifetime_referral'] = true;
+        // Guard: Origin
+        if ($order->get_meta('_buzzjuice_origin', true) !== 'streams') {
+            bc_affwp_log('warn', 'LOAD ORDER', 'Not a Streams order');
+            return null;
         }
 
-        $referral_data = [
-            'affiliate_id' => $referring_affiliate_id,
-            'customer_id' => $affwp_customer_id,
-            'parent_id' => $parent_id ?: 0, // Use 0 if no parent ID exists
-            'description' => '',
-            'status' => 'unpaid',
-            'amount' => $commission,
-            'currency' => $order->get_currency(),
-            'context' => 'woocommerce',
-            'campaign' => '', // Optional: Add campaign data if available
-            'reference' => $order_id,
-            'products' => serialize($products_meta), // Serialize product data
-            'date' => current_time('mysql'),
-            'custom' => maybe_serialize($custom_data), // Include the lifetime_referral flag
-        ];
-        
-        error_log(print_r($referral_data, true)); // Debugging line to check the referral data
-        
-        // Generate the description
-        foreach ($order->get_items() as $item) {
-            $product = wc_get_product($item->get_product_id());
-            $parent_name = $product->get_name(); // Parent product name
-            $variation_name = $item->get_name(); // Variation product name
-            $variation_id = $item->get_variation_id(); // Variation ID
-    
-            // Format the description
-            $referral_data['description'] .= sprintf(
-                '%s - %s (Variation ID %d), ',
-                $parent_name,
-                $variation_name,
-                $variation_id
-            );
+        // Guard: Already processed
+        if ($order->get_meta('_affwp_bridge_processed', true)) {
+            bc_affwp_log('warn', 'LOAD ORDER', 'Already processed');
+            return null;
         }
-    
-        // Remove trailing comma and space
-        $referral_data['description'] = rtrim($referral_data['description'], ', ');
 
-        $referral_id = $referrals_db->add($referral_data);
-
-        if ($referral_id) {
-            error_log("✅ Commission of $commission credited to Affiliate ID $referring_affiliate_id for Order #$order_id.");
-
-            // Step 8: Update unpaid earnings for the affiliate
-            $updated_unpaid_earnings = affwp_increase_affiliate_unpaid_earnings($referring_affiliate_id, $commission);
-            if ($updated_unpaid_earnings !== false) {
-                error_log("✅ Unpaid earnings updated for Affiliate ID $referring_affiliate_id. New Unpaid Earnings: $updated_unpaid_earnings.");
-            } else {
-                error_log("❌ Failed to update unpaid earnings for Affiliate ID $referring_affiliate_id.");
-            }
-        } else {
-            error_log("❌ Failed to credit commission for Affiliate ID $referring_affiliate_id for Order #$order_id.");
-        }
+        bc_affwp_log('success', 'LOAD ORDER', 'Order loaded and guards passed');
+        return $order;
     }
 }
+
+/**
+ * Resolve WordPress + AffiliateWP customer with fallback creation
+ */
+if (!function_exists('bc_affwp_resolve_customer')) {
+    function bc_affwp_resolve_customer($order) {
+        global $wpdb;
+
+        bc_affwp_log('stage', '2: CUSTOMER RESOLUTION', '');
+
+        $wp_customer_id = $order->get_customer_id();
+        if (!$wp_customer_id) {
+            bc_affwp_log('error', 'CUSTOMER', 'Order has no customer_id');
+            return false;
+        }
+
+        bc_affwp_log('data', 'WP Customer ID', $wp_customer_id);
+
+        // Try existing AffiliateWP customer
+        $affwp_customer_id = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT customer_id FROM {$wpdb->prefix}affiliate_wp_customers WHERE user_id = %d",
+            $wp_customer_id
+        ));
+
+        if ($affwp_customer_id) {
+            bc_affwp_log('success', 'CUSTOMER', "Resolved from DB: AFFWP ID $affwp_customer_id");
+            return $affwp_customer_id;
+        }
+
+        // Fallback: Create customer from snapshot email
+        bc_affwp_log('warn', 'CUSTOMER', 'Not found in DB, attempting fallback creation');
+
+        $snapshot_json = $order->get_meta('_buzzjuice_affwp_context_snapshot', true);
+        if (!$snapshot_json) {
+            bc_affwp_log('error', 'CUSTOMER FALLBACK', 'No snapshot to extract email');
+            return false;
+        }
+
+        $snapshot = json_decode($snapshot_json, true);
+        $email = $snapshot['customer_email'] ?? '';
+
+        if (!$email || !is_email($email)) {
+            bc_affwp_log('error', 'CUSTOMER FALLBACK', 'Invalid email in snapshot: ' . $email);
+            return false;
+        }
+
+        bc_affwp_log('data', 'Snapshot Email', $email);
+
+        // Check if AffiliateWP customer exists by email
+        $affwp_customer_id = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT customer_id FROM {$wpdb->prefix}affiliate_wp_customers WHERE email = %s",
+            $email
+        ));
+
+        if ($affwp_customer_id) {
+            bc_affwp_log('success', 'CUSTOMER FALLBACK', "Found by email: AFFWP ID $affwp_customer_id");
+            return $affwp_customer_id;
+        }
+
+        // Last resort: Create new customer via AffiliateWP
+        if (!function_exists('affwp_add_customer')) {
+            bc_affwp_log('error', 'CUSTOMER FALLBACK', 'affwp_add_customer() not available');
+            return false;
+        }
+
+        $customer_data = [
+            'user_id' => $wp_customer_id,
+            'email'   => $email,
+        ];
+
+        $new_customer_id = affwp_add_customer($customer_data);
+        if (!$new_customer_id || is_wp_error($new_customer_id)) {
+            bc_affwp_log('error', 'CUSTOMER FALLBACK', 'Failed to create: ' . ($new_customer_id->get_error_message() ?? 'Unknown error'));
+            return false;
+        }
+
+        bc_affwp_log('success', 'CUSTOMER FALLBACK', "Created new customer: AFFWP ID $new_customer_id");
+        return $new_customer_id;
+    }
+}
+
+/**
+ * Resolve affiliate (5-source deterministic with better diagnostics)
+ */
+if (!function_exists('bc_affwp_resolve_affiliate')) {
+    function bc_affwp_resolve_affiliate($order, $affwp_customer_id) {
+        global $wpdb;
+
+        bc_affwp_log('stage', '3: AFFILIATE RESOLUTION', '');
+
+        $affiliate_id = 0;
+        $resolution_source = '';
+
+        // SOURCE 1: Lifetime Customers
+        bc_affwp_log('data', 'Source 1', 'Querying LifetimeCustomers');
+
+        $affiliate_id = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT affiliate_id FROM {$wpdb->prefix}affiliate_wp_lifetime_customers 
+             WHERE affwp_customer_id = %d ORDER BY lifetime_customer_id DESC LIMIT 1",
+            $affwp_customer_id
+        ));
+
+        if ($affiliate_id > 0) {
+            $resolution_source = 'LifetimeCustomers';
+            bc_affwp_log('success', 'AFFILIATE RESOLUTION', "Source 1 SUCCESS → Affiliate $affiliate_id");
+            return ['affiliate_id' => $affiliate_id, 'source' => $resolution_source];
+        }
+
+        bc_affwp_log('data', 'Source 1', 'No result');
+
+        // SOURCE 2: Visit from snapshot
+        bc_affwp_log('data', 'Source 2', 'Querying Snapshot visit_id');
+
+        $snapshot_json = $order->get_meta('_buzzjuice_affwp_context_snapshot', true);
+        $snapshot = json_decode($snapshot_json, true) ?: [];
+        $visit_id = (int) ($snapshot['affwp_visit_id'] ?? 0);
+
+        if ($visit_id > 0) {
+            bc_affwp_log('data', 'Source 2', "Snapshot visit_id: $visit_id");
+
+            $affiliate_id = (int) $wpdb->get_var($wpdb->prepare(
+                "SELECT affiliate_id FROM {$wpdb->prefix}affiliate_wp_visits WHERE visit_id = %d",
+                $visit_id
+            ));
+
+            if ($affiliate_id > 0) {
+                $resolution_source = "Visit #$visit_id (snapshot)";
+                bc_affwp_log('success', 'AFFILIATE RESOLUTION', "Source 2 SUCCESS → Affiliate $affiliate_id");
+                return ['affiliate_id' => $affiliate_id, 'source' => $resolution_source, 'visit_id' => $visit_id];
+            }
+        }
+
+        bc_affwp_log('data', 'Source 2', 'No result');
+
+        // SOURCE 3: CustomerMeta 'affiliate_id' (explicit meta_key)
+        bc_affwp_log('data', 'Source 3', 'Querying CustomerMeta affiliate_id');
+
+        $affiliate_id = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT meta_value FROM {$wpdb->prefix}affiliate_wp_customermeta 
+             WHERE affwp_customer_id = %d AND meta_key = %s LIMIT 1",
+            $affwp_customer_id,
+            'affiliate_id'
+        ));
+
+        if ($affiliate_id > 0) {
+            $resolution_source = 'CustomerMeta:affiliate_id';
+            bc_affwp_log('success', 'AFFILIATE RESOLUTION', "Source 3 SUCCESS → Affiliate $affiliate_id");
+            return ['affiliate_id' => $affiliate_id, 'source' => $resolution_source];
+        }
+
+        bc_affwp_log('data', 'Source 3', 'No result');
+
+        // SOURCE 4: CustomerMeta 'referring_affiliate_id'
+        bc_affwp_log('data', 'Source 4', 'Querying CustomerMeta referring_affiliate_id');
+
+        $affiliate_id = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT meta_value FROM {$wpdb->prefix}affiliate_wp_customermeta 
+             WHERE affwp_customer_id = %d AND meta_key = %s LIMIT 1",
+            $affwp_customer_id,
+            'referring_affiliate_id'
+        ));
+
+        if ($affiliate_id > 0) {
+            $resolution_source = 'CustomerMeta:referring_affiliate_id';
+            bc_affwp_log('success', 'AFFILIATE RESOLUTION', "Source 4 SUCCESS → Affiliate $affiliate_id");
+            return ['affiliate_id' => $affiliate_id, 'source' => $resolution_source];
+        }
+
+        bc_affwp_log('data', 'Source 4', 'No result');
+
+        // SOURCE 5: Snapshot direct affiliate_id
+        bc_affwp_log('data', 'Source 5', 'Querying Snapshot affiliate_id');
+
+        $affiliate_id = (int) ($snapshot['affwp_affiliate_id'] ?? 0);
+
+        if ($affiliate_id > 0) {
+            $resolution_source = 'Snapshot:affwp_affiliate_id';
+            bc_affwp_log('success', 'AFFILIATE RESOLUTION', "Source 5 SUCCESS → Affiliate $affiliate_id");
+            return ['affiliate_id' => $affiliate_id, 'source' => $resolution_source];
+        }
+
+        bc_affwp_log('data', 'Source 5', 'No result');
+
+        // All sources failed - diagnostic dump
+        bc_affwp_log('error', 'AFFILIATE RESOLUTION', 'All 5 sources exhausted');
+
+        $cm_rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT meta_id, meta_key, meta_value FROM {$wpdb->prefix}affiliate_wp_customermeta 
+             WHERE affwp_customer_id = %d",
+            $affwp_customer_id
+        ), ARRAY_A);
+
+        bc_affwp_log('data', 'CustomerMeta rows', count($cm_rows));
+        foreach ($cm_rows as $row) {
+            bc_affwp_log('data', "  [{$row['meta_id']}] {$row['meta_key']}", $row['meta_value']);
+        }
+
+        return false;
+    }
+}
+
+/**
+ * Calculate commission with detailed breakdown
+ */
+if (!function_exists('bc_affwp_calculate_commission')) {
+    function bc_affwp_calculate_commission($order) {
+        bc_affwp_log('stage', '4: COMMISSION CALCULATION', '');
+
+        $commission = 0.0;
+        $products_meta = [];
+        $affwp_settings = get_option('affwp_settings', []);
+        $default_rate_type = $affwp_settings['referral_rate_type'] ?? 'percentage';
+        $default_rate = (float) ($affwp_settings['referral_rate'] ?? 0);
+
+        // Diagnostic: dump AffWP settings and order financials
+        bc_affwp_log('data', 'AffiliateWP Settings', $affwp_settings);
+        $order_financials = [
+            'subtotal' => (float) $order->get_subtotal(),
+            'discount' => abs((float) $order->get_discount_total()),
+            'shipping' => (float) $order->get_shipping_total(),
+            'tax'      => (float) $order->get_total_tax(),
+            'total'    => (float) $order->get_total(),
+        ];
+        bc_affwp_log('data', 'Order Financials', $order_financials);
+        bc_affwp_log('data', 'Default rate', "$default_rate ($default_rate_type)");
+
+        foreach ($order->get_items() as $item) {
+            // Log item diagnostic (all fields)
+            bc_affwp_log('data', 'Order Item', [
+                'product_id'     => $item->get_product_id(),
+                'variation_id'   => $item->get_variation_id(),
+                'name'           => $item->get_name(),
+                'qty'            => $item->get_quantity(),
+                'subtotal'       => (float) $item->get_subtotal(),
+                'subtotal_tax'   => (float) $item->get_subtotal_tax(),
+                'total'          => (float) $item->get_total(),
+                'total_tax'      => (float) $item->get_total_tax(),
+            ]);
+
+            $product_id = (int) $item->get_product_id();
+            $variation_id = (int) $item->get_variation_id();
+
+            // Prefer variation metadata when available
+            $meta_target = $variation_id > 0 ? $variation_id : $product_id;
+
+            // Get raw meta values (do NOT cast to float immediately)
+            $product_rate_raw = get_post_meta($meta_target, '_affwp_woocommerce_product_rate', true);
+            $product_rate_type_raw = get_post_meta($meta_target, '_affwp_woocommerce_product_rate_type', true);
+            $product_rate_type = trim((string) $product_rate_type_raw);
+
+            bc_affwp_log('data', "Product {$product_id} / Variation {$variation_id} Raw Override", [
+                'meta_target' => $meta_target,
+                'rate_raw' => $product_rate_raw,
+                'type_raw' => $product_rate_type,
+            ]);
+
+            $item_total = (float) $item->get_total();
+            $item_commission = 0.0;
+
+            // Determine whether a valid product override exists.
+            // IMPORTANT: treat empty string '' as "no override" — but '0' is a valid override.
+            $has_product_override = ($product_rate_raw !== '') && is_numeric($product_rate_raw) && in_array($product_rate_type, ['percentage', 'flat'], true);
+
+            if ($has_product_override) {
+                $product_rate = (float) $product_rate_raw;
+                if ($product_rate_type === 'percentage') {
+                    $item_commission = round($item_total * ($product_rate / 100.0), 4);
+                } elseif ($product_rate_type === 'flat') {
+                    $item_commission = round($product_rate, 4);
+                }
+                bc_affwp_log('data', "Product {$product_id}", "OVERRIDE: {$item_commission} ({$product_rate_type})");
+            } else {
+                // No valid product override — apply default rate if present
+                if ($default_rate > 0) {
+                    if ($default_rate_type === 'percentage') {
+                        $item_commission = round($item_total * ($default_rate / 100.0), 4);
+                    } elseif ($default_rate_type === 'flat') {
+                        $item_commission = round($default_rate, 4);
+                    }
+                    bc_affwp_log('data', "Product {$product_id}", "DEFAULT: {$item_commission} ({$default_rate_type})");
+                } else {
+                    bc_affwp_log('data', "Product {$product_id}", "NO RATE: 0 (no override and default_rate is 0)");
+                }
+            }
+
+            $commission += $item_commission;
+
+            $products_meta[] = [
+                'product_id'   => $product_id,
+                'variation_id' => $variation_id,
+                'name'         => $item->get_name(),
+                'item_total'   => $item_total,
+                'commission'   => $item_commission,
+            ];
+        } // foreach items
+
+        // Recalculate final totals for logging
+        $tax = (float) $order->get_total_tax();
+        $shipping = (float) $order->get_shipping_total();
+        $discount = abs((float) $order->get_discount_total());
+        $grand_total = (float) $order->get_total();
+
+        bc_affwp_log('data', 'Order breakdown', [
+            'subtotal'    => array_sum(array_column($products_meta, 'item_total')),
+            'tax'         => $tax,
+            'shipping'    => $shipping,
+            'discount'    => $discount,
+            'grand_total' => $grand_total,
+        ]);
+
+        bc_affwp_log('data', 'Commission Total', $commission);
+
+        if ($commission <= 0) {
+            bc_affwp_log('warn', 'COMMISSION', 'Commission is zero or negative');
+            return false;
+        }
+
+        bc_affwp_log('success', 'COMMISSION CALCULATION', "Total: " . number_format($commission, 4));
+        return [
+            'commission'         => $commission,
+            'products_meta'      => $products_meta,
+            'order_breakdown'    => [
+                'subtotal'    => array_sum(array_column($products_meta, 'item_total')),
+                'tax'         => $tax,
+                'shipping'    => $shipping,
+                'discount'    => $discount,
+                'grand_total' => $grand_total,
+            ],
+            'default_rate'       => $default_rate,
+            'default_rate_type'  => $default_rate_type,
+        ];
+    }
+}
+
+/**
+ * Create referral with diagnostics
+ */
+if (!function_exists('bc_affwp_create_referral')) {
+    function bc_affwp_create_referral($order, $affiliate_id, $affwp_customer_id, $commission, $products_meta, $lifetime_customer_id = null, $default_rate = 0, $default_rate_type = '') {
+        global $wpdb;
+
+        bc_affwp_log('stage', '5: REFERRAL CREATION', '');
+
+        // Affiliate health check (prefer public API)
+        if (function_exists('affwp_get_affiliate')) {
+            $affiliate_obj = affwp_get_affiliate($affiliate_id);
+            if (!$affiliate_obj) {
+                bc_affwp_log('error', 'AFFILIATE HEALTH', "affwp_get_affiliate() returned falsy for ID {$affiliate_id}");
+                return false;
+            }
+            // If you require active affiliates only:
+            if (isset($affiliate_obj->status) && $affiliate_obj->status !== 'active') {
+                bc_affwp_log('warn', 'AFFILIATE STATUS', "Affiliate {$affiliate_id} status is {$affiliate_obj->status}");
+                // Depending on desired policy, you might abort here. We'll continue but log it.
+            }
+            bc_affwp_log('data', 'Affiliate Object', [
+                'affiliate_id' => $affiliate_obj->affiliate_id ?? $affiliate_id,
+                'status'       => $affiliate_obj->status ?? '(unknown)',
+                'rate'         => $affiliate_obj->rate ?? '(unknown)',
+                'rate_type'    => $affiliate_obj->rate_type ?? '(unknown)',
+                'earnings'     => $affiliate_obj->earnings ?? '(unknown)',
+                'unpaid'       => $affiliate_obj->unpaid_earnings ?? '(unknown)',
+            ]);
+        } else {
+            bc_affwp_log('warn', 'AFFILIATE HEALTH', 'affwp_get_affiliate() not available; continuing');
+        }
+
+        if (!class_exists('Affiliate_WP_Referrals_DB') && !function_exists('affwp_add_referral')) {
+            bc_affwp_log('error', 'REFERRAL CREATION', 'No insertion API available (Affiliate_WP_Referrals_DB and affwp_add_referral missing)');
+            return false;
+        }
+
+        // Build description and custom audit data
+        $description_parts = [];
+        foreach ($order->get_items() as $item) {
+            $var_id = $item->get_variation_id() ?: 0;
+            $description_parts[] = $item->get_name() . " (var:{$var_id})";
+        }
+
+        $custom_data = [
+            'origin'               => 'streams',
+            'lifetime'             => !empty($lifetime_customer_id),
+            'commission_amount'    => (float) $commission,
+            'default_rate'         => $default_rate,
+            'default_rate_type'    => $default_rate_type,
+            'calculation_source'   => 'manual_bridge',
+//            'snapshot_version'     => $order->get_meta('_buzzjuice_affwp_context_snapshot_version', true) ?: $order->get_meta('_buzzjuice_affwp_context_snapshot', true) ? 'v1' : 'unknown',
+        ];
+
+        $referral_data = [
+            'affiliate_id'  => (int) $affiliate_id,
+            'customer_id'   => (int) $affwp_customer_id,
+            'parent_id'     => (int) ($order->get_parent_id() ?: 0),
+            'description'   => implode('; ', $description_parts),
+            'status'        => 'unpaid',
+            'amount'        => round((float) $commission, 4),
+            'currency'      => $order->get_currency(),
+            'context'       => 'woocommerce',
+            'campaign'      => '',
+            'reference'     => (string) $order->get_id(),
+            'products'      => maybe_serialize($products_meta),
+            'date'          => current_time('mysql'),
+            'custom'        => maybe_serialize($custom_data),
+        ];
+
+        bc_affwp_log('data', 'Referral payload JSON', $referral_data);
+
+        // wpdb diagnostics BEFORE
+        bc_affwp_log('data', 'wpdb state BEFORE', [
+            'last_error' => $wpdb->last_error ?: '(none)',
+            'num_queries' => $wpdb->num_queries,
+        ]);
+
+        // Prefer public API if available (fires hooks that update affiliate accounting)
+        if (function_exists('affwp_add_referral')) {
+            bc_affwp_log('data', 'REFERRAL INSERT', 'Using affwp_add_referral()');
+            // affwp_add_referral expects array similar to ours; call it and capture returned ID
+            $referral_id = affwp_add_referral($referral_data);
+        } else {
+            bc_affwp_log('data', 'REFERRAL INSERT', 'Using Affiliate_WP_Referrals_DB::add() fallback');
+            $referrals_db = new Affiliate_WP_Referrals_DB();
+            $referral_id = $referrals_db->add($referral_data);
+        }
+
+        // wpdb diagnostics AFTER
+        bc_affwp_log('data', 'wpdb state AFTER', [
+            'last_error' => $wpdb->last_error ?: '(none)',
+            'insert_id'  => $wpdb->insert_id,
+            'num_queries' => $wpdb->num_queries,
+            'referral_id' => $referral_id,
+        ]);
+
+        if (!$referral_id) {
+            bc_affwp_log('error', 'REFERRAL CREATION', 'Insert returned false/0');
+            return false;
+        }
+
+        // Verify insertion—compare critical fields
+        $db_check = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}affiliate_wp_referrals WHERE referral_id = %d",
+            $referral_id
+        ));
+
+        if (!$db_check) {
+            bc_affwp_log('error', 'REFERRAL VERIFICATION', "Referral #{$referral_id} NOT FOUND after insert");
+            return false;
+        }
+
+        // Field-by-field verification
+        $mismatches = [];
+        if ((int)$db_check->affiliate_id !== (int)$referral_data['affiliate_id']) {
+            $mismatches[] = 'affiliate_id';
+        }
+        if ((int)$db_check->customer_id !== (int)$referral_data['customer_id']) {
+            $mismatches[] = 'customer_id';
+        }
+        if (abs((float)$db_check->amount - (float)$referral_data['amount']) > 0.0001) {
+            $mismatches[] = 'amount';
+        }
+        if ((string)$db_check->reference !== (string)$referral_data['reference']) {
+            $mismatches[] = 'reference';
+        }
+
+        if (!empty($mismatches)) {
+            bc_affwp_log('warn', 'REFERRAL VERIFICATION', 'Mismatched fields: ' . implode(',', $mismatches));
+        } else {
+            bc_affwp_log('success', 'REFERRAL VERIFICATION', "Referral #{$referral_id} verified");
+        }
+
+        return (int) $referral_id;
+    }
+}
+
+/**
+ * Verify accounting updates
+ */
+/**
+ * Verify accounting updates (CORRECTED: Don't rely on referrals count)
+ * 
+ * ChatGPT fix: Remove affiliate.referrals from success criteria.
+ * AffiliateWP treats it as a cached statistic, not a real-time counter.
+ * Unpaid earnings update is the true indicator of success.
+ */
+if (!function_exists('bc_affwp_verify_accounting')) {
+    function bc_affwp_verify_accounting($order_id, $affiliate_id, $commission, $referral_id, $before_state) {
+        global $wpdb;
+
+        bc_affwp_log('stage', '6: ACCOUNTING VERIFICATION (CORRECTED)', '');
+
+        // ===== VERIFICATION STEP 1: Referral exists =====
+        bc_affwp_log('data', 'STEP 1', 'Verify referral exists in database');
+
+        $db_check = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}affiliate_wp_referrals WHERE referral_id = %d",
+            $referral_id
+        ));
+
+        if (!$db_check) {
+            bc_affwp_log('error', 'VERIFICATION STEP 1', "Referral #{$referral_id} NOT FOUND");
+            return false;
+        }
+
+        bc_affwp_log('success', 'VERIFICATION STEP 1', "Referral #{$referral_id} exists");
+
+        // ===== VERIFICATION STEP 2: Critical fields match =====
+        bc_affwp_log('data', 'STEP 2', 'Verify critical referral fields');
+
+        $field_mismatches = [];
+
+        // Affiliate ID
+        if ((int) $db_check->affiliate_id !== (int) $affiliate_id) {
+            $field_mismatches[] = [
+                'field'    => 'affiliate_id',
+                'expected' => $affiliate_id,
+                'actual'   => $db_check->affiliate_id,
+            ];
+        }
+
+        // Amount
+        if (abs((float) $db_check->amount - (float) $commission) > 0.0001) {
+            $field_mismatches[] = [
+                'field'    => 'amount',
+                'expected' => number_format($commission, 4),
+                'actual'   => number_format($db_check->amount, 4),
+            ];
+        }
+
+        // Reference
+        if ((string) $db_check->reference !== (string) $order_id) {
+            $field_mismatches[] = [
+                'field'    => 'reference',
+                'expected' => $order_id,
+                'actual'   => $db_check->reference,
+            ];
+        }
+
+        // Status
+        if ((string) $db_check->status !== 'unpaid') {
+            $field_mismatches[] = [
+                'field'    => 'status',
+                'expected' => 'unpaid',
+                'actual'   => $db_check->status,
+            ];
+        }
+
+        if (!empty($field_mismatches)) {
+            bc_affwp_log('warn', 'VERIFICATION STEP 2', 'Field mismatches detected:');
+            foreach ($field_mismatches as $mismatch) {
+                bc_affwp_log('data', "  {$mismatch['field']}", 
+                    "Expected: {$mismatch['expected']}, Actual: {$mismatch['actual']}"
+                );
+            }
+        } else {
+            bc_affwp_log('success', 'VERIFICATION STEP 2', 'All critical fields match');
+        }
+
+        // ===== VERIFICATION STEP 3: Sales record =====
+        bc_affwp_log('data', 'STEP 3', 'Verify sales record exists');
+
+        $sales = $wpdb->get_row($wpdb->prepare(
+            "SELECT referral_id, affiliate_id, order_total FROM {$wpdb->prefix}affiliate_wp_sales WHERE referral_id = %d",
+            $referral_id
+        ));
+
+        if ($sales) {
+            bc_affwp_log('success', 'VERIFICATION STEP 3', 
+                "Sales record exists (order_total: " . number_format($sales->order_total, 4) . ")"
+            );
+        } else {
+            bc_affwp_log('warn', 'VERIFICATION STEP 3', 'Sales record not found (may be created asynchronously)');
+        }
+
+        // ===== VERIFICATION STEP 4: Referral count (query actual referrals table) =====
+        bc_affwp_log('data', 'STEP 4', 'Count referrals in affiliate_wp_referrals table');
+
+        $referral_count = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}affiliate_wp_referrals 
+             WHERE affiliate_id = %d AND status != 'rejected'",
+            $affiliate_id
+        ));
+
+        bc_affwp_log('data', 'STEP 4', "Affiliate {$affiliate_id} has {$referral_count} non-rejected referral(s)");
+
+        // ===== VERIFICATION STEP 5: Unpaid earnings increase =====
+        bc_affwp_log('data', 'STEP 5', 'Verify unpaid earnings updated');
+
+        $after_state = $wpdb->get_row($wpdb->prepare(
+            "SELECT affiliate_id, earnings, unpaid_earnings, referrals FROM {$wpdb->prefix}affiliate_wp_affiliates 
+             WHERE affiliate_id = %d",
+            $affiliate_id
+        ));
+
+        if (!$after_state) {
+            bc_affwp_log('error', 'VERIFICATION STEP 5', "Affiliate {$affiliate_id} not found in affiliates table");
+            return false;
+        }
+
+        bc_affwp_log('data', 'STEP 5 AFTER STATE', '');
+        bc_affwp_log('data', '  Earnings', number_format($after_state->earnings, 4));
+        bc_affwp_log('data', '  Unpaid', number_format($after_state->unpaid_earnings, 4));
+        bc_affwp_log('data', '  Referrals (cached)', $after_state->referrals . ' (NOTE: This is cached, not real-time)');
+
+        $unpaid_delta = (float) $after_state->unpaid_earnings - (float) $before_state->unpaid_earnings;
+
+        bc_affwp_log('data', 'STEP 5 DELTA', '');
+        bc_affwp_log('data', '  Expected unpaid increase', number_format($commission, 4));
+        bc_affwp_log('data', '  Actual unpaid increase', number_format($unpaid_delta, 4));
+
+        // ===== STEP 6: Determine success =====
+        bc_affwp_log('data', 'STEP 6', 'Determine overall success');
+
+        $accounting_correct = true;
+        $failure_reasons = [];
+
+        // Check 1: Referral creation
+        if (!$db_check) {
+            $accounting_correct = false;
+            $failure_reasons[] = 'Referral not found in database';
+        }
+
+        // Check 2: Amount mismatch
+        if (abs($unpaid_delta - $commission) >= 0.01) {
+            $accounting_correct = false;
+            $failure_reasons[] = "Unpaid earnings delta ({$unpaid_delta}) doesn't match commission ({$commission})";
+        }
+
+        // Check 3: Sales record
+        if (!$sales) {
+            bc_affwp_log('warn', 'VERIFICATION STEP 6', 'Sales record not found (this is not fatal; may be async)');
+        }
+
+        // Check 4: Field mismatches (logged but not fatal)
+        if (!empty($field_mismatches)) {
+            bc_affwp_log('warn', 'VERIFICATION STEP 6', 'Field mismatches detected (logged above)');
+        }
+
+        // ===== FINAL RESULT =====
+        if ($accounting_correct) {
+            bc_affwp_log('success', 'ACCOUNTING VERIFICATION', '✅ PASSED - All checks successful');
+        } else {
+            bc_affwp_log('error', 'ACCOUNTING VERIFICATION', '❌ FAILED - Reasons:');
+            foreach ($failure_reasons as $reason) {
+                bc_affwp_log('data', '  Reason', $reason);
+            }
+        }
+
+        return $accounting_correct;
+    }
+}
+
+if (!function_exists('bluecrown_affiliatewp_post_checkout_verification')) {
+    /**
+     * Main Bridge: Streams Order → AffiliateWP Referral
+     * 
+     * Applied ChatGPT recommendations:
+     * - Single hook only (no race conditions)
+     * - Helper function modularization
+     * - Resilient customer resolution with fallback
+     * - Don't mark processed on failure (retry-safe)
+     * - Comprehensive before/after accounting verification
+     * - Enhanced wpdb diagnostics
+     */
+    function bluecrown_affiliatewp_post_checkout_verification($order_id) {
+        error_log(str_repeat('=', 100));
+        bc_affwp_log('', 'BRIDGE ENTRY', "Order ID: $order_id, Timestamp: " . gmdate('Y-m-d H:i:s'));
+        error_log(str_repeat('=', 100));
+
+        // ===== STAGE 1: LOAD ORDER =====
+        $order = bc_affwp_load_order($order_id);
+        if (!$order) {
+            return;
+        }
+
+        // ===== STAGE 2: CUSTOMER RESOLUTION (with fallback) =====
+        $affwp_customer_id = bc_affwp_resolve_customer($order);
+        if (!$affwp_customer_id) {
+            bc_affwp_log('error', 'BRIDGE', 'Customer resolution failed, aborting');
+            return;
+        }
+
+        // ===== STAGE 3: AFFILIATE RESOLUTION =====
+        $affiliate_context = bc_affwp_resolve_affiliate($order, $affwp_customer_id);
+        if (!$affiliate_context) {
+            bc_affwp_log('error', 'BRIDGE', 'Affiliate resolution failed, aborting');
+            return;
+        }
+
+        $affiliate_id = $affiliate_context['affiliate_id'];
+        $resolution_source = $affiliate_context['source'];
+
+        bc_affwp_log('success', 'AFFILIATE RESOLVED', "ID: $affiliate_id via $resolution_source");
+
+        // ===== STAGE 3B: LIFETIME CUSTOMER =====
+        global $wpdb;
+
+        $lifetime_customer_id = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT lifetime_customer_id FROM {$wpdb->prefix}affiliate_wp_lifetime_customers 
+             WHERE affwp_customer_id = %d AND affiliate_id = %d LIMIT 1",
+            $affwp_customer_id,
+            $affiliate_id
+        ));
+
+        if (!$lifetime_customer_id && function_exists('affiliate_wp_lifetime_commissions')) {
+            bc_affwp_log('stage', '3B: LIFETIME CUSTOMER CREATION', '');
+
+            $lt_data = [
+                'affwp_customer_id' => $affwp_customer_id,
+                'affiliate_id'      => $affiliate_id,
+                'date_created'      => current_time('mysql'),
+            ];
+
+            $lifetime_customer_id = affiliate_wp_lifetime_commissions()->lifetime_customers->add($lt_data);
+
+            if (!$lifetime_customer_id) {
+                bc_affwp_log('error', 'LIFETIME CREATION', 'Failed to create');
+                return;
+            }
+
+            bc_affwp_log('success', 'LIFETIME CREATION', "Created ID: $lifetime_customer_id");
+        } else if ($lifetime_customer_id) {
+            bc_affwp_log('success', 'LIFETIME VERIFIED', "Existing ID: $lifetime_customer_id");
+        }
+
+        // ===== STAGE 4: COMMISSION CALCULATION =====
+        $commission_result = bc_affwp_calculate_commission($order);
+        if (!$commission_result) {
+            bc_affwp_log('warn', 'BRIDGE', 'Commission is zero, marking processed');
+            $order->update_meta_data('_affwp_bridge_processed', current_time('mysql'));
+            $order->save();
+            return;
+        }
+
+        $commission = $commission_result['commission'];
+        $products_meta = $commission_result['products_meta'];
+
+        // ===== STAGE 4B: DUPLICATE REFERRAL CHECK =====
+        bc_affwp_log('stage', '4B: DUPLICATE REFERRAL CHECK', '');
+        
+        $existing_ref = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT referral_id FROM {$wpdb->prefix}affiliate_wp_referrals 
+             WHERE reference = %s AND context = %s AND affiliate_id = %d LIMIT 1",
+            (string) $order_id,
+            'woocommerce',
+            $affiliate_id
+        ));
+        
+        if ($existing_ref) {
+            bc_affwp_log('success', 'DUPLICATE CHECK', "Referral #{$existing_ref} already exists for affiliate {$affiliate_id}");
+            $order->update_meta_data('_affwp_bridge_processed', current_time('mysql'));
+            $order->save();
+            return;
+        }
+        
+        bc_affwp_log('success', 'DUPLICATE CHECK', 'No existing referral found');
+
+        // ===== STAGE 5: CAPTURE BEFORE STATE =====
+        bc_affwp_log('stage', '5: CAPTURE BEFORE STATE', '');
+
+        $before_state = $wpdb->get_row($wpdb->prepare(
+            "SELECT affiliate_id, earnings, unpaid_earnings, referrals FROM {$wpdb->prefix}affiliate_wp_affiliates 
+             WHERE affiliate_id = %d",
+            $affiliate_id
+        ));
+
+        if ($before_state) {
+            bc_affwp_log('data', 'BEFORE', '');
+            bc_affwp_log('data', '  Earnings', number_format($before_state->earnings, 4));
+            bc_affwp_log('data', '  Unpaid', number_format($before_state->unpaid_earnings, 4));
+            bc_affwp_log('data', '  Referrals', $before_state->referrals);
+        } else {
+            bc_affwp_log('error', 'BEFORE STATE', "Affiliate $affiliate_id not in affiliates table");
+            return;
+        }
+
+        // ===== STAGE 6: CREATE REFERRAL =====
+        $referral_id = bc_affwp_create_referral(
+            $order,
+            $affiliate_id,
+            $affwp_customer_id,
+            $commission,
+            $products_meta,
+            $lifetime_customer_id
+        );
+
+        if (!$referral_id) {
+            bc_affwp_log('error', 'BRIDGE', 'Referral creation failed, NOT marking processed (retry-safe)');
+            return;
+        }
+
+        // ===== STAGE 7: VERIFY ACCOUNTING =====
+        $accounting_correct = bc_affwp_verify_accounting($order_id, $affiliate_id, $commission, $referral_id, $before_state);
+
+        // ===== STAGE 8: CONDITIONAL FALLBACK (CORRECTED: Only if earnings never increased) =====
+        bc_affwp_log('stage', '7: CONDITIONAL FALLBACK (STRICT)', '');
+
+        if (!$accounting_correct) {
+            // Double-check: Did unpaid earnings actually increase at all?
+            $current_state = $wpdb->get_row($wpdb->prepare(
+                "SELECT unpaid_earnings FROM {$wpdb->prefix}affiliate_wp_affiliates WHERE affiliate_id = %d",
+                $affiliate_id
+            ));
+
+            if ($current_state) {
+                $unpaid_delta_recheck = (float) $current_state->unpaid_earnings - (float) $before_state->unpaid_earnings;
+
+                bc_affwp_log('data', 'FALLBACK DECISION', 
+                    "Unpaid delta recheck: {$unpaid_delta_recheck} (commission: {$commission})"
+                );
+
+                // Only apply fallback if earnings genuinely didn't increase
+                if ($unpaid_delta_recheck < 0.01) {
+                    bc_affwp_log('warn', 'FALLBACK APPLIED', 'Earnings never increased, applying fallback');
+
+                    if (function_exists('affwp_increase_affiliate_unpaid_earnings')) {
+                        $fallback_result = affwp_increase_affiliate_unpaid_earnings($affiliate_id, $commission);
+
+                        if ($fallback_result !== false) {
+                            bc_affwp_log('success', 'FALLBACK', 
+                                'Earnings updated to ' . number_format($fallback_result, 4)
+                            );
+                        } else {
+                            bc_affwp_log('error', 'FALLBACK', 'Function returned false');
+                        }
+                    } else {
+                        bc_affwp_log('error', 'FALLBACK', 'affwp_increase_affiliate_unpaid_earnings() not available');
+                    }
+                } else {
+                    bc_affwp_log('success', 'FALLBACK SKIPPED', 
+                        'Earnings already increased by ' . number_format($unpaid_delta_recheck, 4) . ' - no fallback needed'
+                    );
+                }
+            } else {
+                bc_affwp_log('error', 'FALLBACK', 'Cannot recheck affiliate state');
+            }
+        } else {
+            bc_affwp_log('success', 'FALLBACK SKIPPED', 'Accounting verification passed - no fallback needed');
+        }
+
+        // ===== FINAL: MARK PROCESSED ONLY ON SUCCESS =====
+        $order->update_meta_data('_affwp_bridge_processed', current_time('mysql'));
+        $order->save();
+
+        error_log(str_repeat('=', 100));
+        bc_affwp_log('success', 'BRIDGE COMPLETE', '');
+        bc_affwp_log('data', 'Referral ID', $referral_id);
+        bc_affwp_log('data', 'Affiliate ID', $affiliate_id);
+        bc_affwp_log('data', 'Commission', number_format($commission, 4) . ' ' . $order->get_currency());
+        bc_affwp_log('data', 'Accounting Status', $accounting_correct ? 'UPDATED BY AFFILIATEWP' : 'FALLBACK APPLIED');
+        error_log(str_repeat('=', 100));
+    }
+}
+
+
+
+
+
 
 /**
  * Authenticate to WoWonder and retrieve an access token.

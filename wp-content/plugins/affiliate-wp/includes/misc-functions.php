@@ -10,7 +10,9 @@
  */
 
 // Exit if accessed directly
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /**
  * Get Currencies
@@ -49,7 +51,6 @@ function affwp_get_currencies() : array {
 			'DKK' => __( 'Danish Krone (kr) — DKK', 'affiliate-wp' ),
 			'DOP' => __( 'Dominican Peso (RD$) — DOP', 'affiliate-wp' ),
 			'EGP' => __( 'Egyptian Pound (£E) — EGP', 'affiliate-wp' ),
-			'GHS' => __( 'Ghanaian Cedi (₵) — GHS', 'affiliate-wp' ),
 			'HKD' => __( 'Hong Kong Dollar (HK$) — HKD', 'affiliate-wp' ),
 			'HUF' => __( 'Hungarian Forint (Ft) — HUF', 'affiliate-wp' ),
 			'ISK' => __( 'Icelandic Krona (kr) — ISK', 'affiliate-wp' ),
@@ -180,20 +181,20 @@ function affwp_sanitize_amount( $amount ) {
 	if ( $decimal_sep == ',' && false !== ( $found = strpos( $amount, $decimal_sep ) ) ) {
 		if ( ( $thousands_sep == '.' || $thousands_sep == ' ' ) && false !== ( $found = strpos( $amount, $thousands_sep ) ) ) {
 			$amount = str_replace( $thousands_sep, '', $amount );
-		} elseif( empty( $thousands_sep ) && false !== ( $found = strpos( $amount, '.' ) ) ) {
+		} elseif ( empty( $thousands_sep ) && false !== ( $found = strpos( $amount, '.' ) ) ) {
 			$amount = str_replace( '.', '', $amount );
 		}
 
 		$amount = str_replace( $decimal_sep, '.', $amount );
-	} elseif( $thousands_sep == ',' && false !== ( $found = strpos( $amount, $thousands_sep ) ) ) {
+	} elseif ( $thousands_sep == ',' && false !== ( $found = strpos( $amount, $thousands_sep ) ) ) {
 		$amount = str_replace( $thousands_sep, '', $amount );
 	}
 
-	if( $amount < 0 ) {
+	if ( $amount < 0 ) {
 		$is_negative = true;
 	}
 
-	$amount   = preg_replace( '/[^0-9\.]/', '', $amount );
+	$amount = preg_replace( '/[^0-9\.]/', '', $amount );
 
 	/**
 	 * Filter number of decimals to use for prices
@@ -204,9 +205,9 @@ function affwp_sanitize_amount( $amount ) {
 	 * @param int|string $amount Price
 	 */
 	$decimals = apply_filters( 'affwp_sanitize_amount_decimals', affwp_get_decimal_count(), $amount );
-	$amount   = number_format( (double) $amount, $decimals, '.', '' );
+	$amount   = number_format( (float) $amount, $decimals, '.', '' );
 
-	if( $is_negative ) {
+	if ( $is_negative ) {
 		$amount *= -1;
 	}
 
@@ -218,7 +219,6 @@ function affwp_sanitize_amount( $amount ) {
 	 * @param string $amount Price
 	 */
 	return apply_filters( 'affwp_sanitize_amount', $amount );
-
 }
 
 /**
@@ -238,8 +238,8 @@ function affwp_format_amount( $amount, $decimals = true ) {
 
 	// Format the amount
 	if ( $decimal_sep == ',' && false !== ( $sep_found = strpos( $amount, $decimal_sep ) ) ) {
-		$whole = substr( $amount, 0, $sep_found );
-		$part = substr( $amount, $sep_found + 1, ( strlen( $amount ) - 1 ) );
+		$whole  = substr( $amount, 0, $sep_found );
+		$part   = substr( $amount, $sep_found + 1, ( strlen( $amount ) - 1 ) );
 		$amount = $whole . '.' . $part;
 	}
 
@@ -252,7 +252,7 @@ function affwp_format_amount( $amount, $decimals = true ) {
 		$amount = 0;
 	}
 
-	if( $decimals ) {
+	if ( $decimals ) {
 		/**
 		 * Filters the number of decimals to use when formatting amounts.
 		 *
@@ -341,45 +341,45 @@ function affwp_currency_filter( $amount ) {
 
 	$negative = $amount < 0;
 
-	if( $negative ) {
+	if ( $negative ) {
 		$amount = substr( $amount, 1 ); // Remove proceeding "-" -
 	}
 
-	if ( $position == 'before' ):
-		switch ( $currency ):
-			case "GBP" :
+	if ( $position == 'before' ) :
+		switch ( $currency ) :
+			case 'GBP':
 				$formatted = '&pound;' . $amount;
 				break;
-			case "BRL" :
+			case 'BRL':
 				$formatted = 'R&#36;' . $amount;
 				break;
-			case "EUR" :
+			case 'EUR':
 				$formatted = '&euro;' . $amount;
 				break;
-			case "USD" :
-			case "AUD" :
-			case "CAD" :
-			case "HKD" :
-			case "MXN" :
-			case "SGD" :
+			case 'USD':
+			case 'AUD':
+			case 'CAD':
+			case 'HKD':
+			case 'MXN':
+			case 'SGD':
 				$formatted = '&#36;' . $amount;
 				break;
-			case 'RON' :
+			case 'RON':
 				$formatted = 'lei' . $amount;
 				break;
-			case 'UAH' :
+			case 'UAH':
 				$formatted = '&#8372;' . $amount;
 				break;
-			case "JPY" :
+			case 'JPY':
 				$formatted = '&yen;' . $amount;
 				break;
-			case "KRW" :
+			case 'KRW':
 				$formatted = '&#8361;' . $amount;
 				break;
-			case "PKR" :
+			case 'PKR':
 				$formatted = '&#8360;' . $amount;
 				break;
-			default :
+			default:
 				$formatted = $currency . ' ' . $amount;
 				break;
 		endswitch;
@@ -398,41 +398,41 @@ function affwp_currency_filter( $amount ) {
 		$formatted = apply_filters( 'affwp_' . strtolower( $currency ) . '_currency_filter_before', $formatted, $currency, $amount );
 	else :
 		switch ( $currency ) :
-			case "GBP" :
+			case 'GBP':
 				$formatted = $amount . '&pound;';
 				break;
-			case "BRL" :
+			case 'BRL':
 				$formatted = $amount . 'R&#36;';
 				break;
-			case "EUR" :
+			case 'EUR':
 				$formatted = $amount . '&euro;';
 				break;
-			case "USD" :
-			case "AUD" :
-			case "CAD" :
-			case "HKD" :
-			case "MXN" :
-			case "SGD" :
+			case 'USD':
+			case 'AUD':
+			case 'CAD':
+			case 'HKD':
+			case 'MXN':
+			case 'SGD':
 				$formatted = $amount . '&#36;';
 				break;
-			case 'RON' :
+			case 'RON':
 				$formatted = $amount . 'lei';
 				break;
-			case 'UAH' :
+			case 'UAH':
 				$formatted = $amount . '&#8372;';
 				break;
-			case "JPY" :
+			case 'JPY':
 				$formatted = $amount . '&yen;';
 				break;
-			case "KRW" :
+			case 'KRW':
 				$formatted = $amount . '&#8361;';
 				break;
-			case "IRR" :
+			case 'IRR':
 				$formatted = $amount . '&#65020;';
-			case "RUB" :
+			case 'RUB':
 				$formatted = $amount . '&#8381;';
 				break;
-			default :
+			default:
 				$formatted = $amount . ' ' . $currency;
 				break;
 		endswitch;
@@ -451,7 +451,7 @@ function affwp_currency_filter( $amount ) {
 		$formatted = apply_filters( 'affwp_' . strtolower( $currency ) . '_currency_filter_after', $formatted, $currency, $amount );
 	endif;
 
-	if( $negative ) {
+	if ( $negative ) {
 		// Prepend the mins sign before the currency sign
 		$formatted = '-' . $formatted;
 	}
@@ -473,11 +473,10 @@ function affwp_currency_decimal_filter( $decimals = 2 ) {
 	$currency = affwp_get_currency();
 
 	switch ( $currency ) {
-		case 'RIAL' :
-		case 'JPY' :
-		case 'TWD' :
-		case 'KRW' :
-
+		case 'RIAL':
+		case 'JPY':
+		case 'TWD':
+		case 'KRW':
 			$decimals = 0;
 			break;
 	}
@@ -498,7 +497,7 @@ add_filter( 'affwp_decimal_count', 'affwp_currency_decimal_filter' );
  */
 function affwp_object_to_array( $data ) {
 	if ( is_array( $data ) || is_object( $data ) ) {
-		$result = array();
+		$result = [];
 		foreach ( $data as $key => $value ) {
 			$result[ $key ] = affwp_object_to_array( $value );
 		}
@@ -521,7 +520,7 @@ function affwp_object_to_array( $data ) {
 function affwp_month_num_to_name( $n ) {
 	$timestamp = mktime( 0, 0, 0, $n, 1, 2005 );
 
-	return date_i18n( "M", $timestamp );
+	return date_i18n( 'M', $timestamp );
 }
 
 /**
@@ -533,7 +532,7 @@ function affwp_month_num_to_name( $n ) {
  * @return bool Whether or not the PHP function is disabled.
  */
 function affwp_is_func_disabled( $function ) {
-	$disabled = explode( ',',  ini_get( 'disable_functions' ) );
+	$disabled = explode( ',', ini_get( 'disable_functions' ) );
 
 	return in_array( $function, $disabled );
 }
@@ -622,7 +621,6 @@ function affwp_is_pretty_referral_urls() {
 	}
 
 	return (bool) false;
-
 }
 
 /**
@@ -630,25 +628,12 @@ function affwp_is_pretty_referral_urls() {
  *
  * @since 1.7
  * @since 2.18.0 No longer check for enabled checkbox, now use affwp_recaptcha_type() instead.
+ * @since 2.28.0 Refactored to use AffWP_Captcha_Manager for consistency.
  *
  * @return bool True if reCAPTCHA is enabled, otherwise false.
  */
 function affwp_is_recaptcha_enabled() : bool {
-
-	$checkbox   = ! ( affwp_recaptcha_type() === 'none' );
-	$site_key   = affiliate_wp()->settings->get( 'recaptcha_site_key', '' );
-	$secret_key = affiliate_wp()->settings->get( 'recaptcha_secret_key', '' );
-	$enabled    = ( ! empty( $checkbox ) && ! empty( $site_key ) && ! empty( $secret_key ) );
-
-	/**
-	 * Filters whether reCAPTCHA is enabled.
-	 *
-	 * @since 1.7
-	 *
-	 * @param bool $enabled Whether reCAPTCHA is enabled.
-	 */
-	return (bool) apply_filters( 'affwp_recaptcha_enabled', $enabled );
-
+	return AffWP_Captcha_Manager::is_enabled( 'recaptcha' );
 }
 
 /**
@@ -659,7 +644,62 @@ function affwp_is_recaptcha_enabled() : bool {
  * @return string reCAPTCHA Type.
  */
 function affwp_recaptcha_type() {
-	return affiliate_wp()->settings->get( 'recaptcha_type', 'none' );
+	return affiliate_wp()->settings->get( 'captcha_type', 'none' );
+}
+
+/**
+ * Checks if Turnstile is enabled.
+ *
+ * @since 2.28.0
+ *
+ * @return bool True if Turnstile is enabled, otherwise false.
+ */
+function affwp_is_turnstile_enabled() : bool {
+	return AffWP_Captcha_Manager::is_enabled( 'turnstile' );
+}
+
+/**
+ * Checks if hCaptcha is enabled.
+ *
+ * @since 2.28.0
+ *
+ * @return bool True if hCaptcha is enabled, otherwise false.
+ */
+function affwp_is_hcaptcha_enabled() : bool {
+	return AffWP_Captcha_Manager::is_enabled( 'hcaptcha' );
+}
+
+/**
+ * Checks if any CAPTCHA system is enabled.
+ *
+ * @since 2.28.0
+ *
+ * @return bool True if any CAPTCHA system is enabled, otherwise false.
+ */
+function affwp_is_captcha_enabled() : bool {
+	return AffWP_Captcha_Manager::is_any_enabled();
+}
+
+/**
+ * Check if CAPTCHA is enabled for login forms.
+ *
+ * @since 2.28.0
+ *
+ * @return bool True if CAPTCHA is enabled for login forms.
+ */
+function affwp_is_login_captcha_enabled() : bool {
+	return AffWP_Captcha_Manager::is_login_enabled();
+}
+
+/**
+ * Check if reCAPTCHA v2 is enabled.
+ *
+ * @since 2.28.0
+ *
+ * @return bool True if reCAPTCHA v2 is enabled, otherwise false.
+ */
+function affwp_is_recaptcha_v2_enabled() : bool {
+	return AffWP_Captcha_Manager::is_enabled( 'recaptcha' ) && 'v2' === affiliate_wp()->settings->get( 'recaptcha_type', 'v2' );
 }
 
 /**
@@ -696,13 +736,13 @@ function affwp_abs_number_round( $val, $precision = 2 ) {
 		return;
 	}
 
-	$period_decimal_sep   = preg_match( '/\.\d{1,2}$/', $val );
-	$comma_decimal_sep    = preg_match( '/\,\d{1,2}$/', $val );
+	$period_decimal_sep         = preg_match( '/\.\d{1,2}$/', $val );
+	$comma_decimal_sep          = preg_match( '/\,\d{1,2}$/', $val );
 	$period_space_thousands_sep = preg_match( '/\d{1,3}(?:[.|\s]\d{3})+/', $val );
 	$comma_thousands_sep        = preg_match( '/\d{1,3}(?:,\d{3})+/', $val );
 
 	// Convert period and space thousand separators.
-	if ( $period_space_thousands_sep  && 0 === preg_match( '/\d{4,}$/', $val ) ) {
+	if ( $period_space_thousands_sep && 0 === preg_match( '/\d{4,}$/', $val ) ) {
 		$val = str_replace( ' ', '', $val );
 
 		if ( ! $comma_decimal_sep ) {
@@ -721,7 +761,7 @@ function affwp_abs_number_round( $val, $precision = 2 ) {
 
 	// Clean up temporary replacements.
 	if ( $period_space_thousands_sep && $comma_decimal_sep || $comma_thousands_sep ) {
-		$val = str_replace( array( ':', ',' ), '', $val );
+		$val = str_replace( [ ':', ',' ], '', $val );
 	}
 
 	// Value cannot be negative
@@ -741,7 +781,6 @@ function affwp_abs_number_round( $val, $precision = 2 ) {
 	}
 
 	return $val;
-
 }
 
 /**
@@ -760,7 +799,7 @@ function affwp_make_url_human_readable( $url ) {
 	}
 
 	$path_with_prefixed_slash = empty( $parts['path'] ) ? '' : $parts['path'];
-	$path_without_prefix = substr( $path_with_prefixed_slash, 1 );
+	$path_without_prefix      = substr( $path_with_prefixed_slash, 1 );
 
 	if ( ! empty( $parts['query'] ) ) {
 
@@ -771,7 +810,7 @@ function affwp_make_url_human_readable( $url ) {
 
 		$public_query_vars = $wp->public_query_vars;
 
-		$query_vars_to_keep = array();
+		$query_vars_to_keep = [];
 
 		// Whitelist against public (registered) query vars.
 		foreach ( $query_vars as $var => $value ) {
@@ -818,7 +857,7 @@ function affwp_get_filtered_url( string $url, bool $suppress_host = false ): str
 	// Breakdown the url.
 	$parsed_url = wp_parse_url( $url );
 
-	wp_parse_str( isset( $parsed_url['query'] ) ? $parsed_url['query'] : array(), $query_vars );
+	wp_parse_str( isset( $parsed_url['query'] ) ? $parsed_url['query'] : [], $query_vars );
 
 	if ( ! is_array( $query_vars ) || empty( $query_vars ) ) {
 		return $url; // Url has no query params, just return the original url.
@@ -832,8 +871,8 @@ function affwp_get_filtered_url( string $url, bool $suppress_host = false ): str
 		array_merge(
 			( isset( $wp->public_query_vars ) && is_array( $wp->public_query_vars ) )
 					? $wp->public_query_vars
-					: array(),
-			array( 'ref', 'campaign' )
+					: [],
+			[ 'ref', 'campaign' ]
 		)
 	);
 
@@ -841,7 +880,7 @@ function affwp_get_filtered_url( string $url, bool $suppress_host = false ): str
 	$parsed_url['query'] = http_build_query(
 		array_filter(
 			$query_vars,
-			function( $var ) use ( $allowed_query_vars ) {
+			function ( $var ) use ( $allowed_query_vars ) {
 				return in_array( $var, $allowed_query_vars, true );
 			},
 			ARRAY_FILTER_USE_KEY
@@ -923,10 +962,8 @@ function affwp_add_screen_options_nonces() {
 		return;
 	}
 
-	wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce' , false );
-	wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce' , false );
-
-
+	wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
+	wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false );
 }
 add_action( 'admin_footer', 'affwp_add_screen_options_nonces' );
 
@@ -977,13 +1014,39 @@ function affwp_get_logout_url() : string {
  */
 function affwp_get_pages( $force = false ) {
 
-	$pages_options = array( 0 => __( 'None', 'affiliate-wp' ) ); // Blank option
+	$pages_options = [ 0 => __( 'None', 'affiliate-wp' ) ]; // Blank option
 
-	if( ( ! isset( $_GET['page'] ) || 'affiliate-wp-settings' != $_GET['page'] ) && ! $force ) {
+	if ( ( ! isset( $_GET['page'] ) || 'affiliate-wp-settings' != $_GET['page'] ) && ! $force ) {
 		return $pages_options;
 	}
 
-	$pages = get_pages();
+	/*
+	 * WPML Compatibility: Get pages from the default language to ensure
+	 * consistent settings across all languages. The page ID translation
+	 * happens at runtime via the affwp_wpml_translate_page_id filter.
+	 *
+	 * @since AFFWPN
+	 */
+	$get_pages_args = array();
+	if ( class_exists( 'SitePress' ) ) {
+		global $sitepress;
+		if ( $sitepress && method_exists( $sitepress, 'get_default_language' ) ) {
+			$get_pages_args['suppress_filters'] = true;
+
+			// Switch to default language temporarily to get default language pages.
+			$current_lang = apply_filters( 'wpml_current_language', null );
+			$default_lang = $sitepress->get_default_language();
+			do_action( 'wpml_switch_language', $default_lang );
+		}
+	}
+
+	$pages = get_pages( $get_pages_args );
+
+	// Switch back to the current language.
+	if ( class_exists( 'SitePress' ) && isset( $current_lang ) ) {
+		do_action( 'wpml_switch_language', $current_lang );
+	}
+
 	if ( $pages ) {
 		foreach ( $pages as $page ) {
 			$pages_options[ $page->ID ] = $page->post_title;
@@ -991,7 +1054,6 @@ function affwp_get_pages( $force = false ) {
 	}
 
 	return $pages_options;
-
 }
 
 /**
@@ -1012,7 +1074,6 @@ function affwp_get_current_screen() {
 	$page_now = ( isset( $_GET['page'] ) ) ? sanitize_text_field( $_GET['page'] ) : false;
 
 	return $page_now;
-
 }
 
 /**
@@ -1024,7 +1085,7 @@ function affwp_get_current_screen() {
  * @param string $active_tab Active tab slug.
  * @param array  $query_args Optional. Query arguments used to build the tab URLs. Default empty array.
  */
-function affwp_navigation_tabs( $tabs, $active_tab, $query_args = array() ) {
+function affwp_navigation_tabs( $tabs, $active_tab, $query_args = [] ) {
 	$tabs = (array) $tabs;
 
 	if ( empty( $tabs ) ) {
@@ -1041,16 +1102,28 @@ function affwp_navigation_tabs( $tabs, $active_tab, $query_args = array() ) {
 	 * @param array  $query_args Query arguments used to build the tab URLs.
 	 */
 	$tabs = apply_filters( 'affwp_navigation_tabs', $tabs, $active_tab, $query_args );
+	
+	// Define allowed HTML for navigation tab labels.
+	$allowed_html = array(
+		'span' => array(
+			'class' => array(),
+			'style' => array(),
+		),
+	);
 
 	foreach ( $tabs as $tab_id => $tab_name ) {
-		$query_args = array_merge( $query_args, array( 'tab' => $tab_id ) );
+		$query_args = array_merge( $query_args, [ 'tab' => $tab_id ] );
 		$tab_url    = add_query_arg( $query_args );
+		
+		// Strip HTML for alt attribute
+		$tab_name_plain = wp_strip_all_tags( $tab_name );
 
-		printf( '<a href="%1$s" alt="%2$s" class="%3$s">%4$s</a>',
+		printf(
+			'<a href="%1$s" alt="%2$s" class="%3$s">%4$s</a>',
 			esc_url( $tab_url ),
-			esc_attr( $tab_name ),
+			esc_attr( $tab_name_plain ),
 			$active_tab == $tab_id ? 'nav-tab nav-tab-active' : 'nav-tab',
-			esc_html( $tab_name )
+			wp_kses( $tab_name, $allowed_html )
 		);
 	}
 
@@ -1147,7 +1220,6 @@ function affwp_filter_shown_affiliate_area_forms() {
 		case 'both':
 			break;
 	}
-
 }
 add_action( 'template_redirect', 'affwp_filter_shown_affiliate_area_forms' );
 
@@ -1170,10 +1242,10 @@ add_action( 'template_redirect', 'affwp_filter_shown_affiliate_area_forms' );
  * @param array  $query_args Optional. Query arguments to append to the admin URL. Default empty array.
  * @return string Constructed admin URL.
  */
-function affwp_admin_url( $type = '', $query_args = array() ) {
+function affwp_admin_url( $type = '', $query_args = [] ) {
 	$page = 'affiliate-wp';
 
-	$whitelist = array(
+	$whitelist = [
 		'affiliates',
 		'customers',
 		'creatives',
@@ -1185,7 +1257,7 @@ function affwp_admin_url( $type = '', $query_args = array() ) {
 		'tools',
 		'add-ons',
 		'setup-screen',
-	);
+	];
 
 	if ( in_array( $type, $whitelist, true ) ) {
 		// Reroute customers requests.
@@ -1196,7 +1268,7 @@ function affwp_admin_url( $type = '', $query_args = array() ) {
 		$page = "affiliate-wp-{$type}";
 	}
 
-	$admin_query_args = array_merge( array( 'page' => $page ), $query_args );
+	$admin_query_args = array_merge( [ 'page' => $page ], $query_args );
 
 	$url = add_query_arg( $admin_query_args, admin_url( 'admin.php' ) );
 
@@ -1225,10 +1297,13 @@ function affwp_admin_url( $type = '', $query_args = array() ) {
  *                           Default empty array.
  * @return string HTML markup for the admin link.
  */
-function affwp_admin_link( $type, $label, $query_args = array(), $attributes = array() ) {
-	$attributes = wp_parse_args( $attributes, array(
-		'href' => esc_url( affwp_admin_url( $type, $query_args ) )
-	) );
+function affwp_admin_link( $type, $label, $query_args = [], $attributes = [] ) {
+	$attributes = wp_parse_args(
+		$attributes,
+		[
+			'href' => esc_url( affwp_admin_url( $type, $query_args ) ),
+		]
+	);
 
 	$output = '';
 	$i      = 0;
@@ -1240,7 +1315,6 @@ function affwp_admin_link( $type, $label, $query_args = array(), $attributes = a
 		if ( ++$i !== $count ) {
 			$output .= ' ';
 		}
-
 	}
 
 	$link = sprintf( '<a %1$s>%2$s</a>', $output, $label );
@@ -1336,7 +1410,7 @@ function affwp_is_upgrade_forced( $upgrade_action ) {
  */
 function affwp_get_completed_upgrades() {
 
-	$completed_upgrades = get_option( 'affwp_completed_upgrades', array() );
+	$completed_upgrades = get_option( 'affwp_completed_upgrades', [] );
 
 	return $completed_upgrades;
 }
@@ -1349,8 +1423,8 @@ function affwp_get_completed_upgrades() {
  * @param array $mime_types List of allowed mime types.
  * @return array Filtered list of allowed mime types.
  */
-function affwp_allowed_mime_types( $mime_types = array() ) {
-	$mime_types['csv']  = 'text/csv';
+function affwp_allowed_mime_types( $mime_types = [] ) {
+	$mime_types['csv'] = 'text/csv';
 
 	return $mime_types;
 }
@@ -1372,23 +1446,26 @@ function affwp_get_affiliate_import_fields() {
 	 *
 	 * @param array $fields List of affiliate import fields and associated labels.
 	 */
-	$fields = apply_filters( 'affwp_affiliate_import_fields', array(
-		'email'           => __( 'Email (required)', 'affiliate-wp' ),
-		'username'        => __( 'Username', 'affiliate-wp' ),
-		'name'            => __( 'First/Full Name', 'affiliate-wp' ),
-		'last_name'       => __( 'Last Name', 'affiliate-wp' ),
-		'payment_email'   => __( 'Payment Email', 'affiliate-wp' ),
-		'rate'            => __( 'Rate', 'affiliate-wp' ),
-		'rate_type'       => __( 'Rate Type', 'affiliate-wp' ),
-		'flat_rate_basis' => __( 'Flat Rate Basis', 'affiliate-wp' ),
-		'earnings'        => __( 'Earnings', 'affiliate-wp' ),
-		'unpaid_earnings' => __( 'Unpaid Earnings', 'affiliate-wp' ),
-		'referrals'       => __( 'Referral Count', 'affiliate-wp' ),
-		'visits'          => __( 'Visit Count', 'affiliate-wp' ),
-		'status'          => __( 'Status', 'affiliate-wp' ),
-		'website_url'     => __( 'Website', 'affiliate-wp' ),
-		'date_registered' => __( 'Registration Date', 'affiliate-wp' ),
-	) );
+	$fields = apply_filters(
+		'affwp_affiliate_import_fields',
+		[
+			'email'           => __( 'Email (required)', 'affiliate-wp' ),
+			'username'        => __( 'Username', 'affiliate-wp' ),
+			'name'            => __( 'First/Full Name', 'affiliate-wp' ),
+			'last_name'       => __( 'Last Name', 'affiliate-wp' ),
+			'payment_email'   => __( 'Payment Email', 'affiliate-wp' ),
+			'rate'            => __( 'Rate', 'affiliate-wp' ),
+			'rate_type'       => __( 'Rate Type', 'affiliate-wp' ),
+			'flat_rate_basis' => __( 'Flat Rate Basis', 'affiliate-wp' ),
+			'earnings'        => __( 'Earnings', 'affiliate-wp' ),
+			'unpaid_earnings' => __( 'Unpaid Earnings', 'affiliate-wp' ),
+			'referrals'       => __( 'Referral Count', 'affiliate-wp' ),
+			'visits'          => __( 'Visit Count', 'affiliate-wp' ),
+			'status'          => __( 'Status', 'affiliate-wp' ),
+			'website_url'     => __( 'Website', 'affiliate-wp' ),
+			'date_registered' => __( 'Registration Date', 'affiliate-wp' ),
+		]
+	);
 
 	// Ensure required fields are set.
 	if ( empty( $fields['email'] ) ) {
@@ -1416,24 +1493,27 @@ function affwp_get_referral_import_fields() {
 	 *
 	 * @param array $fields List of referral import fields and associated labels.
 	 */
-	$fields = apply_filters( 'affwp_referral_import_fields', array(
-		'affiliate'       => __( 'Affiliate ID or Username (required)', 'affiliate-wp' ),
-		'amount'          => __( 'Amount (required)', 'affiliate-wp' ),
-		'email'           => __( 'Affiliate Email', 'affiliate-wp' ),
-		'username'        => __( 'Affiliate Username', 'affiliate-wp' ),
-		'first_name'      => __( 'Affiliate First/Full Name', 'affiliate-wp' ),
-		'last_name'       => __( 'Affiliate Last Name', 'affiliate-wp' ),
-		'payment_email'   => __( 'Payment Email', 'affiliate-wp' ),
-		'currency'        => __( 'Currency', 'affiliate-wp' ),
-		'description'     => __( 'Description', 'affiliate-wp' ),
-		'campaign'        => __( 'Campaign', 'affiliate-wp' ),
-		'reference'       => __( 'Reference', 'affiliate-wp' ),
-		'context'         => __( 'Context', 'affiliate-wp' ),
-		'status'          => __( 'Status', 'affiliate-wp' ),
-		'flag'            => __( 'Flag', 'affiliate-wp' ),
-		'type'            => __( 'Type', 'affiliate-wp' ),
-		'date'            => __( 'Date', 'affiliate-wp' )
-	) );
+	$fields = apply_filters(
+		'affwp_referral_import_fields',
+		[
+			'affiliate'     => __( 'Affiliate ID or Username (required)', 'affiliate-wp' ),
+			'amount'        => __( 'Amount (required)', 'affiliate-wp' ),
+			'email'         => __( 'Affiliate Email', 'affiliate-wp' ),
+			'username'      => __( 'Affiliate Username', 'affiliate-wp' ),
+			'first_name'    => __( 'Affiliate First/Full Name', 'affiliate-wp' ),
+			'last_name'     => __( 'Affiliate Last Name', 'affiliate-wp' ),
+			'payment_email' => __( 'Payment Email', 'affiliate-wp' ),
+			'currency'      => __( 'Currency', 'affiliate-wp' ),
+			'description'   => __( 'Description', 'affiliate-wp' ),
+			'campaign'      => __( 'Campaign', 'affiliate-wp' ),
+			'reference'     => __( 'Reference', 'affiliate-wp' ),
+			'context'       => __( 'Context', 'affiliate-wp' ),
+			'status'        => __( 'Status', 'affiliate-wp' ),
+			'flag'          => __( 'Flag', 'affiliate-wp' ),
+			'type'          => __( 'Type', 'affiliate-wp' ),
+			'date'          => __( 'Date', 'affiliate-wp' ),
+		]
+	);
 
 	// Ensure required fields are set.
 	if ( empty( $fields['affiliate'] ) ) {
@@ -1459,9 +1539,9 @@ function affwp_get_referral_import_fields() {
  * @param string $type Import fields type. Accepts 'affiliates' or 'referrals'.
  */
 function affwp_do_import_fields( $type ) {
-	$fields = array();
+	$fields = [];
 
-	switch( $type ) {
+	switch ( $type ) {
 		case 'affiliates':
 			$fields = affwp_get_affiliate_import_fields();
 			break;
@@ -1470,7 +1550,8 @@ function affwp_do_import_fields( $type ) {
 			$fields = affwp_get_referral_import_fields();
 			break;
 
-		default: break;
+		default:
+			break;
 	}
 
 	if ( ! empty( $fields ) ) {
@@ -1488,9 +1569,7 @@ function affwp_do_import_fields( $type ) {
 			</tr>
 			<?php
 		}
-
 	}
-
 }
 
 /**
@@ -1502,7 +1581,7 @@ function affwp_do_import_fields( $type ) {
  * @return string An HTML5 'required' attribute if required, otherwise an empty string.
  */
 function affwp_required_field_attr( $field ) {
-	$required_fields = affiliate_wp()->settings->get( 'required_registration_fields', array() );
+	$required_fields = affiliate_wp()->settings->get( 'required_registration_fields', [] );
 
 	$required = __checked_selected_helper( array_key_exists( $field, $required_fields ), true, false, 'required' );
 
@@ -1560,7 +1639,7 @@ function affwp_get_current_page_number() {
  */
 function affwp_get_sepa_countries() {
 
-	$sepa_countries = array(
+	$sepa_countries = [
 		'AT' => __( 'Austria', 'affiliate-wp' ),
 		'BE' => __( 'Belgium', 'affiliate-wp' ),
 		'DK' => __( 'Denmark', 'affiliate-wp' ),
@@ -1577,7 +1656,7 @@ function affwp_get_sepa_countries() {
 		'SE' => __( 'Sweden', 'affiliate-wp' ),
 		'CH' => __( 'Switzerland', 'affiliate-wp' ),
 		'GB' => __( 'United Kingdom', 'affiliate-wp' ),
-	);
+	];
 
 	return $sepa_countries;
 }
@@ -1591,7 +1670,7 @@ function affwp_get_sepa_countries() {
  */
 function affwp_get_payouts_service_country_list() {
 
-	$countries = array(
+	$countries = [
 		'US' => __( 'United States', 'affiliate-wp' ),
 		'CA' => __( 'Canada', 'affiliate-wp' ),
 		'GB' => __( 'United Kingdom', 'affiliate-wp' ),
@@ -1642,10 +1721,9 @@ function affwp_get_payouts_service_country_list() {
 		'CH' => __( 'Switzerland', 'affiliate-wp' ),
 		'TH' => __( 'Thailand', 'affiliate-wp' ),
 		'UY' => __( 'Uruguay', 'affiliate-wp' ),
-	);
+	];
 
 	return $countries;
-
 }
 
 /**
@@ -1738,7 +1816,7 @@ function affwp_is_valid_amount( $amount ) {
 			$valid = new \WP_Error(
 				'affwp_amount_is_malformed',
 				'The provided amount is not a valid amount.',
-				array( 'amount' => $amount )
+				[ 'amount' => $amount ]
 			);
 		}
 		// Otherwise, this is invalid. Return an error.
@@ -1746,7 +1824,7 @@ function affwp_is_valid_amount( $amount ) {
 		$valid = new \WP_Error(
 			'affwp_amount_is_invalid_type',
 			'The provided amount is not a valid type. Must be a valid numerical string, a float, or an integer.',
-			array( 'amount' => $amount, 'type' => gettype( $amount ) )
+			[ 'amount' => $amount, 'type' => gettype( $amount ) ]
 		);
 	}
 
@@ -1784,8 +1862,8 @@ function affwp_is_integration_active( $integration_slug ) {
  * @since 2.18.0
  *
  * @param string $name Attribute name
- * @param mixed $value Attribute value. Arrays will be automatically converted to JSON.
- * @param bool $hide_empty Do not print the attribute if $value is empty.
+ * @param mixed  $value Attribute value. Arrays will be automatically converted to JSON.
+ * @param bool   $hide_empty Do not print the attribute if $value is empty.
  *
  * @return string The attribute to use in a HTML tag.
  */
@@ -1846,10 +1924,10 @@ function affwp_get_hash( $data, $key = false ) {
  *
  * @return array The normalized array
  */
-function affwp_normalize_array( array $array, $args = array() ) {
-	$defaults = array(
+function affwp_normalize_array( array $array, $args = [] ) {
+	$defaults = [
 		'convert_closures' => true,
-	);
+	];
 
 	$args = wp_parse_args( $args, $defaults );
 
@@ -1868,10 +1946,10 @@ function affwp_normalize_array( array $array, $args = array() ) {
 				$content .= $file->current();
 				$file->next();
 			}
-			$array[ $key ] = array(
+			$array[ $key ] = [
 				$content,
 				$ref->getStaticVariables(),
-			);
+			];
 		}
 	}
 
@@ -1897,7 +1975,7 @@ function affwp_normalize_array( array $array, $args = array() ) {
  * @return array|string|string[]|null The unprefixed string.
  */
 function affwp_remove_prefix( $prefixed_string ) {
-	return preg_replace( "/^(affwp|affiliate_wp|affiliate-wp|affiliatewp)[-_]/i", '', $prefixed_string );
+	return preg_replace( '/^(affwp|affiliate_wp|affiliate-wp|affiliatewp)[-_]/i', '', $prefixed_string );
 }
 
 /**
@@ -1914,8 +1992,7 @@ function affwp_remove_prefix( $prefixed_string ) {
  * @return bool The converted value.
  */
 function affwp_string_to_bool( string $string ) : bool {
-	return in_array( strtolower( $string ), array( 'yes', '1', 'on' ), true );
-
+	return in_array( strtolower( $string ), [ 'yes', '1', 'on' ], true );
 }
 
 if ( ! function_exists( 'affwp_kses' ) ) :
@@ -1931,144 +2008,145 @@ if ( ! function_exists( 'affwp_kses' ) ) :
 	 *
 	 * @return array[] Array of default allowable HTML tags.
 	 */
-	function affwp_kses( array $additional_kses = array() ) : array {
+	function affwp_kses( array $additional_kses = [] ) : array {
 
 		return apply_filters(
 			'affwp_kses',
 			array_merge_recursive(
-				array(
-					'address'    => array(),
-					'a'          => array(
+				[
+					'address'    => [],
+					'a'          => [
 						'href'     => true,
 						'class'    => true,
 						'rel'      => true,
 						'rev'      => true,
 						'name'     => true,
 						'target'   => true,
-						'download' => array(
+						'download' => [
 							'valueless' => 'y',
-						),
-					),
-					'abbr'       => array(),
-					'acronym'    => array(),
-					'area'       => array(
+						],
+					],
+					'abbr'       => [],
+					'acronym'    => [],
+					'area'       => [
 						'alt'    => true,
 						'coords' => true,
 						'href'   => true,
 						'nohref' => true,
 						'shape'  => true,
 						'target' => true,
-					),
-					'article'    => array(
+					],
+					'article'    => [
 						'align' => true,
-					),
-					'aside'      => array(
+					],
+					'aside'      => [
 						'align' => true,
-					),
-					'audio'      => array(
+					],
+					'audio'      => [
 						'autoplay' => true,
 						'controls' => true,
 						'loop'     => true,
 						'muted'    => true,
 						'preload'  => true,
 						'src'      => true,
-					),
-					'b'          => array(),
-					'bdo'        => array(),
-					'big'        => array(),
-					'blockquote' => array(
+					],
+					'b'          => [],
+					'bdo'        => [],
+					'big'        => [],
+					'blockquote' => [
 						'cite' => true,
-					),
-					'br'         => array(),
-					'button'     => array(
+					],
+					'br'         => [],
+					'button'     => [
 						'disabled' => true,
 						'name'     => true,
 						'type'     => true,
 						'value'    => true,
-					),
-					'caption'    => array(
+					],
+					'caption'    => [
 						'align' => true,
-					),
-					'cite'       => array(),
-					'code'       => array(),
-					'col'        => array(
+					],
+					'cite'       => [],
+					'code'       => [],
+					'col'        => [
 						'align'   => true,
 						'char'    => true,
 						'charoff' => true,
 						'span'    => true,
 						'valign'  => true,
 						'width'   => true,
-					),
-					'colgroup'   => array(
+					],
+					'colgroup'   => [
 						'align'   => true,
 						'char'    => true,
 						'charoff' => true,
 						'span'    => true,
 						'valign'  => true,
 						'width'   => true,
-					),
-					'del'        => array(
+					],
+					'del'        => [
 						'datetime' => true,
-					),
-					'dd'         => array(),
-					'dfn'        => array(),
-					'details'    => array(
+					],
+					'dd'         => [],
+					'dfn'        => [],
+					'details'    => [
 						'align' => true,
 						'open'  => true,
-					),
-					'div'        => array(
+					],
+					'div'        => [
 						'align' => true,
-					),
-					'dl'         => array(),
-					'dt'         => array(),
-					'em'         => array(),
-					'fieldset'   => array(),
-					'figure'     => array(
+						'class' => true,
+					],
+					'dl'         => [],
+					'dt'         => [],
+					'em'         => [],
+					'fieldset'   => [],
+					'figure'     => [
 						'align' => true,
-					),
-					'figcaption' => array(
+					],
+					'figcaption' => [
 						'align' => true,
-					),
-					'font'       => array(
+					],
+					'font'       => [
 						'color' => true,
 						'face'  => true,
 						'size'  => true,
-					),
-					'footer'     => array(
+					],
+					'footer'     => [
 						'align' => true,
-					),
-					'h1'         => array(
+					],
+					'h1'         => [
 						'align' => true,
-					),
-					'h2'         => array(
+					],
+					'h2'         => [
 						'align' => true,
-					),
-					'h3'         => array(
+					],
+					'h3'         => [
 						'align' => true,
-					),
-					'h4'         => array(
+					],
+					'h4'         => [
 						'align' => true,
-					),
-					'h5'         => array(
+					],
+					'h5'         => [
 						'align' => true,
-					),
-					'h6'         => array(
+					],
+					'h6'         => [
 						'align' => true,
-					),
-					'header'     => array(
+					],
+					'header'     => [
 						'align' => true,
-					),
-					'hgroup'     => array(
+					],
+					'hgroup'     => [
 						'align' => true,
-					),
-					'hr'         => array(
+					],
+					'hr'         => [
 						'align'   => true,
 						'noshade' => true,
 						'size'    => true,
 						'width'   => true,
-					),
-					'i'          => array(),
-					'img'        => array(
+					],
+					'i'          => [],
+					'img'        => [
 						'alt'      => true,
 						'align'    => true,
 						'border'   => true,
@@ -2080,79 +2158,80 @@ if ( ! function_exists( 'affwp_kses' ) ) :
 						'src'      => true,
 						'usemap'   => true,
 						'width'    => true,
-					),
-					'ins'        => array(
+					],
+					'ins'        => [
 						'datetime' => true,
 						'cite'     => true,
-					),
-					'kbd'        => array(),
-					'label'      => array(
+					],
+					'kbd'        => [],
+					'label'      => [
 						'for' => true,
-					),
-					'legend'     => array(
+					],
+					'legend'     => [
 						'align' => true,
-					),
-					'li'         => array(
+					],
+					'li'         => [
 						'align' => true,
 						'value' => true,
 						'class' => true,
-					),
-					'main'       => array(
+					],
+					'main'       => [
 						'align' => true,
-					),
-					'map'        => array(
+					],
+					'map'        => [
 						'name' => true,
-					),
-					'mark'       => array(),
-					'menu'       => array(
+					],
+					'mark'       => [],
+					'menu'       => [
 						'type' => true,
-					),
-					'nav'        => array(
+					],
+					'nav'        => [
 						'align' => true,
-					),
-					'object'     => array(
-						'data' => array(
+					],
+					'object'     => [
+						'data' => [
 							'required'       => true,
 							'value_callback' => '_wp_kses_allow_pdf_objects',
-						),
-						'type' => array(
+						],
+						'type' => [
 							'required' => true,
-							'values'   => array( 'application/pdf' ),
-						),
-					),
-					'p'          => array(
-						'align' => true,
-					),
-					'pre'        => array(
-						'width' => true,
-					),
-					'q'          => array(
-						'cite' => true,
-					),
-					'rb'         => array(),
-					'rp'         => array(),
-					'rt'         => array(),
-					'rtc'        => array(),
-					'ruby'       => array(),
-					's'          => array(),
-					'samp'       => array(),
-					'span'       => array(
+							'values'   => [ 'application/pdf' ],
+						],
+					],
+					'p'          => [
 						'align' => true,
 						'class' => true,
-					),
-					'section'    => array(
+					],
+					'pre'        => [
+						'width' => true,
+					],
+					'q'          => [
+						'cite' => true,
+					],
+					'rb'         => [],
+					'rp'         => [],
+					'rt'         => [],
+					'rtc'        => [],
+					'ruby'       => [],
+					's'          => [],
+					'samp'       => [],
+					'span'       => [
 						'align' => true,
-					),
-					'small'      => array(),
-					'strike'     => array(),
-					'strong'     => array(),
-					'style'      => array(),
-					'sub'        => array(),
-					'summary'    => array(
+						'class' => true,
+					],
+					'section'    => [
 						'align' => true,
-					),
-					'sup'        => array(),
-					'table'      => array(
+					],
+					'small'      => [],
+					'strike'     => [],
+					'strong'     => [],
+					'style'      => [],
+					'sub'        => [],
+					'summary'    => [
+						'align' => true,
+					],
+					'sup'        => [],
+					'table'      => [
 						'align'       => true,
 						'bgcolor'     => true,
 						'border'      => true,
@@ -2161,14 +2240,14 @@ if ( ! function_exists( 'affwp_kses' ) ) :
 						'rules'       => true,
 						'summary'     => true,
 						'width'       => true,
-					),
-					'tbody'      => array(
+					],
+					'tbody'      => [
 						'align'   => true,
 						'char'    => true,
 						'charoff' => true,
 						'valign'  => true,
-					),
-					'td'         => array(
+					],
+					'td'         => [
 						'abbr'    => true,
 						'align'   => true,
 						'axis'    => true,
@@ -2183,21 +2262,21 @@ if ( ! function_exists( 'affwp_kses' ) ) :
 						'scope'   => true,
 						'valign'  => true,
 						'width'   => true,
-					),
-					'textarea'   => array(
+					],
+					'textarea'   => [
 						'cols'     => true,
 						'rows'     => true,
 						'disabled' => true,
 						'name'     => true,
 						'readonly' => true,
-					),
-					'tfoot'      => array(
+					],
+					'tfoot'      => [
 						'align'   => true,
 						'char'    => true,
 						'charoff' => true,
 						'valign'  => true,
-					),
-					'th'         => array(
+					],
+					'th'         => [
 						'abbr'    => true,
 						'align'   => true,
 						'axis'    => true,
@@ -2212,41 +2291,41 @@ if ( ! function_exists( 'affwp_kses' ) ) :
 						'scope'   => true,
 						'valign'  => true,
 						'width'   => true,
-					),
-					'thead'      => array(
+					],
+					'thead'      => [
 						'align'   => true,
 						'char'    => true,
 						'charoff' => true,
 						'valign'  => true,
-					),
-					'title'      => array(),
-					'tr'         => array(
+					],
+					'title'      => [],
+					'tr'         => [
 						'align'   => true,
 						'bgcolor' => true,
 						'char'    => true,
 						'charoff' => true,
 						'valign'  => true,
-					),
-					'track'      => array(
+					],
+					'track'      => [
 						'default' => true,
 						'kind'    => true,
 						'label'   => true,
 						'src'     => true,
 						'srclang' => true,
-					),
-					'tt'         => array(),
-					'u'          => array(),
-					'ul'         => array(
+					],
+					'tt'         => [],
+					'u'          => [],
+					'ul'         => [
 						'type'  => true,
 						'class' => true,
-					),
-					'ol'         => array(
+					],
+					'ol'         => [
 						'start'    => true,
 						'type'     => true,
 						'reversed' => true,
-					),
-					'var'        => array(),
-					'video'      => array(
+					],
+					'var'        => [],
+					'video'      => [
 						'autoplay'    => true,
 						'controls'    => true,
 						'height'      => true,
@@ -2257,8 +2336,8 @@ if ( ! function_exists( 'affwp_kses' ) ) :
 						'preload'     => true,
 						'src'         => true,
 						'width'       => true,
-					),
-				),
+					],
+				],
 				$additional_kses
 			)
 		);
@@ -2281,16 +2360,16 @@ function affwp_get_image_size( $image_id_or_url, string $image_size = 'full' ) :
 		$image_src = wp_get_attachment_image_src( $image_id_or_url, $image_size );
 
 		return false === $image_src
-			? array()
-			: array(
+			? []
+			: [
 				'width'  => $image_src[1] ?? 300,
 				'height' => $image_src[2] ?? 300,
-			);
+			];
 
 	}
 
 	if ( ! filter_var( $image_id_or_url, FILTER_VALIDATE_URL ) ) {
-		return array(); // Bail if it is not a valid URL.
+		return []; // Bail if it is not a valid URL.
 	}
 
 	try {
@@ -2298,19 +2377,19 @@ function affwp_get_image_size( $image_id_or_url, string $image_size = 'full' ) :
 		$image_info = getimagesize( $image_id_or_url );
 
 		return false === $image_info
-			? array()
-			: array(
+			? []
+			: [
 				'width'  => $image_info[0],
 				'height' => $image_info[1],
-			);
+			];
 
 	} catch ( Exception $e ) {
 
-		return array();
+		return [];
 
 	}
 
-	return array();
+	return [];
 }
 
 /**
@@ -2322,10 +2401,10 @@ function affwp_get_image_size( $image_id_or_url, string $image_size = 'full' ) :
  */
 function affiliatewp_get_qrcode_default_colors() : array {
 
-	return array(
+	return [
 		'code' => '#444444',
 		'bg'   => '#FFFFFF',
-	);
+	];
 }
 
 /**
@@ -2428,7 +2507,7 @@ function affiliatewp_get_salt() : string {
  *
  * @return string The template with strings replaced.
  */
-function affiliatewp_render_template( string $template, array $data = array() ) : string {
+function affiliatewp_render_template( string $template, array $data = [] ) : string {
 	if ( empty( $data ) ) {
 		return $template;
 	}

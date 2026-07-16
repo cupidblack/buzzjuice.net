@@ -15,7 +15,7 @@ class TokenGenerator
      */
     public function generateToken()
     {
-        if (function_exists('random_bytes')) {
+        if (\function_exists('random_bytes')) {
             return bin2hex(random_bytes(self::TOKEN_BYTES_LENGTH));
         }
 
@@ -24,6 +24,7 @@ class TokenGenerator
 
     /**
      * @param string $token
+     *
      * @return string
      */
     public function generateTokenHash($token)
@@ -33,6 +34,7 @@ class TokenGenerator
 
     /**
      * @param int $ttl
+     *
      * @return string
      */
     public function getTokenEndDate($ttl)

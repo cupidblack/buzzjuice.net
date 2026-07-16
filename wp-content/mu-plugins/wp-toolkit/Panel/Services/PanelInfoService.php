@@ -3,6 +3,7 @@
 
 namespace Webpros\WptkWpPlugin\WpToolkit\Panel\Services;
 
+use Webpros\WptkWpPlugin\WpToolkit\Common\Clients\HttpClientFactoryInterface;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Clients\HttpClientInterface;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Models\WpToolkitRequest;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Services\ApiTokenParser;
@@ -21,18 +22,18 @@ class PanelInfoService
     ];
 
     /**
-     * @var HttpClientInterface
+     * @var HttpClientFactoryInterface
      */
-    private $httpClient;
+    private $httpClientFactory;
 
     /**
      * @var ApiTokenParser
      */
     private $apiTokenParser;
 
-    public function __construct(HttpClientInterface $httpClient, ApiTokenParser $apiTokenParser)
+    public function __construct(HttpClientFactoryInterface $httpClientFactory, ApiTokenParser $apiTokenParser)
     {
-        $this->httpClient     = $httpClient;
+        $this->httpClientFactory = $httpClientFactory;
         $this->apiTokenParser = $apiTokenParser;
     }
 
@@ -55,10 +56,11 @@ class PanelInfoService
     private function fetchPanelUrl()
     {
         try {
-            $response = $this->httpClient->request(
+            $response = $this->httpClientFactory->getClient()->request(
                 new WpToolkitRequest('/v1/panel-info', HttpClientInterface::METHOD_GET)
             );
         } catch (\Exception $e) {
+            error_log('WP Toolkit: Failed to fetch panel info: ' . $e->getMessage());
             return null;
         }
 
@@ -67,11 +69,18 @@ class PanelInfoService
         }
 
         $body = $response->getBody();
-        if (!is_array($body) || empty($body['url']) || !is_string($body['url'])) {
+        if (!\is_array($body) || empty($body['url']) || !\is_string($body['url'])) {
             return null;
         }
 
-        return rtrim($body['url'], '/') . '/';
+        $url = rtrim($body['url'], '/') . '/';
+
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+        if (!\in_array($scheme, ['http', 'https'], true)) {
+            return null;
+        }
+
+        return $url;
     }
 
     /**
@@ -86,7 +95,7 @@ class PanelInfoService
         }
 
         $apiUrl = $apiToken->getApiUrl();
-        $port   = (int) parse_url($apiUrl, PHP_URL_PORT);
+        $port = (int)parse_url($apiUrl, PHP_URL_PORT);
         if ($port <= 0) {
             return null;
         }
@@ -95,13 +104,12 @@ class PanelInfoService
             ? self::$apiPortToPanelPort[$port]
             : $port;
 
-        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
-        $host = preg_replace('/:\d+$/', '', $host);
-        if ($host === '' || $host === null) {
+        $host = parse_url(home_url(), PHP_URL_HOST);
+        if (!\is_string($host) || $host === '') {
             return null;
         }
 
-        $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+        $scheme = parse_url($apiUrl, PHP_URL_SCHEME) === 'https' ? 'https' : 'http';
 
         return $scheme . '://' . $host . ':' . $panelPort . '/';
     }

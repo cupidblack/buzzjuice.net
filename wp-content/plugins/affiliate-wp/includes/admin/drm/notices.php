@@ -55,23 +55,23 @@ try {
 }
 
 return array(
+
+	// Unlicensed: Day 0-13. Gentle nudge.
 	'unlicensed_initiated' => array(
 		'level'   => 'info',
 		'message' => function() {
 			ob_start();
 			?>
 			<p>
+				<strong><?php esc_html_e( 'AffiliateWP is not activated.', 'affiliate-wp' ); ?></strong>
 				<?php
 				printf(
 					/* translators: %s - Link to the settings screen */
-					esc_html__(
-						'Please %s your license key for AffiliateWP to enable automatic updates.',
-						'affiliate-wp'
-					),
+					esc_html__( '%s to enable updates, new features, and support.', 'affiliate-wp' ),
 					sprintf(
 						'<a href="%s">%s</a>',
 						esc_url( sprintf( '%s#license_key', affwp_admin_url( 'settings' ) ) ),
-						esc_html__( 'enter and activate', 'affiliate-wp' )
+						esc_html__( 'Enter your license key', 'affiliate-wp' )
 					)
 				);
 				?>
@@ -80,111 +80,73 @@ return array(
 			return ob_get_clean();
 		},
 	),
+
+	// Unlicensed: Day 14-20. Escalation.
 	'unlicensed_low_level' => array(
-		'message' => function() use ( $icon_tag ) {
-
+		'level'   => 'warning',
+		'message' => function() {
 			ob_start();
-
 			?>
-
-			<h2>
-				<span class="affwp-exclamation-icon">
-					<?php
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- This is safe at this point.
-					echo $icon_tag;
-					?>
-				</span>
-				<?php esc_html_e( 'Did you forget something? Your AffiliateWP license is missing.', 'affiliate-wp' ); ?>
-			</h2>
-			<p><?php esc_html_e( 'An active license is needed to access new features & addons, plugin updates (including security improvements), and our world class support!', 'affiliate-wp' ); ?></p>
 			<p>
-				<a href="<?php echo esc_attr( affiliate_wp()->drm->get_license_key_field_url() ); ?>" class="button button-primary"><?php esc_html_e( 'Activate Now', 'affiliate-wp' ); ?></a>
-				<a href="<?php echo esc_attr( affiliate_wp()->drm->get_utm_link( 'docs-locate-license' ) ); ?>" target="_blank" class="button button-secondary"><?php esc_html_e( 'Learn More', 'affiliate-wp' ); ?></a>
+				<strong><?php esc_html_e( 'Your AffiliateWP license is missing.', 'affiliate-wp' ); ?></strong>
+				<?php esc_html_e( 'Without an active license, you will lose access to affiliate management, payouts, and plugin updates.', 'affiliate-wp' ); ?>
 			</p>
-
+			<p>
+				<a href="<?php echo esc_attr( affiliate_wp()->drm->get_license_key_field_url() ); ?>" class="button button-primary"><?php esc_html_e( 'Enter license key', 'affiliate-wp' ); ?></a>
+			</p>
 			<?php
-
 			return ob_get_clean();
 		},
 	),
+
+	// Unlicensed: Day 21-29. Shown on non-AffWP pages (modal handles AffWP pages).
 	'unlicensed_med_level' => array(
-		'message' => function() use ( $icon_tag ) {
-
+		'message' => function() {
 			ob_start();
-
 			?>
-
-			<h2>
-				<span class="affwp-exclamation-icon">
-					<?php
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- This is safe at this point.
-					echo $icon_tag;
-					?>
-				</span>
-				<?php esc_html_e( 'Your business is at risk! Your AffiliateWP license is missing.', 'affiliate-wp' ); ?>
-			</h2>
-			<p><?php esc_html_e( 'To continue using AffiliateWP without interruption, you need to enter your license key right away.', 'affiliate-wp' ); ?></p>
 			<p>
-				<a href="<?php echo esc_attr( affiliate_wp()->drm->get_license_key_field_url() ); ?>" class="button button-primary"><?php esc_html_e( 'Activate Now', 'affiliate-wp' ); ?></a>
-				<a href="<?php echo esc_attr( affiliate_wp()->drm->get_utm_link( 'docs-locate-license' ) ); ?>" target="_blank" class="button button-secondary"><?php esc_html_e( 'Learn More', 'affiliate-wp' ); ?></a>
+				<strong><?php esc_html_e( 'AffiliateWP will be locked soon.', 'affiliate-wp' ); ?></strong>
+				<?php esc_html_e( 'Enter your license key to avoid losing access to your affiliate program.', 'affiliate-wp' ); ?>
 			</p>
-
+			<p>
+				<a href="<?php echo esc_attr( affiliate_wp()->drm->get_license_key_field_url() ); ?>" class="button button-primary"><?php esc_html_e( 'Enter license key', 'affiliate-wp' ); ?></a>
+			</p>
 			<?php
-
 			return ob_get_clean();
 		},
 	),
+
+	// Invalid (expired): Day 0-6. First touchpoint after expiry.
 	'invalid_initiated'    => array(
-		'message' => function() use ( $icon_tag ) {
-
+		'level'   => 'warning',
+		'message' => function() {
 			ob_start();
-
 			?>
-
-			<h2>
-				<span class="affwp-exclamation-icon">
-					<?php
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- This is safe at this point.
-					echo $icon_tag;
-					?>
-				</span>
-				<?php esc_html_e( 'Heads up! Your AffiliateWP license has expired.', 'affiliate-wp' ); ?>
-			</h2>
-			<p><?php esc_html_e( 'An active license is needed to access new features & addons, plugin updates (including security improvements), and our world class support!', 'affiliate-wp' ); ?></p>
 			<p>
-				<a href="<?php echo esc_attr( affiliate_wp()->drm->get_utm_link( 'account' ) ); ?>" target="_blank" class="button button-primary"><?php esc_html_e( 'Renew Now', 'affiliate-wp' ); ?></a>
-				<a href="<?php echo esc_attr( affiliate_wp()->drm->get_utm_link( 'docs-renew-license' ) ); ?>" target="_blank" class="button button-secondary"><?php esc_html_e( 'Learn More', 'affiliate-wp' ); ?></a>
+				<strong><?php esc_html_e( 'Your AffiliateWP license has expired.', 'affiliate-wp' ); ?></strong>
+				<?php esc_html_e( 'Renew to keep receiving updates, new features, and priority support.', 'affiliate-wp' ); ?>
 			</p>
-
+			<p>
+				<a href="<?php echo esc_attr( affiliate_wp()->drm->get_utm_link( 'account' ) ); ?>" target="_blank" class="button button-primary"><?php esc_html_e( 'Renew your license', 'affiliate-wp' ); ?></a>
+			</p>
 			<?php
-
 			return ob_get_clean();
 		},
 	),
+
+	// Invalid (expired): Day 7-20. Shown on non-AffWP pages (modal handles AffWP pages).
 	'invalid_med_level'    => array(
-		'message' => function() use ( $icon_tag ) {
-
+		'message' => function() {
 			ob_start();
-
 			?>
-
-			<h2>
-				<span class="affwp-exclamation-icon">
-					<?php
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- This is safe at this point.
-					echo $icon_tag;
-					?>
-				</span>
-				<?php esc_html_e( 'Your business is at risk! Your AffiliateWP license has expired.', 'affiliate-wp' ); ?>
-			</h2>
-			<p><?php esc_html_e( 'Your AffiliateWP license key is expired and is required to continue using AffiliateWP. Fortunately, it\'s easy to renew your license key.', 'affiliate-wp' ); ?></p>
 			<p>
-				<a href="<?php echo esc_attr( affiliate_wp()->drm->get_utm_link( 'account' ) ); ?>" target="_blank" class="button button-primary"><?php esc_html_e( 'Activate Now', 'affiliate-wp' ); ?></a>
-				<a href="<?php echo esc_attr( affiliate_wp()->drm->get_utm_link( 'docs-renew-license' ) ); ?>" target="_blank" class="button button-secondary"><?php esc_html_e( 'Learn More', 'affiliate-wp' ); ?></a>
+				<strong><?php esc_html_e( 'AffiliateWP will be locked soon.', 'affiliate-wp' ); ?></strong>
+				<?php esc_html_e( 'Your license has expired. Renew now to avoid losing access to your affiliate program.', 'affiliate-wp' ); ?>
 			</p>
-
+			<p>
+				<a href="<?php echo esc_attr( affiliate_wp()->drm->get_utm_link( 'account' ) ); ?>" target="_blank" class="button button-primary"><?php esc_html_e( 'Renew your license', 'affiliate-wp' ); ?></a>
+			</p>
 			<?php
-
 			return ob_get_clean();
 		},
 	),

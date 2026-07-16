@@ -86,18 +86,28 @@ final class Groups {
 	 * @since 2.12.0
 	 */
 	public function __construct() {
-		add_action( 'init', [ $this, 'initialize' ] );
+
+		// Defer translation to avoid _load_textdomain_just_in_time warnings in WordPress 6.7+.
+		// The __() call is deferred until the value is actually needed.
+		$this->filter_creatives_nonce = $this->nonce_action( 'filter', 'creatives' );
+
+		$this->hooks();
 	}
 
 	/**
-	 * Initialize the class after the `init` action.
+	 * Get the plural name for the group.
 	 *
 	 * @since 2.12.0
+	 *
+	 * @return string
 	 */
-	public function initialize() {
-		$this->group_plural = __( 'Categories', 'affiliate-wp' );
-		$this->filter_creatives_nonce = $this->nonce_action( 'filter', 'creatives' );
-		$this->hooks();
+	private function get_group_plural() : string {
+
+		if ( empty( $this->group_plural ) ) {
+			$this->group_plural = __( 'Categories', 'affiliate-wp' );
+		}
+
+		return $this->group_plural;
 	}
 
 	/**
@@ -617,8 +627,8 @@ final class Groups {
 					<option value="">
 						<?php
 
-						// Translators: %s is the translated name of the group, e.g. Categories.
-						echo esc_html( sprintf( __( 'All %s', 'affiliate-wp' ), $this->group_plural ) );
+					// Translators: %s is the translated name of the group, e.g. Categories.
+					echo esc_html( sprintf( __( 'All %s', 'affiliate-wp' ), $this->get_group_plural() ) );
 
 						?>
 					</option>

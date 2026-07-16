@@ -1,16 +1,20 @@
 /**
- * AffiliateWP Tooltips.
+ * AffiliateWP Frontend Tooltips.
  *
- * An abstraction layer for the Tippy JS library.
+ * An abstraction layer for the Tippy JS library used in the affiliate area (frontend).
+ * This is used for tooltips in the Creatives tab, Advanced Coupons integration, and other
+ * frontend affiliate features.
+ *
+ * Note: Admin area tooltips use affiliatewp-admin-tooltips.js instead.
  *
  * @since 2.16.0
  */
 
-'use strict';
+"use strict";
 
 /* eslint-disable no-console, no-undef */
 affiliatewp.attach(
-	'tooltip',
+	"tooltip",
 	/**
 	 * Tooltip Component.
 	 *
@@ -39,10 +43,10 @@ affiliatewp.attach(
 		 * @property {boolean} hideOnClick Whether it should hide the tooltip when clicking on it again.
 		 */
 		settings: {
-			trigger: 'click',
-			placement: 'top',
+			trigger: "mouseenter",
+			placement: "top",
 			hideDelay: 5000,
-			duration: [ 300, 250 ],
+			duration: [300, 250],
 			hideOnClick: false,
 		},
 
@@ -55,30 +59,30 @@ affiliatewp.attach(
 		 * @param {string} content  The content to display.
 		 * @param {Object} settings Additional settings. See @param settings for all available settings.
 		 */
-		show( selector, content, settings = {} ) {
-			const elements = document.querySelectorAll( selector );
+		show(selector, content, settings = {}) {
+			const elements = document.querySelectorAll(selector);
 
 			settings = affiliatewp.parseArgs(
 				{
 					...settings,
 					...{ content },
 				},
-				this.settings
+				this.settings,
 			);
 
-			elements.forEach( ( el ) => {
-				const tooltip = tippy( el, settings );
+			elements.forEach((el) => {
+				const tooltip = tippy(el, settings);
 
-				if ( settings.trigger === 'manual' ) {
+				if (settings.trigger === "manual") {
 					tooltip.show();
 				}
 
-				if ( settings.hideDelay ) {
-					setTimeout( () => {
+				if (settings.hideDelay) {
+					setTimeout(() => {
 						tooltip.hide();
-					}, settings.hideDelay );
+					}, settings.hideDelay);
 				}
-			} );
+			});
 		},
 
 		/**
@@ -89,5 +93,5 @@ affiliatewp.attach(
 		hideAll() {
 			tippy.hideAll();
 		},
-	}
+	},
 );

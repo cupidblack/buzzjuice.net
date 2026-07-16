@@ -83,7 +83,7 @@ $commission_holding_period = intval( affiliate_wp()->settings->get( 'commission_
 							<input type="checkbox" name="bypass-holding" id="bypass-holding" />
 							<?php
 
-							echo sprintf(
+							printf(
 								/* translators: %s: Commission holding period setting (number of days) */
 								esc_html(
 									_n(
@@ -130,7 +130,7 @@ $commission_holding_period = intval( affiliate_wp()->settings->get( 'commission_
 						<label for="<?php echo esc_attr( $payout_method ); ?>">
 							<input type="radio" name="payout_method" id="<?php echo esc_attr( $payout_method ); ?>" value="<?php echo esc_attr( $payout_method ); ?>" <?php echo esc_attr( $disabled ); ?> required>
 							<?php echo affwp_get_payout_method_label( $payout_method ); ?>
-						</label><br>
+						</label>
 					<?php endforeach; ?>
 					<p class="description"><?php esc_html_e( 'Choose the payout method for this payout.', 'affiliate-wp' ); ?></p>
 				</td>

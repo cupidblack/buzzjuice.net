@@ -148,7 +148,22 @@ function affwp_email_tag_login_url() {
  * @return string amount
  */
 function affwp_email_tag_amount( $affiliate_id, $referral ) {
-	return html_entity_decode( affwp_currency_filter( $referral->amount ), ENT_COMPAT, 'UTF-8' );
+	// Check for Stripe email data first
+	if ( has_filter( 'affwp_stripe_email_tag_data' ) ) {
+		$email_data = apply_filters( 'affwp_stripe_email_tag_data', [] );
+		if ( isset( $email_data['amount'] ) ) {
+			// Amount is in cents, convert to dollars
+			$amount = $email_data['amount'] / 100;
+			return html_entity_decode( affwp_currency_filter( affwp_format_amount( $amount ) ), ENT_COMPAT, 'UTF-8' );
+		}
+	}
+	
+	// Fallback to referral amount
+	if ( $referral && isset( $referral->amount ) ) {
+		return html_entity_decode( affwp_currency_filter( $referral->amount ), ENT_COMPAT, 'UTF-8' );
+	}
+	
+	return '';
 }
 
 

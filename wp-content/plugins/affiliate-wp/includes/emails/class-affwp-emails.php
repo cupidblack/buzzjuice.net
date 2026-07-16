@@ -371,6 +371,11 @@ class Affiliate_WP_Emails {
 		$message = $this->build_email( $message );
 
 		$message = $this->parse_tags( $message );
+		
+		// Make URLs clickable after tags have been parsed.
+		if ( 'text/html' === $this->content_type || true === $this->html ) {
+			$message = make_clickable( $message );
+		}
 
 		/**
 		 * Filters the attachments for the current email (if any).
@@ -430,10 +435,12 @@ class Affiliate_WP_Emails {
 	 *
 	 * @since 1.6
 	 * @since 2.2.17 Adjusted the `wpautop()` call to no longer convert line breaks
+	 * @since 2.29.0 Moved make_clickable() to after tag parsing to fix URL linking
+	 * @since 2.29.0 Fixed wpautop() to properly convert single line breaks to <br> tags
 	 */
 	public function text_to_html( $message ) {
 		if ( 'text/html' === $this->content_type || true === $this->html ) {
-			$message = wpautop( make_clickable( $message ), false );
+			$message = wpautop( $message );
 			$message = str_replace( '&#038;', '&amp;', $message );
 		}
 

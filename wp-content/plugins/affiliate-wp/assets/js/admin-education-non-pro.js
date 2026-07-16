@@ -47,6 +47,7 @@ AffiliateWPEducation.nonPro = AffiliateWPEducation.nonPro || ( function( documen
 
 			app.trackClickEvents();
 			app.trackSelect2SelectingEvent();
+			app.trackAlpineUpgradeEvents();
 		},
 
 		/**
@@ -94,6 +95,34 @@ AffiliateWPEducation.nonPro = AffiliateWPEducation.nonPro || ( function( documen
 				app.showUpgradeModal( e.target );
 			} );
 		},
+
+	/**
+	 * Handle Alpine.js upgrade modal events.
+	 *
+	 * @since 2.31.0
+	 */
+	trackAlpineUpgradeEvents() {
+
+		// Listen for Alpine custom events
+		document.addEventListener( 'show-upgrade-modal', function( e ) {
+
+			const feature = e.detail?.feature;
+
+			if ( ! feature ) {
+				return;
+			}
+
+			// Check if Alpine modals store is available (new system)
+			if ( typeof Alpine !== 'undefined' && Alpine.store && Alpine.store('modals') ) {
+				// Use new Alpine modal system
+				const modalId = feature + '-upgrade-modal';
+				Alpine.store('modals').open( modalId );
+			} else {
+				// Fallback to jQuery Confirm (old system)
+				console.warn( 'Alpine modals not available, upgrade modal not shown for:', feature );
+			}
+		} );
+	},
 
 		/**
 		 * Show the upgrade modal based on an HTML element.

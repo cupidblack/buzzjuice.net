@@ -22,8 +22,8 @@ class LoginProcessor
 
     /**
      * @param TokenGenerator $tokenGenerator
-     * @param TokenStorage $tokenStorage
-     * @param UserProvider $userProvider
+     * @param TokenStorage   $tokenStorage
+     * @param UserProvider   $userProvider
      */
     public function __construct($tokenGenerator, $tokenStorage, $userProvider)
     {
@@ -37,8 +37,8 @@ class LoginProcessor
      */
     public function init()
     {
-        add_action('login_init', array($this, 'processAdminLogin'), 10, 0);
-        add_action('login_init', array($this, 'maybeDeactivateLogin'), 10, 0);
+        add_action('login_init', [$this, 'processAdminLogin'], 10, 0);
+        add_action('login_init', [$this, 'maybeDeactivateLogin'], 10, 0);
     }
 
     /**
@@ -62,13 +62,17 @@ class LoginProcessor
      */
     public function processAdminLogin()
     {
-        if (!isset($_GET[TokenGenerator::TOKEN_QUERY_PARAM]) || !is_string($_GET[TokenGenerator::TOKEN_QUERY_PARAM])) {
+        if (!isset($_GET[TokenGenerator::TOKEN_QUERY_PARAM]) || !\is_string($_GET[TokenGenerator::TOKEN_QUERY_PARAM])) {
             return;
         }
 
         $requestToken = $_GET[TokenGenerator::TOKEN_QUERY_PARAM];
         if ($this->isTokenValid($requestToken)) {
-            $this->makeAuth();
+            $login = $this->storage->getLogin();
+            if (!$this->storage->removeTokenData()) {
+                wp_die('User token is invalid, please generate a new token');
+            }
+            $this->makeAuth($login);
         } else {
             wp_die('User token is invalid, please generate a new token');
         }
@@ -76,6 +80,7 @@ class LoginProcessor
 
     /**
      * @param string $requestToken
+     *
      * @return bool
      */
     private function isTokenValid($requestToken)
@@ -104,21 +109,21 @@ class LoginProcessor
     }
 
     /**
+     * @param string $login
+     *
      * @return void
      */
-    private function makeAuth()
+    private function makeAuth($login)
     {
-        $login = $this->storage->getLogin();
         $user = $this->userProvider->getAdminByLogin($login);
-        if($user instanceof \WP_User) {
+        if ($user instanceof \WP_User) {
             wp_set_current_user($user->ID, $user->user_login);
             wp_set_auth_cookie($user->ID);
             do_action('wp_login', $user->user_login, $user);
             wp_safe_redirect(admin_url());
-            $this->storage->removeTokenData();
             exit;
         } else {
-            wp_die(sprintf('Login name "%s" is not an administrator login', $login));
+            wp_die(\sprintf('Login name "%s" is not an administrator login', $login));
         }
     }
 }

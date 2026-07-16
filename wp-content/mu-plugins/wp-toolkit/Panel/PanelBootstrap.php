@@ -3,8 +3,8 @@
 
 namespace Webpros\WptkWpPlugin\WpToolkit\Panel;
 
-use Webpros\WptkWpPlugin\WpToolkit\Common\CliHelper;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Clients\HttpClientFactory;
+use Webpros\WptkWpPlugin\WpToolkit\Common\CliHelper;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Services\ApiTokenParser;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Services\I18n\FallbackFormatter;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Services\I18n\IntlFormatter;
@@ -22,12 +22,12 @@ class PanelBootstrap
      */
     public static function init()
     {
-        if (CliHelper::is_cli() && \class_exists(\WP_CLI::class)) {
+        if (CliHelper::is_cli() && class_exists(\WP_CLI::class)) {
             \WP_CLI::add_command('wp-toolkit panel', PanelCommand::class);
             return;
         }
 
-        if (!\get_option(self::MODULE_STATUS_OPTION, false)) {
+        if (!get_option(self::MODULE_STATUS_OPTION, false)) {
             return;
         }
 
@@ -39,12 +39,7 @@ class PanelBootstrap
         }
         $translator = new Translator($localeContainer, $messageFormatter);
 
-        try {
-            $panelInfoService = new PanelInfoService((new HttpClientFactory())->getClient(), new ApiTokenParser());
-        } catch (\Exception $e) {
-            error_log('WP Toolkit: Panel module failed to initialise HTTP client: ' . $e->getMessage());
-            return;
-        }
+        $panelInfoService = new PanelInfoService(new HttpClientFactory(), new ApiTokenParser());
 
         $menuIntegration = new BackToPanelMenuIntegration($translator, $panelInfoService);
         add_action('admin_menu', function () use ($menuIntegration) {

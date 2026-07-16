@@ -18,17 +18,17 @@ class Affiliate_WP_Shortcodes {
 
 	public function __construct() {
 
-		add_shortcode( 'affiliate_area',              array( $this, 'affiliate_area'         ) );
-		add_shortcode( 'affiliate_login',             array( $this, 'affiliate_login'        ) );
-		add_shortcode( 'affiliate_registration',      array( $this, 'affiliate_registration' ) );
-		add_shortcode( 'affiliate_conversion_script', array( $this, 'conversion_script'      ) );
-		add_shortcode( 'affiliate_referral_url',      array( $this, 'referral_url'           ) );
-		add_shortcode( 'affiliate_content',           array( $this, 'affiliate_content'      ) );
-		add_shortcode( 'non_affiliate_content',       array( $this, 'non_affiliate_content'  ) );
-		add_shortcode( 'affiliate_creative',          array( $this, 'affiliate_creative'     ) );
-		add_shortcode( 'affiliate_creatives',         array( $this, 'affiliate_creatives'    ) );
-		add_shortcode( 'opt_in',                      array( $this, 'opt_in_form'            ) );
-		add_shortcode( 'affiliate_coupons',           array( $this, 'affiliate_coupons'      ) );
+		add_shortcode( 'affiliate_area', [ $this, 'affiliate_area' ] );
+		add_shortcode( 'affiliate_login', [ $this, 'affiliate_login' ] );
+		add_shortcode( 'affiliate_registration', [ $this, 'affiliate_registration' ] );
+		add_shortcode( 'affiliate_conversion_script', [ $this, 'conversion_script' ] );
+		add_shortcode( 'affiliate_referral_url', [ $this, 'referral_url' ] );
+		add_shortcode( 'affiliate_content', [ $this, 'affiliate_content' ] );
+		add_shortcode( 'non_affiliate_content', [ $this, 'non_affiliate_content' ] );
+		add_shortcode( 'affiliate_creative', [ $this, 'affiliate_creative' ] );
+		add_shortcode( 'affiliate_creatives', [ $this, 'affiliate_creatives' ] );
+		add_shortcode( 'opt_in', [ $this, 'opt_in_form' ] );
+		add_shortcode( 'affiliate_coupons', [ $this, 'affiliate_coupons' ] );
 	}
 
 	/**
@@ -101,6 +101,10 @@ class Affiliate_WP_Shortcodes {
 		$show_login = apply_filters( 'affwp_affiliate_area_show_login', true );
 
 		if ( true === $show_login && ! is_user_logged_in() ) {
+			// Preserve the current URL with tab parameter for redirect after login.
+			global $affwp_login_redirect;
+			// This captures the full URL including query parameters like ?tab=settings.
+			$affwp_login_redirect = affiliate_wp()->tracking->get_current_page_url();
 			affiliate_wp()->templates->get_template_part( 'login' );
 		}
 
@@ -131,15 +135,15 @@ class Affiliate_WP_Shortcodes {
 		$atts = array_merge(
 			// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments
 			$atts = shortcode_atts(
-				array(
+				[
 					'redirect' => '',
-				),
+				],
 				$atts,
 				'affiliate_login'
 			),
-			array(
+			[
 				'redirect' => empty( $atts['redirect'] ) ? '' : sanitize_text_field( $atts['redirect'] ),
-			)
+			]
 		);
 
 		// Empty redirect, use the default login url.
@@ -176,15 +180,15 @@ class Affiliate_WP_Shortcodes {
 		$atts = array_merge(
 			// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments
 			$atts = shortcode_atts(
-				array(
+				[
 					'redirect' => '',
-				),
+				],
 				$atts,
 				'affiliate_registration'
 			),
-			array(
+			[
 				'redirect' => empty( $atts['redirect'] ) ? '' : sanitize_text_field( $atts['redirect'] ),
-			)
+			]
 		);
 
 		// Empty redirect, use the default login url.
@@ -217,6 +221,8 @@ class Affiliate_WP_Shortcodes {
 	 *
 	 * @return string Conversion script.
 	 * @since 1.0
+	 * @since AFFWPN Added logic to check for 'status' and 'type' values from $_REQUEST and use them as defaults if provided,
+	 *               overriding the shortcode attributes.
 	 */
 	public function conversion_script( $atts, $content = null ) : string {
 
@@ -234,7 +240,7 @@ class Affiliate_WP_Shortcodes {
 				AFFILIATEWP_PLUGIN_URL,
 				defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min'
 			),
-			array( 'jquery' ),
+			[ 'jquery' ],
 			'1.4.0',
 			false
 		);
@@ -242,9 +248,9 @@ class Affiliate_WP_Shortcodes {
 		wp_localize_script(
 			'jquery-cookie',
 			'affwp_scripts',
-			array(
+			[
 				'ajaxurl' => admin_url( 'admin-ajax.php' ),
-			)
+			]
 		);
 
 		ob_start();
@@ -253,7 +259,7 @@ class Affiliate_WP_Shortcodes {
 			array_merge(
 				// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments
 				$atts = shortcode_atts(
-					array(
+					[
 						'amount'      => '',
 						'description' => '',
 						'reference'   => '',
@@ -261,28 +267,27 @@ class Affiliate_WP_Shortcodes {
 						'campaign'    => '',
 						'status'      => 'pending',
 						'type'        => 'sale',
-					),
+					],
 					$atts,
 					'affwp_conversion_script'
 				),
-				array(
+				[
 					'amount'      => sanitize_text_field( $atts['amount'] ),
 					'description' => sanitize_text_field( $atts['description'] ),
 					'reference'   => sanitize_text_field( $atts['reference'] ),
 					'context'     => sanitize_text_field( $atts['context'] ),
 					'campaign'    => sanitize_text_field( $atts['campaign'] ),
-					'status'      => in_array( $atts['status'], array( 'pending', 'unpaid', 'paid', 'rejected' ), true )
-										? sanitize_text_field( $atts['status'] )
+					'status'      => in_array( $atts['status'], [ 'pending', 'unpaid', 'paid', 'rejected' ], true )
+										? sanitize_text_field( $_REQUEST['status'] ?? $atts['status'] )
 										: 'pending',
-					'type'        => in_array( $atts['type'], array( 'sale', 'lead', 'opt-in' ), true )
-										? sanitize_text_field( $atts['type'] )
+					'type'        => in_array( $atts['type'], [ 'sale', 'lead', 'opt-in' ], true )
+										? sanitize_text_field( $_REQUEST['type'] ?? $atts['type'] )
 										: 'sale',
-				)
+				]
 			)
 		);
 
 		return ob_get_clean();
-
 	}
 
 	/**
@@ -313,29 +318,29 @@ class Affiliate_WP_Shortcodes {
 		$atts = array_merge(
 			// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments
 			$atts = shortcode_atts(
-				array(
+				[
 					'url'    => '',
 					'format' => '',
 					'pretty' => '',
-				),
+				],
 				$atts,
 				'affiliate_referral_url'
 			),
-			array(
+			[
 				'url'    => empty( $content )
 								? esc_url_raw( $atts['url'] )
 								: esc_url_raw( $content ),
-				'format' => in_array( $atts['format'], array( 'id', 'username' ), true )
+				'format' => in_array( $atts['format'], [ 'id', 'username' ], true )
 								? sanitize_text_field( $atts['format'] )
 								: '',
-				'pretty' => in_array( $atts['pretty'], array( 'yes', 'no' ), true )
+				'pretty' => in_array( $atts['pretty'], [ 'yes', 'no' ], true )
 								? sanitize_text_field( $atts['pretty'] )
 								: '',
-			)
+			]
 		);
 
 		return affwp_get_affiliate_referral_url(
-			array(
+			[
 				'format'   => $atts['format'],
 				'base_url' => empty( $atts['url'] )
 								? affiliate_wp()->tracking->get_current_page_url()
@@ -343,7 +348,7 @@ class Affiliate_WP_Shortcodes {
 				'pretty'   => empty( $atts['pretty'] )
 								? ''
 								: affwp_string_to_bool( $atts['pretty'] ),
-			)
+			]
 		);
 	}
 
@@ -404,7 +409,7 @@ class Affiliate_WP_Shortcodes {
 	 *     @type string     $preview     Display an image/text preview above HTML code. Accept "yes" or "no".
 	 * }
 	 * @param string|null  $content Shortcode contents (unused).
-	 * @param array  $atts    Shortcode atttributes.
+	 * @param array        $atts    Shortcode atttributes.
 	 *
 	 * @since  1.1.4
 	 *
@@ -435,7 +440,7 @@ class Affiliate_WP_Shortcodes {
 			array_merge(
 			// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments
 				$atts = shortcode_atts(
-					array(
+					[
 						'id'          => '',
 						'image_id'    => '',
 						'image_link'  => '',
@@ -443,21 +448,21 @@ class Affiliate_WP_Shortcodes {
 						'text'        => '',
 						'description' => '',
 						'preview'     => 'yes',
-					),
+					],
 					$atts,
 					'affiliate_creative'
 				),
-				array(
+				[
 					'id'          => absint( $atts['id'] ),
 					'image_id'    => absint( $atts['image_id'] ),
 					'image_link'  => esc_url_raw( $atts['image_link'] ),
 					'link'        => esc_url_raw( $atts['link'] ),
 					'text'        => sanitize_text_field( $atts['text'] ),
 					'description' => sanitize_text_field( $atts['description'] ),
-					'preview'     => in_array( $atts['preview'], array( 'yes', 'no' ), true )
+					'preview'     => in_array( $atts['preview'], [ 'yes', 'no' ], true )
 						? sanitize_text_field( $atts['preview'] )
 						: 'yes',
-				)
+				]
 			)
 		);
 
@@ -492,19 +497,19 @@ class Affiliate_WP_Shortcodes {
 				array_merge(
 				// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments
 					$atts = shortcode_atts(
-						array(
+						[
 							'preview' => 'yes',
 							'number'  => 20,
-						),
+						],
 						$atts,
 						'affiliate_creatives'
 					),
-					array(
-						'preview' => in_array( $atts['preview'], array( 'yes', 'no' ), true )
+					[
+						'preview' => in_array( $atts['preview'], [ 'yes', 'no' ], true )
 							? sanitize_text_field( $atts['preview'] )
 							: 'yes',
 						'number'  => absint( $atts['number'] ),
-					)
+					]
 				)
 			)
 		);
@@ -528,15 +533,15 @@ class Affiliate_WP_Shortcodes {
 		$atts = array_merge(
 			// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments
 			$atts = shortcode_atts(
-				array(
+				[
 					'redirect' => '',
-				),
+				],
 				$atts,
 				'opt_in'
 			),
-			array(
+			[
 				'redirect' => empty( $atts['redirect'] ) ? '' : sanitize_text_field( $atts['redirect'] ),
-			)
+			]
 		);
 
 		return affiliate_wp()->integrations->opt_in->form(

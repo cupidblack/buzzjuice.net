@@ -373,15 +373,23 @@ class Affiliate_Links {
 								nonce: nonce
 							},
 							success: function( response ) {
-								const cardContent = toggleLink.closest( '.affwp-card__content' );
-								const existingSharingDiv = cardContent.querySelector( '.affwp-link-sharing' );
-								if ( existingSharingDiv ) {
-									existingSharingDiv.outerHTML = response.data.html;
-								} else {
-									cardContent.innerHTML = response.data.html;
+								// Only update sharing options if HTML is not empty.
+								if ( response.data.html && response.data.html.trim() !== '' ) {
+									const cardContent = toggleLink.closest( '.affwp-card__content' );
+									const existingSharingDiv = cardContent.querySelector( '.affwp-link-sharing' );
+									if ( existingSharingDiv ) {
+										existingSharingDiv.outerHTML = response.data.html;
+									} else {
+										// Insert sharing options after the toggle link if it doesn't exist.
+										const toggleLinkElement = cardContent.querySelector( '.affwp-affiliate-link__toggle' );
+										if ( toggleLinkElement ) {
+											toggleLinkElement.insertAdjacentHTML( 'afterend', response.data.html );
+										}
+									}
+									// Re-attach the QR Code click handlers.
+									attachQRCodeClickHandlers();
 								}
-								// Re-attach the QR Code click handlers.
-								attachQRCodeClickHandlers();
+								// If HTML is empty, do nothing - the input field and toggle link remain intact.
 							},
 							error: function( xhr, status, error ) {
 								console.error( error );
@@ -414,7 +422,6 @@ class Affiliate_Links {
 			} );
 		</script>
 		<?php
-
 	}
 
 	/**
@@ -472,27 +479,27 @@ class Affiliate_Links {
 			'x'        => [
 				'url'   => sprintf( 'https://x.com/intent/tweet?text=%s&url=%s', rawurlencode( $x_text ), rawurlencode( $affiliate_url ) ),
 				'title' => 'Share link on X (Formerly Twitter)',
-				'class' => 'affwp-link-sharing__x'
+				'class' => 'affwp-link-sharing__x',
 			],
 			'facebook' => [
 				'url'   => sprintf( 'https://www.facebook.com/sharer/sharer.php?u=%s', rawurlencode( $affiliate_url ) ),
 				'title' => 'Share link on Facebook',
-				'class' => 'affwp-link-sharing__facebook'
+				'class' => 'affwp-link-sharing__facebook',
 			],
 			'linkedin' => [
 				'url'   => sprintf( 'https://www.linkedin.com/sharing/share-offsite/?url=%s', rawurlencode( $affiliate_url ) ),
 				'title' => 'Share link on LinkedIn',
-				'class' => 'affwp-link-sharing__linkedin'
+				'class' => 'affwp-link-sharing__linkedin',
 			],
 			'email'    => [
 				'url'   => sprintf( 'mailto:?subject=%s&body=%s', rawurlencode( $email_subject ), rawurlencode( $email_body ) ),
 				'title' => 'Share link by Email',
-				'class' => 'affwp-link-sharing__email'
+				'class' => 'affwp-link-sharing__email',
 			],
 			'qrcode'   => [
 				'url'   => $affiliate_url,
 				'title' => 'Share link by QR Code',
-				'class' => 'affwp-link-sharing__qrcode'
+				'class' => 'affwp-link-sharing__qrcode',
 			],
 		];
 
@@ -509,7 +516,7 @@ class Affiliate_Links {
 							<span
 								title="<?php echo esc_attr( $sharing_links[ $option ]['title'] ); ?>"
 								class="<?php echo esc_attr( sprintf( '%s affwp-link-sharing__icon', $sharing_links[ $option ]['class'] ) ); ?>"
-								data-url="<?php echo esc_attr( $sharing_links[ $option ]['url'] );?>"
+								data-url="<?php echo esc_attr( $sharing_links[ $option ]['url'] ); ?>"
 							>
 								<?php
 									// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Content already escaped.
@@ -646,7 +653,7 @@ class Affiliate_Links {
 						data-content="<?php echo esc_url( urldecode( $affiliate_url ) ); ?>"
 					><?php esc_html_e( 'Copy Link', 'affiliate-wp' ); ?></button>
 				</div>
-				<?php if ( 'slug' !== affwp_get_referral_format() && $has_custom_slug && $show_custom_slug ): ?>
+				<?php if ( 'slug' !== affwp_get_referral_format() && $has_custom_slug && $show_custom_slug ) : ?>
 					<a href="#" class="affwp-affiliate-link__toggle" data-nonce="<?php echo esc_attr( wp_create_nonce( 'update-sharing-options_nonce' ) ); ?>">
 						<?php esc_html_e( 'Use link with custom slug', 'affiliate-wp' ); ?>
 					</a>

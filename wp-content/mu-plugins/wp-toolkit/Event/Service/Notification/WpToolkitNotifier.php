@@ -3,6 +3,7 @@
 
 namespace Webpros\WptkWpPlugin\WpToolkit\Event\Service\Notification;
 
+use Webpros\WptkWpPlugin\WpToolkit\Common\Clients\HttpClientFactoryInterface;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Clients\HttpClientInterface;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Installation;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Models\WpToolkitRequest;
@@ -11,9 +12,9 @@ use Webpros\WptkWpPlugin\WpToolkit\Event\Dto\WordPressEventDto;
 class WpToolkitNotifier
 {
     /**
-     * @var HttpClientInterface
+     * @var HttpClientFactoryInterface
      */
-    private $httpClient;
+    private $httpClientFactory;
 
     /**
      * @var WordPressEventDto[]
@@ -21,17 +22,15 @@ class WpToolkitNotifier
     private $events = [];
 
     /**
-     * @param HttpClientInterface $httpClient
      * @return void
      */
     public function __construct(
-        HttpClientInterface $httpClient
+        HttpClientFactoryInterface $httpClientFactory
     ) {
-        $this->httpClient = $httpClient;
+        $this->httpClientFactory = $httpClientFactory;
     }
 
     /**
-     * @param WordPressEventDto $event
      * @return void
      */
     public function notify(WordPressEventDto $event)
@@ -49,12 +48,13 @@ class WpToolkitNotifier
         }
 
         try {
+            $client = $this->httpClientFactory->getClient();
             $jsonSerializedEvents = array_map(function (WordPressEventDto $event) {
                 return $event->jsonSerialize();
             }, $this->events);
 
             $installationId = Installation::getInstance()->getInstallationId();
-            $this->httpClient->request(
+            $client->request(
                 new WpToolkitRequest(
                     "/v1/installations/$installationId/wordpress/events",
                     HttpClientInterface::METHOD_POST,
@@ -65,12 +65,6 @@ class WpToolkitNotifier
                     ]
                 )
             );
-
-            // @TODO remove after testing
-            $jsonEvents = json_encode($jsonSerializedEvents);
-            if (is_string($jsonEvents)) {
-                error_log("WP Toolkit successfully notified about events: " . $jsonEvents);
-            }
         } catch (\Exception $e) {
             error_log("Failed to notify wp-toolkit about new events: {$e->getMessage()}");
         }

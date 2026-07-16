@@ -36,18 +36,38 @@ class Registry extends Utils\Registry {
 	 * @since  2.2
 	 */
 	public function init() {
-		add_action( 'init', function () {
-			$this->register_core_types();
 
-			/**
-			 * Fires during instantiation of the referral type registry.
-			 *
-			 * @since 2.2
-			 *
-			 * @param \AffWP\Utils\Registry $this Registry instance.
-			 */
+		// Defer core type registration to 'init' hook to avoid triggering
+		// _load_textdomain_just_in_time warnings in WordPress 6.7+.
+		// The __() calls in register_core_types() require translations to be loaded.
+		if ( did_action( 'init' ) ) {
+			$this->register_core_types();
 			do_action( 'affwp_referral_type_init', $this );
-		} );
+		} else {
+			add_action( 'init', array( $this, 'deferred_init' ), 0 );
+		}
+	}
+
+	/**
+	 * Handles deferred initialization for WordPress 6.7+ compatibility.
+	 *
+	 * This method is called at the 'init' hook to ensure translations are loaded
+	 * before registering core types that use __() function calls.
+	 *
+	 * @access public
+	 * @since  2.30.3
+	 */
+	public function deferred_init() {
+		$this->register_core_types();
+
+		/**
+		 * Fires during instantiation of the referral type registry.
+		 *
+		 * @since 2.2
+		 *
+		 * @param \AffWP\Utils\Registry $this Registry instance.
+		 */
+		do_action( 'affwp_referral_type_init', $this );
 	}
 
 	/**
@@ -71,6 +91,11 @@ class Registry extends Utils\Registry {
 		// Lead type
 		$this->register_type( 'lead', array(
 			'label' => __( 'Lead', 'affiliate-wp' ),
+		) );
+
+		// Donation type
+		$this->register_type( 'donation', array(
+			'label' => __( 'Donation', 'affiliate-wp' ),
 		) );
 
 	}

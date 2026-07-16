@@ -9,18 +9,19 @@ class ApiTokenParser
 {
     /**
      * @param string $token
+     *
      * @return ApiToken
      * @throws \RuntimeException
      */
     public function parse($token)
     {
-        if (!is_string($token)) {
-            throw new \RuntimeException('Token should be of type string, ' . gettype($token) . ' given');
+        if (!\is_string($token)) {
+            throw new \RuntimeException('Token should be of type string, ' . \gettype($token) . ' given');
         }
 
         $parts = explode('.', $token);
-        if (count($parts) !== 3) {
-            throw new \RuntimeException("Token should have 3 parts, " . count($parts) . " given");
+        if (\count($parts) !== 3) {
+            throw new \RuntimeException("Token should have 3 parts, " . \count($parts) . " given");
         }
 
         $payload = base64_decode(strtr($parts[1], '-_', '+/'));
@@ -59,7 +60,7 @@ class ApiTokenParser
      */
     public static function getTokenFromConfig()
     {
-        if (!defined('WP_TOOLKIT_API_TOKEN')) {
+        if (!\defined('WP_TOOLKIT_API_TOKEN')) {
             throw new \RuntimeException('Wp-toolkit API token is not defined');
         }
 

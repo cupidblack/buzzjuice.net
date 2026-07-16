@@ -32,21 +32,24 @@ $minimum = ! empty( $_REQUEST['minimum'] ) ? sanitize_text_field( affwp_sanitize
  *
  * @param array $args Array of get_referrals() arguments.
  */
-$args = apply_filters( 'affwp_preview_payout_get_referrals_args', array(
-	'status'       => 'unpaid',
-	'date'         => array(
-		'start' => $start,
-		'end'   => $end,
-	),
-	'number'       => -1,
-	'affiliate_id' => $affiliate_id,
-) );
+$args = apply_filters(
+	'affwp_preview_payout_get_referrals_args',
+	[
+		'status'       => 'unpaid',
+		'date'         => [
+			'start' => $start,
+			'end'   => $end,
+		],
+		'number'       => -1,
+		'affiliate_id' => $affiliate_id,
+	]
+);
 
 // Final affiliate / referral data to be paid out.
-$data = array();
+$data = [];
 
 // The affiliates that can't be paid out.
-$invalid_affiliates = array();
+$invalid_affiliates = [];
 
 // Retrieve the referrals from the database.
 $referrals = affiliate_wp()->referrals->get_referrals( $args );
@@ -81,9 +84,9 @@ if ( $referrals ) {
 			switch ( $payout_method ) {
 
 				case 'manual':
-					$data[ $referral->affiliate_id ] = array(
+					$data[ $referral->affiliate_id ] = [
 						'amount' => $referral->amount,
-					);
+					];
 
 					break;
 
@@ -92,10 +95,10 @@ if ( $referrals ) {
 
 					if ( false !== $payout_service_account['valid'] ) {
 
-						$data[ $referral->affiliate_id ] = array(
+						$data[ $referral->affiliate_id ] = [
 							'amount'     => $referral->amount,
 							'account_id' => $payout_service_account['account_id'],
-						);
+						];
 
 					} else {
 
@@ -106,9 +109,9 @@ if ( $referrals ) {
 					break;
 
 				default:
-					$data[ $referral->affiliate_id ] = array(
+					$data[ $referral->affiliate_id ] = [
 						'amount' => $referral->amount,
-					);
+					];
 
 					break;
 			}
@@ -149,27 +152,30 @@ if ( $referrals ) {
 	 */
 	$data = apply_filters( "affwp_preview_payout_data_{$payout_method}", $data, $payout_method );
 
-	$payouts = array();
+	$payouts = [];
 
 	$i = 0;
 	foreach ( $data as $affiliate_id => $payout ) {
 
 		// Ensure the minimum amount was reached and the affiliate is valid.
-		if ( ( $minimum > 0 && $payout['amount'] < $minimum ) || in_array( $affiliate_id, $invalid_affiliates ) ) {
+		if ( ( $minimum > 0 && $payout['amount'] < $minimum ) || array_key_exists( $affiliate_id, $invalid_affiliates ) ) {
 
 			// Ensure the minimum amount was reached.
 			unset( $data[ $affiliate_id ] );
 
-			$invalid_affiliates[ $affiliate_id ] = 'minimum_payout';
+			// Only set minimum_payout if the affiliate isn't already marked as invalid for another reason.
+			if ( ! array_key_exists( $affiliate_id, $invalid_affiliates ) ) {
+				$invalid_affiliates[ $affiliate_id ] = 'minimum_payout';
+			}
 
 			// Skip to the next affiliate.
 			continue;
 
 		}
 
-		$payouts[ $affiliate_id ] = array( 'amount' => $payout['amount'] );
+		$payouts[ $affiliate_id ] = [ 'amount' => $payout['amount'] ];
 
-		$i++;
+		++$i;
 	}
 
 	$referrals_total = array_sum( wp_list_pluck( $payouts, 'amount' ) );
@@ -293,11 +299,12 @@ if ( $referrals ) {
 		 *
 		 * @since 2.4
 		 */
-		do_action( "affwp_preview_payout_note_{$payout_method}" ); ?>
+		do_action( "affwp_preview_payout_note_{$payout_method}" );
+		?>
 
 		<h2>
 			<?php
-			echo sprintf(
+			printf(
 				_n(
 					/* translators: Payout method label single affiliate */
 					'Affiliate to be paid via %s',
@@ -305,7 +312,8 @@ if ( $referrals ) {
 					'Affiliates to be paid via %s',
 					count( $payouts ),
 					'affiliate-wp'
-	             ), $payout_method_label
+				),
+				$payout_method_label
 			);
 			?>
 		</h2>
@@ -326,15 +334,19 @@ if ( $referrals ) {
 				<tr>
 					<td class="affiliate column-affiliate has-row-actions column-primary" data-colname="Affiliate">
 						<?php
-						$url = affwp_admin_url( 'affiliates', array(
-							'action'       => 'view_affiliate',
-							'affiliate_id' => $affiliate_id,
-						) );
+						$url       = affwp_admin_url(
+							'affiliates',
+							[
+								'action'       => 'view_affiliate',
+								'affiliate_id' => $affiliate_id,
+							]
+						);
 						$name      = affiliate_wp()->affiliates->get_affiliate_name( $affiliate_id );
 						$affiliate = affwp_get_affiliate( $affiliate_id );
 
 						if ( $affiliate && $name ) {
-							$value = sprintf( '<a href="%1$s" target="_blank">%2$s</a> (ID: %3$s)',
+							$value = sprintf(
+								'<a href="%1$s" target="_blank">%2$s</a> (ID: %3$s)',
 								esc_url( $url ),
 								esc_html( $name ),
 								esc_html( $affiliate->ID )
@@ -370,7 +382,7 @@ if ( $referrals ) {
 
 			<h2>
 				<?php
-				echo sprintf(
+				printf(
 					_n(
 						/* translators: Payment method label for single affiliate */
 						'Affiliate who cannot be paid via %s',
@@ -378,7 +390,8 @@ if ( $referrals ) {
 						'Affiliates who cannot be paid via %s',
 						count( $invalid_affiliates ),
 						'affiliate-wp'
-					), $payout_method_label
+					),
+					$payout_method_label
 				);
 				?>
 			</h2>
@@ -399,15 +412,19 @@ if ( $referrals ) {
 					<tr>
 						<td class="affiliate column-affiliate has-row-actions column-primary" data-colname="Affiliate">
 							<?php
-							$url = affwp_admin_url( 'affiliates', array(
-								'action'       => 'view_affiliate',
-								'affiliate_id' => $affiliate_id,
-							) );
+							$url       = affwp_admin_url(
+								'affiliates',
+								[
+									'action'       => 'view_affiliate',
+									'affiliate_id' => $affiliate_id,
+								]
+							);
 							$name      = affiliate_wp()->affiliates->get_affiliate_name( $affiliate_id );
 							$affiliate = affwp_get_affiliate( $affiliate_id );
 
 							if ( $affiliate && $name ) {
-								$value = sprintf( '<a href="%1$s" target="_blank">%2$s</a> (ID: %3$s)',
+								$value = sprintf(
+									'<a href="%1$s" target="_blank">%2$s</a> (ID: %3$s)',
 									esc_url( $url ),
 									esc_html( $name ),
 									esc_html( $affiliate->ID )
@@ -460,9 +477,10 @@ if ( $referrals ) {
 			<script>
 				jQuery(document).ready(function($) {
 					$('#affwp-new-payout-form').submit(function() {
-						if ( ! confirm( "<?php
+						if ( ! confirm( <?php
 							/* translators: Payout method label */
-							printf( __( 'Are you sure you want to payout referrals for the specified time frame via %s?', 'affiliate-wp' ), $payout_method_label ); ?>" ) ) {
+							echo wp_json_encode( sprintf( __( 'Are you sure you want to payout referrals for the specified time frame via %s?', 'affiliate-wp' ), $payout_method_label ) );
+						?> ) ) {
 							return false;
 						}
 						$("#new-payout-submit").attr("disabled", true);
@@ -494,13 +512,14 @@ if ( $referrals ) {
 
 			<h2>
 				<?php
-				echo sprintf(
+				printf(
 					_n(
 						'Affiliate who cannot be paid via %s',
 						'Affiliates who cannot be paid via %s',
 						count( $invalid_affiliates ),
 						'affiliate-wp'
-					), $payout_method_label
+					),
+					$payout_method_label
 				);
 				?>
 			</h2>
@@ -521,15 +540,19 @@ if ( $referrals ) {
 				<tr>
 					<td class="affiliate column-affiliate has-row-actions column-primary" data-colname="Affiliate">
 						<?php
-						$url = affwp_admin_url( 'affiliates', array(
-							'action'       => 'view_affiliate',
-							'affiliate_id' => $affiliate_id,
-						) );
+						$url       = affwp_admin_url(
+							'affiliates',
+							[
+								'action'       => 'view_affiliate',
+								'affiliate_id' => $affiliate_id,
+							]
+						);
 						$name      = affiliate_wp()->affiliates->get_affiliate_name( $affiliate_id );
 						$affiliate = affwp_get_affiliate( $affiliate_id );
 
 						if ( $affiliate && $name ) {
-							$value = sprintf( '<a href="%1$s" target="_blank">%2$s</a> (ID: %3$s)',
+							$value = sprintf(
+								'<a href="%1$s" target="_blank">%2$s</a> (ID: %3$s)',
 								esc_url( $url ),
 								esc_html( $name ),
 								esc_html( $affiliate->ID )

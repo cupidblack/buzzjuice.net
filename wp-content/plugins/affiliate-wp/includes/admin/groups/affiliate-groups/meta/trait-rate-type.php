@@ -39,16 +39,15 @@ trait Rate_Type {
 	 */
 	private function get_rate_type_description() : string {
 
-		return sprintf(
-
-			// Translators: %s is a tooltip with more information.
-			__( 'Choose a referral rate type for all affiliates in this group.%s', 'affiliate-wp' ),
-			affwp_icon_tooltip(
-				__( 'Referrals can be based on either a percentage or a flat rate amount. This is the rate type all affiliates in this group will be assigned (regardless of their own settings or the site default).', 'affiliate-wp' ),
-				'normal',
-				false
-			)
+		$tooltip_html = affwp_tooltip(
+			__( 'Referrals can be based on either a percentage or a flat rate amount. This is the rate type all affiliates in this group will be assigned (regardless of their own settings or the site default).', 'affiliate-wp' )
 		);
+
+		return __( 'Choose a referral rate type for all affiliates in this group.', 'affiliate-wp' ) . 
+			sprintf(
+				' <span class="dashicons dashicons-editor-help cursor-help" data-tooltip-html="%s"></span>',
+				esc_attr( $tooltip_html )
+			);
 	}
 
 	/**
@@ -226,14 +225,14 @@ trait Rate_Type {
 
 			// They turned off the rate type preference, unset all the values.
 			$group->update(
-				array(
+				[
 					'type' => $this->group_type,
-					'meta' => array(
+					'meta' => [
 						'rate'            => null,
 						'rate-type'       => null,
 						'flat-rate-basis' => null,
-					),
-				)
+					],
+				]
 			);
 
 			return true; // They are not setting a custom rate, bail saving this.
@@ -246,14 +245,14 @@ trait Rate_Type {
 
 			// You can't have an empty rate, so make sure nothing gets saved.
 			$group->update(
-				array(
+				[
 					'type' => $this->group_type,
-					'meta' => array(
+					'meta' => [
 						'rate'            => null,
 						'rate-type'       => null,
 						'flat-rate-basis' => null,
-					),
-				)
+					],
+				]
 			);
 
 			$this->add_error(
@@ -273,18 +272,18 @@ trait Rate_Type {
 		}
 
 		// Validate.
-		if ( ! $this->string_is_one_of( $rate_type, array( 'flat', 'percentage' ) ) ) {
+		if ( ! $this->string_is_one_of( $rate_type, [ 'flat', 'percentage' ] ) ) {
 
 			// They sent a rate type, but it wasn't valid, so save the group but don't set anything else.
 			$group->update(
-				array(
+				[
 					'type' => $this->group_type,
-					'meta' => array(
+					'meta' => [
 						'rate'            => null,
 						'rate-type'       => null,
 						'flat-rate-basis' => null,
-					),
-				)
+					],
+				]
 			);
 
 			$this->add_error(
@@ -303,12 +302,12 @@ trait Rate_Type {
 		}
 
 		$group->update(
-			array(
+			[
 				'type' => $this->group_type,
-				'meta' => array(
+				'meta' => [
 					'rate-type' => trim( $rate_type ),
-				),
-			)
+				],
+			]
 		);
 
 		return true;
@@ -337,7 +336,7 @@ trait Rate_Type {
 
 				<?php
 
-				if ( ! $this->string_is_one_of( $type, array( 'flat', 'percentage' ) ) ) {
+				if ( ! $this->string_is_one_of( $type, [ 'flat', 'percentage' ] ) ) {
 					continue; // We only support flat and percentage right now.
 				}
 
@@ -353,7 +352,7 @@ trait Rate_Type {
 						aria-required="true"
 						required
 						aria-describedby="rate-type-description"
-						x-on:change="data.showRateBasis = ( 'flat' === $el.value );"
+						x-on:change="data.showRateBasis = ( 'flat' === $el.value ); if ('flat' === $el.value && window.affwpTooltips) { setTimeout(() => window.affwpTooltips.refresh(), 50); }"
 						x-init="data.showRateBasis = ( 'flat' === $el.value && $el.checked );"
 						<?php if ( empty( $rate_type ) && 'percentage' === $type ) : // Adding new group (default to percentage). ?>
 							checked

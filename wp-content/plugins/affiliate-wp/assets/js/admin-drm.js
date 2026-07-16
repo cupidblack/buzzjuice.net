@@ -1,226 +1,226 @@
-/* global AffiliateWPEducation, affiliatewp_education */
+/* global affwpDrm */
 /**
  * AffiliateWP DRM.
  *
+ * Renders the DRM panel inline as a positioned div. No <dialog>,
+ * no modal API, no z-index conflicts with the WP sidebar.
+ *
  * @since 2.21.1
+ * @since 2.32.0 Migrated to inline panel.
  */
 
 'use strict';
 
-AffiliateWPEducation.drm = AffiliateWPEducation.drm || ( function( document, window, $ ) {
+( function() {
 
-	/**
-	 * Public functions and properties.
-	 *
-	 * @since 2.21.1
-	 *
-	 * @type {Object}
-	 */
-	const app = {
+	const DISMISS_KEY      = 'affwp_drm_med_dismiss';
+	const DISMISS_DURATION = 86400000;
 
-		/**
-		 * Start the engine.
-		 *
-		 * @since 2.21.1
-		 */
-		init() {
+	function isDismissed() {
+		const ts = localStorage.getItem( DISMISS_KEY );
+		return ts && ( Date.now() - parseInt( ts, 10 ) ) < DISMISS_DURATION;
+	}
 
-			$( app.ready );
-		},
+	function init() {
 
-		/**
-		 * Document ready.
-		 *
-		 * @since 2.21.1
-		 */
-		ready() {
+		const { level } = affwpDrm;
+		const panel     = document.getElementById( 'affwp-drm-panel' );
 
-			$( '#wpbody' ).append( '<div id="affwp-drm-modal"></div>' );
+		if ( ! panel ) {
+			return;
+		}
 
-			app.drmModal();
+		// For med_level, hide if recently dismissed.
+		if ( level === 'med_level' && isDismissed() ) {
+			return;
+		}
 
-			app.handleLicenseFormSubmission();
-		},
+		// Add blur class for med_level.
+		if ( level === 'med_level' ) {
+			document.body.classList.add( 'affwp-drm-level-med_level' );
+		}
 
-		/**
-		 * DRM modal.
-		 *
-		 * @since 2.21.1
-		 */
-		drmModal() {
+		// Open the dialog (non-modal — sidebar stays interactive).
+		panel.show();
+		panel.classList.remove( 'hidden' );
+		panel.classList.add( 'flex' );
 
-			const modal = $.alert( {
-				backgroundDismiss: false,
-				title            : affiliatewp_education.drm.title,
-				icon             : 'fa fa-exclamation-triangle',
-				content          : affiliatewp_education.drm.message,
-				boxWidth         : app.getDrmModalWidth(),
-				container        : '#affwp-drm-modal',
-				useBootstrap     : false,
-				theme            : 'modern,affiliatewp-education',
-				closeIcon        : false,
-				buttons          : false,
-				animation        : 'none'
+		// Offset the panel to avoid covering the sidebar and admin bar.
+		function updatePanelOffset() {
+			const sidebar = document.getElementById( 'adminmenuwrap' );
+			const toolbar = document.getElementById( 'wpadminbar' );
+
+			panel.style.left = sidebar ? sidebar.offsetWidth + 'px' : '0';
+			panel.style.top  = toolbar ? toolbar.offsetHeight + 'px' : '0';
+		}
+
+		updatePanelOffset();
+		window.addEventListener( 'resize', updatePanelOffset );
+
+		// Close button (med_level only).
+		const closeBtn = document.getElementById( 'affwp-drm-close' );
+
+		if ( closeBtn ) {
+			closeBtn.addEventListener( 'click', function() {
+				closePanel( panel );
 			} );
+		}
 
-			$( window ).on( 'resize', function() {
+		// Escape key.
+		document.addEventListener( 'keydown', function( e ) {
 
-				if ( ! modal.isOpen() ) {
-					return;
+			if ( e.key !== 'Escape' || ! panel.open ) {
+				return;
+			}
+
+			if ( level === 'locked' ) {
+				e.preventDefault();
+				shakeCard( panel );
+			} else {
+				closePanel( panel );
+			}
+		} );
+
+		// Backdrop click — click on the overlay (not the card).
+		panel.addEventListener( 'pointerdown', function( e ) {
+
+			// Only if clicking the outer wrapper or the overlay, not the card.
+			const card = panel.querySelector( '.bg-white' );
+
+			if ( card && card.contains( e.target ) ) {
+				return;
+			}
+
+			if ( level === 'locked' ) {
+				shakeCard( panel );
+			} else {
+				closePanel( panel );
+			}
+		} );
+
+		// Focus the CTA (skip the close button).
+		const focusTarget = panel.querySelector( 'a[href], input:not([disabled])' );
+
+		if ( focusTarget ) {
+			focusTarget.focus();
+		}
+
+		// Toggle "Already have a license key?" form.
+		const toggleBtn = document.getElementById( 'affwp-drm-toggle-license-form' );
+
+		if ( toggleBtn ) {
+			toggleBtn.addEventListener( 'click', function() {
+				const wrapper = panel.querySelector( '[data-license-form-wrapper]' );
+				const icon    = toggleBtn.querySelector( 'svg' );
+
+				if ( wrapper ) {
+					wrapper.hidden = ! wrapper.hidden;
+					icon.style.transform = wrapper.hidden ? '' : 'rotate(180deg)';
 				}
-				
-				modal.setBoxWidth( app.getDrmModalWidth() );
 			} );
-		},
+		}
 
-		/**
-		 * Get DRM modal width.
-		 *
-		 * @since 2.21.1
-		 *
-		 * @return {string} Modal width in pixels.
-		 */
-		getDrmModalWidth() {
+		handleLicenseForm( panel );
+	}
 
-			const windowWidth = $( window ).width();
+	function closePanel( panel ) {
+		panel.close();
+		panel.classList.remove( 'flex' );
+		panel.classList.add( 'hidden' );
+		localStorage.setItem( DISMISS_KEY, Date.now().toString() );
+		document.body.classList.remove( 'affwp-drm-level-med_level' );
+	}
 
-			if ( windowWidth <= 300 ) {
-				return '250px';
+	function shakeCard( panel ) {
+		const card = panel.querySelector( '.bg-white' );
+
+		if ( ! card ) {
+			return;
+		}
+
+		card.classList.remove( 'affwp-modal-shake' );
+		void card.offsetWidth;
+		card.classList.add( 'affwp-modal-shake' );
+	}
+
+	function handleLicenseForm( panel ) {
+
+		panel.addEventListener( 'submit', function( e ) {
+
+			if ( ! e.target.matches( '#affwp-drm-ajax-license-activation' ) ) {
+				return;
 			}
 
-			if ( windowWidth <= 750 ) {
-				return '450px';
-			}
+			e.preventDefault();
 
-			if ( windowWidth <= 1024 ) {
-				return '650px';
-			}
+			const form       = e.target;
+			const btn        = form.querySelector( 'button[type="submit"]' );
+			const msgEl      = document.getElementById( 'affwp-drm-ajax-messages' );
+			const licenseKey = form.querySelector( 'input[name="license_key"]' ).value;
 
-			return windowWidth > 1070 ? '850px' : '650px';
-		},
+			btn.disabled = true;
 
-		/**
-		 * Handle AJAX requests coming from the License Form submissions.
-		 *
-		 * @since 2.21.1
-		 */
-		handleLicenseFormSubmission() {
+			fetch( affwpDrm.ajaxUrl, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				body: new URLSearchParams( {
+					action: 'affiliatewp_handle_license_form_submission',
+					nonce: affwpDrm.nonce,
+					license_key: licenseKey,
+				} ),
+			} )
+				.then( ( r ) => r.json() )
+				.then( ( response ) => {
 
-			/**
-			 * Simple method to help displaying ajax feedbacks.
-			 *
-			 * Messages will be displayed beneath the form tag.
-			 *
-			 * @since 2.21.1
-			 *
-			 * @param {string} message The message to display.
-			 * @param {string} type The type of the message (success, error)
-			 */
-			const showMessage = ( message, type = 'error' ) => {
-
-				const $modalContainer = $( '#affwp-drm-modal .jconfirm-content' );
-
-				let $messageContainer = $modalContainer.find( '#affwp-drm-ajax-messages' );
-
-				if ( ! $messageContainer.length ) {
-
-					$messageContainer = $( '<div id="affwp-drm-ajax-messages"></div>' );
-					$modalContainer.find( 'form' ).after( $messageContainer );
-				}
-
-				$messageContainer
-					.attr( 'data-type', type === 'success' ? 'success' : 'error' )
-					.html( message );
-			}
-
-			$( document ).on( 'submit', '#affwp-drm-ajax-license-activation', function( event ) {
-
-				event.preventDefault();
-				event.stopPropagation();
-
-				const $form = $( this );
-				const $submitBtn = $form.find( 'button' );
-
-				let buttonText = affiliatewp_education.drm.ajax.buttonText;
-
-				$.ajax( {
-					type : 'POST',
-					url  : affiliatewp_education.ajax_url,
-					data : {
-						nonce: affiliatewp_education.nonce,
-						action: 'affiliatewp_handle_license_form_submission',
-						license_key: $form.find( 'input[name="license_key"]' ).val()
-					},
-					beforeSend: function() {
-
-						$submitBtn
-							.attr( 'disabled', true )
-							.html( AffiliateWPEducation.core.getSpinner() + buttonText );
-					},
-					success: function ( response ) {
-
-						if ( ! response.success ) {
-							// Probably an expired nonce or unknown error.
-							showMessage( affiliatewp_education.drm.ajax.error );
-							return;
-						}
-
-						const licenseStatus = response?.data?.license_data?.license;
-
-						switch ( licenseStatus ) {
-							case 'valid':
-								showMessage( affiliatewp_education.drm.ajax.success, 'success' );
-								setTimeout( () => {
-									location.reload();
-								}, 3000 );
-								break;
-
-							case 'expired':
-								showMessage( affiliatewp_education.drm.ajax.expired );
-								break;
-
-							case 'invalid':
-								showMessage( affiliatewp_education.drm.ajax.invalid );
-								break;
-
-							default:
-
-								// Our License API can not be reached.
-								if ( response?.data?.affwp_notice === 'license-http-failure' ) {
-
-									console.log(affiliatewp_education.drm.ajax.licenseHttpFailure.message)
-
-									// Alternative message for http failed requests.
-									showMessage( affiliatewp_education.drm.ajax.licenseHttpFailure.message );
-
-									// Update the button text variable, the value will be outputed on ajax.complete().
-									buttonText = affiliatewp_education.drm.ajax.licenseHttpFailure.buttonText;
-									return;
-								}
-
-								// Display a generic error message.
-								showMessage( affiliatewp_education.drm.ajax.onError );
-						}
-					},
-					error: function() {
-						showMessage( affiliatewp_education.drm.ajax.onError );
-					},
-					complete: function() {
-
-						$submitBtn
-							.removeAttr( 'disabled' )
-							.html( buttonText );
+					if ( ! response.success ) {
+						showMessage( msgEl, affwpDrm.strings.error, 'error' );
+						return;
 					}
+
+					const status = response?.data?.license_data?.license;
+
+					switch ( status ) {
+						case 'valid':
+							showMessage( msgEl, affwpDrm.strings.success, 'success' );
+							setTimeout( () => {
+								localStorage.removeItem( DISMISS_KEY );
+								location.reload();
+							}, 3000 );
+							break;
+
+						case 'expired':
+							showMessage( msgEl, affwpDrm.strings.expired, 'error' );
+							break;
+
+						case 'invalid':
+							showMessage( msgEl, affwpDrm.strings.invalid, 'error' );
+							break;
+
+						default:
+							showMessage( msgEl, affwpDrm.strings.error, 'error' );
+					}
+				} )
+				.catch( () => {
+					showMessage( msgEl, affwpDrm.strings.error, 'error' );
+				} )
+				.finally( () => {
+					btn.disabled = false;
 				} );
-			});
-		},
-	};
+		} );
+	}
 
-	// Provide access to public functions/properties.
-	return app;
+	function showMessage( el, message, type ) {
+		if ( ! el ) {
+			return;
+		}
+		el.className = 'mt-2 text-sm ' + ( type === 'success' ? 'text-green-600' : 'text-red-600' );
+		el.innerHTML = message;
+	}
 
-}( document, window, jQuery ) );
+	if ( document.readyState === 'loading' ) {
+		document.addEventListener( 'DOMContentLoaded', init );
+	} else {
+		init();
+	}
 
-// Initialize.
-AffiliateWPEducation.drm.init();
-
+} )();

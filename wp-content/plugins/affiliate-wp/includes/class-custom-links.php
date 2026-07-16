@@ -220,6 +220,7 @@ class Affiliate_WP_Custom_Links {
 	 * Display the custom link table.
 	 *
 	 * @since 2.14.0
+	 * @since AFFWPN Restricted campaign field to alphanumeric characters, dashes, and underscores.
 	 *
 	 * @param int $affiliate_id Affiliate ID to fetch data.
 	 * @return void
@@ -254,7 +255,7 @@ class Affiliate_WP_Custom_Links {
 
 					<div class="affwp-campaign-wrap affwp-hidden">
 						<label for="affwp-campaign"><?php esc_html_e( 'Campaign Name (optional)', 'affiliate-wp' ); ?></label>
-						<input type="text" name="campaign" id="affwp-campaign" value="" maxlength="50">
+						<input type="text" name="campaign" id="affwp-campaign" value="" maxlength="50" pattern="^[a-z0-9_\-]*$" title="<?php esc_attr_e( 'Only lowercase letters, numbers, hyphens and underscores are allowed.', 'affiliate-wp' ); ?>">
 					</div>
 
 				</div>

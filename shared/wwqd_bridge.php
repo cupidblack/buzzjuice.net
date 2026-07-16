@@ -565,6 +565,365 @@ if (!function_exists('_wwqd_ensure_wp_field')) {
     }
 }
 
+
+
+
+
+
+// --- START: WP xProfile DB lookup + minimal media preparation + consolidated WP->Wo sync ---
+
+if (!function_exists('bz_wp_xprofile_field_value')) {
+    /**
+     * Fetch a BuddyPress/BuddyBoss xProfile field value (DB-backed).
+     * Returns '' on no result or on error.
+     *
+     * Preference order:
+     * 1. Use existing wp_get_xprofile_data() helper if available.
+     * 2. Try bp_table()/WP_TABLE_PREFIX-based table names (deterministic).
+     */
+    function bz_wp_xprofile_field_value($wp_conn, int $wp_user_id, string $field_name) {
+        if (!$wp_conn || $wp_user_id <= 0 || trim($field_name) === '') return '';
+
+        // 1) Prefer existing helper if defined
+        if (function_exists('wp_get_xprofile_data')) {
+            try {
+                $v = wp_get_xprofile_data($wp_conn, $wp_user_id, $field_name);
+                return (string)($v ?? '');
+            } catch (Throwable $e) {
+                // fall through to DB lookup
+            }
+        }
+
+        $field_name_raw = trim((string)$field_name);
+        $field_name_safe = $wp_conn->real_escape_string($field_name_raw);
+
+        // Deterministic candidate table names (avoid expensive SHOW TABLES discovery)
+        $prefixes = [];
+        if (defined('WP_TABLE_PREFIX')) $prefixes[] = WP_TABLE_PREFIX;
+        if (defined('BP_TABLE_PREFIX')) $prefixes[] = BP_TABLE_PREFIX;
+        // Common default
+        $prefixes[] = 'wp_';
+        $prefixes = array_unique($prefixes);
+
+        $fields_table = '';
+        $data_table = '';
+
+        foreach ($prefixes as $pre) {
+            $t1 = $pre . 'bp_xprofile_fields';
+            $t2 = $pre . 'xprofile_fields';
+            // quick existence check — suppress warnings
+            $t1_safe = $wp_conn->real_escape_string($t1);
+            $res = @ $wp_conn->query("SHOW TABLES LIKE '{$t1_safe}'");
+            if ($res && $res->num_rows > 0) { $fields_table = $t1; $data_table = str_replace('_fields', '_data', $t1); break; }
+
+            $t2_safe = $wp_conn->real_escape_string($t2);
+            $res2 = @ $wp_conn->query("SHOW TABLES LIKE '{$t2_safe}'");
+            if ($res2 && $res2->num_rows > 0) { $fields_table = $t2; $data_table = str_replace('_fields', '_data', $t2); break; }
+        }
+
+        // If still not found, attempt bp_table() if available (one last attempt)
+        if (!$fields_table && function_exists('bp_table')) {
+            $t = bp_table('xprofile_fields');
+            $t_safe = $wp_conn->real_escape_string($t);
+            $r = @ $wp_conn->query("SHOW TABLES LIKE '{$t_safe}'");
+            if ($r && $r->num_rows > 0) {
+                $fields_table = $t;
+                $data_table = str_replace('fields', 'data', $t);
+            }
+        }
+
+        if (!$fields_table || !$data_table) return '';
+
+        // Find field id (first exact name then case-insensitive fallback)
+        $q = "SELECT id FROM `{$fields_table}` WHERE `name` = '{$field_name_safe}' LIMIT 1";
+        $r = @ $wp_conn->query($q);
+        $field_id = 0;
+        if ($r && $r->num_rows > 0) {
+            $row = $r->fetch_assoc(); $field_id = intval($row['id']);
+        } else {
+            // case-insensitive attempt
+            $q2 = "SELECT id FROM `{$fields_table}` WHERE LOWER(`name`) = LOWER('{$field_name_safe}') LIMIT 1";
+            $r2 = @ $wp_conn->query($q2);
+            if ($r2 && $r2->num_rows > 0) { $row = $r2->fetch_assoc(); $field_id = intval($row['id']); }
+        }
+        if (!$field_id) return '';
+
+        $uid = intval($wp_user_id); $fid = intval($field_id);
+        $qv = "SELECT `value` FROM `{$data_table}` WHERE user_id = {$uid} AND field_id = {$fid} LIMIT 1";
+        $rv = @ $wp_conn->query($qv);
+        if (!$rv || $rv->num_rows === 0) return '';
+        $rowv = $rv->fetch_assoc();
+        return (string)($rowv['value'] ?? '');
+    }
+}
+
+if (!function_exists('bz_prepare_media_for_wo')) {
+    /**
+     * Minimal media preparation for WoWonder:
+     * - Absolute URLs: unchanged.
+     * - streams/... or /streams/... or ../streams/... -> ../streams/...
+     * - upload/photos/... -> unchanged (WoWonder-native).
+     * - /wp-content/... -> https://buzzjuice.net/wp-content/...
+     * - Otherwise: return original (WP is source-of-truth).
+     *
+     * This intentionally performs minimal changes to avoid double-prefixing.
+     */
+    function bz_prepare_media_for_wo($raw) {
+        $raw = trim((string)$raw);
+        if ($raw === '') return '';
+
+        // Already absolute? pass through
+        if (preg_match('#^https?://#i', $raw)) return $raw;
+
+        // Normalize separators
+        $raw = str_replace('\\', '/', $raw);
+        $raw = preg_replace('#(?<!:)//+#', '/', $raw);
+
+        // WoWonder-native upload path
+        if (preg_match('#^upload/photos/#i', $raw)) return $raw;
+
+        // streams/upload/photos/ or streams/... → ../streams/...
+        if (preg_match('#^(\.\.?/)?streams/(.+)$#i', $raw, $m)) {
+            return '../streams/' . ltrim($m[2], '/');
+        }
+
+        // leading /streams/...
+        if (preg_match('#^/streams/(.+)$#i', $raw, $m2)) {
+            return '../streams/' . ltrim($m2[1], '/');
+        }
+
+        // /wp-content/ -> absolute BuzzJuice URL (site canonical)
+        if (strpos($raw, '/wp-content/') === 0) {
+            return 'https://buzzjuice.net' . $raw;
+        }
+        if (strpos($raw, 'wp-content/') === 0) {
+            return 'https://buzzjuice.net/' . ltrim($raw, '/');
+        }
+
+        // Otherwise: return raw value — WP is authoritative
+        return $raw;
+    }
+}
+
+if (!function_exists('sync_wp_user_to_wowonder_meta')) {
+    /**
+     * Consolidated WP -> WoWonder meta sync.
+     *
+     * - $wp_conn: mysqli WP connection
+     * - $sqlConn: mysqli WoWonder connection
+     * - $wp_user_id, $wo_user_id: ints
+     *
+     * Behavior:
+     *  - Read WP xProfile (DB-first), runtime xprofile and usermeta as fallback.
+     *  - Build update payload from metadata mapping (shared/buzz_metadata.json)
+     *  - Skip avatar/cover in generic mapping (they are handled explicitly)
+     *  - Prepare avatar/cover with bz_prepare_media_for_wo() and write them
+     *  - Write directly to Wo_Users, verify and perform a single repair pass
+     */
+    function sync_wp_user_to_wowonder_meta($wp_conn, $sqlConn, int $wp_user_id, int $wo_user_id) {
+        if (!$wp_conn || !$sqlConn || $wp_user_id <= 0 || $wo_user_id <= 0) return false;
+
+        $wo_table = defined('T_USERS') ? T_USERS : 'Wo_Users';
+
+        // Load Wo schema (per-request cache)
+        static $wo_schema_cache = null;
+        if ($wo_schema_cache === null) {
+            $wo_schema_cache = [];
+            $res = @mysqli_query($sqlConn, "SHOW COLUMNS FROM {$wo_table}");
+            while ($res && $r = mysqli_fetch_assoc($res)) $wo_schema_cache[$r['Field']] = true;
+        }
+        $wo_schema = $wo_schema_cache;
+
+        // Load metadata mapping
+        $metadata_file = $_SERVER['DOCUMENT_ROOT'] . '/shared/buzz_metadata.json';
+        $meta_map = [];
+        if (file_exists($metadata_file)) {
+            $json = @json_decode(@file_get_contents($metadata_file), true);
+            if (isset($json['private_secure_fields']) && isset($json['public_open_fields'])) {
+                $meta_map = array_merge($json['private_secure_fields'], $json['public_open_fields']);
+            } elseif (is_array($json)) {
+                $meta_map = $json;
+            }
+        }
+
+        // Acquire WP data (best-effort)
+        $wp_data     = function_exists('wp_get_full_user_data') ? wp_get_full_user_data($wp_conn, $wp_user_id) : [];
+        $wp_meta     = $wp_data['meta'] ?? [];
+        $wp_xprofile = $wp_data['xprofile'] ?? [];
+        $wp_core     = $wp_data;
+
+        // Avatar/cover resolution: DB-first (authoritative), then runtime xprofile, then usermeta
+        $default_icon      = 'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.03-icon192x192.png';
+        $bb_avatar_default = '/wp-content/plugins/buddyboss-platform/bp-core/images/profile-avatar-buddyboss.png';
+        $bb_cover_primary  = '/wp-content/uploads/buddypress/members/0/cover-image/69dd867faacfb-bp-cover-image.jpg';
+        $bb_cover_fallback = '/wp-content/plugins/buddyboss-platform/bp-core/images/cover-image.png';
+
+        $wp_avatar_raw = '';
+        $wp_cover_raw  = '';
+
+        // 1) runtime xprofile if present
+        if (!empty($wp_xprofile) && is_array($wp_xprofile)) {
+            foreach ($wp_xprofile as $k => $v) {
+                $lk = strtolower(trim($k));
+                if ($lk === 'avatar' && $v) $wp_avatar_raw = $v;
+                if ($lk === 'cover'  && $v) $wp_cover_raw  = $v;
+            }
+        }
+
+        // 2) usermeta/bp fallbacks
+        if (!$wp_avatar_raw && !empty($wp_meta['bp_profile_avatar'])) $wp_avatar_raw = $wp_meta['bp_profile_avatar'];
+        if (!$wp_cover_raw  && !empty($wp_meta['bp_profile_cover']))  $wp_cover_raw  = $wp_meta['bp_profile_cover'];
+
+        // 3) DB xProfile fallback — authoritative
+        if (empty($wp_avatar_raw)) {
+            $dbval = bz_wp_xprofile_field_value($wp_conn, $wp_user_id, 'avatar');
+            if ($dbval !== '') $wp_avatar_raw = $dbval;
+        }
+        if (empty($wp_cover_raw)) {
+            $dbval = bz_wp_xprofile_field_value($wp_conn, $wp_user_id, 'cover');
+            if ($dbval !== '') $wp_cover_raw = $dbval;
+        }
+
+        // Prepare values for WoWonder
+        $avatar_candidate = bz_prepare_media_for_wo($wp_avatar_raw);
+        $cover_candidate  = bz_prepare_media_for_wo($wp_cover_raw);
+
+        // Choose final avatar/cover: prefer WP-provided else buddyboss defaults else global default
+        $avatar_url = $avatar_candidate ?: bz_prepare_media_for_wo($bb_avatar_default) ?: $default_icon;
+        $cover_url  = $cover_candidate  ?: bz_prepare_media_for_wo($bb_cover_primary)  ?: bz_prepare_media_for_wo($bb_cover_fallback) ?: $default_icon;
+
+        // Logging acquisition
+        if (function_exists('bz_bridge_log')) {
+            bz_bridge_log('WP→Wo avatar/cover acquisition', [
+                'wp_user_id' => $wp_user_id,
+                'raw_avatar' => $wp_avatar_raw,
+                'raw_cover'  => $wp_cover_raw,
+                'prepared_avatar' => $avatar_candidate,
+                'prepared_cover'  => $cover_candidate,
+                'chosen_avatar' => $avatar_url,
+                'chosen_cover'  => $cover_url
+            ]);
+        }
+
+        // Build update payload — skip avatar/cover in generic mapping
+        $update = [];
+        foreach ($meta_map as $wp_field => $wo_field) {
+            if (!isset($wo_schema[$wo_field])) continue;
+            if ($wo_field === 'avatar' || $wo_field === 'cover') continue;
+
+            $v = null;
+            if (isset($wp_xprofile[$wp_field])) $v = $wp_xprofile[$wp_field];
+            elseif (isset($wp_meta[$wp_field]))  $v = $wp_meta[$wp_field];
+            elseif (isset($wp_core[$wp_field]))  $v = $wp_core[$wp_field];
+
+            if (function_exists('bz_clean_scalar')) $val = bz_clean_scalar($v);
+            else {
+                if (is_array($v) || is_object($v)) $val = json_encode($v, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+                else $val = trim((string)$v);
+            }
+            if ($val !== '' && $val !== null) $update[$wo_field] = $val;
+        }
+
+        // Force identity fields if present
+        if (isset($wo_schema['wp_user_id'])) $update['wp_user_id'] = $wp_user_id;
+        if (!empty($_SESSION['wp_user_email']) && isset($wo_schema['email'])) $update['email'] = trim($_SESSION['wp_user_email']);
+        if (!empty($_SESSION['wp_user_login']) && isset($wo_schema['username'])) $update['username'] = trim($_SESSION['wp_user_login']);
+
+        // Force avatar/cover writes (WordPress is source-of-truth)
+        if (isset($wo_schema['avatar'])) $update['avatar'] = $avatar_url;
+        if (isset($wo_schema['cover']))  $update['cover']  = $cover_url;
+
+        // Add change hash
+        ksort($update);
+        $update['wp_meta_hash'] = md5(json_encode($update, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
+
+        // Log prepared payload
+        if (function_exists('bz_bridge_log')) {
+            bz_bridge_log('WP→Wo sync payload prepared', [
+                'wo_user_id' => $wo_user_id,
+                'fields'     => array_keys($update),
+                'payload'    => $update
+            ]);
+        }
+
+        // Build UPDATE SQL
+        $set = [];
+        foreach ($update as $field => $value) {
+            if (!isset($wo_schema[$field])) continue;
+            $safe_field = preg_replace('/[^a-zA-Z0-9_]/','',$field);
+            $safe_value = mysqli_real_escape_string($sqlConn, (string)$value);
+            $set[] = "`{$safe_field}`='{$safe_value}'";
+        }
+
+        if (empty($set)) {
+            if (function_exists('bz_bridge_log')) bz_bridge_log('WP→Wo sync: nothing to update', ['wo_user_id'=>$wo_user_id]);
+            return true;
+        }
+
+        $sql = "UPDATE {$wo_table} SET " . implode(',', $set) . " WHERE user_id=" . (int)$wo_user_id . " LIMIT 1";
+        $write_result = @mysqli_query($sqlConn, $sql);
+        if (function_exists('bz_bridge_log')) {
+            bz_bridge_log('WP→Wo sync DB update', [
+                'wo_user_id' => $wo_user_id,
+                'result'     => $write_result ? 'OK' : 'FAIL',
+                'mysql_error'=> mysqli_error($sqlConn),
+                'sql'        => $sql
+            ]);
+        }
+
+        // Post-write verify & repair (compare payload vs DB row)
+        $post = @mysqli_query($sqlConn, "SELECT * FROM {$wo_table} WHERE user_id=" . (int)$wo_user_id . " LIMIT 1");
+        $vrow = $post ? mysqli_fetch_assoc($post) : [];
+        $repair = [];
+        foreach ($update as $field => $value) {
+            if (!isset($wo_schema[$field])) continue;
+            $dbval = isset($vrow[$field]) ? (string)$vrow[$field] : '';
+            if ($dbval !== (string)$value) $repair[$field] = $value;
+        }
+        if (!empty($repair)) {
+            $repair_set = [];
+            foreach ($repair as $field => $val) {
+                $safe_field = preg_replace('/[^a-zA-Z0-9_]/','',$field);
+                $safe_val = mysqli_real_escape_string($sqlConn, (string)$val);
+                $repair_set[] = "`{$safe_field}`='{$safe_val}'";
+            }
+            $repair_sql = "UPDATE {$wo_table} SET " . implode(',', $repair_set) . " WHERE user_id=" . (int)$wo_user_id . " LIMIT 1";
+            @mysqli_query($sqlConn, $repair_sql);
+            if (function_exists('bz_bridge_log')) {
+                bz_bridge_log('WP→Wo sync repair applied', [
+                    'wo_user_id' => $wo_user_id,
+                    'repair_fields' => array_keys($repair),
+                    'repair_data' => $repair
+                ]);
+            }
+        }
+
+        // Final verification log (selected snapshot)
+        $verify = @mysqli_query($sqlConn, "SELECT avatar,cover,first_name,about FROM {$wo_table} WHERE user_id=" . (int)$wo_user_id . " LIMIT 1");
+        $snapshot = $verify ? mysqli_fetch_assoc($verify) : [];
+        if (function_exists('bz_bridge_log')) {
+            bz_bridge_log('WP→Wo sync final verification', [
+                'wo_user_id' => $wo_user_id,
+                'avatar'     => $snapshot['avatar'] ?? null,
+                'cover'      => $snapshot['cover']  ?? null,
+                'first_name' => $snapshot['first_name'] ?? null,
+                'about'      => $snapshot['about'] ?? null,
+                'expected_avatar' => $avatar_url,
+                'expected_cover'  => $cover_url
+            ]);
+        }
+
+        return true;
+    }
+}
+
+// --- END: WP xProfile DB lookup + minimal media preparation + consolidated WP->Wo sync ---
+
+
+
+
+
+
 if (!function_exists('_wwqd_can_update_target')) {
     function _wwqd_can_update_target(string $origin, $target_conn, string $table, string $field): bool {
         $origin = strtolower(trim((string)$origin));

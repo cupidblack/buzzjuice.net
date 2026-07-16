@@ -12,7 +12,6 @@ class AnalyticsSettingsController
     /**
      * Update analytics opt-in status
      *
-     * @param \WP_REST_Request $request
      * @return \WP_REST_Response
      */
     public function updateOptInStatus(\WP_REST_Request $request)

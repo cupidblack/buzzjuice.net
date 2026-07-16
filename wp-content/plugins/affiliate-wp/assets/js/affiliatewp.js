@@ -24,11 +24,19 @@ const affiliatewp = window.affiliatewp || {
 	 *
 	 * @since 2.15.0
 	 * @since 2.26.0 Update to allow a main resource and external resource to be merged together.
+	 * @since AFFWPN Updated to work as intended: pass string of window[ name ] object to destroy, e.g.
+	 *               `.attach( 'myTool', myObject, {}, 'myObject' )`, which will attach the resource
+	 *               to `window.affiliatewp`, but delete `window[ 'myObject' ]` after doing so. This
+	 *               allows you to localize your object using `wp_localize_object()` in PHP and pass that
+	 *               object as the `resource` to move to `affiliatewp` and delete the global object
+	 *               if you want to.
 	 *
 	 * @param {string} name The resource name to be attached.
 	 * @param {Object} resource An object to attach to affiliatewp.
-	 * @param {Object} externalResourceData An external resource to merge with the main resource (so you can migrate e.g. localized data in).
-	 * @param {Function} afterAttachedFunction A function to run after attaching to affiliatewp (can be used to nullify old data, etc).
+	 * @param {Object} localizedData An external resource to merge with the main resource (so you can migrate e.g. localized data in).
+	 * @param {Function} windowObjectToDelete Name of a `window[ String name ]` object to delete after attaching ie you localize `window.myObject`
+	 *                                        in PHP and want to attach it to `window.affiliatewp`, you can delete the global object after it's been
+	 *                                        attached to `affiliatewp`.
 	 *
 	 * @throws {Error} If the resource was already specified, this will throw an error.
 	 */
@@ -36,7 +44,7 @@ const affiliatewp = window.affiliatewp || {
 		name,
 		resource = {},
 		localizedData = {},
-		nullifyLocalizedData = true
+		windowObjectToDelete = false
 	) {
 
 		if ( this.hasOwnProperty( name ) ) {
@@ -45,7 +53,11 @@ const affiliatewp = window.affiliatewp || {
 
 		this[ name ] = this.extend( resource, localizedData );
 
-		if ( ! nullifyLocalizedData ) {
+		if ( 'string' !== typeof windowObjectToDelete ) {
+			return;
+		}
+
+		if ( ! window.hasOwnProperty( windowObjectToDelete ) ) {
 			return;
 		}
 

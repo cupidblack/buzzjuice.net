@@ -148,28 +148,29 @@ class Export_Referrals extends Batch\Export\CSV implements Batch\With_PreFetch {
 	 *
 	 * @access public
 	 * @since  2.0
+	 * @since  2.27.9 - Removed translation functions from column headers for consistent export formatting
 	 *
 	 * @return array The list of CSV columns.
 	 */
 	public function csv_cols() {
 		return array(
-			'referral_id'   => __( 'Referral ID', 'affiliate-wp' ),
-			'affiliate_id'  => __( 'Affiliate ID', 'affiliate-wp' ),
-			'visit_id'      => __( 'Visit ID', 'affiliate-wp' ),
-			'email'         => __( 'Email', 'affiliate-wp' ),
-			'name'          => __( 'Name', 'affiliate-wp' ),
-			'payment_email' => __( 'Payment Email', 'affiliate-wp' ),
-			'username'      => __( 'Username', 'affiliate-wp' ),
-			'amount'        => __( 'Amount', 'affiliate-wp' ),
-			'currency'      => __( 'Currency', 'affiliate-wp' ),
-			'description'   => __( 'Description', 'affiliate-wp' ),
-			'campaign'      => __( 'Campaign', 'affiliate-wp' ),
-			'reference'     => __( 'Reference', 'affiliate-wp' ),
-			'context'       => __( 'Context', 'affiliate-wp' ),
-			'status'        => __( 'Status', 'affiliate-wp' ),
-			'flag'          => __( 'Flag', 'affiliate-wp' ),
-			'type'          => __( 'Type', 'affiliate-wp' ),
-			'date'          => __( 'Date', 'affiliate-wp' ),
+			'referral_id'   => 'Referral ID',
+			'affiliate_id'  => 'Affiliate ID',
+			'visit_id'      => 'Visit ID',
+			'email'         => 'Email',
+			'name'          => 'Name',
+			'payment_email' => 'Payment Email',
+			'username'      => 'Username',
+			'amount'        => 'Amount',
+			'currency'      => 'Currency',
+			'description'   => 'Description',
+			'campaign'      => 'Campaign',
+			'reference'     => 'Reference',
+			'context'       => 'Context',
+			'status'        => 'Status',
+			'flag'          => 'Flag',
+			'type'          => 'Type',
+			'date'          => 'Date',
 		);
 	}
 

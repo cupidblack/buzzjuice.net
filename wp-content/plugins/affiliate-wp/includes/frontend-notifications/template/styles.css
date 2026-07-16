@@ -1,3 +1,37 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss";
+
+@source "./*.php";
+
+@variant dark (&:where([data-mode="dark"], [data-mode="dark"] *));
+
+/* Shadow DOM fallback properties - these will be merged into @layer base */
+@layer base {
+	*, ::before, ::after, ::backdrop {
+		--tw-shadow: 0 0 #0000;
+		--tw-shadow-color: initial;
+		--tw-shadow-alpha: 100%;
+		--tw-inset-shadow: 0 0 #0000;
+		--tw-inset-shadow-color: initial;
+		--tw-inset-shadow-alpha: 100%;
+		--tw-ring-color: initial;
+		--tw-ring-shadow: 0 0 #0000;
+		--tw-inset-ring-color: initial;
+		--tw-inset-ring-shadow: 0 0 #0000;
+		--tw-ring-inset: initial;
+		--tw-ring-offset-width: 0px;
+		--tw-ring-offset-color: #fff;
+		--tw-ring-offset-shadow: 0 0 #0000;
+		--tw-outline-style: solid;
+		--tw-outline-offset: 0px;
+		--tw-border-style: solid;
+		--tw-gradient-position: ;
+		--tw-gradient-from: #0000;
+		--tw-gradient-via: #0000;
+		--tw-gradient-to: #0000;
+		--tw-gradient-stops: ;
+		--tw-gradient-via-stops: ;
+		--tw-gradient-from-position: 0%;
+		--tw-gradient-via-position: 50%;
+		--tw-gradient-to-position: 100%;
+	}
+}

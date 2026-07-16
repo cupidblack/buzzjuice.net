@@ -39,15 +39,15 @@ trait Rate {
 	 */
 	private function get_rate_description() : string {
 
+		$tooltip_html = affwp_tooltip(
+			__( 'This is the rate all affiliates in this group will be assigned (regardless of their own settings or the site default).', 'affiliate-wp' )
+		);
+
 		return sprintf(
 
 			// Translators: %s is a tooltip with more information.
-			__( 'Referral rate for all affiliates in this group.%s', 'affiliate-wp' ),
-			affwp_icon_tooltip(
-				__( 'This is the rate all affiliates in this group will be assigned (regardless of their own settings or the site default).', 'affiliate-wp' ),
-				'normal',
-				false
-			)
+			__( 'Referral rate for all affiliates in this group. <span class="dashicons dashicons-editor-help cursor-help" data-tooltip-html="%s"></span>', 'affiliate-wp' ),
+			esc_attr( $tooltip_html )
 		);
 	}
 

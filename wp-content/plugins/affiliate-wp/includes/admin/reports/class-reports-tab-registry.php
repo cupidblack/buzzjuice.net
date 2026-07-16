@@ -32,7 +32,7 @@ class Registry extends Utils\Registry {
 	 *
 	 * @var array List containing text for tooltips keyed by the meta box ID.
 	 */
-	private static $tooltips = array();
+	private static $tooltips = [];
 
 	/**
 	 * Initialize the registry.
@@ -49,6 +49,7 @@ class Registry extends Utils\Registry {
 	 *
 	 * @since 2.1
 	 * @since 2.5 Added support for a 'tooltip' attribute.
+	 * @since 2.29.0 Added support for array tooltips.
 	 *
 	 * @param string $collection Collection (tab) ID.
 	 * @param string $tile_id    Tile ID.
@@ -64,7 +65,7 @@ class Registry extends Utils\Registry {
 	 *     @type mixed    $comparison_data  Comparison data to pair with `$data`. Default empty.
 	 *     @type callable $display_callback Display callback to use for the tile. Default is 'default_tile',
 	 *                                      which leverages `$type`.
-	 *     @type string   $tooltip          HTML output for tooltip. Leave blank for no tooltip. Default empty.
+	 *     @type string|array $tooltip      Tooltip content. Can be HTML string or array for structured content. Default empty.
 	 * }
 	 * @return true Always true.
 	 */
@@ -100,7 +101,7 @@ class Registry extends Utils\Registry {
 	public function get_tiles( $collection = '' ) {
 		$all_items = parent::get_items();
 
-		$items = array();
+		$items = [];
 
 		if ( ! empty( $collection ) ) {
 			foreach ( $all_items as $item => $attributes ) {
@@ -133,5 +134,4 @@ class Registry extends Utils\Registry {
 	public static function get_tooltips() {
 		return self::$tooltips;
 	}
-
 }

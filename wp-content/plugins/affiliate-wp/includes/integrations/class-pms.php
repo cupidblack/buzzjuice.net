@@ -264,7 +264,7 @@ class Affiliate_WP_PMS extends Affiliate_WP_Base {
 				 */
 				if ( $this->is_affiliate_email( $payment_data['user_data']['user_id'] ) ) {
 					$this->log( 'PMS: Referral not created because affiliate\'s own account was used.' );
-					$this->mark_referral_failed( $referral_id );
+					$this->mark_referral_rejected( $referral_id );
 					return;
 				}
 
@@ -354,7 +354,7 @@ class Affiliate_WP_PMS extends Affiliate_WP_Base {
 				 */
 				if ( $this->is_affiliate_email( $subscription->user_id ) ) {
 					$this->log( 'PMS: Referral not created because affiliate\'s own account was used.' );
-					$this->mark_referral_failed( $referral_id );
+					$this->mark_referral_rejected( $referral_id );
 					return;
 				}
 

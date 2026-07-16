@@ -46,5 +46,4 @@ class Installation
     {
         return $this->installationId;
     }
-
 }

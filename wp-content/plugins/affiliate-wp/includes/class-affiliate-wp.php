@@ -351,6 +351,26 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 		public DRM_Controller $drm;
 
 		/**
+		 * Construct
+		 *
+		 * @since AFFWPN
+		 */
+		public function __construct() {
+			$this->hooks();
+		}
+
+		/**
+		 * Hooks
+		 *
+		 * Added to add hooks at plugin runtime.
+		 *
+		 * @since AFFWPN
+		 */
+		private function hooks() {
+			add_action( 'doing_it_wrong_trigger_error', [ $this, 'fix_load_textdomain_just_in_time_notice' ], 10, 3 );
+		}
+
+		/**
 		 * Main Affiliate_WP Instance
 		 *
 		 * Insures that only one instance of Affiliate_WP exists in memory at any one
@@ -364,20 +384,23 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 		 * @return \Affiliate_WP The one true plugin instance.
 		 */
 		public static function instance( $file = null ) {
+
 			if ( ! isset( self::$instance ) && ! ( self::$instance instanceof Affiliate_WP ) ) {
-				self::$instance = new Affiliate_WP;
-		
+
+				self::$instance = new Affiliate_WP();
+
 				self::$instance->file = $file;
-		
+
 				self::$instance->set_plugin_data();
 				self::$instance->setup_constants();
 				self::$instance->includes();
 				self::$instance->setup_objects();
-		
-				// Hook the load_textdomain function to init action to defer translation loading.
+
+				// Defer textdomain loading to 'init' to comply with WordPress 6.7+ requirements.
+				// WordPress handles "just in time" translation loading, so __() calls before init still work.
 				add_action( 'init', [ self::$instance, 'load_textdomain' ] );
 			}
-		
+
 			return self::$instance;
 		}
 
@@ -503,6 +526,16 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 			if ( ! defined( 'PAYOUTS_SERVICE_DOCS_URL' ) ) {
 				define( 'PAYOUTS_SERVICE_DOCS_URL', trailingslashit( PAYOUTS_SERVICE_URL ) . 'documentation/' );
 			}
+
+			// Payouts Service sunset date (YYYY-MM-DD).
+			if ( ! defined( 'AFFWP_PAYOUTS_SERVICE_SUNSET_DATE' ) ) {
+				define( 'AFFWP_PAYOUTS_SERVICE_SUNSET_DATE', '2026-09-30' );
+			}
+
+			// Payouts Service sunset learn more URL (redirect-friendly).
+			if ( ! defined( 'AFFWP_PAYOUTS_SERVICE_SUNSET_URL' ) ) {
+				define( 'AFFWP_PAYOUTS_SERVICE_SUNSET_URL', 'https://affiliatewp.com/payouts-service-sunset' );
+			}
 		}
 
 		/**
@@ -516,6 +549,15 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 
 			// Loading files in includes/utils.
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/util-functions.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/utils/traits/trait-buttons.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/utils/traits/trait-toggles.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/utils/traits/trait-links.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/utils/traits/trait-badges.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/utils/traits/trait-cards.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/utils/traits/trait-modals.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/utils/class-ui-components.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/ui-component-functions.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/utils/helpers/badges.php';
 
 			// Addons functions need to be available sooner.
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/add-ons.php';
@@ -553,7 +595,7 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/class-editor.php';
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/affiliate-signup-widget/class-affiliate-signup-widget.php';
 
-			if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+			if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI && class_exists( 'WP_CLI' ) ) ) {
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/functions.php';
 
 				// Bootstrap.
@@ -575,6 +617,7 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/class-notices-registry.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/class-notices.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/class-admin-notice.php';
+				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/class-theme-css-remover.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/dashboard-widgets.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/creatives/creative-categories.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/creatives/creative-privacy.php';
@@ -588,6 +631,9 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/payouts/actions.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/payouts/payouts.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/payouts/class-payouts-service.php';
+				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/payouts/class-payouts-tab.php';
+				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/emails/class-emails-tab.php';
+				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/fraud-prevention/class-fraud-prevention-tab.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/reports/reports.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/settings/display-settings.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/visits/visits.php';
@@ -596,13 +642,19 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/tools/class-migrate.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/user-profile.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/pages/class-smtp.php';
-				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/pages/class-analytics.php';
+				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/pages/class-rewards.php';
+				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/pages/class-cookie-consent-page.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/class-about.php';
-				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/class-trustpilot.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/education/class-core.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/education/class-non-pro.php';
 			}
 
+			// Load payout methods - always load for registration in Payouts tab
+			// Individual methods will check if they're enabled before heavy initialization
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/payouts/methods/store-credit/init.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/payouts/methods/paypal-payouts/init.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/payouts/methods/stripe-payouts/init.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/fraud-prevention/init.php';
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/class-shortcodes.php';
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/emails/class-affwp-emails.php';
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/emails/functions.php';
@@ -615,6 +667,7 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/reports/class-sales-graph.php';
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/abstracts/class-affwp-opt-in-platform.php';
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/class-integrations.php';
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/class-captcha-manager.php';
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/class-login.php';
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/class-referrals-db.php';
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/class-referral-meta-db.php';
@@ -676,7 +729,18 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/REST/v1/class-visits-endpoints.php';
 			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/components/notifications/REST/v1/class-notifications-endpoints.php';
 
-			if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			// Load CLI commands only if WP-CLI is fully available.
+			// These WP-CLI classes are from the entity-command package which may not be installed
+			// on sites with minimal/partial WP-CLI installations (e.g., some hosting control panels, security scanners).
+			// WP_CLI\Fetchers\Base is required by the fetcher classes in cli/utils/.
+			// WP_CLI\CommandWithMeta is required by the meta sub-command classes.
+			if (
+				defined( 'WP_CLI' ) && WP_CLI
+				&& class_exists( 'WP_CLI' )
+				&& class_exists( 'WP_CLI\CommandWithDBObject' )
+				&& class_exists( 'WP_CLI\Fetchers\Base' )
+				&& class_exists( 'WP_CLI\CommandWithMeta' )
+			) {
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/cli/class-command.php';
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/cli/class-sub-commands-base.php';
 
@@ -701,6 +765,9 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 
 			if ( is_admin() || ( defined( 'DOING_CRON' ) && DOING_CRON ) ) {
 				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/class-usage.php';
+				require_once AFFILIATEWP_PLUGIN_DIR . 'includes/admin/class-nps-survey.php';
+
+				new \AffiliateWP\Admin\NPS_Survey();
 			}
 		}
 
@@ -718,49 +785,41 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 		 * @access public
 		 *
 		 * @since 1.6.2
-		 * @since 2.27.4 Added Trustpilot class.
 		 * @return void
 		 */
 		public function setup_objects() {
 
 			self::$instance->connections = new AffiliateWP\Connections\DB();
-			self::$instance->affiliates = new Affiliate_WP_DB_Affiliates;
-			self::$instance->affiliate_meta = new Affiliate_WP_Affiliate_Meta_DB;
-			self::$instance->referrals = new Affiliate_WP_Referrals_DB;
-			self::$instance->referral_meta = new Affiliate_WP_Referral_Meta_DB;
-			self::$instance->visits = new Affiliate_WP_Visits_DB;
-			self::$instance->customers = new Affiliate_WP_Customers_DB;
-			self::$instance->customer_meta = new Affiliate_WP_Customer_Meta_DB;
-			self::$instance->campaigns = new Affiliate_WP_Campaigns_DB;
-			self::$instance->settings = new Affiliate_WP_Settings;
-			self::$instance->REST = new Affiliate_WP_REST;
-			self::$instance->tracking = new Affiliate_WP_Tracking;
-			self::$instance->templates = new Affiliate_WP_Templates;
-			self::$instance->login = new Affiliate_WP_Login;
-			self::$instance->register = new Affiliate_WP_Register;
-			self::$instance->integrations = new Affiliate_WP_Integrations;
-			self::$instance->emails = new Affiliate_WP_Emails;
-			self::$instance->creatives = new Affiliate_WP_Creatives_DB;
-			self::$instance->creative = new Affiliate_WP_Creatives;
+			self::$instance->affiliates = new Affiliate_WP_DB_Affiliates();
+			self::$instance->affiliate_meta = new Affiliate_WP_Affiliate_Meta_DB();
+			self::$instance->referrals = new Affiliate_WP_Referrals_DB();
+			self::$instance->referral_meta = new Affiliate_WP_Referral_Meta_DB();
+			self::$instance->visits = new Affiliate_WP_Visits_DB();
+			self::$instance->customers = new Affiliate_WP_Customers_DB();
+			self::$instance->customer_meta = new Affiliate_WP_Customer_Meta_DB();
+			self::$instance->campaigns = new Affiliate_WP_Campaigns_DB();
+			self::$instance->settings = new Affiliate_WP_Settings();
+			self::$instance->REST = new Affiliate_WP_REST();
+			self::$instance->tracking = new Affiliate_WP_Tracking();
+			self::$instance->templates = new Affiliate_WP_Templates();
+			self::$instance->login = new Affiliate_WP_Login();
+			self::$instance->register = new Affiliate_WP_Register();
+			self::$instance->integrations = new Affiliate_WP_Integrations();
+			self::$instance->emails = new Affiliate_WP_Emails();
+			self::$instance->creatives = new Affiliate_WP_Creatives_DB();
+			self::$instance->creative = new Affiliate_WP_Creatives();
 			self::$instance->creative_meta = new AffiliateWP\Creatives\Meta\DB();
 			self::$instance->affiliate_links = new Affiliate_Links();
 			self::$instance->custom_links = new Affiliate_WP_Custom_Links_DB();
 			self::$instance->custom_Link = new Affiliate_WP_Custom_Links();
-			self::$instance->rewrites = new Affiliate_WP_Rewrites;
-			self::$instance->capabilities = new Affiliate_WP_Capabilities;
-			self::$instance->utils = new Affiliate_WP_Utilities;
-			self::$instance->editor = new Affiliate_WP_Editor;
+			self::$instance->rewrites = new Affiliate_WP_Rewrites();
+			self::$instance->capabilities = new Affiliate_WP_Capabilities();
+			self::$instance->utils = new Affiliate_WP_Utilities();
+			self::$instance->editor = new Affiliate_WP_Editor();
 			self::$instance->groups = new AffiliateWP\Groups\DB();
 			self::$instance->notifications = new Notifications\Notifications_DB();
 			self::$instance->scripts = new Scripts();
 			self::$instance->drm = new DRM_Controller();
-
-			// Initialize the Creatives Groups class.
-			self::$instance->creative_groups = new \AffiliateWP\Creatives\Dashboard\Groups();
-
-			if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
-				self::$instance->trustpilot = new \AffiliateWP\Admin\Trustpilot();
-			}
 
 			// Affiliate Area.
 			Affiliate_Area::get_instance();
@@ -773,7 +832,37 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 				new Wizard\Setup_Screen();
 			}
 
+			// Cookie consent integration — deferred to plugins_loaded priority 20
+			// so WooCommerce and WPConsent are fully loaded.
+			add_action( 'plugins_loaded', array( self::$instance, 'load_cookie_consent_integration' ), 20 );
+
 			self::$instance->updater();
+		}
+
+		/**
+		 * Load the cookie consent integration.
+		 *
+		 * Handles WPConsent session fallback for affiliate tracking
+		 * when cookie consent has not been granted, and promotes
+		 * WPConsent when it is not installed.
+		 *
+		 * @since 2.32.0
+		 */
+		public function load_cookie_consent_integration() {
+
+			require_once AFFILIATEWP_PLUGIN_DIR . 'includes/integrations/class-cookie-consent.php';
+
+			// Settings notice runs without WPConsent (promotes installation).
+			Affiliate_WP_Cookie_Consent::init_settings_notice();
+
+			// Full session-fallback integration requires WPConsent + a session provider.
+			$has_session_provider = class_exists( 'WooCommerce' ) || function_exists( 'EDD' );
+
+			if ( ! $has_session_provider || ! function_exists( 'wpconsent' ) ) {
+				return;
+			}
+
+			$this->cookie_consent = new Affiliate_WP_Cookie_Consent();
 		}
 
 		/**
@@ -785,80 +874,113 @@ if ( ! class_exists( 'Affiliate_WP' ) ) :
 		 */
 		private function updater() {
 
-			if( ! is_admin() || ! class_exists( 'AFFWP_Plugin_Updater' ) ) {
+			if ( ! is_admin() || ! class_exists( 'AFFWP_Plugin_Updater' ) ) {
 				return;
 			}
 
 			$license_key = $this->settings->get( 'license_key' );
 
 			// setup the updater
-			$affwp_updater = new AFFWP_Plugin_Updater( 'https://affiliatewp.com', $this->file, array(
+			$affwp_updater = new AFFWP_Plugin_Updater(
+				'https://affiliatewp.com',
+				$this->file,
+				[
 					'version'   => AFFILIATEWP_VERSION,
 					'license'   => $license_key,
 					'item_name' => 'AffiliateWP',
 					'item_id'   => 17,
 					'author'    => 'Pippin Williamson',
-					'beta'      => $this->settings->get( 'betas', false )
-				)
+					'beta'      => $this->settings->get( 'betas', false ),
+				]
 			);
-
 		}
 
 		/**
-		 * Loads the plugin language files.
+		 * Loads the plugin language files
 		 *
 		 * @access public
 		 * @since 1.0
 		 * @return void
 		 */
 		public function load_textdomain() {
-			add_action( 'init', function () {
-				// Set filter for plugin's languages directory.
-				$lang_dir = AFFILIATEWP_PLUGIN_DIR . '/languages/';
 
-				/**
-				 * Filters the languages directory path to use for AffiliateWP.
-				 *
-				 * @param string $lang_dir The languages directory path.
-				 */
-				$lang_dir = apply_filters( 'aff_wp_languages_directory', $lang_dir );
+			// Set filter for plugin's languages directory
+			$lang_dir = AFFILIATEWP_PLUGIN_DIR . '/languages/';
 
-				// Traditional WordPress plugin locale filter.
-				global $wp_version;
+			/**
+			 * Filters the languages directory path to use for AffiliateWP.
+			 *
+			 * @param string $lang_dir The languages directory path.
+			 */
+			$lang_dir = apply_filters( 'aff_wp_languages_directory', $lang_dir );
 
-				$get_locale = get_locale();
+			// Traditional WordPress plugin locale filter
 
-				if ( $wp_version >= 4.7 ) {
-					$get_locale = get_user_locale();
-				}
+			global $wp_version;
 
-				/**
-				 * Defines the plugin language locale used in AffiliateWP.
-				 *
-				 * @var $get_locale The locale to use. Uses `get_user_locale()` in WordPress 4.7 or greater,
-				 *                  otherwise uses `get_locale()`.
-				 */
-				$locale = apply_filters( 'plugin_locale', $get_locale, 'affiliate-wp' );
-				$mofile = sprintf( '%1$s-%2$s.mo', 'affiliate-wp', $locale );
+			$get_locale = get_locale();
 
-				// Setup paths to current locale file.
-				$mofile_local  = $lang_dir . $mofile;
-				$mofile_global = WP_LANG_DIR . '/affiliate-wp/' . $mofile;
+			if ( $wp_version >= 4.7 ) {
+				$get_locale = get_user_locale();
+			}
 
-				if ( file_exists( $mofile_global ) ) {
-					// Look in global /wp-content/languages/affiliate-wp/ folder.
-					load_textdomain( 'affiliate-wp', $mofile_global );
-				} elseif ( file_exists( $mofile_local ) ) {
-					// Look in local /wp-content/plugins/affiliate-wp/languages/ folder.
-					load_textdomain( 'affiliate-wp', $mofile_local );
-				} else {
-					// Load the default language files.
-					load_plugin_textdomain( 'affiliate-wp', false, $lang_dir );
-				}
-			} );
+			/**
+			 * Defines the plugin language locale used in AffiliateWP.
+			 *
+			 * @var $get_locale The locale to use. Uses get_user_locale()` in WordPress 4.7 or greater,
+			 *                  otherwise uses `get_locale()`.
+			 */
+			$locale = apply_filters( 'plugin_locale', $get_locale, 'affiliate-wp' );
+			$mofile = sprintf( '%1$s-%2$s.mo', 'affiliate-wp', $locale );
+
+			// Setup paths to current locale file
+			$mofile_local  = $lang_dir . $mofile;
+			$mofile_global = WP_LANG_DIR . '/affiliate-wp/' . $mofile;
+
+			if ( file_exists( $mofile_global ) ) {
+				// Look in global /wp-content/languages/affiliate-wp/ folder
+				load_textdomain( 'affiliate-wp', $mofile_global );
+			} elseif ( file_exists( $mofile_local ) ) {
+				// Look in local /wp-content/plugins/affiliate-wp/languages/ folder
+				load_textdomain( 'affiliate-wp', $mofile_local );
+			} else {
+				// Load the default language files
+				load_plugin_textdomain( 'affiliate-wp', false, $lang_dir );
+			}
+		}
+
+		/**
+		 * Suppress `_load_textdomain_just_in_time` notice.
+		 *
+		 * This is a fallback suppression for edge cases where translation functions
+		 * are called before the 'init' hook. The main textdomain loading has been
+		 * deferred to 'init' to comply with WordPress 6.7+ requirements.
+		 *
+		 * WordPress 6.7+ handles "just in time" translation loading automatically,
+		 * so most early __() calls should work correctly without triggering warnings.
+		 *
+		 * @since AFFWPN
+		 *
+		 * @param bool   $suppress The normal value for all notices triggered by `_doing_it_wrong()`.
+		 * @param string $func     The function name causing the notice.
+		 * @param string $message  The notice message being output.
+		 *
+		 * @return bool `false` to suppress for our plugin, the default value otherwise.
+		 */
+		public function fix_load_textdomain_just_in_time_notice(
+			bool $suppress,
+			string $func,
+			string $message
+		) {
+
+			return (
+				'_load_textdomain_just_in_time' === $func &&
+				strstr( $message, '<code>affiliate-wp</code>' )
+			)
+				? false // Suppress any doing it wrong caused by our plugin.
+				: $suppress; // Keep the default, not our plugin.
 		}
 	}
-
 endif; // End if class_exists check
 
 /**

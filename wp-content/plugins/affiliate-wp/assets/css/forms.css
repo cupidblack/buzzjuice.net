@@ -225,15 +225,15 @@ button.affwp-tooltip,
 	height: 1.25rem;
 }
 
-.tippy-box[data-theme~='affwp'] .tippy-content {
+.tippy-box[data-theme~="affwp"] .tippy-content {
 	padding: 1rem;
 }
 
-.tippy-box[data-theme~='affwp'] .tippy-content p {
+.tippy-box[data-theme~="affwp"] .tippy-content p {
 	margin-bottom: 1rem;
 }
 
-.tippy-box[data-theme~='affwp'] .tippy-content p:last-child {
+.tippy-box[data-theme~="affwp"] .tippy-content p:last-child {
 	margin-bottom: 0;
 }
 
@@ -306,7 +306,7 @@ button.affwp-tooltip,
 }
 
 .affwp-link-sharing__qrcode {
-    cursor: pointer;
+	cursor: pointer;
 }
 /* End link Sharing */
 
@@ -764,7 +764,7 @@ table.affwp-table {
 
 .affwp-modal__body:has(.affwp-modal__qr-code) {
 	border: 2px solid rgba(0, 0, 0, 0.03);
-    padding: 2rem;
+	padding: 2rem;
 }
 /* End QR Code Modals */
 
@@ -987,9 +987,7 @@ table.affwp-table {
 		position: relative;
 	}
 
-	.affwp-creatives-view--as-list
-		.affwp-creatives-list-header
-		> div:first-child,
+	.affwp-creatives-view--as-list .affwp-creatives-list-header > div:first-child,
 	.affwp-creatives-view--as-list .affwp-creative > div:first-child {
 		flex-grow: 3;
 	}
@@ -1048,11 +1046,9 @@ table.affwp-table {
 	.affwp-creatives-table-row:hover .affwp-creative-last-updated {
 		opacity: 0;
 	}
-
 }
 @media (min-width: 480px) {
-
-	#affwp-affiliate-dashboard-url-generator  .affwp-affiliate-link,
+	#affwp-affiliate-dashboard-url-generator .affwp-affiliate-link,
 	.affwp-affiliate-link__display {
 		flex-direction: row;
 	}
@@ -1065,7 +1061,6 @@ table.affwp-table {
 		flex-direction: row;
 		align-items: center;
 	}
-
 }
 /* Card styling */
 .affwp-card {
@@ -1211,4 +1206,90 @@ table.affwp-table {
 
 .affwp-registration-submitted form fieldset {
 	display: none;
+}
+
+/* ==========================================================================
+     Stripe Payouts Section
+     ========================================================================== */
+
+.affwp-stripe-payouts {
+	margin-bottom: 2rem;
+}
+
+/* Status Blocks */
+.affwp-stripe-payouts__status {
+	padding: 12px 15px;
+	margin-bottom: 1em;
+	border-radius: 4px;
+	border-left: 4px solid;
+}
+
+.affwp-stripe-payouts__status--connected {
+	background-color: #f6fef7;
+	border-left-color: #46b450;
+	color: #1a5d1f;
+}
+
+.affwp-stripe-payouts__status--warning {
+	background-color: #fffdf0;
+	border-left-color: #ffb900;
+	color: #6b5600;
+}
+
+.affwp-stripe-payouts__status--error {
+	background-color: #fef2f2;
+	border-left-color: #dc3545;
+	color: #7f1d1d;
+}
+
+/* Account Info */
+.affwp-stripe-payouts__account-info {
+	display: block;
+}
+
+.affwp-stripe-payouts__account-info-label {
+	display: block;
+	margin-bottom: 0.5em;
+}
+
+.affwp-stripe-payouts__account-info-value {
+	display: inline-block;
+	padding: 3px 8px;
+	background-color: rgba(255, 255, 255, 0.7);
+	border: 1px solid rgba(70, 180, 80, 0.3);
+	border-radius: 3px;
+	font-family: monospace;
+	font-size: 0.9em;
+	color: inherit;
+}
+
+/* Dashboard Notices */
+.affwp-stripe-notice {
+	padding: 12px;
+	margin-bottom: 1em;
+	border-radius: 4px;
+	border-left: 4px solid;
+}
+
+.affwp-stripe-notice--success {
+	background-color: #f0f8f0;
+	border-left-color: #46b450;
+}
+
+.affwp-stripe-notice--error {
+	background-color: #fef2f2;
+	border-left-color: #dc3545;
+}
+
+.affwp-stripe-notice--info {
+	background-color: #e8f4fd;
+	border-left-color: #2196f3;
+}
+
+.affwp-stripe-notice__message {
+	margin: 0 !important;
+}
+
+.affwp-stripe-notice__link {
+	font-weight: 600;
 }

@@ -1,0 +1,17 @@
+/* WS Form Integration Styles */
+
+/* Prevent overlapping in hook preference fields */
+.form_specific_field_value_custom_hook_class .form-group,
+.form_specific_field_value_specific_form_custom_hook_class .form-group {
+	margin-bottom: 1em;
+}
+.form_specific_field_value_custom_hook_class .row [class*="col-"],
+.form_specific_field_value_specific_form_custom_hook_class .row [class*="col-"] {
+	min-width: 0; /* Allow flex/grid children to shrink and prevent overflow */
+}
+.form_specific_field_value_custom_hook_class input.form-control,
+.form_specific_field_value_specific_form_custom_hook_class input.form-control,
+.form_specific_field_value_specific_form_custom_hook_class select.form-control {
+	max-width: 100%;
+	box-sizing: border-box;
+}

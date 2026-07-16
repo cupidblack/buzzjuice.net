@@ -9,7 +9,6 @@ use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Exceptions\HttpException;
 interface RequestHandlerInterface
 {
     /**
-     * @param \WP_REST_Request $request
      * @return \WP_REST_Response
      * @throws HttpException
      * @throws Exception

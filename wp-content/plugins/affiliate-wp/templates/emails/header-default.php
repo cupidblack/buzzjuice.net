@@ -20,15 +20,14 @@ $wrapper = "
 	width:100%;
 	-webkit-text-size-adjust:none !important;
 	margin:0;
-	padding: 70px 0 70px 0;
+	padding: 36px 0 36px 0;
 ";
 $template_container = "
-	box-shadow:0 0 0 1px #f3f3f3 !important;
-	border-radius:3px !important;
+	box-shadow: none !important;
+	border-radius: 12px !important;
 	background-color: #ffffff;
-	border: 1px solid #e9e9e9;
-	border-radius:3px !important;
-	padding: 20px;
+	border: 1px solid #f0f0f0;
+	padding: 32px 32px 16px 32px;
 ";
 $template_header = "
 	color: #00000;
@@ -69,6 +68,9 @@ $heading    = affiliate_wp()->emails->get_heading();
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<title><?php echo get_bloginfo( 'name' ); ?></title>
+		<style>
+			a.affwp-email-link:hover { color: #1f2937 !important; text-decoration: underline !important; }
+		</style>
 	</head>
 	<body leftmargin="0" marginwidth="0" topmargin="0" marginheight="0" offset="0" style="<?php echo $body; ?>">
 		<div style="<?php echo $wrapper; ?>">
@@ -103,7 +105,7 @@ $heading    = affiliate_wp()->emails->get_heading();
 									<tr>
 										<td valign="top" style="<?php echo $body_content; ?>">
 											<!-- Content -->
-											<table border="0" cellpadding="20" cellspacing="0" width="100%">
+											<table border="0" cellpadding="8" cellspacing="0" width="100%">
 												<tr>
 													<td valign="top">
 														<div style="<?php echo $body_content_inner; ?>">

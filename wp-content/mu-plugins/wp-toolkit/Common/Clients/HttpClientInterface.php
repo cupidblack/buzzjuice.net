@@ -3,10 +3,10 @@
 
 namespace Webpros\WptkWpPlugin\WpToolkit\Common\Clients;
 
+use Webpros\WptkWpPlugin\WpToolkit\Common\Models\WpToolkitRequest;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Models\WpToolkitResponse;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Exceptions\BadRequestException;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Exceptions\ServerException;
-use Webpros\WptkWpPlugin\WpToolkit\Common\Models\WpToolkitRequest;
 
 interface HttpClientInterface
 {
@@ -17,7 +17,6 @@ interface HttpClientInterface
     const METHOD_PATCH = 'PATCH';
 
     /**
-     * @param WpToolkitRequest $request
      * @return WpToolkitResponse
      * @throws ServerException
      * @throws BadRequestException

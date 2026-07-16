@@ -175,14 +175,15 @@ function affwp_affiliate_table_rate_warn_affiliate_group_overrides( $value, \Aff
 	}
 
 	// Warn the user that the rate presented might be overriden by the affiliate group.
+	$tooltip_html = affwp_tooltip( [
+		'content' => __( 'This affiliate is in an affiliate group that may have a custom rate, rate type, and/or flat rate basis setting that may be adjusting this value.', 'affiliate-wp' ),
+		'type'    => 'warning',
+	] );
+	
 	return sprintf(
-		'%1$s%2$s',
+		'%1$s <span class="dashicons dashicons-warning cursor-help" data-tooltip-html="%2$s"></span>',
 		$value,
-		affwp_icon_tooltip(
-			__( 'This affiliate is in an affiliate group that may have a custom rate, rate type, and/or flat rate basis setting that may be adjusting this value.', 'affiliate-wp' ),
-			'warning',
-			false // Return.
-		)
+		esc_attr( $tooltip_html )
 	);
 }
 add_filter( 'affwp_affiliate_table_rate', 'affwp_affiliate_table_rate_warn_affiliate_group_overrides', -9999, 2 );

@@ -257,4 +257,12 @@
 div#wp_toolkit_attacks_widget {
   display: none;
 }
+div#wp_toolkit_attacks_widget .inside {
+  margin: 0;
+  padding: 0;
+}
+div#wp_toolkit_dashboard_security_risk_widget .inside {
+  margin: 0;
+  padding: 0;
+}
 

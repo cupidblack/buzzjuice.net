@@ -55,12 +55,8 @@ final class PluginInitialParams implements \JsonSerializable
 
     /**
      * @param string $nonce
-     * @param bool $debug
-     * @param LocaleContainer $localeContainer
-     * @param AnalyticsParams $analytics
-     * @param UrlsParams $urls
-     * @param Config $config
-     * @param ?int $installationId
+     * @param bool   $debug
+     * @param ?int   $installationId
      * @param ?float $tokenIssuedAt
      */
     public function __construct(
@@ -91,6 +87,7 @@ final class PluginInitialParams implements \JsonSerializable
 
     /**
      * @param int $installationId
+     *
      * @return self
      */
     public function setInstallationId($installationId)
@@ -102,6 +99,7 @@ final class PluginInitialParams implements \JsonSerializable
 
     /**
      * @param float $tokenIssuedAt
+     *
      * @return self
      */
     public function setTokenIssuedAt($tokenIssuedAt)
@@ -113,6 +111,7 @@ final class PluginInitialParams implements \JsonSerializable
 
     /**
      * @param ?string $virtualPatchesSubscriptionGuid
+     *
      * @return self
      */
     public function setVirtualPatchesSubscriptionGuid($virtualPatchesSubscriptionGuid)
@@ -123,7 +122,6 @@ final class PluginInitialParams implements \JsonSerializable
     }
 
     /**
-     * @param AnalyticsParams $analytics
      * @return self
      */
     public function setAnalytics(AnalyticsParams $analytics)
@@ -134,7 +132,6 @@ final class PluginInitialParams implements \JsonSerializable
     }
 
     /**
-     * @param UrlsParams $urls
      * @return self
      */
     public function setUrls(UrlsParams $urls)

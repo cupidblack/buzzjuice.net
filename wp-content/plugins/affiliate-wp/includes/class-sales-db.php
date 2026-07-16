@@ -125,6 +125,7 @@ class Affiliate_WP_Sales_DB extends Affiliate_WP_DB {
 	 * Adds a sale.
 	 *
 	 * @since 2.5
+	 * @since AFFWPN The error log for non-sale referrals has been removed
 	 *
 	 * @param array $data Sale values to update, keyed by the column name.
 	 * @return int|false Sale ID if successfully added, false otherwise.

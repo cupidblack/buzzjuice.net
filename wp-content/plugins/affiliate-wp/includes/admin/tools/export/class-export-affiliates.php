@@ -44,23 +44,24 @@ class Affiliate_WP_Affiliate_Export extends Affiliate_WP_Export implements Expor
 	 *
 	 * @access public
 	 * @since 1.3
+	 * @since 2.27.9 - Removed translation functions from column headers for consistent export formatting
 	 * @return array $cols All the columns
 	 */
 	public function csv_cols() {
 		$cols = array(
-			'affiliate_id'    => __( 'Affiliate ID', 'affiliate-wp' ),
-			'email'           => __( 'Email', 'affiliate-wp' ),
-			'name'            => __( 'Name', 'affiliate-wp' ),
-			'payment_email'   => __( 'Payment Email', 'affiliate-wp' ),
-			'username'        => __( 'Username', 'affiliate-wp' ),
-			'rate'            => __( 'Rate', 'affiliate-wp' ),
-			'rate_type'       => __( 'Rate Type', 'affiliate-wp' ),
-			'earnings'        => __( 'Earnings', 'affiliate-wp' ),
-			'referrals'       => __( 'Referrals', 'affiliate-wp' ),
-			'visits'          => __( 'Visits', 'affiliate-wp' ),
-			'conversion_rate' => __( 'Conversion Rate', 'affiliate-wp' ),
-			'status'          => __( 'Status', 'affiliate-wp' ),
-			'date_registered' => __( 'Date Registered', 'affiliate-wp' )
+			'affiliate_id'    => 'Affiliate ID',
+			'email'           => 'Email',
+			'name'            => 'Name',
+			'payment_email'   => 'Payment Email',
+			'username'        => 'Username',
+			'rate'            => 'Rate',
+			'rate_type'       => 'Rate Type',
+			'earnings'        => 'Earnings',
+			'referrals'       => 'Referrals',
+			'visits'          => 'Visits',
+			'conversion_rate' => 'Conversion Rate',
+			'status'          => 'Status',
+			'date_registered' => 'Date Registered'
 		);
 		return $cols;
 	}

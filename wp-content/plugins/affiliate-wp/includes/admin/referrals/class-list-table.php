@@ -91,6 +91,14 @@ class AffWP_Referrals_Table extends List_Table {
 	private $draft_count;
 
 	/**
+	 * Number of flagged referrals found.
+	 *
+	 * @var   int
+	 * @since 2.31.0
+	 */
+	public $flagged_count;
+
+	/**
 	 * Get things started
 	 *
 	 * @access public
@@ -138,20 +146,20 @@ class AffWP_Referrals_Table extends List_Table {
 	}
 
 	/**
-	 * Show the search field
+	 * Show the search field.
+	 *
+	 * Override parent to always show search box even when no items exist.
+	 * This ensures search remains available when filtering returns no results.
 	 *
 	 * @access public
 	 * @since 1.0
 	 *
-	 * @param string $text Label for the search box
-	 * @param string $input_id ID of the search box
+	 * @param string $text     Label for the search box.
+	 * @param string $input_id ID of the search box.
 	 *
-	 * @return svoid
+	 * @return void
 	 */
 	public function search_box( $text, $input_id ) {
-		if ( empty( $_REQUEST['s'] ) && !$this->has_items() )
-			return;
-
 		$input_id = $input_id . '-search-input';
 
 		if ( ! empty( $_REQUEST['orderby'] ) )
@@ -176,32 +184,47 @@ class AffWP_Referrals_Table extends List_Table {
 	 */
 	public function get_views() {
 
-		$affiliate_id   = isset( $_GET['affiliate_id'] ) ? absint( $_GET['affiliate_id'] ) : '';
-		$base           = affwp_admin_url( 'referrals' );
-		$base           = $affiliate_id ? add_query_arg( 'affiliate_id', $affiliate_id, $base ) : $base;
-		$current        = isset( $_GET['status'] ) ? sanitize_key( $_GET['status'] ) : '';
-		$total_count    = '&nbsp;<span class="count">(' . $this->total_count    . ')</span>';
-		$paid_count     = '&nbsp;<span class="count">(' . $this->paid_count . ')</span>';
-		$unpaid_count   = '&nbsp;<span class="count">(' . $this->unpaid_count . ')</span>';
-		$pending_count  = '&nbsp;<span class="count">(' . $this->pending_count . ')</span>';
-		$rejected_count = '&nbsp;<span class="count">(' . $this->rejected_count . ')</span>';
+		$affiliate_id    = isset( $_GET['affiliate_id'] ) ? absint( $_GET['affiliate_id'] ) : '';
+		$base            = affwp_admin_url( 'referrals' );
+		$base            = $affiliate_id ? add_query_arg( 'affiliate_id', $affiliate_id, $base ) : $base;
+		$current         = isset( $_GET['status'] ) ? sanitize_key( $_GET['status'] ) : '';
+		$is_flagged_view = ( isset( $_GET['flagged'] ) && '1' === $_GET['flagged'] )
+			|| ( isset( $_REQUEST['flagged'] ) && '1' === $_REQUEST['flagged'] );
+		$total_count     = '&nbsp;<span class="count">(' . $this->total_count    . ')</span>';
+		$paid_count      = '&nbsp;<span class="count">(' . $this->paid_count . ')</span>';
+		$unpaid_count    = '&nbsp;<span class="count">(' . $this->unpaid_count . ')</span>';
+		$pending_count   = '&nbsp;<span class="count">(' . $this->pending_count . ')</span>';
+		$rejected_count  = '&nbsp;<span class="count">(' . $this->rejected_count . ')</span>';
 
 		$labels = affwp_get_referral_statuses( true );
 
+		// When viewing flagged referrals, no status tab should be "current".
 		$views = array(
-			'all'      => sprintf( '<a href="%s"%s>%s</a>', esc_url( remove_query_arg( 'status', $base ) ), $current === 'all' || $current == '' ? ' class="current"' : '', __( 'All', 'affiliate-wp' ) . $total_count ),
-			'paid'     => sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'paid', $base ) ), $current === 'paid' ? ' class="current"' : '', $labels['paid'] . $paid_count ),
-			'unpaid'   => sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'unpaid', $base ) ), $current === 'unpaid' ? ' class="current"' : '', $labels['unpaid'] . $unpaid_count ),
-			'pending'  => sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'pending', $base ) ), $current === 'pending' ? ' class="current"' : '', $labels['pending'] . $pending_count ),
-			'rejected' => sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'rejected', $base ) ), $current === 'rejected' ? ' class="current"' : '', $labels['rejected'] . $rejected_count ),
+			'all'      => sprintf( '<a href="%s"%s>%s</a>', esc_url( remove_query_arg( [ 'status', 'flagged', 'flag_type' ], $base ) ), ! $is_flagged_view && ( $current === 'all' || $current == '' ) ? ' class="current"' : '', __( 'All', 'affiliate-wp' ) . $total_count ),
+			'paid'     => sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'paid', remove_query_arg( [ 'flagged', 'flag_type' ], $base ) ) ), ! $is_flagged_view && $current === 'paid' ? ' class="current"' : '', $labels['paid'] . $paid_count ),
+			'unpaid'   => sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'unpaid', remove_query_arg( [ 'flagged', 'flag_type' ], $base ) ) ), ! $is_flagged_view && $current === 'unpaid' ? ' class="current"' : '', $labels['unpaid'] . $unpaid_count ),
+			'pending'  => sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'pending', remove_query_arg( [ 'flagged', 'flag_type' ], $base ) ) ), ! $is_flagged_view && $current === 'pending' ? ' class="current"' : '', $labels['pending'] . $pending_count ),
+			'rejected' => sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'rejected', remove_query_arg( [ 'flagged', 'flag_type' ], $base ) ) ), ! $is_flagged_view && $current === 'rejected' ? ' class="current"' : '', $labels['rejected'] . $rejected_count ),
 		);
 
 		// Only display the Failed view if currently filtering by that status.
 		if ( isset( $_REQUEST['status'] ) && 'failed' === $_REQUEST['status'] ) {
 			$failed_count   = '&nbsp;<span class="count">(' . $this->failed_count . ')</span>';
 
-			$views['failed'] = sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'failed', $base ) ), $current === 'failed' ? ' class="current"' : '', $labels['failed'] . $failed_count );
+			$views['failed'] = sprintf( '<a href="%s"%s>%s</a>', esc_url( add_query_arg( 'status', 'failed', remove_query_arg( [ 'flagged', 'flag_type' ], $base ) ) ), ! $is_flagged_view && $current === 'failed' ? ' class="current"' : '', $labels['failed'] . $failed_count );
 		}
+
+		// Add Flagged view - always show for discoverability.
+		$flagged_count   = '&nbsp;<span class="count">(' . $this->flagged_count . ')</span>';
+		$flagged_current = $is_flagged_view ? ' class="current"' : '';
+		$flagged_url     = add_query_arg( 'flagged', '1', remove_query_arg( [ 'status', 'flag_type' ], $base ) );
+
+		$views['flagged'] = sprintf(
+			'<a href="%s"%s>%s</a>',
+			esc_url( $flagged_url ),
+			$flagged_current,
+			__( 'Flagged', 'affiliate-wp' ) . $flagged_count
+		);
 
 		return $views;
 	}
@@ -394,10 +417,8 @@ class AffWP_Referrals_Table extends List_Table {
 			return '—';
 		}
 
-		$value = sprintf( '<span class="affwp-status %1$s">%2$s</span>',
-			esc_attr( $referral->status ),
-			affwp_get_referral_status_label( $referral )
-		);
+		// Use the new referral status badge helper
+		$value = affwp_get_referral_status_badge( $referral->status );
 
 		/**
 		 * Filters the referral status column data in the referrals list table.
@@ -718,6 +739,31 @@ class AffWP_Referrals_Table extends List_Table {
 				<?php endforeach; ?>
 			</select>
 			<?php
+			// Show flag type dropdown only when viewing flagged referrals (progressive disclosure).
+			// Check both GET and REQUEST to handle form submissions properly.
+			$is_flagged_filter = ( isset( $_GET['flagged'] ) && '1' === $_GET['flagged'] )
+				|| ( isset( $_REQUEST['flagged'] ) && '1' === $_REQUEST['flagged'] );
+
+			if ( $is_flagged_filter ) :
+				$set_flag_type = ! empty( $_REQUEST['flag_type'] ) ? sanitize_text_field( $_REQUEST['flag_type'] ) : '';
+				$flag_types    = [
+					'self_referral'   => __( 'Self-Referral', 'affiliate-wp' ),
+					'referring_site'  => __( 'Referring Site', 'affiliate-wp' ),
+					'conversion_rate' => __( 'Conversion Rate', 'affiliate-wp' ),
+					'ppc_traffic'     => __( 'PPC Traffic', 'affiliate-wp' ),
+				];
+				?>
+				<select name="flag_type" class="affwp-flag-type-select">
+					<option value=""><?php _e( 'All Flag Types', 'affiliate-wp' ); ?></option>
+					<?php foreach ( $flag_types as $flag_id => $flag_label ) : ?>
+						<option value="<?php echo esc_attr( $flag_id ); ?>"<?php selected( $flag_id, $set_flag_type ); ?>><?php echo esc_html( $flag_label ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<?php
+				// Preserve the flagged parameter when form is submitted.
+				echo '<input type="hidden" name="flagged" value="1" />';
+			endif;
+
 			/**
 			 * Fires in the admin referrals screen, inside the search filters form area, prior to the submit button.
 			 *
@@ -831,11 +877,12 @@ class AffWP_Referrals_Table extends List_Table {
 			}
 
 			// Mark as un-paid...
-			if (
-				'mark_as_unpaid' === $this->current_action()
-					&& 'unpaid' !== $referral->status // Only mark as unpaid if it's not already unpaid.
-			) {
-				affwp_set_referral_status( $id, 'unpaid' );
+			if ( 'mark_as_unpaid' === $this->current_action() ) {
+				$referral = affwp_get_referral( $id );
+
+				if ( 'unpaid' !== $referral->status ) { // Only mark as unpaid if it's not already unpaid.
+					affwp_set_referral_status( $id, 'unpaid' );
+				}
 			}
 
 			/**
@@ -912,6 +959,15 @@ class AffWP_Referrals_Table extends List_Table {
 			) )
 		);
 
+		// Count flagged referrals (pending with any flag type — excludes rejected).
+		$this->flagged_count = affiliate_wp()->referrals->count(
+			array_merge( $this->query_args, array(
+				'affiliate_id' => $affiliate_id,
+				'status'       => 'pending',
+				'flag'         => [ 'self_referral', 'referring_site', 'conversion_rate', 'ppc_traffic' ],
+			) )
+		);
+
 		// Failed referrals count is not included in the total by design.
 		$this->total_count = $this->paid_count + $this->unpaid_count + $this->pending_count + $this->rejected_count;
 	}
@@ -936,6 +992,8 @@ class AffWP_Referrals_Table extends List_Table {
 		$to          = isset( $_GET['filter_to'] )    ? $_GET['filter_to']       : '';
 		$order       = isset( $_GET['order'] )        ? $_GET['order']           : 'DESC';
 		$orderby     = isset( $_GET['orderby'] )      ? $_GET['orderby']         : 'referral_id';
+		$flagged     = isset( $_REQUEST['flagged'] )   ? $_REQUEST['flagged']     : '';
+		$flag_type   = isset( $_REQUEST['flag_type'] ) ? sanitize_text_field( $_REQUEST['flag_type'] ) : '';
 		$referral    = '';
 		$description = '';
 		$is_search   = false;
@@ -984,6 +1042,20 @@ class AffWP_Referrals_Table extends List_Table {
 
 		$per_page = $this->get_items_per_page( 'affwp_edit_referrals_per_page', $this->per_page );
 
+		// Determine flag filter based on flagged view and flag_type dropdown.
+		// Flagged = pending referrals with a flag (excludes rejected referrals).
+		$flag_filter = '';
+		if ( '1' === $flagged ) {
+			$status = 'pending';
+
+			// If filtering by flagged, use specific type or all flag types.
+			if ( ! empty( $flag_type ) ) {
+				$flag_filter = sanitize_text_field( $flag_type );
+			} else {
+				$flag_filter = [ 'self_referral', 'referring_site', 'conversion_rate', 'ppc_traffic' ];
+			}
+		}
+
 		$args = wp_parse_args( $this->query_args, array(
 			'number'       => $per_page,
 			'offset'       => $per_page * ( $page - 1 ),
@@ -997,6 +1069,7 @@ class AffWP_Referrals_Table extends List_Table {
 			'amount'       => $amount,
 			'description'  => $description,
 			'date'         => $date,
+			'flag'         => $flag_filter,
 			'search'       => $is_search,
 			'orderby'      => sanitize_text_field( $orderby ),
 			'order'        => sanitize_text_field( $order )
@@ -1033,30 +1106,37 @@ class AffWP_Referrals_Table extends List_Table {
 
 		$data = $this->referrals_data();
 
-		$status = isset( $_GET['status'] ) ? sanitize_key( $_GET['status'] ) : 'any';
+		$status  = isset( $_GET['status'] ) ? sanitize_key( $_GET['status'] ) : 'any';
+		$flagged = ( isset( $_GET['flagged'] ) && '1' === $_GET['flagged'] )
+			|| ( isset( $_REQUEST['flagged'] ) && '1' === $_REQUEST['flagged'] );
 
-		switch( $status ) {
-			case 'draft':
-				$total_items = $this->draft_count;
-				break;
-			case 'paid':
-				$total_items = $this->paid_count;
-				break;
-			case 'pending':
-				$total_items = $this->pending_count;
-				break;
-			case 'unpaid':
-				$total_items = $this->unpaid_count;
-				break;
-			case 'rejected':
-				$total_items = $this->rejected_count;
-				break;
-			case 'failed':
-				$total_items = $this->failed_count;
-				break;
-			case 'any':
-				$total_items = $this->current_count;
-				break;
+		// If filtering by flagged, use current_count (which respects the flag filter).
+		if ( $flagged ) {
+			$total_items = $this->current_count;
+		} else {
+			switch( $status ) {
+				case 'draft':
+					$total_items = $this->draft_count;
+					break;
+				case 'paid':
+					$total_items = $this->paid_count;
+					break;
+				case 'pending':
+					$total_items = $this->pending_count;
+					break;
+				case 'unpaid':
+					$total_items = $this->unpaid_count;
+					break;
+				case 'rejected':
+					$total_items = $this->rejected_count;
+					break;
+				case 'failed':
+					$total_items = $this->failed_count;
+					break;
+				case 'any':
+					$total_items = $this->current_count;
+					break;
+			}
 		}
 
 		$this->items = $data;
@@ -1066,5 +1146,40 @@ class AffWP_Referrals_Table extends List_Table {
 			'per_page'    => $per_page,
 			'total_pages' => ceil( $total_items / $per_page )
 		) );
+	}
+
+	/**
+	 * Display the table navigation.
+	 *
+	 * Override parent to always show bulk actions/filters even when no items exist.
+	 * This ensures filter dropdowns remain visible when filtering returns no results.
+	 *
+	 * @since 2.31.0
+	 *
+	 * @param string $which Either 'top' or 'bottom'.
+	 */
+	protected function display_tablenav( $which ) {
+		if ( 'top' === $which ) {
+			wp_nonce_field( 'bulk-' . $this->_args['plural'] );
+		}
+
+		// When no pages exist, .tablenav-pages.no-pages is hidden and loses its 9px bottom margin.
+		// Add equivalent margin to tablenav to maintain consistent spacing.
+		$total_pages = $this->_pagination_args['total_pages'] ?? 0;
+		$extra_style = ( 'top' === $which && $total_pages < 1 ) ? ' style="margin-bottom: 13px;"' : '';
+		?>
+	<div class="tablenav <?php echo esc_attr( $which ); ?>"<?php echo $extra_style; ?>>
+
+		<div class="alignleft actions bulkactions">
+			<?php $this->bulk_actions( $which ); ?>
+		</div>
+		<?php
+		$this->extra_tablenav( $which );
+		$this->pagination( $which );
+		?>
+
+		<br class="clear" />
+	</div>
+		<?php
 	}
 }

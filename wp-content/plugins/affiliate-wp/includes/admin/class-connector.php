@@ -142,7 +142,7 @@ abstract class Connector {
 	 *
 	 * @var array
 	 */
-	protected array $connectable_args = array();
+	protected array $connectable_args = [];
 
 	/**
 	 * Capability for UI pages.
@@ -177,7 +177,7 @@ abstract class Connector {
 	 *
 	 * @var array
 	 */
-	private array $selected_opposing_items_for_new_item = array();
+	private array $selected_opposing_items_for_new_item = [];
 
 	/**
 	 * Cache for storing the connectable for the new item.
@@ -243,7 +243,7 @@ abstract class Connector {
 
 				// Assign default form_tag arguments.
 				$this->connectable_args[ $connectable ]['form_tags'] = $this->get_form_tags(
-					$this->connectable_args[ $connectable ]['form_tags'] ?? array()
+					$this->connectable_args[ $connectable ]['form_tags'] ?? []
 				);
 
 				if ( $list_table_connectable && ! $this->connectable_args_have_form_tag_args( $args ) ) {
@@ -360,11 +360,11 @@ abstract class Connector {
 	 */
 	public function get_supported_connectables() : array {
 
-		return array(
+		return [
 			'creative',
 			'group',
 			'affiliate',
-		);
+		];
 	}
 
 	/**
@@ -391,10 +391,10 @@ abstract class Connector {
 	 */
 	public function get_list_table_connectables() : array {
 
-		return array(
+		return [
 			'affiliate',
 			'creative',
-		);
+		];
 	}
 
 	/**
@@ -407,8 +407,8 @@ abstract class Connector {
 
 		foreach ( $this->get_supported_connectables() as $connectable ) {
 
-			add_action( $this->filter_hook_name( "wp_ajax_{$this->get_select2_selector_ajax_action( $connectable )}" ), array( $this, $this->require_dynamic_method( "selector_ajax_response_for_{$connectable}" ) ) );
-			add_action( $this->filter_hook_name( "wp_ajax_{$this->get_selector_filter_select2_ajax_action( $connectable )}" ), array( $this, $this->require_dynamic_method( "filter_ajax_response_for_{$connectable}" ) ) );
+			add_action( $this->filter_hook_name( "wp_ajax_{$this->get_select2_selector_ajax_action( $connectable )}" ), [ $this, $this->require_dynamic_method( "selector_ajax_response_for_{$connectable}" ) ] );
+			add_action( $this->filter_hook_name( "wp_ajax_{$this->get_selector_filter_select2_ajax_action( $connectable )}" ), [ $this, $this->require_dynamic_method( "filter_ajax_response_for_{$connectable}" ) ] );
 		}
 	}
 
@@ -488,10 +488,10 @@ abstract class Connector {
 
 		wp_send_json(
 
-			array(
-				'pagination' => array(
+			[
+				'pagination' => [
 					'more' => $more,
-				),
+				],
 
 				// Results to show on the frontend (paginated).
 				'results' => array_merge(
@@ -502,7 +502,7 @@ abstract class Connector {
 					),
 					array_values( $opposing_items )
 				),
-			)
+			]
 		);
 	}
 
@@ -525,19 +525,19 @@ abstract class Connector {
 		return ( empty( $search ) && 1 === $page )
 
 			// Default options on page 1...
-			? array(
-				$this->esc_select_2_json_item( array(
+			? [
+				$this->esc_select_2_json_item( [
 					'id'   => 0,
 					'text' => $this->get_all_items_filter_option_text( $connectable ),
-				) ),
-				$this->esc_select_2_json_item( array(
+				] ),
+				$this->esc_select_2_json_item( [
 					'id'   => $this->get_none_option_name(),
 					'text' => $this->get_no_items_filter_option_text( $connectable ),
-				) ),
-			)
+				] ),
+			]
 
 			// There's a search or it's paged, don't show All and None options.
-			: array();
+			: [];
 	}
 
 	/**
@@ -587,17 +587,17 @@ abstract class Connector {
 				( 1 === $page )
 
 					// Add none option on the first page only on single selectors.
-					? array(
+					? [
 						$this->esc_select_2_json_item(
-							array(
+							[
 								'id'   => $this->get_none_option_name(),
 								'text' => $this->get_connectable_none_text( $none_connectable ),
-							)
+							]
 						),
-					)
+					]
 
 					// Don't add none option to any other pages though.
-					: array(),
+					: [],
 
 				$results
 			)
@@ -651,12 +651,12 @@ abstract class Connector {
 			: true;
 
 		wp_send_json(
-			array(
-				'pagination' => array(
+			[
+				'pagination' => [
 					'more' => $more,
-				),
+				],
 				'results'    => array_values( $opposing_items ),
-			),
+			],
 		);
 	}
 
@@ -683,16 +683,16 @@ abstract class Connector {
 		return array_map(
 
 			// Format opposing items in Select2 JSON format.
-			function( $item ) use ( $opposing_connectable ) {
+			function ( $item ) use ( $opposing_connectable ) {
 
 				$item_id = $this->get_id_of_connectable_item( $opposing_connectable, $item );
 
 				// Convert each item to a Select2 JSON item.
 				return $this->esc_select_2_json_item(
-					array(
+					[
 						'id'   => $item_id,
 						'text' => $this->get_title_of_connectable_item( $opposing_connectable, $item_id, 'opposing_select2_item_objects' ),
-					)
+					]
 				);
 			},
 
@@ -808,7 +808,7 @@ abstract class Connector {
 		string $before_array_key
 	) : array {
 
-		$reordered = array();
+		$reordered = [];
 
 		foreach ( $array as $array_key => $old_value ) {
 
@@ -838,12 +838,12 @@ abstract class Connector {
 		$displaying_list_table_page = $this->is_current_connectable_list_table_page();
 
 		// Load our scripts and styles for select2, etc.
-		add_action( 'admin_enqueue_scripts', array( $this, 'scripts' ) );
+		add_action( 'admin_enqueue_scripts', [ $this, 'scripts' ] );
 
 		if ( $displaying_list_table_page ) {
 
 			// Add column to items view to show the categories (for both connectables).
-			add_filter( 'affwp_list_table_columns', array( $this, 'add_list_table_columns' ), 10, 2 );
+			add_filter( 'affwp_list_table_columns', [ $this, 'add_list_table_columns' ], 10, 2 );
 		}
 
 		foreach ( $this->connectable_args as $connectable => $args ) {
@@ -860,45 +860,45 @@ abstract class Connector {
 
 			add_action(
 				$this->filter_hook_name( "affwp_delete_{$connectable}" ),
-				array( $this, $this->require_dynamic_method( "disconnect_{$connectable}" ) )
+				[ $this, $this->require_dynamic_method( "disconnect_{$connectable}" ) ]
 			);
 
 			add_action(
 				$this->filter_hook_name( "affwp_delete_{$connectable}" ),
-				array( $this, $this->require_dynamic_method( "disconnect_{$connectable}" ) )
+				[ $this, $this->require_dynamic_method( "disconnect_{$connectable}" ) ]
 			);
 
 			add_action(
 				$this->filter_hook_name( "affwp_{$connectable}_deleted" ),
-				array( $this, $this->require_dynamic_method( "disconnect_{$connectable}" ) )
+				[ $this, $this->require_dynamic_method( "disconnect_{$connectable}" ) ]
 			);
 
 			add_action(
 				$this->filter_hook_name( "affwp_edit_{$connectable}_bottom" ),
-				array( $this, 'display_selector' ),
+				[ $this, 'display_selector' ],
 				$this->filter_priority( 10 ), 1 // phpcs:ignore -- Priority.
 			);
 
 			add_action(
 				$this->filter_hook_name( "affwp_new_{$connectable}_bottom" ),
-				array( $this, 'display_selector' ),
+				[ $this, 'display_selector' ],
 				$this->filter_priority( 10 ), 1 // phpcs:ignore -- Priority.
 			);
 
 			add_action(
 				$this->filter_hook_name( "affwp_insert_{$connectable}" ),
-				array( $this, 'connect_new_item' )
+				[ $this, 'connect_new_item' ]
 			);
 
 			add_action(
 				$this->filter_hook_name( "affwp_add_{$connectable}" ),
-				array( $this, 'connect_updated_item' ),
+				[ $this, 'connect_updated_item' ],
 				1, 1 // phpcs:ignore -- Priority.
 			);
 
 			add_action(
 				$this->filter_hook_name( "affwp_update_{$connectable}" ),
-				array( $this, 'connect_updated_item' ),
+				[ $this, 'connect_updated_item' ],
 				1, 1 // phpcs:ignore -- Priority.
 			);
 
@@ -908,23 +908,23 @@ abstract class Connector {
 
 			add_filter(
 				$this->filter_hook_name( "affwp_{$connectable}_table_get_{$connectable}s" ),
-				array( $this, $this->require_dynamic_method( "display_filter_list_table_for_{$connectable}" ) )
+				[ $this, $this->require_dynamic_method( "display_filter_list_table_for_{$connectable}" ) ]
 			);
 
 			add_filter(
 				$this->filter_hook_name( "affwp_{$connectable}_table_{$this->get_connector_id()}_{$connectable}" ),
-				array( $this, 'column_value' ),
+				[ $this, 'column_value' ],
 				10, 2 // phpcs:ignore -- Priority.
 			);
 
 			add_action(
 				$this->filter_hook_name( "affwp_affiliates_page_affiliate-wp-{$connectable}s_extra_tablenav_after" ),
-				array( $this, $this->require_dynamic_method( "display_filter_selector_for_{$connectable}" ) )
+				[ $this, $this->require_dynamic_method( "display_filter_selector_for_{$connectable}" ) ]
 			);
 
 			add_action(
 				$this->filter_hook_name( "affwp_{$connectable}_admin_page_actions" ),
-				array( $this, "add_manage_{$connectable}_group_button" )
+				[ $this, "add_manage_{$connectable}_group_button" ]
 			);
 		}
 	}
@@ -1218,7 +1218,7 @@ abstract class Connector {
 			return $none;
 		}
 
-		$sorted_titles = array();
+		$sorted_titles = [];
 
 		foreach ( $connected as $connected_id ) {
 
@@ -1482,7 +1482,7 @@ abstract class Connector {
 			$this->disconnect_item_from_items(
 				$item_connectable,
 				intval( $item_data[ $primary_key ] ),
-				array()
+				[]
 			);
 
 			return $item_data;
@@ -1561,10 +1561,10 @@ abstract class Connector {
 			}
 
 			affiliate_wp()->connections->connect(
-				array(
+				[
 					$item_connectable     => intval( $item_id ),
 					$opposing_connectable => intval( $opposing_item_id ),
-				)
+				]
 			);
 		}
 	}
@@ -1615,12 +1615,12 @@ abstract class Connector {
 
 		$wpdb->delete(
 			affiliate_wp()->connections->table_name,
-			array(
+			[
 				$connectable => $item_id,
-			),
-			array(
+			],
+			[
 				$connectable => '%d',
-			)
+			]
 		);
 	}
 
@@ -1700,10 +1700,10 @@ abstract class Connector {
 
 			// Disconnect all other connected opposing items.
 			affiliate_wp()->connections->disconnect(
-				array(
+				[
 					$item_connectable     => intval( $item_id ),
 					$opposing_connectable => intval( $opposing_item_id ),
-				)
+				]
 			);
 		}
 	}
@@ -1763,14 +1763,14 @@ abstract class Connector {
 
 			return array_merge(
 				$args,
-				array(
-					'connected_to' => array(
+				[
+					'connected_to' => [
 						'get_connectable'    => $item_connectable, // e.g. affiliate.
 						'where_connectable'  => $opposing_connectable, // e.g. group.
 						'where_group_type'   => $this->get_connectable_group_type( $opposing_connectable ), // Will be empty if not group opposing connection.
 						'where_id'           => 0, // Zero means connected to no groups.
-					),
-				)
+					],
+				]
 			);
 		}
 
@@ -1784,14 +1784,14 @@ abstract class Connector {
 			$args,
 
 			// Add arguments that will cause SQL to get items (e.g. affiliates) connected to (e.g. group).
-			array(
-				'connected_to' => array(
+			[
+				'connected_to' => [
 					'get_connectable'    => $item_connectable, // e.g. affiliate.
 					'where_connectable'  => $opposing_connectable, // e.g. group.
 					'where_group_type'   => $this->get_connectable_group_type( $opposing_connectable ), // Will be empty if not group opposing connection.
 					'where_id'           => $selected_item,
-				),
-			),
+				],
+			],
 		);
 	}
 
@@ -1873,17 +1873,17 @@ abstract class Connector {
 	 */
 	protected function get_items_with_opposing_connections( string $item_connectable ) : array {
 
-		$items_with_opposing_connections = array();
+		$items_with_opposing_connections = [];
 
 		foreach (
 
 			// All items...
 			$this->get_connectable_items(
 				$item_connectable,
-				array(
+				[
 					'fields' => 'ids',
 					'number' => -1,
-				)
+				]
 			) as $item_id
 		) {
 
@@ -1913,15 +1913,15 @@ abstract class Connector {
 	 *
 	 * @return int
 	 */
-	protected function get_count_of_connectable_items( $connectable, array $args = array() ) : int {
+	protected function get_count_of_connectable_items( $connectable, array $args = [] ) : int {
 
 		return $this->get_connectable_items(
 			$connectable,
 			array_merge(
-				array(
+				[
 					'fields' => 'ids',
 					'number' => -1,
-				),
+				],
 				$args
 			),
 			true // The count.
@@ -1956,19 +1956,19 @@ abstract class Connector {
 		return $this->get_connectable_items(
 			$opposing_connectable,
 			array_merge(
-				array(
+				[
 					'fields'  => 'objects',
 					'orderby' => empty( trim( $orderby ) )
 						? 'title'
 						: $orderby,
 					'offset'  => $offset,
 					'number'  => $number,
-				),
+				],
 				empty( trim( $search ) )
-					? array()
-					: array(
+					? []
+					: [
 						'search' => trim( $search ),
-					)
+					]
 			)
 		);
 	}
@@ -2043,7 +2043,7 @@ abstract class Connector {
 	 *
 	 * @throws \Exception If we can't find the correlating DB API method to get items.
 	 */
-	protected function get_connectable_items( string $connectable = '', array $args = array(), bool $count = false ) {
+	protected function get_connectable_items( string $connectable = '', array $args = [], bool $count = false ) {
 
 		$get_items = "get_{$connectable}s";
 
@@ -2058,10 +2058,10 @@ abstract class Connector {
 				$args,
 				$this->get_orderby_for_connectable( $connectable ),
 				'group' === $connectable
-					? array(
+					? [
 						'type' => $this->get_connectable_group_type( $connectable ),
-					)
-					: array()
+					]
+					: []
 			),
 			$count
 		);
@@ -2082,25 +2082,25 @@ abstract class Connector {
 
 		if ( 'affiliate' === $connectable ) {
 
-			return array(
+			return [
 				'orderby' => 'name',
 				'order'   => 'ASC',
-			);
+			];
 		}
 
 		if ( 'group' === $connectable ) {
 
-			return array(
+			return [
 				'orderby' => 'title',
 				'order'   => 'ASC',
-			);
+			];
 		}
 
 		if ( 'creative' === $connectable ) {
-			return array(
+			return [
 				'orderby' => 'name',
 				'order'   => 'ASC',
-			);
+			];
 		}
 
 		throw new \Exception( "No orderby support for {$connectable}, please add it." );
@@ -2160,9 +2160,9 @@ abstract class Connector {
 
 		return 0 === $this->get_connectable_items(
 			$connectable,
-			array(
+			[
 				'number' => -1,
-			),
+			],
 			true
 		);
 	}
@@ -2318,15 +2318,6 @@ abstract class Connector {
 							height: 20px;
 						}
 
-						.select2-search--dropdown .select2-search__field {
-							padding: 0 4px !important;
-						}
-
-						.select2-container--default .select2-selection--single {
-							min-height: 32px;
-							height: 32px;
-						}
-
 					</style>
 
 					<select
@@ -2341,7 +2332,7 @@ abstract class Connector {
 						// Use AJAX to populate the drop-downs.
 						echo wp_json_encode(
 
-							array(
+							[
 								'minimumInputLength' => 0,
 								'disabled'           => $disabled ? true : false,
 
@@ -2349,20 +2340,20 @@ abstract class Connector {
 								'data'               => $this->get_select2_selected_opposing_items_json( $item, $opposing_connectable ),
 
 								// Use AJAX to populate the drop-down w/ pagination.
-								'ajax'               => array(
+								'ajax'               => [
 									'url'      => admin_url( 'admin-ajax.php' ),
 									'dataType' => 'json',
 									'cache'    => true,
 									'delay'    => 200,
-									'data'     => array(
+									'data'     => [
 										'action' => $this->get_select2_selector_ajax_action( $opposing_connectable ),
 										'nonce'  => wp_create_nonce(
 											$this->nonce_action( 'select', 'items' ),
 											$this->nonce_action( 'select', 'items' )
 										),
-									),
-								),
-							)
+									],
+								],
+							]
 						); // phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect -- Indented correctly.
 
 						// phpcs:ignore Generic.WhiteSpace.ScopeIndent.IncorrectExact, Squiz.PHP.EmbeddedPhp.ContentAfterEnd -- Want to avoid whitespace.
@@ -2382,13 +2373,13 @@ abstract class Connector {
 								$this->get_selector_create_text( $item_connectable, $management_link ),
 
 								// Allowed HTML.
-								array(
-									'a' => array(
+								[
+									'a' => [
 										'href'   => true,
 										'title'  => true,
 										'target' => true,
-									),
-								)
+									],
+								]
 							);
 
 							?>
@@ -2577,7 +2568,7 @@ abstract class Connector {
 	 */
 	protected function get_connectable_placeholder_text( string $connectable ) : string {
 
-		if ( $this->get_connectable_items( $connectable, array( 'number' => -1 ), true ) <= 0 ) {
+		if ( $this->get_connectable_items( $connectable, [ 'number' => -1 ], true ) <= 0 ) {
 
 			return sprintf(
 
@@ -2640,10 +2631,10 @@ abstract class Connector {
 
 		return array_values(
 			array_map(
-				function( $opposing_item_id ) use ( $opposing_connectable ) {
+				function ( $opposing_item_id ) use ( $opposing_connectable ) {
 
 					return $this->esc_select_2_json_item(
-						array(
+						[
 							'id'       => $opposing_item_id,
 							'text'     => $this->get_title_of_connectable_item(
 								$opposing_connectable,
@@ -2651,7 +2642,7 @@ abstract class Connector {
 								'selected_select2_json_items'
 							),
 							'selected' => true, // Selected.
-						)
+						]
 					);
 				},
 				$this->get_opposing_ids_connected_to_item(
@@ -2701,11 +2692,11 @@ abstract class Connector {
 		$primary_key = $this->get_connectable_primary_key( $item_connectable );
 
 		if ( ! isset( $item->$primary_key ) ) {
-			return array();
+			return [];
 		}
 
 		if ( ! $this->is_numeric_and_gt_zero( $item->$primary_key ) ) {
-			return array();
+			return [];
 		}
 
 		// Groups are treated a bit different because they require a group type.
@@ -2791,7 +2782,7 @@ abstract class Connector {
 
 			// Use AJAX to populate the drop-downs.
 			echo wp_json_encode(
-				array(
+				[
 					'minimumInputLength' => 0,
 
 					// The groups that should be initially selected.
@@ -2801,20 +2792,20 @@ abstract class Connector {
 					),
 
 					// Use AJAX to populate the drop-down w/ pagination.
-					'ajax' => array(
+					'ajax' => [
 						'url'      => admin_url( 'admin-ajax.php' ),
 						'dataType' => 'json',
 						'cache'    => true,
 						'delay'    => 200,
-						'data'     => array(
+						'data'     => [
 							'action' => $this->get_selector_filter_select2_ajax_action( $item_connectable ),
 							'nonce'  => wp_create_nonce(
 								$this->nonce_action( 'filter', 'items' ),
 								$this->nonce_action( 'filter', 'items' )
 							),
-						),
-					),
-				)
+						],
+					],
+				]
 			); // phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect -- Indented correctly.
 
 			// phpcs:ignore Generic.WhiteSpace.ScopeIndent.IncorrectExact, Squiz.PHP.EmbeddedPhp.ContentAfterEnd -- Want to avoid whitespace.
@@ -2890,15 +2881,15 @@ abstract class Connector {
 
 		if ( $this->get_none_option_name() === $selected_filter_option ) {
 
-			return array(
+			return [
 				$this->esc_select_2_json_item(
-					array(
+					[
 						'id'       => $this->get_none_option_name(),
 						'text'     => $this->get_no_items_filter_option_text( $opposing_connectable ),
 						'selected' => true,
-					)
+					]
 				),
-			);
+			];
 		}
 
 		if (
@@ -2909,19 +2900,19 @@ abstract class Connector {
 			)
 		) {
 
-			return array(
+			return [
 				$this->esc_select_2_json_item(
-					array(
+					[
 						'id'       => 0,
 						'text'     => $this->get_all_items_filter_option_text( $opposing_connectable ), // Filtered.
 						'selected' => true,
-					)
+					]
 				),
-			);
+			];
 		}
 
 		if ( ! is_numeric( $selected_filter_option ) ) {
-			return array();
+			return [];
 		}
 
 		$opposing_item_id = $this->get_id_of_connectable_item(
@@ -2932,9 +2923,9 @@ abstract class Connector {
 			)
 		);
 
-		return array(
+		return [
 			$this->esc_select_2_json_item(
-				array(
+				[
 					'id'   => esc_html( $opposing_item_id ),
 					'text' => esc_html(
 						$this->get_title_of_connectable_item(
@@ -2944,9 +2935,9 @@ abstract class Connector {
 						)
 					),
 					'selected' => true, // Selected previously.
-				)
+				]
 			),
-		);
+		];
 	}
 
 	/**
@@ -2968,7 +2959,7 @@ abstract class Connector {
 			if (
 				is_multisite() &&
 					! $this->table_exists( affiliate_wp()->connections->get_connectable_api( $connectable )->table_name ) &&
-						is_callable( array( affiliate_wp()->connections->get_connectable_api( $connectable ), 'create_table' ) )
+						is_callable( [ affiliate_wp()->connections->get_connectable_api( $connectable ), 'create_table' ] )
 			) {
 
 				// Sometimes, on multisite, the table hasn't been created yet, let's try and do that here directly.
@@ -2976,11 +2967,11 @@ abstract class Connector {
 			}
 
 			affiliate_wp()->connections->register_connectable(
-				array(
+				[
 					'name'   => $connectable,
 					'table'  => affiliate_wp()->connections->get_connectable_api( $connectable )->table_name,
 					'column' => affiliate_wp()->connections->get_connectable_api( $connectable )->primary_key,
-				)
+				]
 			);
 		}
 	}
@@ -2998,7 +2989,7 @@ abstract class Connector {
 			throw new \InvalidArgumentException( '$this->capability must be a non-empty string.' );
 		}
 
-		if ( ! $this->string_is_one_of( $this->selector_type, array( 'multiple', 'single' ) ) ) {
+		if ( ! $this->string_is_one_of( $this->selector_type, [ 'multiple', 'single' ] ) ) {
 			throw new \InvalidArgumentException( "\$this->selector_type must be either 'multiple' or 'single'." );
 		}
 
@@ -3041,14 +3032,14 @@ abstract class Connector {
 	protected function strip_quotes( string $string ) : string {
 
 		return str_replace(
-			array(
+			[
 				"'",
 				'"',
-			),
-			array(
+			],
+			[
 				'',
 				'',
-			),
+			],
 			$string
 		);
 	}
@@ -3076,7 +3067,7 @@ abstract class Connector {
 	 *
 	 * @return array
 	 */
-	protected function esc_select_2_json_item( array $item = array() ) {
+	protected function esc_select_2_json_item( array $item = [] ) {
 
 		$selected = isset( $item['selected'] )
 			? true === $item['selected']
@@ -3084,7 +3075,7 @@ abstract class Connector {
 
 		return array_merge(
 			$item,
-			array(
+			[
 				'id'       => esc_attr( $item['id'] ?? 0 ),
 				'text'     => html_entity_decode(
 
@@ -3097,7 +3088,7 @@ abstract class Connector {
 					ENT_COMPAT
 				),
 				'selected' => (bool) $selected,
-			)
+			]
 		);
 	}
 
@@ -3213,16 +3204,16 @@ abstract class Connector {
 	 *
 	 * @throws \InvalidArgumentException If invalid form tag is found in overrides.
 	 */
-	protected function get_form_tags( array $overrides = array() ) : array {
+	protected function get_form_tags( array $overrides = [] ) : array {
 
-		$form_tags = array(
+		$form_tags = [
 			'form'        => 'table',
 			'form_class'  => 'form-table',
 			'row_tag'     => 'tr',
 			'row_class'   => 'form-row',
 			'label_tag'   => 'th',
 			'content_tag' => 'td',
-		);
+		];
 
 		// Make sure they are only setting overrides for the above.
 		foreach ( $overrides as $override => $value ) {

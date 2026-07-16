@@ -31,7 +31,9 @@ class Non_Pro extends Core {
 		// Initiate core.
 		parent::init();
 
-		add_action( 'plugins_loaded', array( $this, 'hooks' ) );
+		// Deferred to 'init' to avoid _load_textdomain_just_in_time warnings in WordPress 6.7+.
+		// The hooks() method uses esc_html__() and __() for translations.
+		add_action( 'init', [ $this, 'hooks' ] );
 	}
 
 	/**
@@ -42,7 +44,7 @@ class Non_Pro extends Core {
 	public function hooks() {
 
 		// Execute core hooks.
-		parent::init();
+		parent::hooks();
 
 		// Allowed only on AffiliateWP pages.
 		if ( ! $this->allow_load() ) {
@@ -54,8 +56,8 @@ class Non_Pro extends Core {
 			return;
 		}
 
-		add_action( 'affiliatewp_admin_education_strings', array( $this, 'append_pro_feature_upgrade_strings' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueues' ) );
+		add_action( 'affiliatewp_admin_education_strings', [ $this, 'append_pro_feature_upgrade_strings' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueues' ] );
 	}
 
 	/**
@@ -66,15 +68,15 @@ class Non_Pro extends Core {
 	public function enqueues() {
 
 		// Enqueue core scripts.
-		parent::init();
+		parent::enqueues();
 
 		// Only Personal and Plus license holders.
 		affiliate_wp()->scripts->enqueue(
 			'affiliatewp-admin-education-non-pro',
-			array(
+			[
 				'jquery-confirm',
 				'affiliatewp-admin-education-core',
-			),
+			],
 			sprintf(
 				'%1$sadmin-education-non-pro%2$s.js',
 				affiliate_wp()->scripts->get_path(),
@@ -92,24 +94,24 @@ class Non_Pro extends Core {
 	 *
 	 * @return array
 	 */
-	public function append_pro_feature_upgrade_strings( array $js_strings = array() ) : array {
+	public function append_pro_feature_upgrade_strings( array $js_strings = [] ) : array {
 
 		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned -- We do not want to align these.
 		return array_merge_recursive(
 			$js_strings,
 			[
-				'upgrade' => array(
+				'upgrade' => [
 					'pro'  => $this->get_upgrade_contents( 'pro' ),
 					'plus' => $this->get_upgrade_contents( 'plus' ),
-				),
+				],
 				'thanks_for_interest' => esc_html__( 'Thanks for your interest in AffiliateWP Pro!', 'affiliate-wp' ),
 				'upgrade_bonus' => wpautop(
 					wp_kses(
-						__( '<strong>Bonus:</strong> AffiliateWP users get <span>60% off</span> regular price, automatically applied at checkout.', 'affiliate-wp' ),
-						array(
+						__( '<strong>Bonus:</strong> AffiliateWP users get <span>50% off</span> regular price, automatically applied at checkout.', 'affiliate-wp' ),
+						[
 							'strong' => [],
 							'span'   => [],
-						)
+						]
 					)
 				),
 			]
@@ -128,8 +130,8 @@ class Non_Pro extends Core {
 	 */
 	private function get_upgrade_contents( string $type ) : array {
 
-		if ( ! in_array( $type, array( 'personal', 'plus', 'pro' ), true ) ) {
-			return array();
+		if ( ! in_array( $type, [ 'personal', 'plus', 'pro' ], true ) ) {
+			return [];
 		}
 
 		$directory = sprintf(
@@ -140,16 +142,16 @@ class Non_Pro extends Core {
 
 		// Check if directory exists.
 		if ( ! is_dir( $directory ) ) {
-			return array();
+			return [];
 		}
 
-		$contents = array();
+		$contents = [];
 
 		// Try to open the directory.
 		$handle = opendir( $directory );
 
 		if ( ! $handle ) {
-			return array();
+			return [];
 		}
 
 		// Loop through each file in the directory.
@@ -170,7 +172,7 @@ class Non_Pro extends Core {
 			if ( is_array( $content ) && ! empty( $content ) ) {
 
 				// These props can also be a function.
-				foreach ( array( 'message', 'modal' ) as $prop ) {
+				foreach ( [ 'message', 'modal' ] as $prop ) {
 
 					if ( isset( $content[ $prop ] ) && is_callable( $content[ $prop ] ) ) {
 						$content[ $prop ] = call_user_func( $content[ $prop ] );
@@ -197,7 +199,7 @@ class Non_Pro extends Core {
 	public static function get_utm_medium() : string {
 
 		$page_prefix = 'affiliate-wp-';
-		$page = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
+		$page        = isset( $_GET['page'] ) ? sanitize_text_field( $_GET['page'] ) : '';
 
 		// Check if the page starts with 'affiliate-wp-' and remove the prefix.
 		if ( strpos( $page, $page_prefix ) === 0 ) {
@@ -208,10 +210,10 @@ class Non_Pro extends Core {
 
 		// Append 'tab' or 'action' if they exist, replacing underscores with hyphens.
 		if ( isset( $_GET['tab'] ) ) {
-			$tab_value = str_replace( '_', '-', sanitize_text_field( $_GET['tab'] ) );
+			$tab_value           = str_replace( '_', '-', sanitize_text_field( $_GET['tab'] ) );
 			$upgrade_utm_medium .= '-' . $tab_value;
 		} elseif ( isset( $_GET['action'] ) ) {
-			$action_value = str_replace( '_', '-', sanitize_text_field( $_GET['action'] ) );
+			$action_value        = str_replace( '_', '-', sanitize_text_field( $_GET['action'] ) );
 			$upgrade_utm_medium .= '-' . $action_value;
 		}
 
@@ -231,13 +233,13 @@ class Non_Pro extends Core {
 			sprintf(
 				wp_kses( /* translators: %s - affiliatewp.com contact page URL. */
 					__( 'Thank you for considering upgrading. If you have any questions, please <a href="%s" target="_blank" rel="noopener noreferrer">let us know</a>.', 'affiliate-wp' ),
-					array(
-						'a' => array(
-							'href'   => array(),
-							'target' => array(),
-							'rel'    => array(),
-						),
-					)
+					[
+						'a' => [
+							'href'   => [],
+							'target' => [],
+							'rel'    => [],
+						],
+					]
 				),
 				esc_url(
 					affwp_utm_link(
@@ -251,24 +253,24 @@ class Non_Pro extends Core {
 			'<p>' .
 			wp_kses(
 				__( 'After upgrading, your license key will remain the same.<br>You may need to do a quick refresh to unlock your new addons. In your WordPress admin, go to <strong>AffiliateWP &raquo; Settings</strong>. If you don\'t see your updated plan, click <em>refresh</em>.', 'affiliate-wp' ),
-				array(
-					'strong' => array(),
-					'br'     => array(),
-					'em'     => array(),
-				)
+				[
+					'strong' => [],
+					'br'     => [],
+					'em'     => [],
+				]
 			) .
 			'</p>' .
 			'<p>' .
 			sprintf(
 				wp_kses( /* translators: %s - WPForms.com upgrade license docs page URL. */
 					__( 'Check out <a href="%s" target="_blank" rel="noopener noreferrer">our documentation</a> for step-by-step instructions.', 'affiliate-wp' ),
-					array(
-						'a' => array(
-							'href'   => array(),
-							'target' => array(),
-							'rel'    => array(),
-						),
-					)
+					[
+						'a' => [
+							'href'   => [],
+							'target' => [],
+							'rel'    => [],
+						],
+					]
 				),
 				'https://affiliatewp.com/docs/upgrade-affiliatewp-license/'
 			) .

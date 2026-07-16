@@ -1,1459 +1,6350 @@
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+
+;// ./node_modules/alpinejs/dist/module.esm.js
+// packages/alpinejs/src/scheduler.js
+var flushPending = false;
+var flushing = false;
+var queue = [];
+var lastFlushedIndex = -1;
+var transactionActive = false;
+function scheduler(callback) {
+  queueJob(callback);
+}
+function startTransaction() {
+  transactionActive = true;
+}
+function commitTransaction() {
+  transactionActive = false;
+  queueFlush();
+}
+function queueJob(job) {
+  if (!queue.includes(job))
+    queue.push(job);
+  queueFlush();
+}
+function dequeueJob(job) {
+  let index = queue.indexOf(job);
+  if (index !== -1 && index > lastFlushedIndex)
+    queue.splice(index, 1);
+}
+function queueFlush() {
+  if (!flushing && !flushPending) {
+    if (transactionActive)
+      return;
+    flushPending = true;
+    queueMicrotask(flushJobs);
+  }
+}
+function flushJobs() {
+  flushPending = false;
+  flushing = true;
+  for (let i = 0; i < queue.length; i++) {
+    queue[i]();
+    lastFlushedIndex = i;
+  }
+  queue.length = 0;
+  lastFlushedIndex = -1;
+  flushing = false;
+}
+
+// packages/alpinejs/src/reactivity.js
+var reactive;
+var effect;
+var release;
+var raw;
+var shouldSchedule = true;
+function disableEffectScheduling(callback) {
+  shouldSchedule = false;
+  callback();
+  shouldSchedule = true;
+}
+function setReactivityEngine(engine) {
+  reactive = engine.reactive;
+  release = engine.release;
+  effect = (callback) => engine.effect(callback, { scheduler: (task) => {
+    if (shouldSchedule) {
+      scheduler(task);
+    } else {
+      task();
+    }
+  } });
+  raw = engine.raw;
+}
+function overrideEffect(override) {
+  effect = override;
+}
+function elementBoundEffect(el) {
+  let cleanup2 = () => {
+  };
+  let wrappedEffect = (callback) => {
+    let effectReference = effect(callback);
+    if (!el._x_effects) {
+      el._x_effects = /* @__PURE__ */ new Set();
+      el._x_runEffects = () => {
+        el._x_effects.forEach((i) => i());
+      };
+    }
+    el._x_effects.add(effectReference);
+    cleanup2 = () => {
+      if (effectReference === void 0)
+        return;
+      el._x_effects.delete(effectReference);
+      release(effectReference);
+    };
+    return effectReference;
+  };
+  return [wrappedEffect, () => {
+    cleanup2();
+  }];
+}
+function watch(getter, callback) {
+  let firstTime = true;
+  let oldValue;
+  let effectReference = effect(() => {
+    let value = getter();
+    JSON.stringify(value);
+    if (!firstTime) {
+      if (typeof value === "object" || value !== oldValue) {
+        let previousValue = oldValue;
+        queueMicrotask(() => {
+          callback(value, previousValue);
+        });
+      }
+    }
+    oldValue = value;
+    firstTime = false;
+  });
+  return () => release(effectReference);
+}
+async function transaction(callback) {
+  startTransaction();
+  try {
+    await callback();
+    await Promise.resolve();
+  } finally {
+    commitTransaction();
+  }
+}
+
+// packages/alpinejs/src/mutation.js
+var onAttributeAddeds = [];
+var onElRemoveds = [];
+var onElAddeds = [];
+function onElAdded(callback) {
+  onElAddeds.push(callback);
+}
+function onElRemoved(el, callback) {
+  if (typeof callback === "function") {
+    if (!el._x_cleanups)
+      el._x_cleanups = [];
+    el._x_cleanups.push(callback);
+  } else {
+    callback = el;
+    onElRemoveds.push(callback);
+  }
+}
+function onAttributesAdded(callback) {
+  onAttributeAddeds.push(callback);
+}
+function onAttributeRemoved(el, name, callback) {
+  if (!el._x_attributeCleanups)
+    el._x_attributeCleanups = {};
+  if (!el._x_attributeCleanups[name])
+    el._x_attributeCleanups[name] = [];
+  el._x_attributeCleanups[name].push(callback);
+}
+function cleanupAttributes(el, names) {
+  if (!el._x_attributeCleanups)
+    return;
+  Object.entries(el._x_attributeCleanups).forEach(([name, value]) => {
+    if (names === void 0 || names.includes(name)) {
+      value.forEach((i) => i());
+      delete el._x_attributeCleanups[name];
+    }
+  });
+}
+function cleanupElement(el) {
+  el._x_effects?.forEach(dequeueJob);
+  while (el._x_cleanups?.length)
+    el._x_cleanups.pop()();
+}
+var observer = new MutationObserver(onMutate);
+var currentlyObserving = false;
+function startObservingMutations() {
+  observer.observe(document, { subtree: true, childList: true, attributes: true, attributeOldValue: true });
+  currentlyObserving = true;
+}
+function stopObservingMutations() {
+  flushObserver();
+  observer.disconnect();
+  currentlyObserving = false;
+}
+var queuedMutations = [];
+function flushObserver() {
+  let records = observer.takeRecords();
+  queuedMutations.push(() => records.length > 0 && onMutate(records));
+  let queueLengthWhenTriggered = queuedMutations.length;
+  queueMicrotask(() => {
+    if (queuedMutations.length === queueLengthWhenTriggered) {
+      while (queuedMutations.length > 0)
+        queuedMutations.shift()();
+    }
+  });
+}
+function mutateDom(callback) {
+  if (!currentlyObserving)
+    return callback();
+  stopObservingMutations();
+  let result = callback();
+  startObservingMutations();
+  return result;
+}
+var isCollecting = false;
+var deferredMutations = [];
+function deferMutations() {
+  isCollecting = true;
+}
+function flushAndStopDeferringMutations() {
+  isCollecting = false;
+  onMutate(deferredMutations);
+  deferredMutations = [];
+}
+function onMutate(mutations) {
+  if (isCollecting) {
+    deferredMutations = deferredMutations.concat(mutations);
+    return;
+  }
+  let addedNodes = [];
+  let removedNodes = /* @__PURE__ */ new Set();
+  let addedAttributes = /* @__PURE__ */ new Map();
+  let removedAttributes = /* @__PURE__ */ new Map();
+  for (let i = 0; i < mutations.length; i++) {
+    if (mutations[i].target._x_ignoreMutationObserver)
+      continue;
+    if (mutations[i].type === "childList") {
+      mutations[i].removedNodes.forEach((node) => {
+        if (node.nodeType !== 1)
+          return;
+        if (!node._x_marker)
+          return;
+        removedNodes.add(node);
+      });
+      mutations[i].addedNodes.forEach((node) => {
+        if (node.nodeType !== 1)
+          return;
+        if (removedNodes.has(node)) {
+          removedNodes.delete(node);
+          return;
+        }
+        if (node._x_marker)
+          return;
+        addedNodes.push(node);
+      });
+    }
+    if (mutations[i].type === "attributes") {
+      let el = mutations[i].target;
+      let name = mutations[i].attributeName;
+      let oldValue = mutations[i].oldValue;
+      let add2 = () => {
+        if (!addedAttributes.has(el))
+          addedAttributes.set(el, []);
+        addedAttributes.get(el).push({ name, value: el.getAttribute(name) });
+      };
+      let remove = () => {
+        if (!removedAttributes.has(el))
+          removedAttributes.set(el, []);
+        removedAttributes.get(el).push(name);
+      };
+      if (el.hasAttribute(name) && oldValue === null) {
+        add2();
+      } else if (el.hasAttribute(name)) {
+        remove();
+        add2();
+      } else {
+        remove();
+      }
+    }
+  }
+  removedAttributes.forEach((attrs, el) => {
+    cleanupAttributes(el, attrs);
+  });
+  addedAttributes.forEach((attrs, el) => {
+    onAttributeAddeds.forEach((i) => i(el, attrs));
+  });
+  for (let node of removedNodes) {
+    if (addedNodes.some((i) => i.contains(node)))
+      continue;
+    onElRemoveds.forEach((i) => i(node));
+  }
+  for (let node of addedNodes) {
+    if (!node.isConnected)
+      continue;
+    onElAddeds.forEach((i) => i(node));
+  }
+  addedNodes = null;
+  removedNodes = null;
+  addedAttributes = null;
+  removedAttributes = null;
+}
+
+// packages/alpinejs/src/scope.js
+function scope(node) {
+  return mergeProxies(closestDataStack(node));
+}
+function addScopeToNode(node, data2, referenceNode) {
+  node._x_dataStack = [data2, ...closestDataStack(referenceNode || node)];
+  return () => {
+    node._x_dataStack = node._x_dataStack.filter((i) => i !== data2);
+  };
+}
+function closestDataStack(node) {
+  if (node._x_dataStack)
+    return node._x_dataStack;
+  if (typeof ShadowRoot === "function" && node instanceof ShadowRoot) {
+    return closestDataStack(node.host);
+  }
+  if (!node.parentNode) {
+    return [];
+  }
+  return closestDataStack(node.parentNode);
+}
+function mergeProxies(objects) {
+  return new Proxy({ objects }, mergeProxyTrap);
+}
+var mergeProxyTrap = {
+  ownKeys({ objects }) {
+    return Array.from(
+      new Set(objects.flatMap((i) => Object.keys(i)))
+    );
+  },
+  has({ objects }, name) {
+    if (name == Symbol.unscopables)
+      return false;
+    return objects.some(
+      (obj) => Object.prototype.hasOwnProperty.call(obj, name) || Reflect.has(obj, name)
+    );
+  },
+  get({ objects }, name, thisProxy) {
+    if (name == "toJSON")
+      return collapseProxies;
+    return Reflect.get(
+      objects.find(
+        (obj) => Reflect.has(obj, name)
+      ) || {},
+      name,
+      thisProxy
+    );
+  },
+  set({ objects }, name, value, thisProxy) {
+    const target = objects.find(
+      (obj) => Object.prototype.hasOwnProperty.call(obj, name)
+    ) || objects[objects.length - 1];
+    const descriptor = Object.getOwnPropertyDescriptor(target, name);
+    if (descriptor?.set && descriptor?.get)
+      return descriptor.set.call(thisProxy, value) || true;
+    return Reflect.set(target, name, value);
+  }
+};
+function collapseProxies() {
+  let keys = Reflect.ownKeys(this);
+  return keys.reduce((acc, key) => {
+    acc[key] = Reflect.get(this, key);
+    return acc;
+  }, {});
+}
+
+// packages/alpinejs/src/interceptor.js
+function initInterceptors(data2) {
+  let isObject2 = (val) => typeof val === "object" && !Array.isArray(val) && val !== null;
+  let recurse = (obj, basePath = "") => {
+    Object.entries(Object.getOwnPropertyDescriptors(obj)).forEach(([key, { value, enumerable }]) => {
+      if (enumerable === false || value === void 0)
+        return;
+      if (typeof value === "object" && value !== null && value.__v_skip)
+        return;
+      let path = basePath === "" ? key : `${basePath}.${key}`;
+      if (typeof value === "object" && value !== null && value._x_interceptor) {
+        obj[key] = value.initialize(data2, path, key);
+      } else {
+        if (isObject2(value) && value !== obj && !(value instanceof Element)) {
+          recurse(value, path);
+        }
+      }
+    });
+  };
+  return recurse(data2);
+}
+function interceptor(callback, mutateObj = () => {
+}) {
+  let obj = {
+    initialValue: void 0,
+    _x_interceptor: true,
+    initialize(data2, path, key) {
+      return callback(this.initialValue, () => get(data2, path), (value) => set(data2, path, value), path, key);
+    }
+  };
+  mutateObj(obj);
+  return (initialValue) => {
+    if (typeof initialValue === "object" && initialValue !== null && initialValue._x_interceptor) {
+      let initialize = obj.initialize.bind(obj);
+      obj.initialize = (data2, path, key) => {
+        let innerValue = initialValue.initialize(data2, path, key);
+        obj.initialValue = innerValue;
+        return initialize(data2, path, key);
+      };
+    } else {
+      obj.initialValue = initialValue;
+    }
+    return obj;
+  };
+}
+function get(obj, path) {
+  return path.split(".").reduce((carry, segment) => carry[segment], obj);
+}
+function set(obj, path, value) {
+  if (typeof path === "string")
+    path = path.split(".");
+  if (path.length === 1)
+    obj[path[0]] = value;
+  else if (path.length === 0)
+    throw error;
+  else {
+    if (obj[path[0]])
+      return set(obj[path[0]], path.slice(1), value);
+    else {
+      obj[path[0]] = {};
+      return set(obj[path[0]], path.slice(1), value);
+    }
+  }
+}
+
+// packages/alpinejs/src/magics.js
+var magics = {};
+function magic(name, callback) {
+  magics[name] = callback;
+}
+function injectMagics(obj, el) {
+  let memoizedUtilities = getUtilities(el);
+  Object.entries(magics).forEach(([name, callback]) => {
+    Object.defineProperty(obj, `$${name}`, {
+      get() {
+        return callback(el, memoizedUtilities);
+      },
+      enumerable: false
+    });
+  });
+  return obj;
+}
+function getUtilities(el) {
+  let [utilities, cleanup2] = getElementBoundUtilities(el);
+  let utils = { interceptor, ...utilities };
+  onElRemoved(el, cleanup2);
+  return utils;
+}
+
+// packages/alpinejs/src/utils/error.js
+function tryCatch(el, expression, callback, ...args) {
+  try {
+    return callback(...args);
+  } catch (e) {
+    handleError(e, el, expression);
+  }
+}
+function handleError(...args) {
+  return errorHandler(...args);
+}
+var errorHandler = normalErrorHandler;
+function setErrorHandler(handler4) {
+  errorHandler = handler4;
+}
+function normalErrorHandler(error2, el, expression = void 0) {
+  error2 = Object.assign(
+    error2 ?? { message: "No error message given." },
+    { el, expression }
+  );
+  console.warn(`Alpine Expression Error: ${error2.message}
+
+${expression ? 'Expression: "' + expression + '"\n\n' : ""}`, el);
+  setTimeout(() => {
+    throw error2;
+  }, 0);
+}
+
+// packages/alpinejs/src/evaluator.js
+var shouldAutoEvaluateFunctions = true;
+function dontAutoEvaluateFunctions(callback) {
+  let cache = shouldAutoEvaluateFunctions;
+  shouldAutoEvaluateFunctions = false;
+  let result = callback();
+  shouldAutoEvaluateFunctions = cache;
+  return result;
+}
+function evaluate(el, expression, extras = {}) {
+  let result;
+  evaluateLater(el, expression)((value) => result = value, extras);
+  return result;
+}
+function evaluateLater(...args) {
+  return theEvaluatorFunction(...args);
+}
+var theEvaluatorFunction = normalEvaluator;
+function setEvaluator(newEvaluator) {
+  theEvaluatorFunction = newEvaluator;
+}
+var theRawEvaluatorFunction;
+function setRawEvaluator(newEvaluator) {
+  theRawEvaluatorFunction = newEvaluator;
+}
+function normalEvaluator(el, expression) {
+  let overriddenMagics = {};
+  injectMagics(overriddenMagics, el);
+  let dataStack = [overriddenMagics, ...closestDataStack(el)];
+  let evaluator = typeof expression === "function" ? generateEvaluatorFromFunction(dataStack, expression) : generateEvaluatorFromString(dataStack, expression, el);
+  return tryCatch.bind(null, el, expression, evaluator);
+}
+function generateEvaluatorFromFunction(dataStack, func) {
+  return (receiver = () => {
+  }, { scope: scope2 = {}, params = [], context } = {}) => {
+    if (!shouldAutoEvaluateFunctions) {
+      runIfTypeOfFunction(receiver, func, mergeProxies([scope2, ...dataStack]), params);
+      return;
+    }
+    let result = func.apply(mergeProxies([scope2, ...dataStack]), params);
+    runIfTypeOfFunction(receiver, result);
+  };
+}
+var evaluatorMemo = {};
+function generateFunctionFromString(expression, el) {
+  if (evaluatorMemo[expression]) {
+    return evaluatorMemo[expression];
+  }
+  let AsyncFunction = Object.getPrototypeOf(async function() {
+  }).constructor;
+  let rightSideSafeExpression = /^[\n\s]*if.*\(.*\)/.test(expression.trim()) || /^(let|const)\s/.test(expression.trim()) ? `(async()=>{ ${expression} })()` : expression;
+  const safeAsyncFunction = () => {
+    try {
+      let func2 = new AsyncFunction(
+        ["__self", "scope"],
+        `with (scope) { __self.result = ${rightSideSafeExpression} }; __self.finished = true; return __self.result;`
+      );
+      Object.defineProperty(func2, "name", {
+        value: `[Alpine] ${expression}`
+      });
+      return func2;
+    } catch (error2) {
+      handleError(error2, el, expression);
+      return Promise.resolve();
+    }
+  };
+  let func = safeAsyncFunction();
+  evaluatorMemo[expression] = func;
+  return func;
+}
+function generateEvaluatorFromString(dataStack, expression, el) {
+  let func = generateFunctionFromString(expression, el);
+  return (receiver = () => {
+  }, { scope: scope2 = {}, params = [], context } = {}) => {
+    func.result = void 0;
+    func.finished = false;
+    let completeScope = mergeProxies([scope2, ...dataStack]);
+    if (typeof func === "function") {
+      let promise = func.call(context, func, completeScope).catch((error2) => handleError(error2, el, expression));
+      if (func.finished) {
+        runIfTypeOfFunction(receiver, func.result, completeScope, params, el);
+        func.result = void 0;
+      } else {
+        promise.then((result) => {
+          runIfTypeOfFunction(receiver, result, completeScope, params, el);
+        }).catch((error2) => handleError(error2, el, expression)).finally(() => func.result = void 0);
+      }
+    }
+  };
+}
+function runIfTypeOfFunction(receiver, value, scope2, params, el) {
+  if (shouldAutoEvaluateFunctions && typeof value === "function") {
+    let result = value.apply(scope2, params);
+    if (result instanceof Promise) {
+      result.then((i) => runIfTypeOfFunction(receiver, i, scope2, params)).catch((error2) => handleError(error2, el, value));
+    } else {
+      receiver(result);
+    }
+  } else if (typeof value === "object" && value instanceof Promise) {
+    value.then((i) => receiver(i));
+  } else {
+    receiver(value);
+  }
+}
+function evaluateRaw(...args) {
+  return theRawEvaluatorFunction(...args);
+}
+function normalRawEvaluator(el, expression, extras = {}) {
+  let overriddenMagics = {};
+  injectMagics(overriddenMagics, el);
+  let dataStack = [overriddenMagics, ...closestDataStack(el)];
+  let scope2 = mergeProxies([extras.scope ?? {}, ...dataStack]);
+  let params = extras.params ?? [];
+  if (expression.includes("await")) {
+    let AsyncFunction = Object.getPrototypeOf(async function() {
+    }).constructor;
+    let rightSideSafeExpression = /^[\n\s]*if.*\(.*\)/.test(expression.trim()) || /^(let|const)\s/.test(expression.trim()) ? `(async()=>{ ${expression} })()` : expression;
+    let func = new AsyncFunction(
+      ["scope"],
+      `with (scope) { let __result = ${rightSideSafeExpression}; return __result }`
+    );
+    let result = func.call(extras.context, scope2);
+    return result;
+  } else {
+    let rightSideSafeExpression = /^[\n\s]*if.*\(.*\)/.test(expression.trim()) || /^(let|const)\s/.test(expression.trim()) ? `(()=>{ ${expression} })()` : expression;
+    let func = new Function(
+      ["scope"],
+      `with (scope) { let __result = ${rightSideSafeExpression}; return __result }`
+    );
+    let result = func.call(extras.context, scope2);
+    if (typeof result === "function" && shouldAutoEvaluateFunctions) {
+      return result.apply(scope2, params);
+    }
+    return result;
+  }
+}
+
+// packages/alpinejs/src/directives.js
+var prefixAsString = "x-";
+function prefix(subject = "") {
+  return prefixAsString + subject;
+}
+function setPrefix(newPrefix) {
+  prefixAsString = newPrefix;
+}
+var directiveHandlers = {};
+function directive(name, callback) {
+  directiveHandlers[name] = callback;
+  return {
+    before(directive2) {
+      if (!directiveHandlers[directive2]) {
+        console.warn(String.raw`Cannot find directive \`${directive2}\`. \`${name}\` will use the default order of execution`);
+        return;
+      }
+      const pos = directiveOrder.indexOf(directive2);
+      directiveOrder.splice(pos >= 0 ? pos : directiveOrder.indexOf("DEFAULT"), 0, name);
+    }
+  };
+}
+function directiveExists(name) {
+  return Object.keys(directiveHandlers).includes(name);
+}
+function directives(el, attributes, originalAttributeOverride) {
+  attributes = Array.from(attributes);
+  if (el._x_virtualDirectives) {
+    let vAttributes = Object.entries(el._x_virtualDirectives).map(([name, value]) => ({ name, value }));
+    let staticAttributes = attributesOnly(vAttributes);
+    vAttributes = vAttributes.map((attribute) => {
+      if (staticAttributes.find((attr) => attr.name === attribute.name)) {
+        return {
+          name: `x-bind:${attribute.name}`,
+          value: `"${attribute.value}"`
+        };
+      }
+      return attribute;
+    });
+    attributes = attributes.concat(vAttributes);
+  }
+  let transformedAttributeMap = {};
+  let directives2 = attributes.map(toTransformedAttributes((newName, oldName) => transformedAttributeMap[newName] = oldName)).filter(outNonAlpineAttributes).map(toParsedDirectives(transformedAttributeMap, originalAttributeOverride)).sort(byPriority);
+  return directives2.map((directive2) => {
+    return getDirectiveHandler(el, directive2);
+  });
+}
+function attributesOnly(attributes) {
+  return Array.from(attributes).map(toTransformedAttributes()).filter((attr) => !outNonAlpineAttributes(attr));
+}
+var isDeferringHandlers = false;
+var directiveHandlerStacks = /* @__PURE__ */ new Map();
+var currentHandlerStackKey = Symbol();
+function deferHandlingDirectives(callback) {
+  isDeferringHandlers = true;
+  let key = Symbol();
+  currentHandlerStackKey = key;
+  directiveHandlerStacks.set(key, []);
+  let flushHandlers = () => {
+    while (directiveHandlerStacks.get(key).length)
+      directiveHandlerStacks.get(key).shift()();
+    directiveHandlerStacks.delete(key);
+  };
+  let stopDeferring = () => {
+    isDeferringHandlers = false;
+    flushHandlers();
+  };
+  callback(flushHandlers);
+  stopDeferring();
+}
+function getElementBoundUtilities(el) {
+  let cleanups = [];
+  let cleanup2 = (callback) => cleanups.push(callback);
+  let [effect3, cleanupEffect] = elementBoundEffect(el);
+  cleanups.push(cleanupEffect);
+  let utilities = {
+    Alpine: alpine_default,
+    effect: effect3,
+    cleanup: cleanup2,
+    evaluateLater: evaluateLater.bind(evaluateLater, el),
+    evaluate: evaluate.bind(evaluate, el)
+  };
+  let doCleanup = () => cleanups.forEach((i) => i());
+  return [utilities, doCleanup];
+}
+function getDirectiveHandler(el, directive2) {
+  let noop = () => {
+  };
+  let handler4 = directiveHandlers[directive2.type] || noop;
+  let [utilities, cleanup2] = getElementBoundUtilities(el);
+  onAttributeRemoved(el, directive2.original, cleanup2);
+  let fullHandler = () => {
+    if (el._x_ignore || el._x_ignoreSelf)
+      return;
+    handler4.inline && handler4.inline(el, directive2, utilities);
+    handler4 = handler4.bind(handler4, el, directive2, utilities);
+    isDeferringHandlers ? directiveHandlerStacks.get(currentHandlerStackKey).push(handler4) : handler4();
+  };
+  fullHandler.runCleanups = cleanup2;
+  return fullHandler;
+}
+var startingWith = (subject, replacement) => ({ name, value }) => {
+  if (name.startsWith(subject))
+    name = name.replace(subject, replacement);
+  return { name, value };
+};
+var into = (i) => i;
+function toTransformedAttributes(callback = () => {
+}) {
+  return ({ name, value }) => {
+    let { name: newName, value: newValue } = attributeTransformers.reduce((carry, transform) => {
+      return transform(carry);
+    }, { name, value });
+    if (newName !== name)
+      callback(newName, name);
+    return { name: newName, value: newValue };
+  };
+}
+var attributeTransformers = [];
+function mapAttributes(callback) {
+  attributeTransformers.push(callback);
+}
+function outNonAlpineAttributes({ name }) {
+  return alpineAttributeRegex().test(name);
+}
+var alpineAttributeRegex = () => new RegExp(`^${prefixAsString}([^:^.]+)\\b`);
+function toParsedDirectives(transformedAttributeMap, originalAttributeOverride) {
+  return ({ name, value }) => {
+    if (name === value)
+      value = "";
+    let typeMatch = name.match(alpineAttributeRegex());
+    let valueMatch = name.match(/:([a-zA-Z0-9\-_:]+)/);
+    let modifiers = name.match(/\.[^.\]]+(?=[^\]]*$)/g) || [];
+    let original = originalAttributeOverride || transformedAttributeMap[name] || name;
+    return {
+      type: typeMatch ? typeMatch[1] : null,
+      value: valueMatch ? valueMatch[1] : null,
+      modifiers: modifiers.map((i) => i.replace(".", "")),
+      expression: value,
+      original
+    };
+  };
+}
+var DEFAULT = "DEFAULT";
+var directiveOrder = [
+  "ignore",
+  "ref",
+  "data",
+  "id",
+  "anchor",
+  "bind",
+  "init",
+  "for",
+  "model",
+  "modelable",
+  "transition",
+  "show",
+  "if",
+  DEFAULT,
+  "teleport"
+];
+function byPriority(a, b) {
+  let typeA = directiveOrder.indexOf(a.type) === -1 ? DEFAULT : a.type;
+  let typeB = directiveOrder.indexOf(b.type) === -1 ? DEFAULT : b.type;
+  return directiveOrder.indexOf(typeA) - directiveOrder.indexOf(typeB);
+}
+
+// packages/alpinejs/src/utils/dispatch.js
+function dispatch(el, name, detail = {}) {
+  el.dispatchEvent(
+    new CustomEvent(name, {
+      detail,
+      bubbles: true,
+      // Allows events to pass the shadow DOM barrier.
+      composed: true,
+      cancelable: true
+    })
+  );
+}
+
+// packages/alpinejs/src/utils/walk.js
+function walk(el, callback) {
+  if (typeof ShadowRoot === "function" && el instanceof ShadowRoot) {
+    Array.from(el.children).forEach((el2) => walk(el2, callback));
+    return;
+  }
+  let skip = false;
+  callback(el, () => skip = true);
+  if (skip)
+    return;
+  let node = el.firstElementChild;
+  while (node) {
+    walk(node, callback, false);
+    node = node.nextElementSibling;
+  }
+}
+
+// packages/alpinejs/src/utils/warn.js
+function warn(message, ...args) {
+  console.warn(`Alpine Warning: ${message}`, ...args);
+}
+
+// packages/alpinejs/src/lifecycle.js
+var started = false;
+function start() {
+  if (started)
+    warn("Alpine has already been initialized on this page. Calling Alpine.start() more than once can cause problems.");
+  started = true;
+  if (!document.body)
+    warn("Unable to initialize. Trying to load Alpine before `<body>` is available. Did you forget to add `defer` in Alpine's `<script>` tag?");
+  dispatch(document, "alpine:init");
+  dispatch(document, "alpine:initializing");
+  startObservingMutations();
+  onElAdded((el) => initTree(el, walk));
+  onElRemoved((el) => destroyTree(el));
+  onAttributesAdded((el, attrs) => {
+    directives(el, attrs).forEach((handle) => handle());
+  });
+  let outNestedComponents = (el) => !closestRoot(el.parentElement, true);
+  Array.from(document.querySelectorAll(allSelectors().join(","))).filter(outNestedComponents).forEach((el) => {
+    initTree(el);
+  });
+  dispatch(document, "alpine:initialized");
+  setTimeout(() => {
+    warnAboutMissingPlugins();
+  });
+}
+var rootSelectorCallbacks = [];
+var initSelectorCallbacks = [];
+function rootSelectors() {
+  return rootSelectorCallbacks.map((fn) => fn());
+}
+function allSelectors() {
+  return rootSelectorCallbacks.concat(initSelectorCallbacks).map((fn) => fn());
+}
+function addRootSelector(selectorCallback) {
+  rootSelectorCallbacks.push(selectorCallback);
+}
+function addInitSelector(selectorCallback) {
+  initSelectorCallbacks.push(selectorCallback);
+}
+function closestRoot(el, includeInitSelectors = false) {
+  return findClosest(el, (element) => {
+    const selectors = includeInitSelectors ? allSelectors() : rootSelectors();
+    if (selectors.some((selector) => element.matches(selector)))
+      return true;
+  });
+}
+function findClosest(el, callback) {
+  if (!el)
+    return;
+  if (callback(el))
+    return el;
+  if (el._x_teleportBack)
+    el = el._x_teleportBack;
+  if (el.parentNode instanceof ShadowRoot) {
+    return findClosest(el.parentNode.host, callback);
+  }
+  if (!el.parentElement)
+    return;
+  return findClosest(el.parentElement, callback);
+}
+function isRoot(el) {
+  return rootSelectors().some((selector) => el.matches(selector));
+}
+var initInterceptors2 = [];
+function interceptInit(callback) {
+  initInterceptors2.push(callback);
+}
+var markerDispenser = 1;
+function initTree(el, walker = walk, intercept = () => {
+}) {
+  if (findClosest(el, (i) => i._x_ignore))
+    return;
+  deferHandlingDirectives(() => {
+    walker(el, (el2, skip) => {
+      if (el2._x_marker)
+        return;
+      intercept(el2, skip);
+      initInterceptors2.forEach((i) => i(el2, skip));
+      directives(el2, el2.attributes).forEach((handle) => handle());
+      if (!el2._x_ignore)
+        el2._x_marker = markerDispenser++;
+      el2._x_ignore && skip();
+    });
+  });
+}
+function destroyTree(root, walker = walk) {
+  walker(root, (el) => {
+    cleanupElement(el);
+    cleanupAttributes(el);
+    delete el._x_marker;
+  });
+}
+function warnAboutMissingPlugins() {
+  let pluginDirectives = [
+    ["ui", "dialog", ["[x-dialog], [x-popover]"]],
+    ["anchor", "anchor", ["[x-anchor]"]],
+    ["sort", "sort", ["[x-sort]"]]
+  ];
+  pluginDirectives.forEach(([plugin2, directive2, selectors]) => {
+    if (directiveExists(directive2))
+      return;
+    selectors.some((selector) => {
+      if (document.querySelector(selector)) {
+        warn(`found "${selector}", but missing ${plugin2} plugin`);
+        return true;
+      }
+    });
+  });
+}
+
+// packages/alpinejs/src/nextTick.js
+var tickStack = [];
+var isHolding = false;
+function nextTick(callback = () => {
+}) {
+  queueMicrotask(() => {
+    isHolding || setTimeout(() => {
+      releaseNextTicks();
+    });
+  });
+  return new Promise((res) => {
+    tickStack.push(() => {
+      callback();
+      res();
+    });
+  });
+}
+function releaseNextTicks() {
+  isHolding = false;
+  while (tickStack.length)
+    tickStack.shift()();
+}
+function holdNextTicks() {
+  isHolding = true;
+}
+
+// packages/alpinejs/src/utils/classes.js
+function setClasses(el, value) {
+  if (Array.isArray(value)) {
+    return setClassesFromString(el, value.join(" "));
+  } else if (typeof value === "object" && value !== null) {
+    return setClassesFromObject(el, value);
+  } else if (typeof value === "function") {
+    return setClasses(el, value());
+  }
+  return setClassesFromString(el, value);
+}
+function setClassesFromString(el, classString) {
+  let split = (classString2) => classString2.split(" ").filter(Boolean);
+  let missingClasses = (classString2) => classString2.split(" ").filter((i) => !el.classList.contains(i)).filter(Boolean);
+  let addClassesAndReturnUndo = (classes) => {
+    el.classList.add(...classes);
+    return () => {
+      el.classList.remove(...classes);
+    };
+  };
+  classString = classString === true ? classString = "" : classString || "";
+  return addClassesAndReturnUndo(missingClasses(classString));
+}
+function setClassesFromObject(el, classObject) {
+  let split = (classString) => classString.split(" ").filter(Boolean);
+  let forAdd = Object.entries(classObject).flatMap(([classString, bool]) => bool ? split(classString) : false).filter(Boolean);
+  let forRemove = Object.entries(classObject).flatMap(([classString, bool]) => !bool ? split(classString) : false).filter(Boolean);
+  let added = [];
+  let removed = [];
+  forRemove.forEach((i) => {
+    if (el.classList.contains(i)) {
+      el.classList.remove(i);
+      removed.push(i);
+    }
+  });
+  forAdd.forEach((i) => {
+    if (!el.classList.contains(i)) {
+      el.classList.add(i);
+      added.push(i);
+    }
+  });
+  return () => {
+    removed.forEach((i) => el.classList.add(i));
+    added.forEach((i) => el.classList.remove(i));
+  };
+}
+
+// packages/alpinejs/src/utils/styles.js
+function setStyles(el, value) {
+  if (typeof value === "object" && value !== null) {
+    return setStylesFromObject(el, value);
+  }
+  return setStylesFromString(el, value);
+}
+function setStylesFromObject(el, value) {
+  let previousStyles = {};
+  Object.entries(value).forEach(([key, value2]) => {
+    previousStyles[key] = el.style[key];
+    if (!key.startsWith("--")) {
+      key = kebabCase(key);
+    }
+    el.style.setProperty(key, value2);
+  });
+  setTimeout(() => {
+    if (el.style.length === 0) {
+      el.removeAttribute("style");
+    }
+  });
+  return () => {
+    setStyles(el, previousStyles);
+  };
+}
+function setStylesFromString(el, value) {
+  let cache = el.getAttribute("style", value);
+  el.setAttribute("style", value);
+  return () => {
+    el.setAttribute("style", cache || "");
+  };
+}
+function kebabCase(subject) {
+  return subject.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+}
+
+// packages/alpinejs/src/utils/once.js
+function once(callback, fallback = () => {
+}) {
+  let called = false;
+  return function() {
+    if (!called) {
+      called = true;
+      callback.apply(this, arguments);
+    } else {
+      fallback.apply(this, arguments);
+    }
+  };
+}
+
+// packages/alpinejs/src/directives/x-transition.js
+directive("transition", (el, { value, modifiers, expression }, { evaluate: evaluate2 }) => {
+  if (typeof expression === "function")
+    expression = evaluate2(expression);
+  if (expression === false)
+    return;
+  if (!expression || typeof expression === "boolean") {
+    registerTransitionsFromHelper(el, modifiers, value);
+  } else {
+    registerTransitionsFromClassString(el, expression, value);
+  }
+});
+function registerTransitionsFromClassString(el, classString, stage) {
+  registerTransitionObject(el, setClasses, "");
+  let directiveStorageMap = {
+    "enter": (classes) => {
+      el._x_transition.enter.during = classes;
+    },
+    "enter-start": (classes) => {
+      el._x_transition.enter.start = classes;
+    },
+    "enter-end": (classes) => {
+      el._x_transition.enter.end = classes;
+    },
+    "leave": (classes) => {
+      el._x_transition.leave.during = classes;
+    },
+    "leave-start": (classes) => {
+      el._x_transition.leave.start = classes;
+    },
+    "leave-end": (classes) => {
+      el._x_transition.leave.end = classes;
+    }
+  };
+  directiveStorageMap[stage](classString);
+}
+function registerTransitionsFromHelper(el, modifiers, stage) {
+  registerTransitionObject(el, setStyles);
+  let doesntSpecify = !modifiers.includes("in") && !modifiers.includes("out") && !stage;
+  let transitioningIn = doesntSpecify || modifiers.includes("in") || ["enter"].includes(stage);
+  let transitioningOut = doesntSpecify || modifiers.includes("out") || ["leave"].includes(stage);
+  if (modifiers.includes("in") && !doesntSpecify) {
+    modifiers = modifiers.filter((i, index) => index < modifiers.indexOf("out"));
+  }
+  if (modifiers.includes("out") && !doesntSpecify) {
+    modifiers = modifiers.filter((i, index) => index > modifiers.indexOf("out"));
+  }
+  let wantsAll = !modifiers.includes("opacity") && !modifiers.includes("scale");
+  let wantsOpacity = wantsAll || modifiers.includes("opacity");
+  let wantsScale = wantsAll || modifiers.includes("scale");
+  let opacityValue = wantsOpacity ? 0 : 1;
+  let scaleValue = wantsScale ? modifierValue(modifiers, "scale", 95) / 100 : 1;
+  let delay = modifierValue(modifiers, "delay", 0) / 1e3;
+  let origin = modifierValue(modifiers, "origin", "center");
+  let property = "opacity, transform";
+  let durationIn = modifierValue(modifiers, "duration", 150) / 1e3;
+  let durationOut = modifierValue(modifiers, "duration", 75) / 1e3;
+  let easing = `cubic-bezier(0.4, 0.0, 0.2, 1)`;
+  if (transitioningIn) {
+    el._x_transition.enter.during = {
+      transformOrigin: origin,
+      transitionDelay: `${delay}s`,
+      transitionProperty: property,
+      transitionDuration: `${durationIn}s`,
+      transitionTimingFunction: easing
+    };
+    el._x_transition.enter.start = {
+      opacity: opacityValue,
+      transform: `scale(${scaleValue})`
+    };
+    el._x_transition.enter.end = {
+      opacity: 1,
+      transform: `scale(1)`
+    };
+  }
+  if (transitioningOut) {
+    el._x_transition.leave.during = {
+      transformOrigin: origin,
+      transitionDelay: `${delay}s`,
+      transitionProperty: property,
+      transitionDuration: `${durationOut}s`,
+      transitionTimingFunction: easing
+    };
+    el._x_transition.leave.start = {
+      opacity: 1,
+      transform: `scale(1)`
+    };
+    el._x_transition.leave.end = {
+      opacity: opacityValue,
+      transform: `scale(${scaleValue})`
+    };
+  }
+}
+function registerTransitionObject(el, setFunction, defaultValue = {}) {
+  if (!el._x_transition)
+    el._x_transition = {
+      enter: { during: defaultValue, start: defaultValue, end: defaultValue },
+      leave: { during: defaultValue, start: defaultValue, end: defaultValue },
+      in(before = () => {
+      }, after = () => {
+      }) {
+        transition(el, setFunction, {
+          during: this.enter.during,
+          start: this.enter.start,
+          end: this.enter.end
+        }, before, after);
+      },
+      out(before = () => {
+      }, after = () => {
+      }) {
+        transition(el, setFunction, {
+          during: this.leave.during,
+          start: this.leave.start,
+          end: this.leave.end
+        }, before, after);
+      }
+    };
+}
+window.Element.prototype._x_toggleAndCascadeWithTransitions = function(el, value, show, hide) {
+  const nextTick2 = document.visibilityState === "visible" ? requestAnimationFrame : setTimeout;
+  let clickAwayCompatibleShow = () => nextTick2(show);
+  if (value) {
+    if (el._x_transition && (el._x_transition.enter || el._x_transition.leave)) {
+      el._x_transition.enter && (Object.entries(el._x_transition.enter.during).length || Object.entries(el._x_transition.enter.start).length || Object.entries(el._x_transition.enter.end).length) ? el._x_transition.in(show) : clickAwayCompatibleShow();
+    } else {
+      el._x_transition ? el._x_transition.in(show) : clickAwayCompatibleShow();
+    }
+    return;
+  }
+  el._x_hidePromise = el._x_transition ? new Promise((resolve, reject) => {
+    el._x_transition.out(() => {
+    }, () => resolve(hide));
+    el._x_transitioning && el._x_transitioning.beforeCancel(() => reject({ isFromCancelledTransition: true }));
+  }) : Promise.resolve(hide);
+  queueMicrotask(() => {
+    let closest = closestHide(el);
+    if (closest) {
+      if (!closest._x_hideChildren)
+        closest._x_hideChildren = [];
+      closest._x_hideChildren.push(el);
+    } else {
+      nextTick2(() => {
+        let hideAfterChildren = (el2) => {
+          let carry = Promise.all([
+            el2._x_hidePromise,
+            ...(el2._x_hideChildren || []).map(hideAfterChildren)
+          ]).then(([i]) => i?.());
+          delete el2._x_hidePromise;
+          delete el2._x_hideChildren;
+          return carry;
+        };
+        hideAfterChildren(el).catch((e) => {
+          if (!e.isFromCancelledTransition)
+            throw e;
+        });
+      });
+    }
+  });
+};
+function closestHide(el) {
+  let parent = el.parentNode;
+  if (!parent)
+    return;
+  return parent._x_hidePromise ? parent : closestHide(parent);
+}
+function transition(el, setFunction, { during, start: start2, end } = {}, before = () => {
+}, after = () => {
+}) {
+  if (el._x_transitioning)
+    el._x_transitioning.cancel();
+  if (Object.keys(during).length === 0 && Object.keys(start2).length === 0 && Object.keys(end).length === 0) {
+    before();
+    after();
+    return;
+  }
+  let undoStart, undoDuring, undoEnd;
+  performTransition(el, {
+    start() {
+      undoStart = setFunction(el, start2);
+    },
+    during() {
+      undoDuring = setFunction(el, during);
+    },
+    before,
+    end() {
+      undoStart();
+      undoEnd = setFunction(el, end);
+    },
+    after,
+    cleanup() {
+      undoDuring();
+      undoEnd();
+    }
+  });
+}
+function performTransition(el, stages) {
+  let interrupted, reachedBefore, reachedEnd;
+  let finish = once(() => {
+    mutateDom(() => {
+      interrupted = true;
+      if (!reachedBefore)
+        stages.before();
+      if (!reachedEnd) {
+        stages.end();
+        releaseNextTicks();
+      }
+      stages.after();
+      if (el.isConnected)
+        stages.cleanup();
+      delete el._x_transitioning;
+    });
+  });
+  el._x_transitioning = {
+    beforeCancels: [],
+    beforeCancel(callback) {
+      this.beforeCancels.push(callback);
+    },
+    cancel: once(function() {
+      while (this.beforeCancels.length) {
+        this.beforeCancels.shift()();
+      }
+      ;
+      finish();
+    }),
+    finish
+  };
+  mutateDom(() => {
+    stages.start();
+    stages.during();
+  });
+  holdNextTicks();
+  requestAnimationFrame(() => {
+    if (interrupted)
+      return;
+    let duration = Number(getComputedStyle(el).transitionDuration.replace(/,.*/, "").replace("s", "")) * 1e3;
+    let delay = Number(getComputedStyle(el).transitionDelay.replace(/,.*/, "").replace("s", "")) * 1e3;
+    if (duration === 0)
+      duration = Number(getComputedStyle(el).animationDuration.replace("s", "")) * 1e3;
+    mutateDom(() => {
+      stages.before();
+    });
+    reachedBefore = true;
+    requestAnimationFrame(() => {
+      if (interrupted)
+        return;
+      mutateDom(() => {
+        stages.end();
+      });
+      releaseNextTicks();
+      setTimeout(el._x_transitioning.finish, duration + delay);
+      reachedEnd = true;
+    });
+  });
+}
+function modifierValue(modifiers, key, fallback) {
+  if (modifiers.indexOf(key) === -1)
+    return fallback;
+  const rawValue = modifiers[modifiers.indexOf(key) + 1];
+  if (!rawValue)
+    return fallback;
+  if (key === "scale") {
+    if (isNaN(rawValue))
+      return fallback;
+  }
+  if (key === "duration" || key === "delay") {
+    let match = rawValue.match(/([0-9]+)ms/);
+    if (match)
+      return match[1];
+  }
+  if (key === "origin") {
+    if (["top", "right", "left", "center", "bottom"].includes(modifiers[modifiers.indexOf(key) + 2])) {
+      return [rawValue, modifiers[modifiers.indexOf(key) + 2]].join(" ");
+    }
+  }
+  return rawValue;
+}
+
+// packages/alpinejs/src/clone.js
+var isCloning = false;
+function skipDuringClone(callback, fallback = () => {
+}) {
+  return (...args) => isCloning ? fallback(...args) : callback(...args);
+}
+function onlyDuringClone(callback) {
+  return (...args) => isCloning && callback(...args);
+}
+var interceptors = [];
+function interceptClone(callback) {
+  interceptors.push(callback);
+}
+function cloneNode(from, to) {
+  interceptors.forEach((i) => i(from, to));
+  isCloning = true;
+  dontRegisterReactiveSideEffects(() => {
+    initTree(to, (el, callback) => {
+      callback(el, () => {
+      });
+    });
+  });
+  isCloning = false;
+}
+var isCloningLegacy = false;
+function clone(oldEl, newEl) {
+  if (!newEl._x_dataStack)
+    newEl._x_dataStack = oldEl._x_dataStack;
+  isCloning = true;
+  isCloningLegacy = true;
+  dontRegisterReactiveSideEffects(() => {
+    cloneTree(newEl);
+  });
+  isCloning = false;
+  isCloningLegacy = false;
+}
+function cloneTree(el) {
+  let hasRunThroughFirstEl = false;
+  let shallowWalker = (el2, callback) => {
+    walk(el2, (el3, skip) => {
+      if (hasRunThroughFirstEl && isRoot(el3))
+        return skip();
+      hasRunThroughFirstEl = true;
+      callback(el3, skip);
+    });
+  };
+  initTree(el, shallowWalker);
+}
+function dontRegisterReactiveSideEffects(callback) {
+  let cache = effect;
+  overrideEffect((callback2, el) => {
+    let storedEffect = cache(callback2);
+    release(storedEffect);
+    return () => {
+    };
+  });
+  callback();
+  overrideEffect(cache);
+}
+
+// packages/alpinejs/src/utils/bind.js
+function bind(el, name, value, modifiers = []) {
+  if (!el._x_bindings)
+    el._x_bindings = reactive({});
+  el._x_bindings[name] = value;
+  name = modifiers.includes("camel") ? camelCase(name) : name;
+  switch (name) {
+    case "value":
+      bindInputValue(el, value);
+      break;
+    case "style":
+      bindStyles(el, value);
+      break;
+    case "class":
+      bindClasses(el, value);
+      break;
+    case "selected":
+    case "checked":
+      bindAttributeAndProperty(el, name, value);
+      break;
+    default:
+      bindAttribute(el, name, value);
+      break;
+  }
+}
+function bindInputValue(el, value) {
+  if (isRadio(el)) {
+    if (el.attributes.value === void 0) {
+      el.value = value;
+    }
+    if (window.fromModel) {
+      if (typeof value === "boolean") {
+        el.checked = safeParseBoolean(el.value) === value;
+      } else {
+        el.checked = checkedAttrLooseCompare(el.value, value);
+      }
+    }
+  } else if (isCheckbox(el)) {
+    if (Number.isInteger(value)) {
+      el.value = value;
+    } else if (!Array.isArray(value) && typeof value !== "boolean" && ![null, void 0].includes(value)) {
+      el.value = String(value);
+    } else {
+      if (Array.isArray(value)) {
+        el.checked = value.some((val) => checkedAttrLooseCompare(val, el.value));
+      } else {
+        el.checked = !!value;
+      }
+    }
+  } else if (el.tagName === "SELECT") {
+    updateSelect(el, value);
+  } else {
+    if (el.value === value)
+      return;
+    el.value = value === void 0 ? "" : value;
+  }
+}
+function bindClasses(el, value) {
+  if (el._x_undoAddedClasses)
+    el._x_undoAddedClasses();
+  el._x_undoAddedClasses = setClasses(el, value);
+}
+function bindStyles(el, value) {
+  if (el._x_undoAddedStyles)
+    el._x_undoAddedStyles();
+  el._x_undoAddedStyles = setStyles(el, value);
+}
+function bindAttributeAndProperty(el, name, value) {
+  bindAttribute(el, name, value);
+  setPropertyIfChanged(el, name, value);
+}
+function bindAttribute(el, name, value) {
+  if ([null, void 0, false].includes(value) && attributeShouldntBePreservedIfFalsy(name)) {
+    el.removeAttribute(name);
+  } else {
+    if (isBooleanAttr(name))
+      value = name;
+    setIfChanged(el, name, value);
+  }
+}
+function setIfChanged(el, attrName, value) {
+  if (el.getAttribute(attrName) != value) {
+    el.setAttribute(attrName, value);
+  }
+}
+function setPropertyIfChanged(el, propName, value) {
+  if (el[propName] !== value) {
+    el[propName] = value;
+  }
+}
+function updateSelect(el, value) {
+  const arrayWrappedValue = [].concat(value).map((value2) => {
+    return value2 + "";
+  });
+  Array.from(el.options).forEach((option) => {
+    option.selected = arrayWrappedValue.includes(option.value);
+  });
+}
+function camelCase(subject) {
+  return subject.toLowerCase().replace(/-(\w)/g, (match, char) => char.toUpperCase());
+}
+function checkedAttrLooseCompare(valueA, valueB) {
+  return valueA == valueB;
+}
+function safeParseBoolean(rawValue) {
+  if ([1, "1", "true", "on", "yes", true].includes(rawValue)) {
+    return true;
+  }
+  if ([0, "0", "false", "off", "no", false].includes(rawValue)) {
+    return false;
+  }
+  return rawValue ? Boolean(rawValue) : null;
+}
+var booleanAttributes = /* @__PURE__ */ new Set([
+  "allowfullscreen",
+  "async",
+  "autofocus",
+  "autoplay",
+  "checked",
+  "controls",
+  "default",
+  "defer",
+  "disabled",
+  "formnovalidate",
+  "inert",
+  "ismap",
+  "itemscope",
+  "loop",
+  "multiple",
+  "muted",
+  "nomodule",
+  "novalidate",
+  "open",
+  "playsinline",
+  "readonly",
+  "required",
+  "reversed",
+  "selected",
+  "shadowrootclonable",
+  "shadowrootdelegatesfocus",
+  "shadowrootserializable"
+]);
+function isBooleanAttr(attrName) {
+  return booleanAttributes.has(attrName);
+}
+function attributeShouldntBePreservedIfFalsy(name) {
+  return !["aria-pressed", "aria-checked", "aria-expanded", "aria-selected"].includes(name);
+}
+function getBinding(el, name, fallback) {
+  if (el._x_bindings && el._x_bindings[name] !== void 0)
+    return el._x_bindings[name];
+  return getAttributeBinding(el, name, fallback);
+}
+function extractProp(el, name, fallback, extract = true) {
+  if (el._x_bindings && el._x_bindings[name] !== void 0)
+    return el._x_bindings[name];
+  if (el._x_inlineBindings && el._x_inlineBindings[name] !== void 0) {
+    let binding = el._x_inlineBindings[name];
+    binding.extract = extract;
+    return dontAutoEvaluateFunctions(() => {
+      return evaluate(el, binding.expression);
+    });
+  }
+  return getAttributeBinding(el, name, fallback);
+}
+function getAttributeBinding(el, name, fallback) {
+  let attr = el.getAttribute(name);
+  if (attr === null)
+    return typeof fallback === "function" ? fallback() : fallback;
+  if (attr === "")
+    return true;
+  if (isBooleanAttr(name)) {
+    return !![name, "true"].includes(attr);
+  }
+  return attr;
+}
+function isCheckbox(el) {
+  return el.type === "checkbox" || el.localName === "ui-checkbox" || el.localName === "ui-switch";
+}
+function isRadio(el) {
+  return el.type === "radio" || el.localName === "ui-radio";
+}
+
+// packages/alpinejs/src/utils/debounce.js
+function debounce(func, wait) {
+  let timeout;
+  return function() {
+    const context = this, args = arguments;
+    const later = function() {
+      timeout = null;
+      func.apply(context, args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// packages/alpinejs/src/utils/throttle.js
+function throttle(func, limit) {
+  let inThrottle;
+  return function() {
+    let context = this, args = arguments;
+    if (!inThrottle) {
+      func.apply(context, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+}
+
+// packages/alpinejs/src/entangle.js
+function entangle({ get: outerGet, set: outerSet }, { get: innerGet, set: innerSet }) {
+  let firstRun = true;
+  let outerHash;
+  let innerHash;
+  let reference = effect(() => {
+    let outer = outerGet();
+    let inner = innerGet();
+    if (firstRun) {
+      innerSet(cloneIfObject(outer));
+      firstRun = false;
+    } else {
+      let outerHashLatest = JSON.stringify(outer);
+      let innerHashLatest = JSON.stringify(inner);
+      if (outerHashLatest !== outerHash) {
+        innerSet(cloneIfObject(outer));
+      } else if (outerHashLatest !== innerHashLatest) {
+        outerSet(cloneIfObject(inner));
+      } else {
+      }
+    }
+    outerHash = JSON.stringify(outerGet());
+    innerHash = JSON.stringify(innerGet());
+  });
+  return () => {
+    release(reference);
+  };
+}
+function cloneIfObject(value) {
+  return typeof value === "object" ? JSON.parse(JSON.stringify(value)) : value;
+}
+
+// packages/alpinejs/src/plugin.js
+function module_esm_plugin(callback) {
+  let callbacks = Array.isArray(callback) ? callback : [callback];
+  callbacks.forEach((i) => i(alpine_default));
+}
+
+// packages/alpinejs/src/store.js
+var stores = {};
+var isReactive = false;
+function store(name, value) {
+  if (!isReactive) {
+    stores = reactive(stores);
+    isReactive = true;
+  }
+  if (value === void 0) {
+    return stores[name];
+  }
+  stores[name] = value;
+  initInterceptors(stores[name]);
+  if (typeof value === "object" && value !== null && value.hasOwnProperty("init") && typeof value.init === "function") {
+    stores[name].init();
+  }
+}
+function getStores() {
+  return stores;
+}
+
+// packages/alpinejs/src/binds.js
+var binds = {};
+function bind2(name, bindings) {
+  let getBindings = typeof bindings !== "function" ? () => bindings : bindings;
+  if (name instanceof Element) {
+    return applyBindingsObject(name, getBindings());
+  } else {
+    binds[name] = getBindings;
+  }
+  return () => {
+  };
+}
+function injectBindingProviders(obj) {
+  Object.entries(binds).forEach(([name, callback]) => {
+    Object.defineProperty(obj, name, {
+      get() {
+        return (...args) => {
+          return callback(...args);
+        };
+      }
+    });
+  });
+  return obj;
+}
+function applyBindingsObject(el, obj, original) {
+  let cleanupRunners = [];
+  while (cleanupRunners.length)
+    cleanupRunners.pop()();
+  let attributes = Object.entries(obj).map(([name, value]) => ({ name, value }));
+  let staticAttributes = attributesOnly(attributes);
+  attributes = attributes.map((attribute) => {
+    if (staticAttributes.find((attr) => attr.name === attribute.name)) {
+      return {
+        name: `x-bind:${attribute.name}`,
+        value: `"${attribute.value}"`
+      };
+    }
+    return attribute;
+  });
+  directives(el, attributes, original).map((handle) => {
+    cleanupRunners.push(handle.runCleanups);
+    handle();
+  });
+  return () => {
+    while (cleanupRunners.length)
+      cleanupRunners.pop()();
+  };
+}
+
+// packages/alpinejs/src/datas.js
+var datas = {};
+function data(name, callback) {
+  datas[name] = callback;
+}
+function injectDataProviders(obj, context) {
+  Object.entries(datas).forEach(([name, callback]) => {
+    Object.defineProperty(obj, name, {
+      get() {
+        return (...args) => {
+          return callback.bind(context)(...args);
+        };
+      },
+      enumerable: false
+    });
+  });
+  return obj;
+}
+
+// packages/alpinejs/src/alpine.js
+var module_esm_Alpine = {
+  get reactive() {
+    return reactive;
+  },
+  get release() {
+    return release;
+  },
+  get effect() {
+    return effect;
+  },
+  get raw() {
+    return raw;
+  },
+  get transaction() {
+    return transaction;
+  },
+  version: "3.15.8",
+  flushAndStopDeferringMutations,
+  dontAutoEvaluateFunctions,
+  disableEffectScheduling,
+  startObservingMutations,
+  stopObservingMutations,
+  setReactivityEngine,
+  onAttributeRemoved,
+  onAttributesAdded,
+  closestDataStack,
+  skipDuringClone,
+  onlyDuringClone,
+  addRootSelector,
+  addInitSelector,
+  setErrorHandler,
+  interceptClone,
+  addScopeToNode,
+  deferMutations,
+  mapAttributes,
+  evaluateLater,
+  interceptInit,
+  initInterceptors,
+  injectMagics,
+  setEvaluator,
+  setRawEvaluator,
+  mergeProxies,
+  extractProp,
+  findClosest,
+  onElRemoved,
+  closestRoot,
+  destroyTree,
+  interceptor,
+  // INTERNAL: not public API and is subject to change without major release.
+  transition,
+  // INTERNAL
+  setStyles,
+  // INTERNAL
+  mutateDom,
+  directive,
+  entangle,
+  throttle,
+  debounce,
+  evaluate,
+  evaluateRaw,
+  initTree,
+  nextTick,
+  prefixed: prefix,
+  prefix: setPrefix,
+  plugin: module_esm_plugin,
+  magic,
+  store,
+  start,
+  clone,
+  // INTERNAL
+  cloneNode,
+  // INTERNAL
+  bound: getBinding,
+  $data: scope,
+  watch,
+  walk,
+  data,
+  bind: bind2
+};
+var alpine_default = module_esm_Alpine;
+
+// node_modules/@vue/shared/dist/shared.esm-bundler.js
+function makeMap(str, expectsLowerCase) {
+  const map = /* @__PURE__ */ Object.create(null);
+  const list = str.split(",");
+  for (let i = 0; i < list.length; i++) {
+    map[list[i]] = true;
+  }
+  return expectsLowerCase ? (val) => !!map[val.toLowerCase()] : (val) => !!map[val];
+}
+var specialBooleanAttrs = `itemscope,allowfullscreen,formnovalidate,ismap,nomodule,novalidate,readonly`;
+var isBooleanAttr2 = /* @__PURE__ */ makeMap(specialBooleanAttrs + `,async,autofocus,autoplay,controls,default,defer,disabled,hidden,loop,open,required,reversed,scoped,seamless,checked,muted,multiple,selected`);
+var EMPTY_OBJ =  true ? Object.freeze({}) : 0;
+var EMPTY_ARR =  true ? Object.freeze([]) : 0;
+var module_esm_hasOwnProperty = Object.prototype.hasOwnProperty;
+var hasOwn = (val, key) => module_esm_hasOwnProperty.call(val, key);
+var isArray = Array.isArray;
+var isMap = (val) => toTypeString(val) === "[object Map]";
+var isString = (val) => typeof val === "string";
+var isSymbol = (val) => typeof val === "symbol";
+var isObject = (val) => val !== null && typeof val === "object";
+var objectToString = Object.prototype.toString;
+var toTypeString = (value) => objectToString.call(value);
+var toRawType = (value) => {
+  return toTypeString(value).slice(8, -1);
+};
+var isIntegerKey = (key) => isString(key) && key !== "NaN" && key[0] !== "-" && "" + parseInt(key, 10) === key;
+var cacheStringFunction = (fn) => {
+  const cache = /* @__PURE__ */ Object.create(null);
+  return (str) => {
+    const hit = cache[str];
+    return hit || (cache[str] = fn(str));
+  };
+};
+var camelizeRE = /-(\w)/g;
+var camelize = cacheStringFunction((str) => {
+  return str.replace(camelizeRE, (_, c) => c ? c.toUpperCase() : "");
+});
+var hyphenateRE = /\B([A-Z])/g;
+var hyphenate = cacheStringFunction((str) => str.replace(hyphenateRE, "-$1").toLowerCase());
+var capitalize = cacheStringFunction((str) => str.charAt(0).toUpperCase() + str.slice(1));
+var toHandlerKey = cacheStringFunction((str) => str ? `on${capitalize(str)}` : ``);
+var hasChanged = (value, oldValue) => value !== oldValue && (value === value || oldValue === oldValue);
+
+// node_modules/@vue/reactivity/dist/reactivity.esm-bundler.js
+var targetMap = /* @__PURE__ */ new WeakMap();
+var effectStack = [];
+var activeEffect;
+var ITERATE_KEY = Symbol( true ? "iterate" : 0);
+var MAP_KEY_ITERATE_KEY = Symbol( true ? "Map key iterate" : 0);
+function isEffect(fn) {
+  return fn && fn._isEffect === true;
+}
+function effect2(fn, options = EMPTY_OBJ) {
+  if (isEffect(fn)) {
+    fn = fn.raw;
+  }
+  const effect3 = createReactiveEffect(fn, options);
+  if (!options.lazy) {
+    effect3();
+  }
+  return effect3;
+}
+function stop(effect3) {
+  if (effect3.active) {
+    cleanup(effect3);
+    if (effect3.options.onStop) {
+      effect3.options.onStop();
+    }
+    effect3.active = false;
+  }
+}
+var uid = 0;
+function createReactiveEffect(fn, options) {
+  const effect3 = function reactiveEffect() {
+    if (!effect3.active) {
+      return fn();
+    }
+    if (!effectStack.includes(effect3)) {
+      cleanup(effect3);
+      try {
+        enableTracking();
+        effectStack.push(effect3);
+        activeEffect = effect3;
+        return fn();
+      } finally {
+        effectStack.pop();
+        resetTracking();
+        activeEffect = effectStack[effectStack.length - 1];
+      }
+    }
+  };
+  effect3.id = uid++;
+  effect3.allowRecurse = !!options.allowRecurse;
+  effect3._isEffect = true;
+  effect3.active = true;
+  effect3.raw = fn;
+  effect3.deps = [];
+  effect3.options = options;
+  return effect3;
+}
+function cleanup(effect3) {
+  const { deps } = effect3;
+  if (deps.length) {
+    for (let i = 0; i < deps.length; i++) {
+      deps[i].delete(effect3);
+    }
+    deps.length = 0;
+  }
+}
+var shouldTrack = true;
+var trackStack = [];
+function pauseTracking() {
+  trackStack.push(shouldTrack);
+  shouldTrack = false;
+}
+function enableTracking() {
+  trackStack.push(shouldTrack);
+  shouldTrack = true;
+}
+function resetTracking() {
+  const last = trackStack.pop();
+  shouldTrack = last === void 0 ? true : last;
+}
+function track(target, type, key) {
+  if (!shouldTrack || activeEffect === void 0) {
+    return;
+  }
+  let depsMap = targetMap.get(target);
+  if (!depsMap) {
+    targetMap.set(target, depsMap = /* @__PURE__ */ new Map());
+  }
+  let dep = depsMap.get(key);
+  if (!dep) {
+    depsMap.set(key, dep = /* @__PURE__ */ new Set());
+  }
+  if (!dep.has(activeEffect)) {
+    dep.add(activeEffect);
+    activeEffect.deps.push(dep);
+    if (activeEffect.options.onTrack) {
+      activeEffect.options.onTrack({
+        effect: activeEffect,
+        target,
+        type,
+        key
+      });
+    }
+  }
+}
+function trigger(target, type, key, newValue, oldValue, oldTarget) {
+  const depsMap = targetMap.get(target);
+  if (!depsMap) {
+    return;
+  }
+  const effects = /* @__PURE__ */ new Set();
+  const add2 = (effectsToAdd) => {
+    if (effectsToAdd) {
+      effectsToAdd.forEach((effect3) => {
+        if (effect3 !== activeEffect || effect3.allowRecurse) {
+          effects.add(effect3);
+        }
+      });
+    }
+  };
+  if (type === "clear") {
+    depsMap.forEach(add2);
+  } else if (key === "length" && isArray(target)) {
+    depsMap.forEach((dep, key2) => {
+      if (key2 === "length" || key2 >= newValue) {
+        add2(dep);
+      }
+    });
+  } else {
+    if (key !== void 0) {
+      add2(depsMap.get(key));
+    }
+    switch (type) {
+      case "add":
+        if (!isArray(target)) {
+          add2(depsMap.get(ITERATE_KEY));
+          if (isMap(target)) {
+            add2(depsMap.get(MAP_KEY_ITERATE_KEY));
+          }
+        } else if (isIntegerKey(key)) {
+          add2(depsMap.get("length"));
+        }
+        break;
+      case "delete":
+        if (!isArray(target)) {
+          add2(depsMap.get(ITERATE_KEY));
+          if (isMap(target)) {
+            add2(depsMap.get(MAP_KEY_ITERATE_KEY));
+          }
+        }
+        break;
+      case "set":
+        if (isMap(target)) {
+          add2(depsMap.get(ITERATE_KEY));
+        }
+        break;
+    }
+  }
+  const run = (effect3) => {
+    if (effect3.options.onTrigger) {
+      effect3.options.onTrigger({
+        effect: effect3,
+        target,
+        key,
+        type,
+        newValue,
+        oldValue,
+        oldTarget
+      });
+    }
+    if (effect3.options.scheduler) {
+      effect3.options.scheduler(effect3);
+    } else {
+      effect3();
+    }
+  };
+  effects.forEach(run);
+}
+var isNonTrackableKeys = /* @__PURE__ */ makeMap(`__proto__,__v_isRef,__isVue`);
+var builtInSymbols = new Set(Object.getOwnPropertyNames(Symbol).map((key) => Symbol[key]).filter(isSymbol));
+var get2 = /* @__PURE__ */ createGetter();
+var readonlyGet = /* @__PURE__ */ createGetter(true);
+var arrayInstrumentations = /* @__PURE__ */ createArrayInstrumentations();
+function createArrayInstrumentations() {
+  const instrumentations = {};
+  ["includes", "indexOf", "lastIndexOf"].forEach((key) => {
+    instrumentations[key] = function(...args) {
+      const arr = toRaw(this);
+      for (let i = 0, l = this.length; i < l; i++) {
+        track(arr, "get", i + "");
+      }
+      const res = arr[key](...args);
+      if (res === -1 || res === false) {
+        return arr[key](...args.map(toRaw));
+      } else {
+        return res;
+      }
+    };
+  });
+  ["push", "pop", "shift", "unshift", "splice"].forEach((key) => {
+    instrumentations[key] = function(...args) {
+      pauseTracking();
+      const res = toRaw(this)[key].apply(this, args);
+      resetTracking();
+      return res;
+    };
+  });
+  return instrumentations;
+}
+function createGetter(isReadonly = false, shallow = false) {
+  return function get3(target, key, receiver) {
+    if (key === "__v_isReactive") {
+      return !isReadonly;
+    } else if (key === "__v_isReadonly") {
+      return isReadonly;
+    } else if (key === "__v_raw" && receiver === (isReadonly ? shallow ? shallowReadonlyMap : readonlyMap : shallow ? shallowReactiveMap : reactiveMap).get(target)) {
+      return target;
+    }
+    const targetIsArray = isArray(target);
+    if (!isReadonly && targetIsArray && hasOwn(arrayInstrumentations, key)) {
+      return Reflect.get(arrayInstrumentations, key, receiver);
+    }
+    const res = Reflect.get(target, key, receiver);
+    if (isSymbol(key) ? builtInSymbols.has(key) : isNonTrackableKeys(key)) {
+      return res;
+    }
+    if (!isReadonly) {
+      track(target, "get", key);
+    }
+    if (shallow) {
+      return res;
+    }
+    if (isRef(res)) {
+      const shouldUnwrap = !targetIsArray || !isIntegerKey(key);
+      return shouldUnwrap ? res.value : res;
+    }
+    if (isObject(res)) {
+      return isReadonly ? readonly(res) : reactive2(res);
+    }
+    return res;
+  };
+}
+var set2 = /* @__PURE__ */ createSetter();
+function createSetter(shallow = false) {
+  return function set3(target, key, value, receiver) {
+    let oldValue = target[key];
+    if (!shallow) {
+      value = toRaw(value);
+      oldValue = toRaw(oldValue);
+      if (!isArray(target) && isRef(oldValue) && !isRef(value)) {
+        oldValue.value = value;
+        return true;
+      }
+    }
+    const hadKey = isArray(target) && isIntegerKey(key) ? Number(key) < target.length : hasOwn(target, key);
+    const result = Reflect.set(target, key, value, receiver);
+    if (target === toRaw(receiver)) {
+      if (!hadKey) {
+        trigger(target, "add", key, value);
+      } else if (hasChanged(value, oldValue)) {
+        trigger(target, "set", key, value, oldValue);
+      }
+    }
+    return result;
+  };
+}
+function deleteProperty(target, key) {
+  const hadKey = hasOwn(target, key);
+  const oldValue = target[key];
+  const result = Reflect.deleteProperty(target, key);
+  if (result && hadKey) {
+    trigger(target, "delete", key, void 0, oldValue);
+  }
+  return result;
+}
+function has(target, key) {
+  const result = Reflect.has(target, key);
+  if (!isSymbol(key) || !builtInSymbols.has(key)) {
+    track(target, "has", key);
+  }
+  return result;
+}
+function ownKeys(target) {
+  track(target, "iterate", isArray(target) ? "length" : ITERATE_KEY);
+  return Reflect.ownKeys(target);
+}
+var mutableHandlers = {
+  get: get2,
+  set: set2,
+  deleteProperty,
+  has,
+  ownKeys
+};
+var readonlyHandlers = {
+  get: readonlyGet,
+  set(target, key) {
+    if (true) {
+      console.warn(`Set operation on key "${String(key)}" failed: target is readonly.`, target);
+    }
+    return true;
+  },
+  deleteProperty(target, key) {
+    if (true) {
+      console.warn(`Delete operation on key "${String(key)}" failed: target is readonly.`, target);
+    }
+    return true;
+  }
+};
+var toReactive = (value) => isObject(value) ? reactive2(value) : value;
+var toReadonly = (value) => isObject(value) ? readonly(value) : value;
+var toShallow = (value) => value;
+var getProto = (v) => Reflect.getPrototypeOf(v);
+function get$1(target, key, isReadonly = false, isShallow = false) {
+  target = target[
+    "__v_raw"
+    /* RAW */
+  ];
+  const rawTarget = toRaw(target);
+  const rawKey = toRaw(key);
+  if (key !== rawKey) {
+    !isReadonly && track(rawTarget, "get", key);
+  }
+  !isReadonly && track(rawTarget, "get", rawKey);
+  const { has: has2 } = getProto(rawTarget);
+  const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive;
+  if (has2.call(rawTarget, key)) {
+    return wrap(target.get(key));
+  } else if (has2.call(rawTarget, rawKey)) {
+    return wrap(target.get(rawKey));
+  } else if (target !== rawTarget) {
+    target.get(key);
+  }
+}
+function has$1(key, isReadonly = false) {
+  const target = this[
+    "__v_raw"
+    /* RAW */
+  ];
+  const rawTarget = toRaw(target);
+  const rawKey = toRaw(key);
+  if (key !== rawKey) {
+    !isReadonly && track(rawTarget, "has", key);
+  }
+  !isReadonly && track(rawTarget, "has", rawKey);
+  return key === rawKey ? target.has(key) : target.has(key) || target.has(rawKey);
+}
+function size(target, isReadonly = false) {
+  target = target[
+    "__v_raw"
+    /* RAW */
+  ];
+  !isReadonly && track(toRaw(target), "iterate", ITERATE_KEY);
+  return Reflect.get(target, "size", target);
+}
+function add(value) {
+  value = toRaw(value);
+  const target = toRaw(this);
+  const proto = getProto(target);
+  const hadKey = proto.has.call(target, value);
+  if (!hadKey) {
+    target.add(value);
+    trigger(target, "add", value, value);
+  }
+  return this;
+}
+function set$1(key, value) {
+  value = toRaw(value);
+  const target = toRaw(this);
+  const { has: has2, get: get3 } = getProto(target);
+  let hadKey = has2.call(target, key);
+  if (!hadKey) {
+    key = toRaw(key);
+    hadKey = has2.call(target, key);
+  } else if (true) {
+    checkIdentityKeys(target, has2, key);
+  }
+  const oldValue = get3.call(target, key);
+  target.set(key, value);
+  if (!hadKey) {
+    trigger(target, "add", key, value);
+  } else if (hasChanged(value, oldValue)) {
+    trigger(target, "set", key, value, oldValue);
+  }
+  return this;
+}
+function deleteEntry(key) {
+  const target = toRaw(this);
+  const { has: has2, get: get3 } = getProto(target);
+  let hadKey = has2.call(target, key);
+  if (!hadKey) {
+    key = toRaw(key);
+    hadKey = has2.call(target, key);
+  } else if (true) {
+    checkIdentityKeys(target, has2, key);
+  }
+  const oldValue = get3 ? get3.call(target, key) : void 0;
+  const result = target.delete(key);
+  if (hadKey) {
+    trigger(target, "delete", key, void 0, oldValue);
+  }
+  return result;
+}
+function clear() {
+  const target = toRaw(this);
+  const hadItems = target.size !== 0;
+  const oldTarget =  true ? isMap(target) ? new Map(target) : new Set(target) : 0;
+  const result = target.clear();
+  if (hadItems) {
+    trigger(target, "clear", void 0, void 0, oldTarget);
+  }
+  return result;
+}
+function createForEach(isReadonly, isShallow) {
+  return function forEach(callback, thisArg) {
+    const observed = this;
+    const target = observed[
+      "__v_raw"
+      /* RAW */
+    ];
+    const rawTarget = toRaw(target);
+    const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive;
+    !isReadonly && track(rawTarget, "iterate", ITERATE_KEY);
+    return target.forEach((value, key) => {
+      return callback.call(thisArg, wrap(value), wrap(key), observed);
+    });
+  };
+}
+function createIterableMethod(method, isReadonly, isShallow) {
+  return function(...args) {
+    const target = this[
+      "__v_raw"
+      /* RAW */
+    ];
+    const rawTarget = toRaw(target);
+    const targetIsMap = isMap(rawTarget);
+    const isPair = method === "entries" || method === Symbol.iterator && targetIsMap;
+    const isKeyOnly = method === "keys" && targetIsMap;
+    const innerIterator = target[method](...args);
+    const wrap = isShallow ? toShallow : isReadonly ? toReadonly : toReactive;
+    !isReadonly && track(rawTarget, "iterate", isKeyOnly ? MAP_KEY_ITERATE_KEY : ITERATE_KEY);
+    return {
+      // iterator protocol
+      next() {
+        const { value, done } = innerIterator.next();
+        return done ? { value, done } : {
+          value: isPair ? [wrap(value[0]), wrap(value[1])] : wrap(value),
+          done
+        };
+      },
+      // iterable protocol
+      [Symbol.iterator]() {
+        return this;
+      }
+    };
+  };
+}
+function createReadonlyMethod(type) {
+  return function(...args) {
+    if (true) {
+      const key = args[0] ? `on key "${args[0]}" ` : ``;
+      console.warn(`${capitalize(type)} operation ${key}failed: target is readonly.`, toRaw(this));
+    }
+    return type === "delete" ? false : this;
+  };
+}
+function createInstrumentations() {
+  const mutableInstrumentations2 = {
+    get(key) {
+      return get$1(this, key);
+    },
+    get size() {
+      return size(this);
+    },
+    has: has$1,
+    add,
+    set: set$1,
+    delete: deleteEntry,
+    clear,
+    forEach: createForEach(false, false)
+  };
+  const shallowInstrumentations2 = {
+    get(key) {
+      return get$1(this, key, false, true);
+    },
+    get size() {
+      return size(this);
+    },
+    has: has$1,
+    add,
+    set: set$1,
+    delete: deleteEntry,
+    clear,
+    forEach: createForEach(false, true)
+  };
+  const readonlyInstrumentations2 = {
+    get(key) {
+      return get$1(this, key, true);
+    },
+    get size() {
+      return size(this, true);
+    },
+    has(key) {
+      return has$1.call(this, key, true);
+    },
+    add: createReadonlyMethod(
+      "add"
+      /* ADD */
+    ),
+    set: createReadonlyMethod(
+      "set"
+      /* SET */
+    ),
+    delete: createReadonlyMethod(
+      "delete"
+      /* DELETE */
+    ),
+    clear: createReadonlyMethod(
+      "clear"
+      /* CLEAR */
+    ),
+    forEach: createForEach(true, false)
+  };
+  const shallowReadonlyInstrumentations2 = {
+    get(key) {
+      return get$1(this, key, true, true);
+    },
+    get size() {
+      return size(this, true);
+    },
+    has(key) {
+      return has$1.call(this, key, true);
+    },
+    add: createReadonlyMethod(
+      "add"
+      /* ADD */
+    ),
+    set: createReadonlyMethod(
+      "set"
+      /* SET */
+    ),
+    delete: createReadonlyMethod(
+      "delete"
+      /* DELETE */
+    ),
+    clear: createReadonlyMethod(
+      "clear"
+      /* CLEAR */
+    ),
+    forEach: createForEach(true, true)
+  };
+  const iteratorMethods = ["keys", "values", "entries", Symbol.iterator];
+  iteratorMethods.forEach((method) => {
+    mutableInstrumentations2[method] = createIterableMethod(method, false, false);
+    readonlyInstrumentations2[method] = createIterableMethod(method, true, false);
+    shallowInstrumentations2[method] = createIterableMethod(method, false, true);
+    shallowReadonlyInstrumentations2[method] = createIterableMethod(method, true, true);
+  });
+  return [
+    mutableInstrumentations2,
+    readonlyInstrumentations2,
+    shallowInstrumentations2,
+    shallowReadonlyInstrumentations2
+  ];
+}
+var [mutableInstrumentations, readonlyInstrumentations, shallowInstrumentations, shallowReadonlyInstrumentations] = /* @__PURE__ */ createInstrumentations();
+function createInstrumentationGetter(isReadonly, shallow) {
+  const instrumentations = shallow ? isReadonly ? shallowReadonlyInstrumentations : shallowInstrumentations : isReadonly ? readonlyInstrumentations : mutableInstrumentations;
+  return (target, key, receiver) => {
+    if (key === "__v_isReactive") {
+      return !isReadonly;
+    } else if (key === "__v_isReadonly") {
+      return isReadonly;
+    } else if (key === "__v_raw") {
+      return target;
+    }
+    return Reflect.get(hasOwn(instrumentations, key) && key in target ? instrumentations : target, key, receiver);
+  };
+}
+var mutableCollectionHandlers = {
+  get: /* @__PURE__ */ createInstrumentationGetter(false, false)
+};
+var readonlyCollectionHandlers = {
+  get: /* @__PURE__ */ createInstrumentationGetter(true, false)
+};
+function checkIdentityKeys(target, has2, key) {
+  const rawKey = toRaw(key);
+  if (rawKey !== key && has2.call(target, rawKey)) {
+    const type = toRawType(target);
+    console.warn(`Reactive ${type} contains both the raw and reactive versions of the same object${type === `Map` ? ` as keys` : ``}, which can lead to inconsistencies. Avoid differentiating between the raw and reactive versions of an object and only use the reactive version if possible.`);
+  }
+}
+var reactiveMap = /* @__PURE__ */ new WeakMap();
+var shallowReactiveMap = /* @__PURE__ */ new WeakMap();
+var readonlyMap = /* @__PURE__ */ new WeakMap();
+var shallowReadonlyMap = /* @__PURE__ */ new WeakMap();
+function targetTypeMap(rawType) {
+  switch (rawType) {
+    case "Object":
+    case "Array":
+      return 1;
+    case "Map":
+    case "Set":
+    case "WeakMap":
+    case "WeakSet":
+      return 2;
+    default:
+      return 0;
+  }
+}
+function getTargetType(value) {
+  return value[
+    "__v_skip"
+    /* SKIP */
+  ] || !Object.isExtensible(value) ? 0 : targetTypeMap(toRawType(value));
+}
+function reactive2(target) {
+  if (target && target[
+    "__v_isReadonly"
+    /* IS_READONLY */
+  ]) {
+    return target;
+  }
+  return createReactiveObject(target, false, mutableHandlers, mutableCollectionHandlers, reactiveMap);
+}
+function readonly(target) {
+  return createReactiveObject(target, true, readonlyHandlers, readonlyCollectionHandlers, readonlyMap);
+}
+function createReactiveObject(target, isReadonly, baseHandlers, collectionHandlers, proxyMap) {
+  if (!isObject(target)) {
+    if (true) {
+      console.warn(`value cannot be made reactive: ${String(target)}`);
+    }
+    return target;
+  }
+  if (target[
+    "__v_raw"
+    /* RAW */
+  ] && !(isReadonly && target[
+    "__v_isReactive"
+    /* IS_REACTIVE */
+  ])) {
+    return target;
+  }
+  const existingProxy = proxyMap.get(target);
+  if (existingProxy) {
+    return existingProxy;
+  }
+  const targetType = getTargetType(target);
+  if (targetType === 0) {
+    return target;
+  }
+  const proxy = new Proxy(target, targetType === 2 ? collectionHandlers : baseHandlers);
+  proxyMap.set(target, proxy);
+  return proxy;
+}
+function toRaw(observed) {
+  return observed && toRaw(observed[
+    "__v_raw"
+    /* RAW */
+  ]) || observed;
+}
+function isRef(r) {
+  return Boolean(r && r.__v_isRef === true);
+}
+
+// packages/alpinejs/src/magics/$nextTick.js
+magic("nextTick", () => nextTick);
+
+// packages/alpinejs/src/magics/$dispatch.js
+magic("dispatch", (el) => dispatch.bind(dispatch, el));
+
+// packages/alpinejs/src/magics/$watch.js
+magic("watch", (el, { evaluateLater: evaluateLater2, cleanup: cleanup2 }) => (key, callback) => {
+  let evaluate2 = evaluateLater2(key);
+  let getter = () => {
+    let value;
+    evaluate2((i) => value = i);
+    return value;
+  };
+  let unwatch = watch(getter, callback);
+  cleanup2(unwatch);
+});
+
+// packages/alpinejs/src/magics/$store.js
+magic("store", getStores);
+
+// packages/alpinejs/src/magics/$data.js
+magic("data", (el) => scope(el));
+
+// packages/alpinejs/src/magics/$root.js
+magic("root", (el) => closestRoot(el));
+
+// packages/alpinejs/src/magics/$refs.js
+magic("refs", (el) => {
+  if (el._x_refs_proxy)
+    return el._x_refs_proxy;
+  el._x_refs_proxy = mergeProxies(getArrayOfRefObject(el));
+  return el._x_refs_proxy;
+});
+function getArrayOfRefObject(el) {
+  let refObjects = [];
+  findClosest(el, (i) => {
+    if (i._x_refs)
+      refObjects.push(i._x_refs);
+  });
+  return refObjects;
+}
+
+// packages/alpinejs/src/ids.js
+var globalIdMemo = {};
+function findAndIncrementId(name) {
+  if (!globalIdMemo[name])
+    globalIdMemo[name] = 0;
+  return ++globalIdMemo[name];
+}
+function closestIdRoot(el, name) {
+  return findClosest(el, (element) => {
+    if (element._x_ids && element._x_ids[name])
+      return true;
+  });
+}
+function setIdRoot(el, name) {
+  if (!el._x_ids)
+    el._x_ids = {};
+  if (!el._x_ids[name])
+    el._x_ids[name] = findAndIncrementId(name);
+}
+
+// packages/alpinejs/src/magics/$id.js
+magic("id", (el, { cleanup: cleanup2 }) => (name, key = null) => {
+  let cacheKey = `${name}${key ? `-${key}` : ""}`;
+  return cacheIdByNameOnElement(el, cacheKey, cleanup2, () => {
+    let root = closestIdRoot(el, name);
+    let id = root ? root._x_ids[name] : findAndIncrementId(name);
+    return key ? `${name}-${id}-${key}` : `${name}-${id}`;
+  });
+});
+interceptClone((from, to) => {
+  if (from._x_id) {
+    to._x_id = from._x_id;
+  }
+});
+function cacheIdByNameOnElement(el, cacheKey, cleanup2, callback) {
+  if (!el._x_id)
+    el._x_id = {};
+  if (el._x_id[cacheKey])
+    return el._x_id[cacheKey];
+  let output = callback();
+  el._x_id[cacheKey] = output;
+  cleanup2(() => {
+    delete el._x_id[cacheKey];
+  });
+  return output;
+}
+
+// packages/alpinejs/src/magics/$el.js
+magic("el", (el) => el);
+
+// packages/alpinejs/src/magics/index.js
+warnMissingPluginMagic("Focus", "focus", "focus");
+warnMissingPluginMagic("Persist", "persist", "persist");
+function warnMissingPluginMagic(name, magicName, slug) {
+  magic(magicName, (el) => warn(`You can't use [$${magicName}] without first installing the "${name}" plugin here: https://alpinejs.dev/plugins/${slug}`, el));
+}
+
+// packages/alpinejs/src/directives/x-modelable.js
+directive("modelable", (el, { expression }, { effect: effect3, evaluateLater: evaluateLater2, cleanup: cleanup2 }) => {
+  let func = evaluateLater2(expression);
+  let innerGet = () => {
+    let result;
+    func((i) => result = i);
+    return result;
+  };
+  let evaluateInnerSet = evaluateLater2(`${expression} = __placeholder`);
+  let innerSet = (val) => evaluateInnerSet(() => {
+  }, { scope: { "__placeholder": val } });
+  let initialValue = innerGet();
+  innerSet(initialValue);
+  queueMicrotask(() => {
+    if (!el._x_model)
+      return;
+    el._x_removeModelListeners["default"]();
+    let outerGet = el._x_model.get;
+    let outerSet = el._x_model.set;
+    let releaseEntanglement = entangle(
+      {
+        get() {
+          return outerGet();
+        },
+        set(value) {
+          outerSet(value);
+        }
+      },
+      {
+        get() {
+          return innerGet();
+        },
+        set(value) {
+          innerSet(value);
+        }
+      }
+    );
+    cleanup2(releaseEntanglement);
+  });
+});
+
+// packages/alpinejs/src/directives/x-teleport.js
+directive("teleport", (el, { modifiers, expression }, { cleanup: cleanup2 }) => {
+  if (el.tagName.toLowerCase() !== "template")
+    warn("x-teleport can only be used on a <template> tag", el);
+  let target = getTarget(expression);
+  let clone2 = el.content.cloneNode(true).firstElementChild;
+  el._x_teleport = clone2;
+  clone2._x_teleportBack = el;
+  el.setAttribute("data-teleport-template", true);
+  clone2.setAttribute("data-teleport-target", true);
+  if (el._x_forwardEvents) {
+    el._x_forwardEvents.forEach((eventName) => {
+      clone2.addEventListener(eventName, (e) => {
+        e.stopPropagation();
+        el.dispatchEvent(new e.constructor(e.type, e));
+      });
+    });
+  }
+  addScopeToNode(clone2, {}, el);
+  let placeInDom = (clone3, target2, modifiers2) => {
+    if (modifiers2.includes("prepend")) {
+      target2.parentNode.insertBefore(clone3, target2);
+    } else if (modifiers2.includes("append")) {
+      target2.parentNode.insertBefore(clone3, target2.nextSibling);
+    } else {
+      target2.appendChild(clone3);
+    }
+  };
+  mutateDom(() => {
+    placeInDom(clone2, target, modifiers);
+    skipDuringClone(() => {
+      initTree(clone2);
+    })();
+  });
+  el._x_teleportPutBack = () => {
+    let target2 = getTarget(expression);
+    mutateDom(() => {
+      placeInDom(el._x_teleport, target2, modifiers);
+    });
+  };
+  cleanup2(
+    () => mutateDom(() => {
+      clone2.remove();
+      destroyTree(clone2);
+    })
+  );
+});
+var teleportContainerDuringClone = document.createElement("div");
+function getTarget(expression) {
+  let target = skipDuringClone(() => {
+    return document.querySelector(expression);
+  }, () => {
+    return teleportContainerDuringClone;
+  })();
+  if (!target)
+    warn(`Cannot find x-teleport element for selector: "${expression}"`);
+  return target;
+}
+
+// packages/alpinejs/src/directives/x-ignore.js
+var handler = () => {
+};
+handler.inline = (el, { modifiers }, { cleanup: cleanup2 }) => {
+  modifiers.includes("self") ? el._x_ignoreSelf = true : el._x_ignore = true;
+  cleanup2(() => {
+    modifiers.includes("self") ? delete el._x_ignoreSelf : delete el._x_ignore;
+  });
+};
+directive("ignore", handler);
+
+// packages/alpinejs/src/directives/x-effect.js
+directive("effect", skipDuringClone((el, { expression }, { effect: effect3 }) => {
+  effect3(evaluateLater(el, expression));
+}));
+
+// packages/alpinejs/src/utils/on.js
+function on(el, event, modifiers, callback) {
+  let listenerTarget = el;
+  let handler4 = (e) => callback(e);
+  let options = {};
+  let wrapHandler = (callback2, wrapper) => (e) => wrapper(callback2, e);
+  if (modifiers.includes("dot"))
+    event = dotSyntax(event);
+  if (modifiers.includes("camel"))
+    event = camelCase2(event);
+  if (modifiers.includes("passive"))
+    options.passive = true;
+  if (modifiers.includes("capture"))
+    options.capture = true;
+  if (modifiers.includes("window"))
+    listenerTarget = window;
+  if (modifiers.includes("document"))
+    listenerTarget = document;
+  if (modifiers.includes("debounce")) {
+    let nextModifier = modifiers[modifiers.indexOf("debounce") + 1] || "invalid-wait";
+    let wait = isNumeric(nextModifier.split("ms")[0]) ? Number(nextModifier.split("ms")[0]) : 250;
+    handler4 = debounce(handler4, wait);
+  }
+  if (modifiers.includes("throttle")) {
+    let nextModifier = modifiers[modifiers.indexOf("throttle") + 1] || "invalid-wait";
+    let wait = isNumeric(nextModifier.split("ms")[0]) ? Number(nextModifier.split("ms")[0]) : 250;
+    handler4 = throttle(handler4, wait);
+  }
+  if (modifiers.includes("prevent"))
+    handler4 = wrapHandler(handler4, (next, e) => {
+      e.preventDefault();
+      next(e);
+    });
+  if (modifiers.includes("stop"))
+    handler4 = wrapHandler(handler4, (next, e) => {
+      e.stopPropagation();
+      next(e);
+    });
+  if (modifiers.includes("once")) {
+    handler4 = wrapHandler(handler4, (next, e) => {
+      next(e);
+      listenerTarget.removeEventListener(event, handler4, options);
+    });
+  }
+  if (modifiers.includes("away") || modifiers.includes("outside")) {
+    listenerTarget = document;
+    handler4 = wrapHandler(handler4, (next, e) => {
+      if (el.contains(e.target))
+        return;
+      if (e.target.isConnected === false)
+        return;
+      if (el.offsetWidth < 1 && el.offsetHeight < 1)
+        return;
+      if (el._x_isShown === false)
+        return;
+      next(e);
+    });
+  }
+  if (modifiers.includes("self"))
+    handler4 = wrapHandler(handler4, (next, e) => {
+      e.target === el && next(e);
+    });
+  if (event === "submit") {
+    handler4 = wrapHandler(handler4, (next, e) => {
+      if (e.target._x_pendingModelUpdates) {
+        e.target._x_pendingModelUpdates.forEach((fn) => fn());
+      }
+      next(e);
+    });
+  }
+  if (isKeyEvent(event) || isClickEvent(event)) {
+    handler4 = wrapHandler(handler4, (next, e) => {
+      if (isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers)) {
+        return;
+      }
+      next(e);
+    });
+  }
+  listenerTarget.addEventListener(event, handler4, options);
+  return () => {
+    listenerTarget.removeEventListener(event, handler4, options);
+  };
+}
+function dotSyntax(subject) {
+  return subject.replace(/-/g, ".");
+}
+function camelCase2(subject) {
+  return subject.toLowerCase().replace(/-(\w)/g, (match, char) => char.toUpperCase());
+}
+function isNumeric(subject) {
+  return !Array.isArray(subject) && !isNaN(subject);
+}
+function kebabCase2(subject) {
+  if ([" ", "_"].includes(
+    subject
+  ))
+    return subject;
+  return subject.replace(/([a-z])([A-Z])/g, "$1-$2").replace(/[_\s]/, "-").toLowerCase();
+}
+function isKeyEvent(event) {
+  return ["keydown", "keyup"].includes(event);
+}
+function isClickEvent(event) {
+  return ["contextmenu", "click", "mouse"].some((i) => event.includes(i));
+}
+function isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers) {
+  let keyModifiers = modifiers.filter((i) => {
+    return !["window", "document", "prevent", "stop", "once", "capture", "self", "away", "outside", "passive", "preserve-scroll", "blur", "change", "lazy"].includes(i);
+  });
+  if (keyModifiers.includes("debounce")) {
+    let debounceIndex = keyModifiers.indexOf("debounce");
+    keyModifiers.splice(debounceIndex, isNumeric((keyModifiers[debounceIndex + 1] || "invalid-wait").split("ms")[0]) ? 2 : 1);
+  }
+  if (keyModifiers.includes("throttle")) {
+    let debounceIndex = keyModifiers.indexOf("throttle");
+    keyModifiers.splice(debounceIndex, isNumeric((keyModifiers[debounceIndex + 1] || "invalid-wait").split("ms")[0]) ? 2 : 1);
+  }
+  if (keyModifiers.length === 0)
+    return false;
+  if (keyModifiers.length === 1 && keyToModifiers(e.key).includes(keyModifiers[0]))
+    return false;
+  const systemKeyModifiers = ["ctrl", "shift", "alt", "meta", "cmd", "super"];
+  const selectedSystemKeyModifiers = systemKeyModifiers.filter((modifier) => keyModifiers.includes(modifier));
+  keyModifiers = keyModifiers.filter((i) => !selectedSystemKeyModifiers.includes(i));
+  if (selectedSystemKeyModifiers.length > 0) {
+    const activelyPressedKeyModifiers = selectedSystemKeyModifiers.filter((modifier) => {
+      if (modifier === "cmd" || modifier === "super")
+        modifier = "meta";
+      return e[`${modifier}Key`];
+    });
+    if (activelyPressedKeyModifiers.length === selectedSystemKeyModifiers.length) {
+      if (isClickEvent(e.type))
+        return false;
+      if (keyToModifiers(e.key).includes(keyModifiers[0]))
+        return false;
+    }
+  }
+  return true;
+}
+function keyToModifiers(key) {
+  if (!key)
+    return [];
+  key = kebabCase2(key);
+  let modifierToKeyMap = {
+    "ctrl": "control",
+    "slash": "/",
+    "space": " ",
+    "spacebar": " ",
+    "cmd": "meta",
+    "esc": "escape",
+    "up": "arrow-up",
+    "down": "arrow-down",
+    "left": "arrow-left",
+    "right": "arrow-right",
+    "period": ".",
+    "comma": ",",
+    "equal": "=",
+    "minus": "-",
+    "underscore": "_"
+  };
+  modifierToKeyMap[key] = key;
+  return Object.keys(modifierToKeyMap).map((modifier) => {
+    if (modifierToKeyMap[modifier] === key)
+      return modifier;
+  }).filter((modifier) => modifier);
+}
+
+// packages/alpinejs/src/directives/x-model.js
+directive("model", (el, { modifiers, expression }, { effect: effect3, cleanup: cleanup2 }) => {
+  let scopeTarget = el;
+  if (modifiers.includes("parent")) {
+    scopeTarget = el.parentNode;
+  }
+  let evaluateGet = evaluateLater(scopeTarget, expression);
+  let evaluateSet;
+  if (typeof expression === "string") {
+    evaluateSet = evaluateLater(scopeTarget, `${expression} = __placeholder`);
+  } else if (typeof expression === "function" && typeof expression() === "string") {
+    evaluateSet = evaluateLater(scopeTarget, `${expression()} = __placeholder`);
+  } else {
+    evaluateSet = () => {
+    };
+  }
+  let getValue = () => {
+    let result;
+    evaluateGet((value) => result = value);
+    return isGetterSetter(result) ? result.get() : result;
+  };
+  let setValue = (value) => {
+    let result;
+    evaluateGet((value2) => result = value2);
+    if (isGetterSetter(result)) {
+      result.set(value);
+    } else {
+      evaluateSet(() => {
+      }, {
+        scope: { "__placeholder": value }
+      });
+    }
+  };
+  if (typeof expression === "string" && el.type === "radio") {
+    mutateDom(() => {
+      if (!el.hasAttribute("name"))
+        el.setAttribute("name", expression);
+    });
+  }
+  let hasChangeModifier = modifiers.includes("change") || modifiers.includes("lazy");
+  let hasBlurModifier = modifiers.includes("blur");
+  let hasEnterModifier = modifiers.includes("enter");
+  let hasExplicitEventModifiers = hasChangeModifier || hasBlurModifier || hasEnterModifier;
+  let removeListener;
+  if (isCloning) {
+    removeListener = () => {
+    };
+  } else if (hasExplicitEventModifiers) {
+    let listeners = [];
+    let syncValue = (e) => setValue(getInputValue(el, modifiers, e, getValue()));
+    if (hasChangeModifier) {
+      listeners.push(on(el, "change", modifiers, syncValue));
+    }
+    if (hasBlurModifier) {
+      listeners.push(on(el, "blur", modifiers, syncValue));
+      if (el.form) {
+        let syncCallback = () => syncValue({ target: el });
+        if (!el.form._x_pendingModelUpdates)
+          el.form._x_pendingModelUpdates = [];
+        el.form._x_pendingModelUpdates.push(syncCallback);
+        cleanup2(() => el.form._x_pendingModelUpdates.splice(el.form._x_pendingModelUpdates.indexOf(syncCallback), 1));
+      }
+    }
+    if (hasEnterModifier) {
+      listeners.push(on(el, "keydown", modifiers, (e) => {
+        if (e.key === "Enter")
+          syncValue(e);
+      }));
+    }
+    removeListener = () => listeners.forEach((remove) => remove());
+  } else {
+    let event = el.tagName.toLowerCase() === "select" || ["checkbox", "radio"].includes(el.type) ? "change" : "input";
+    removeListener = on(el, event, modifiers, (e) => {
+      setValue(getInputValue(el, modifiers, e, getValue()));
+    });
+  }
+  if (modifiers.includes("fill")) {
+    if ([void 0, null, ""].includes(getValue()) || isCheckbox(el) && Array.isArray(getValue()) || el.tagName.toLowerCase() === "select" && el.multiple) {
+      setValue(
+        getInputValue(el, modifiers, { target: el }, getValue())
+      );
+    }
+  }
+  if (!el._x_removeModelListeners)
+    el._x_removeModelListeners = {};
+  el._x_removeModelListeners["default"] = removeListener;
+  cleanup2(() => el._x_removeModelListeners["default"]());
+  if (el.form) {
+    let removeResetListener = on(el.form, "reset", [], (e) => {
+      nextTick(() => el._x_model && el._x_model.set(getInputValue(el, modifiers, { target: el }, getValue())));
+    });
+    cleanup2(() => removeResetListener());
+  }
+  el._x_model = {
+    get() {
+      return getValue();
+    },
+    set(value) {
+      setValue(value);
+    }
+  };
+  el._x_forceModelUpdate = (value) => {
+    if (value === void 0 && typeof expression === "string" && expression.match(/\./))
+      value = "";
+    window.fromModel = true;
+    mutateDom(() => bind(el, "value", value));
+    delete window.fromModel;
+  };
+  effect3(() => {
+    let value = getValue();
+    if (modifiers.includes("unintrusive") && document.activeElement.isSameNode(el))
+      return;
+    el._x_forceModelUpdate(value);
+  });
+});
+function getInputValue(el, modifiers, event, currentValue) {
+  return mutateDom(() => {
+    if (event instanceof CustomEvent && event.detail !== void 0)
+      return event.detail !== null && event.detail !== void 0 ? event.detail : event.target.value;
+    else if (isCheckbox(el)) {
+      if (Array.isArray(currentValue)) {
+        let newValue = null;
+        if (modifiers.includes("number")) {
+          newValue = safeParseNumber(event.target.value);
+        } else if (modifiers.includes("boolean")) {
+          newValue = safeParseBoolean(event.target.value);
+        } else {
+          newValue = event.target.value;
+        }
+        return event.target.checked ? currentValue.includes(newValue) ? currentValue : currentValue.concat([newValue]) : currentValue.filter((el2) => !checkedAttrLooseCompare2(el2, newValue));
+      } else {
+        return event.target.checked;
+      }
+    } else if (el.tagName.toLowerCase() === "select" && el.multiple) {
+      if (modifiers.includes("number")) {
+        return Array.from(event.target.selectedOptions).map((option) => {
+          let rawValue = option.value || option.text;
+          return safeParseNumber(rawValue);
+        });
+      } else if (modifiers.includes("boolean")) {
+        return Array.from(event.target.selectedOptions).map((option) => {
+          let rawValue = option.value || option.text;
+          return safeParseBoolean(rawValue);
+        });
+      }
+      return Array.from(event.target.selectedOptions).map((option) => {
+        return option.value || option.text;
+      });
+    } else {
+      let newValue;
+      if (isRadio(el)) {
+        if (event.target.checked) {
+          newValue = event.target.value;
+        } else {
+          newValue = currentValue;
+        }
+      } else {
+        newValue = event.target.value;
+      }
+      if (modifiers.includes("number")) {
+        return safeParseNumber(newValue);
+      } else if (modifiers.includes("boolean")) {
+        return safeParseBoolean(newValue);
+      } else if (modifiers.includes("trim")) {
+        return newValue.trim();
+      } else {
+        return newValue;
+      }
+    }
+  });
+}
+function safeParseNumber(rawValue) {
+  let number = rawValue ? parseFloat(rawValue) : null;
+  return isNumeric2(number) ? number : rawValue;
+}
+function checkedAttrLooseCompare2(valueA, valueB) {
+  return valueA == valueB;
+}
+function isNumeric2(subject) {
+  return !Array.isArray(subject) && !isNaN(subject);
+}
+function isGetterSetter(value) {
+  return value !== null && typeof value === "object" && typeof value.get === "function" && typeof value.set === "function";
+}
+
+// packages/alpinejs/src/directives/x-cloak.js
+directive("cloak", (el) => queueMicrotask(() => mutateDom(() => el.removeAttribute(prefix("cloak")))));
+
+// packages/alpinejs/src/directives/x-init.js
+addInitSelector(() => `[${prefix("init")}]`);
+directive("init", skipDuringClone((el, { expression }, { evaluate: evaluate2 }) => {
+  if (typeof expression === "string") {
+    return !!expression.trim() && evaluate2(expression, {}, false);
+  }
+  return evaluate2(expression, {}, false);
+}));
+
+// packages/alpinejs/src/directives/x-text.js
+directive("text", (el, { expression }, { effect: effect3, evaluateLater: evaluateLater2 }) => {
+  let evaluate2 = evaluateLater2(expression);
+  effect3(() => {
+    evaluate2((value) => {
+      mutateDom(() => {
+        el.textContent = value;
+      });
+    });
+  });
+});
+
+// packages/alpinejs/src/directives/x-html.js
+directive("html", (el, { expression }, { effect: effect3, evaluateLater: evaluateLater2 }) => {
+  let evaluate2 = evaluateLater2(expression);
+  effect3(() => {
+    evaluate2((value) => {
+      mutateDom(() => {
+        el.innerHTML = value;
+        el._x_ignoreSelf = true;
+        initTree(el);
+        delete el._x_ignoreSelf;
+      });
+    });
+  });
+});
+
+// packages/alpinejs/src/directives/x-bind.js
+mapAttributes(startingWith(":", into(prefix("bind:"))));
+var handler2 = (el, { value, modifiers, expression, original }, { effect: effect3, cleanup: cleanup2 }) => {
+  if (!value) {
+    let bindingProviders = {};
+    injectBindingProviders(bindingProviders);
+    let getBindings = evaluateLater(el, expression);
+    getBindings((bindings) => {
+      applyBindingsObject(el, bindings, original);
+    }, { scope: bindingProviders });
+    return;
+  }
+  if (value === "key")
+    return storeKeyForXFor(el, expression);
+  if (el._x_inlineBindings && el._x_inlineBindings[value] && el._x_inlineBindings[value].extract) {
+    return;
+  }
+  let evaluate2 = evaluateLater(el, expression);
+  effect3(() => evaluate2((result) => {
+    if (result === void 0 && typeof expression === "string" && expression.match(/\./)) {
+      result = "";
+    }
+    mutateDom(() => bind(el, value, result, modifiers));
+  }));
+  cleanup2(() => {
+    el._x_undoAddedClasses && el._x_undoAddedClasses();
+    el._x_undoAddedStyles && el._x_undoAddedStyles();
+  });
+};
+handler2.inline = (el, { value, modifiers, expression }) => {
+  if (!value)
+    return;
+  if (!el._x_inlineBindings)
+    el._x_inlineBindings = {};
+  el._x_inlineBindings[value] = { expression, extract: false };
+};
+directive("bind", handler2);
+function storeKeyForXFor(el, expression) {
+  el._x_keyExpression = expression;
+}
+
+// packages/alpinejs/src/directives/x-data.js
+addRootSelector(() => `[${prefix("data")}]`);
+directive("data", (el, { expression }, { cleanup: cleanup2 }) => {
+  if (shouldSkipRegisteringDataDuringClone(el))
+    return;
+  expression = expression === "" ? "{}" : expression;
+  let magicContext = {};
+  injectMagics(magicContext, el);
+  let dataProviderContext = {};
+  injectDataProviders(dataProviderContext, magicContext);
+  let data2 = evaluate(el, expression, { scope: dataProviderContext });
+  if (data2 === void 0 || data2 === true)
+    data2 = {};
+  injectMagics(data2, el);
+  let reactiveData = reactive(data2);
+  initInterceptors(reactiveData);
+  let undo = addScopeToNode(el, reactiveData);
+  reactiveData["init"] && evaluate(el, reactiveData["init"]);
+  cleanup2(() => {
+    reactiveData["destroy"] && evaluate(el, reactiveData["destroy"]);
+    undo();
+  });
+});
+interceptClone((from, to) => {
+  if (from._x_dataStack) {
+    to._x_dataStack = from._x_dataStack;
+    to.setAttribute("data-has-alpine-state", true);
+  }
+});
+function shouldSkipRegisteringDataDuringClone(el) {
+  if (!isCloning)
+    return false;
+  if (isCloningLegacy)
+    return true;
+  return el.hasAttribute("data-has-alpine-state");
+}
+
+// packages/alpinejs/src/directives/x-show.js
+directive("show", (el, { modifiers, expression }, { effect: effect3 }) => {
+  let evaluate2 = evaluateLater(el, expression);
+  if (!el._x_doHide)
+    el._x_doHide = () => {
+      mutateDom(() => {
+        el.style.setProperty("display", "none", modifiers.includes("important") ? "important" : void 0);
+      });
+    };
+  if (!el._x_doShow)
+    el._x_doShow = () => {
+      mutateDom(() => {
+        if (el.style.length === 1 && el.style.display === "none") {
+          el.removeAttribute("style");
+        } else {
+          el.style.removeProperty("display");
+        }
+      });
+    };
+  let hide = () => {
+    el._x_doHide();
+    el._x_isShown = false;
+  };
+  let show = () => {
+    el._x_doShow();
+    el._x_isShown = true;
+  };
+  let clickAwayCompatibleShow = () => setTimeout(show);
+  let toggle = once(
+    (value) => value ? show() : hide(),
+    (value) => {
+      if (typeof el._x_toggleAndCascadeWithTransitions === "function") {
+        el._x_toggleAndCascadeWithTransitions(el, value, show, hide);
+      } else {
+        value ? clickAwayCompatibleShow() : hide();
+      }
+    }
+  );
+  let oldValue;
+  let firstTime = true;
+  effect3(() => evaluate2((value) => {
+    if (!firstTime && value === oldValue)
+      return;
+    if (modifiers.includes("immediate"))
+      value ? clickAwayCompatibleShow() : hide();
+    toggle(value);
+    oldValue = value;
+    firstTime = false;
+  }));
+});
+
+// packages/alpinejs/src/directives/x-for.js
+directive("for", (el, { expression }, { effect: effect3, cleanup: cleanup2 }) => {
+  let iteratorNames = parseForExpression(expression);
+  let evaluateItems = evaluateLater(el, iteratorNames.items);
+  let evaluateKey = evaluateLater(
+    el,
+    // the x-bind:key expression is stored for our use instead of evaluated.
+    el._x_keyExpression || "index"
+  );
+  el._x_prevKeys = [];
+  el._x_lookup = {};
+  effect3(() => loop(el, iteratorNames, evaluateItems, evaluateKey));
+  cleanup2(() => {
+    Object.values(el._x_lookup).forEach((el2) => mutateDom(
+      () => {
+        destroyTree(el2);
+        el2.remove();
+      }
+    ));
+    delete el._x_prevKeys;
+    delete el._x_lookup;
+  });
+});
+function loop(el, iteratorNames, evaluateItems, evaluateKey) {
+  let isObject2 = (i) => typeof i === "object" && !Array.isArray(i);
+  let templateEl = el;
+  evaluateItems((items) => {
+    if (isNumeric3(items) && items >= 0) {
+      items = Array.from(Array(items).keys(), (i) => i + 1);
+    }
+    if (items === void 0)
+      items = [];
+    let lookup = el._x_lookup;
+    let prevKeys = el._x_prevKeys;
+    let scopes = [];
+    let keys = [];
+    if (isObject2(items)) {
+      items = Object.entries(items).map(([key, value]) => {
+        let scope2 = getIterationScopeVariables(iteratorNames, value, key, items);
+        evaluateKey((value2) => {
+          if (keys.includes(value2))
+            warn("Duplicate key on x-for", el);
+          keys.push(value2);
+        }, { scope: { index: key, ...scope2 } });
+        scopes.push(scope2);
+      });
+    } else {
+      for (let i = 0; i < items.length; i++) {
+        let scope2 = getIterationScopeVariables(iteratorNames, items[i], i, items);
+        evaluateKey((value) => {
+          if (keys.includes(value))
+            warn("Duplicate key on x-for", el);
+          keys.push(value);
+        }, { scope: { index: i, ...scope2 } });
+        scopes.push(scope2);
+      }
+    }
+    let adds = [];
+    let moves = [];
+    let removes = [];
+    let sames = [];
+    for (let i = 0; i < prevKeys.length; i++) {
+      let key = prevKeys[i];
+      if (keys.indexOf(key) === -1)
+        removes.push(key);
+    }
+    prevKeys = prevKeys.filter((key) => !removes.includes(key));
+    let lastKey = "template";
+    for (let i = 0; i < keys.length; i++) {
+      let key = keys[i];
+      let prevIndex = prevKeys.indexOf(key);
+      if (prevIndex === -1) {
+        prevKeys.splice(i, 0, key);
+        adds.push([lastKey, i]);
+      } else if (prevIndex !== i) {
+        let keyInSpot = prevKeys.splice(i, 1)[0];
+        let keyForSpot = prevKeys.splice(prevIndex - 1, 1)[0];
+        prevKeys.splice(i, 0, keyForSpot);
+        prevKeys.splice(prevIndex, 0, keyInSpot);
+        moves.push([keyInSpot, keyForSpot]);
+      } else {
+        sames.push(key);
+      }
+      lastKey = key;
+    }
+    for (let i = 0; i < removes.length; i++) {
+      let key = removes[i];
+      if (!(key in lookup))
+        continue;
+      mutateDom(() => {
+        destroyTree(lookup[key]);
+        lookup[key].remove();
+      });
+      delete lookup[key];
+    }
+    for (let i = 0; i < moves.length; i++) {
+      let [keyInSpot, keyForSpot] = moves[i];
+      let elInSpot = lookup[keyInSpot];
+      let elForSpot = lookup[keyForSpot];
+      let marker = document.createElement("div");
+      mutateDom(() => {
+        if (!elForSpot)
+          warn(`x-for ":key" is undefined or invalid`, templateEl, keyForSpot, lookup);
+        elForSpot.after(marker);
+        elInSpot.after(elForSpot);
+        elForSpot._x_currentIfEl && elForSpot.after(elForSpot._x_currentIfEl);
+        marker.before(elInSpot);
+        elInSpot._x_currentIfEl && elInSpot.after(elInSpot._x_currentIfEl);
+        marker.remove();
+      });
+      elForSpot._x_refreshXForScope(scopes[keys.indexOf(keyForSpot)]);
+    }
+    for (let i = 0; i < adds.length; i++) {
+      let [lastKey2, index] = adds[i];
+      let lastEl = lastKey2 === "template" ? templateEl : lookup[lastKey2];
+      if (lastEl._x_currentIfEl)
+        lastEl = lastEl._x_currentIfEl;
+      let scope2 = scopes[index];
+      let key = keys[index];
+      let clone2 = document.importNode(templateEl.content, true).firstElementChild;
+      let reactiveScope = reactive(scope2);
+      addScopeToNode(clone2, reactiveScope, templateEl);
+      clone2._x_refreshXForScope = (newScope) => {
+        Object.entries(newScope).forEach(([key2, value]) => {
+          reactiveScope[key2] = value;
+        });
+      };
+      mutateDom(() => {
+        lastEl.after(clone2);
+        skipDuringClone(() => initTree(clone2))();
+      });
+      if (typeof key === "object") {
+        warn("x-for key cannot be an object, it must be a string or an integer", templateEl);
+      }
+      lookup[key] = clone2;
+    }
+    for (let i = 0; i < sames.length; i++) {
+      lookup[sames[i]]._x_refreshXForScope(scopes[keys.indexOf(sames[i])]);
+    }
+    templateEl._x_prevKeys = keys;
+  });
+}
+function parseForExpression(expression) {
+  let forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/;
+  let stripParensRE = /^\s*\(|\)\s*$/g;
+  let forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/;
+  let inMatch = expression.match(forAliasRE);
+  if (!inMatch)
+    return;
+  let res = {};
+  res.items = inMatch[2].trim();
+  let item = inMatch[1].replace(stripParensRE, "").trim();
+  let iteratorMatch = item.match(forIteratorRE);
+  if (iteratorMatch) {
+    res.item = item.replace(forIteratorRE, "").trim();
+    res.index = iteratorMatch[1].trim();
+    if (iteratorMatch[2]) {
+      res.collection = iteratorMatch[2].trim();
+    }
+  } else {
+    res.item = item;
+  }
+  return res;
+}
+function getIterationScopeVariables(iteratorNames, item, index, items) {
+  let scopeVariables = {};
+  if (/^\[.*\]$/.test(iteratorNames.item) && Array.isArray(item)) {
+    let names = iteratorNames.item.replace("[", "").replace("]", "").split(",").map((i) => i.trim());
+    names.forEach((name, i) => {
+      scopeVariables[name] = item[i];
+    });
+  } else if (/^\{.*\}$/.test(iteratorNames.item) && !Array.isArray(item) && typeof item === "object") {
+    let names = iteratorNames.item.replace("{", "").replace("}", "").split(",").map((i) => i.trim());
+    names.forEach((name) => {
+      scopeVariables[name] = item[name];
+    });
+  } else {
+    scopeVariables[iteratorNames.item] = item;
+  }
+  if (iteratorNames.index)
+    scopeVariables[iteratorNames.index] = index;
+  if (iteratorNames.collection)
+    scopeVariables[iteratorNames.collection] = items;
+  return scopeVariables;
+}
+function isNumeric3(subject) {
+  return !Array.isArray(subject) && !isNaN(subject);
+}
+
+// packages/alpinejs/src/directives/x-ref.js
+function handler3() {
+}
+handler3.inline = (el, { expression }, { cleanup: cleanup2 }) => {
+  let root = closestRoot(el);
+  if (!root._x_refs)
+    root._x_refs = {};
+  root._x_refs[expression] = el;
+  cleanup2(() => delete root._x_refs[expression]);
+};
+directive("ref", handler3);
+
+// packages/alpinejs/src/directives/x-if.js
+directive("if", (el, { expression }, { effect: effect3, cleanup: cleanup2 }) => {
+  if (el.tagName.toLowerCase() !== "template")
+    warn("x-if can only be used on a <template> tag", el);
+  let evaluate2 = evaluateLater(el, expression);
+  let show = () => {
+    if (el._x_currentIfEl)
+      return el._x_currentIfEl;
+    let clone2 = el.content.cloneNode(true).firstElementChild;
+    addScopeToNode(clone2, {}, el);
+    mutateDom(() => {
+      el.after(clone2);
+      skipDuringClone(() => initTree(clone2))();
+    });
+    el._x_currentIfEl = clone2;
+    el._x_undoIf = () => {
+      mutateDom(() => {
+        destroyTree(clone2);
+        clone2.remove();
+      });
+      delete el._x_currentIfEl;
+    };
+    return clone2;
+  };
+  let hide = () => {
+    if (!el._x_undoIf)
+      return;
+    el._x_undoIf();
+    delete el._x_undoIf;
+  };
+  effect3(() => evaluate2((value) => {
+    value ? show() : hide();
+  }));
+  cleanup2(() => el._x_undoIf && el._x_undoIf());
+});
+
+// packages/alpinejs/src/directives/x-id.js
+directive("id", (el, { expression }, { evaluate: evaluate2 }) => {
+  let names = evaluate2(expression);
+  names.forEach((name) => setIdRoot(el, name));
+});
+interceptClone((from, to) => {
+  if (from._x_ids) {
+    to._x_ids = from._x_ids;
+  }
+});
+
+// packages/alpinejs/src/directives/x-on.js
+mapAttributes(startingWith("@", into(prefix("on:"))));
+directive("on", skipDuringClone((el, { value, modifiers, expression }, { cleanup: cleanup2 }) => {
+  let evaluate2 = expression ? evaluateLater(el, expression) : () => {
+  };
+  if (el.tagName.toLowerCase() === "template") {
+    if (!el._x_forwardEvents)
+      el._x_forwardEvents = [];
+    if (!el._x_forwardEvents.includes(value))
+      el._x_forwardEvents.push(value);
+  }
+  let removeListener = on(el, value, modifiers, (e) => {
+    evaluate2(() => {
+    }, { scope: { "$event": e }, params: [e] });
+  });
+  cleanup2(() => removeListener());
+}));
+
+// packages/alpinejs/src/directives/index.js
+warnMissingPluginDirective("Collapse", "collapse", "collapse");
+warnMissingPluginDirective("Intersect", "intersect", "intersect");
+warnMissingPluginDirective("Focus", "trap", "focus");
+warnMissingPluginDirective("Mask", "mask", "mask");
+function warnMissingPluginDirective(name, directiveName, slug) {
+  directive(directiveName, (el) => warn(`You can't use [x-${directiveName}] without first installing the "${name}" plugin here: https://alpinejs.dev/plugins/${slug}`, el));
+}
+
+// packages/alpinejs/src/index.js
+alpine_default.setEvaluator(normalEvaluator);
+alpine_default.setRawEvaluator(normalRawEvaluator);
+alpine_default.setReactivityEngine({ reactive: reactive2, effect: effect2, release: stop, raw: toRaw });
+var src_default = alpine_default;
+
+// packages/alpinejs/builds/module.js
+var module_default = src_default;
+
+
+;// ./node_modules/@alpinejs/collapse/dist/module.esm.js
+// packages/collapse/src/index.js
+function module_esm_src_default(Alpine) {
+  Alpine.directive("collapse", collapse);
+  collapse.inline = (el, { modifiers }) => {
+    if (!modifiers.includes("min"))
+      return;
+    el._x_doShow = () => {
+    };
+    el._x_doHide = () => {
+    };
+  };
+  function collapse(el, { modifiers }) {
+    let duration = module_esm_modifierValue(modifiers, "duration", 250) / 1e3;
+    let floor = module_esm_modifierValue(modifiers, "min", 0);
+    let fullyHide = !modifiers.includes("min");
+    if (!el._x_isShown)
+      el.style.height = `${floor}px`;
+    if (!el._x_isShown && fullyHide)
+      el.hidden = true;
+    if (!el._x_isShown)
+      el.style.overflow = "hidden";
+    let setFunction = (el2, styles) => {
+      let revertFunction = Alpine.setStyles(el2, styles);
+      return styles.height ? () => {
+      } : revertFunction;
+    };
+    let transitionStyles = {
+      transitionProperty: "height",
+      transitionDuration: `${duration}s`,
+      transitionTimingFunction: "cubic-bezier(0.4, 0.0, 0.2, 1)"
+    };
+    el._x_transition = {
+      in(before = () => {
+      }, after = () => {
+      }) {
+        if (fullyHide)
+          el.hidden = false;
+        if (fullyHide)
+          el.style.display = null;
+        let current = el.getBoundingClientRect().height;
+        el.style.height = "auto";
+        let full = el.getBoundingClientRect().height;
+        if (current === full) {
+          current = floor;
+        }
+        Alpine.transition(el, Alpine.setStyles, {
+          during: transitionStyles,
+          start: { height: current + "px" },
+          end: { height: full + "px" }
+        }, () => el._x_isShown = true, () => {
+          if (Math.abs(el.getBoundingClientRect().height - full) < 1) {
+            el.style.overflow = null;
+          }
+        });
+      },
+      out(before = () => {
+      }, after = () => {
+      }) {
+        let full = el.getBoundingClientRect().height;
+        Alpine.transition(el, setFunction, {
+          during: transitionStyles,
+          start: { height: full + "px" },
+          end: { height: floor + "px" }
+        }, () => el.style.overflow = "hidden", () => {
+          el._x_isShown = false;
+          if (el.style.height == `${floor}px` && fullyHide) {
+            el.style.display = "none";
+            el.hidden = true;
+          }
+        });
+      }
+    };
+  }
+}
+function module_esm_modifierValue(modifiers, key, fallback) {
+  if (modifiers.indexOf(key) === -1)
+    return fallback;
+  const rawValue = modifiers[modifiers.indexOf(key) + 1];
+  if (!rawValue)
+    return fallback;
+  if (key === "duration") {
+    let match = rawValue.match(/([0-9]+)ms/);
+    if (match)
+      return match[1];
+  }
+  if (key === "min") {
+    let match = rawValue.match(/([0-9]+)px/);
+    if (match)
+      return match[1];
+  }
+  return rawValue;
+}
+
+// packages/collapse/builds/module.js
+var module_esm_module_default = module_esm_src_default;
+
+
+;// ./node_modules/@alpinejs/persist/dist/module.esm.js
+// packages/persist/src/index.js
+function dist_module_esm_src_default(Alpine) {
+  let persist = () => {
+    let alias;
+    let storage;
+    try {
+      storage = localStorage;
+    } catch (e) {
+      console.error(e);
+      console.warn("Alpine: $persist is using temporary storage since localStorage is unavailable.");
+      let dummy = /* @__PURE__ */ new Map();
+      storage = {
+        getItem: dummy.get.bind(dummy),
+        setItem: dummy.set.bind(dummy)
+      };
+    }
+    return Alpine.interceptor((initialValue, getter, setter, path, key) => {
+      let lookup = alias || `_x_${path}`;
+      let initial = storageHas(lookup, storage) ? storageGet(lookup, storage) : initialValue;
+      setter(initial);
+      Alpine.effect(() => {
+        let value = getter();
+        storageSet(lookup, value, storage);
+        setter(value);
+      });
+      return initial;
+    }, (func) => {
+      func.as = (key) => {
+        alias = key;
+        return func;
+      }, func.using = (target) => {
+        storage = target;
+        return func;
+      };
+    });
+  };
+  Object.defineProperty(Alpine, "$persist", { get: () => persist() });
+  Alpine.magic("persist", persist);
+  Alpine.persist = (key, { get, set }, storage = localStorage) => {
+    let initial = storageHas(key, storage) ? storageGet(key, storage) : get();
+    set(initial);
+    Alpine.effect(() => {
+      let value = get();
+      storageSet(key, value, storage);
+      set(value);
+    });
+  };
+}
+function storageHas(key, storage) {
+  return storage.getItem(key) !== null;
+}
+function storageGet(key, storage) {
+  let value = storage.getItem(key);
+  if (value === void 0)
+    return;
+  return JSON.parse(value);
+}
+function storageSet(key, value, storage) {
+  storage.setItem(key, JSON.stringify(value));
+}
+
+// packages/persist/builds/module.js
+var dist_module_esm_module_default = dist_module_esm_src_default;
+
+
+;// ./node_modules/@alpinejs/focus/dist/module.esm.js
+// node_modules/tabbable/dist/index.esm.js
+var candidateSelectors = ["input", "select", "textarea", "a[href]", "button", "[tabindex]:not(slot)", "audio[controls]", "video[controls]", '[contenteditable]:not([contenteditable="false"])', "details>summary:first-of-type", "details"];
+var candidateSelector = /* @__PURE__ */ candidateSelectors.join(",");
+var NoElement = typeof Element === "undefined";
+var matches = NoElement ? function() {
+} : Element.prototype.matches || Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+var getRootNode = !NoElement && Element.prototype.getRootNode ? function(element) {
+  return element.getRootNode();
+} : function(element) {
+  return element.ownerDocument;
+};
+var getCandidates = function getCandidates2(el, includeContainer, filter) {
+  var candidates = Array.prototype.slice.apply(el.querySelectorAll(candidateSelector));
+  if (includeContainer && matches.call(el, candidateSelector)) {
+    candidates.unshift(el);
+  }
+  candidates = candidates.filter(filter);
+  return candidates;
+};
+var getCandidatesIteratively = function getCandidatesIteratively2(elements, includeContainer, options) {
+  var candidates = [];
+  var elementsToCheck = Array.from(elements);
+  while (elementsToCheck.length) {
+    var element = elementsToCheck.shift();
+    if (element.tagName === "SLOT") {
+      var assigned = element.assignedElements();
+      var content = assigned.length ? assigned : element.children;
+      var nestedCandidates = getCandidatesIteratively2(content, true, options);
+      if (options.flatten) {
+        candidates.push.apply(candidates, nestedCandidates);
+      } else {
+        candidates.push({
+          scope: element,
+          candidates: nestedCandidates
+        });
+      }
+    } else {
+      var validCandidate = matches.call(element, candidateSelector);
+      if (validCandidate && options.filter(element) && (includeContainer || !elements.includes(element))) {
+        candidates.push(element);
+      }
+      var shadowRoot = element.shadowRoot || // check for an undisclosed shadow
+      typeof options.getShadowRoot === "function" && options.getShadowRoot(element);
+      var validShadowRoot = !options.shadowRootFilter || options.shadowRootFilter(element);
+      if (shadowRoot && validShadowRoot) {
+        var _nestedCandidates = getCandidatesIteratively2(shadowRoot === true ? element.children : shadowRoot.children, true, options);
+        if (options.flatten) {
+          candidates.push.apply(candidates, _nestedCandidates);
+        } else {
+          candidates.push({
+            scope: element,
+            candidates: _nestedCandidates
+          });
+        }
+      } else {
+        elementsToCheck.unshift.apply(elementsToCheck, element.children);
+      }
+    }
+  }
+  return candidates;
+};
+var getTabindex = function getTabindex2(node, isScope) {
+  if (node.tabIndex < 0) {
+    if ((isScope || /^(AUDIO|VIDEO|DETAILS)$/.test(node.tagName) || node.isContentEditable) && isNaN(parseInt(node.getAttribute("tabindex"), 10))) {
+      return 0;
+    }
+  }
+  return node.tabIndex;
+};
+var sortOrderedTabbables = function sortOrderedTabbables2(a, b) {
+  return a.tabIndex === b.tabIndex ? a.documentOrder - b.documentOrder : a.tabIndex - b.tabIndex;
+};
+var isInput = function isInput2(node) {
+  return node.tagName === "INPUT";
+};
+var isHiddenInput = function isHiddenInput2(node) {
+  return isInput(node) && node.type === "hidden";
+};
+var isDetailsWithSummary = function isDetailsWithSummary2(node) {
+  var r = node.tagName === "DETAILS" && Array.prototype.slice.apply(node.children).some(function(child) {
+    return child.tagName === "SUMMARY";
+  });
+  return r;
+};
+var getCheckedRadio = function getCheckedRadio2(nodes, form) {
+  for (var i = 0; i < nodes.length; i++) {
+    if (nodes[i].checked && nodes[i].form === form) {
+      return nodes[i];
+    }
+  }
+};
+var isTabbableRadio = function isTabbableRadio2(node) {
+  if (!node.name) {
+    return true;
+  }
+  var radioScope = node.form || getRootNode(node);
+  var queryRadios = function queryRadios2(name) {
+    return radioScope.querySelectorAll('input[type="radio"][name="' + name + '"]');
+  };
+  var radioSet;
+  if (typeof window !== "undefined" && typeof window.CSS !== "undefined" && typeof window.CSS.escape === "function") {
+    radioSet = queryRadios(window.CSS.escape(node.name));
+  } else {
+    try {
+      radioSet = queryRadios(node.name);
+    } catch (err) {
+      console.error("Looks like you have a radio button with a name attribute containing invalid CSS selector characters and need the CSS.escape polyfill: %s", err.message);
+      return false;
+    }
+  }
+  var checked = getCheckedRadio(radioSet, node.form);
+  return !checked || checked === node;
+};
+var module_esm_isRadio = function isRadio2(node) {
+  return isInput(node) && node.type === "radio";
+};
+var isNonTabbableRadio = function isNonTabbableRadio2(node) {
+  return module_esm_isRadio(node) && !isTabbableRadio(node);
+};
+var isZeroArea = function isZeroArea2(node) {
+  var _node$getBoundingClie = node.getBoundingClientRect(), width = _node$getBoundingClie.width, height = _node$getBoundingClie.height;
+  return width === 0 && height === 0;
+};
+var isHidden = function isHidden2(node, _ref) {
+  var displayCheck = _ref.displayCheck, getShadowRoot = _ref.getShadowRoot;
+  if (getComputedStyle(node).visibility === "hidden") {
+    return true;
+  }
+  var isDirectSummary = matches.call(node, "details>summary:first-of-type");
+  var nodeUnderDetails = isDirectSummary ? node.parentElement : node;
+  if (matches.call(nodeUnderDetails, "details:not([open]) *")) {
+    return true;
+  }
+  var nodeRootHost = getRootNode(node).host;
+  var nodeIsAttached = (nodeRootHost === null || nodeRootHost === void 0 ? void 0 : nodeRootHost.ownerDocument.contains(nodeRootHost)) || node.ownerDocument.contains(node);
+  if (!displayCheck || displayCheck === "full") {
+    if (typeof getShadowRoot === "function") {
+      var originalNode = node;
+      while (node) {
+        var parentElement = node.parentElement;
+        var rootNode = getRootNode(node);
+        if (parentElement && !parentElement.shadowRoot && getShadowRoot(parentElement) === true) {
+          return isZeroArea(node);
+        } else if (node.assignedSlot) {
+          node = node.assignedSlot;
+        } else if (!parentElement && rootNode !== node.ownerDocument) {
+          node = rootNode.host;
+        } else {
+          node = parentElement;
+        }
+      }
+      node = originalNode;
+    }
+    if (nodeIsAttached) {
+      return !node.getClientRects().length;
+    }
+  } else if (displayCheck === "non-zero-area") {
+    return isZeroArea(node);
+  }
+  return false;
+};
+var isDisabledFromFieldset = function isDisabledFromFieldset2(node) {
+  if (/^(INPUT|BUTTON|SELECT|TEXTAREA)$/.test(node.tagName)) {
+    var parentNode = node.parentElement;
+    while (parentNode) {
+      if (parentNode.tagName === "FIELDSET" && parentNode.disabled) {
+        for (var i = 0; i < parentNode.children.length; i++) {
+          var child = parentNode.children.item(i);
+          if (child.tagName === "LEGEND") {
+            return matches.call(parentNode, "fieldset[disabled] *") ? true : !child.contains(node);
+          }
+        }
+        return true;
+      }
+      parentNode = parentNode.parentElement;
+    }
+  }
+  return false;
+};
+var isNodeMatchingSelectorFocusable = function isNodeMatchingSelectorFocusable2(options, node) {
+  if (node.disabled || isHiddenInput(node) || isHidden(node, options) || // For a details element with a summary, the summary element gets the focus
+  isDetailsWithSummary(node) || isDisabledFromFieldset(node)) {
+    return false;
+  }
+  return true;
+};
+var isNodeMatchingSelectorTabbable = function isNodeMatchingSelectorTabbable2(options, node) {
+  if (isNonTabbableRadio(node) || getTabindex(node) < 0 || !isNodeMatchingSelectorFocusable(options, node)) {
+    return false;
+  }
+  return true;
+};
+var isValidShadowRootTabbable = function isValidShadowRootTabbable2(shadowHostNode) {
+  var tabIndex = parseInt(shadowHostNode.getAttribute("tabindex"), 10);
+  if (isNaN(tabIndex) || tabIndex >= 0) {
+    return true;
+  }
+  return false;
+};
+var sortByOrder = function sortByOrder2(candidates) {
+  var regularTabbables = [];
+  var orderedTabbables = [];
+  candidates.forEach(function(item, i) {
+    var isScope = !!item.scope;
+    var element = isScope ? item.scope : item;
+    var candidateTabindex = getTabindex(element, isScope);
+    var elements = isScope ? sortByOrder2(item.candidates) : element;
+    if (candidateTabindex === 0) {
+      isScope ? regularTabbables.push.apply(regularTabbables, elements) : regularTabbables.push(element);
+    } else {
+      orderedTabbables.push({
+        documentOrder: i,
+        tabIndex: candidateTabindex,
+        item,
+        isScope,
+        content: elements
+      });
+    }
+  });
+  return orderedTabbables.sort(sortOrderedTabbables).reduce(function(acc, sortable) {
+    sortable.isScope ? acc.push.apply(acc, sortable.content) : acc.push(sortable.content);
+    return acc;
+  }, []).concat(regularTabbables);
+};
+var tabbable = function tabbable2(el, options) {
+  options = options || {};
+  var candidates;
+  if (options.getShadowRoot) {
+    candidates = getCandidatesIteratively([el], options.includeContainer, {
+      filter: isNodeMatchingSelectorTabbable.bind(null, options),
+      flatten: false,
+      getShadowRoot: options.getShadowRoot,
+      shadowRootFilter: isValidShadowRootTabbable
+    });
+  } else {
+    candidates = getCandidates(el, options.includeContainer, isNodeMatchingSelectorTabbable.bind(null, options));
+  }
+  return sortByOrder(candidates);
+};
+var focusable = function focusable2(el, options) {
+  options = options || {};
+  var candidates;
+  if (options.getShadowRoot) {
+    candidates = getCandidatesIteratively([el], options.includeContainer, {
+      filter: isNodeMatchingSelectorFocusable.bind(null, options),
+      flatten: true,
+      getShadowRoot: options.getShadowRoot
+    });
+  } else {
+    candidates = getCandidates(el, options.includeContainer, isNodeMatchingSelectorFocusable.bind(null, options));
+  }
+  return candidates;
+};
+var isTabbable = function isTabbable2(node, options) {
+  options = options || {};
+  if (!node) {
+    throw new Error("No node provided");
+  }
+  if (matches.call(node, candidateSelector) === false) {
+    return false;
+  }
+  return isNodeMatchingSelectorTabbable(options, node);
+};
+var focusableCandidateSelector = /* @__PURE__ */ candidateSelectors.concat("iframe").join(",");
+var isFocusable = function isFocusable2(node, options) {
+  options = options || {};
+  if (!node) {
+    throw new Error("No node provided");
+  }
+  if (matches.call(node, focusableCandidateSelector) === false) {
+    return false;
+  }
+  return isNodeMatchingSelectorFocusable(options, node);
+};
+
+// node_modules/focus-trap/dist/focus-trap.esm.js
+function module_esm_ownKeys(object, enumerableOnly) {
+  var keys = Object.keys(object);
+  if (Object.getOwnPropertySymbols) {
+    var symbols = Object.getOwnPropertySymbols(object);
+    enumerableOnly && (symbols = symbols.filter(function(sym) {
+      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+    })), keys.push.apply(keys, symbols);
+  }
+  return keys;
+}
+function _objectSpread2(target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = null != arguments[i] ? arguments[i] : {};
+    i % 2 ? module_esm_ownKeys(Object(source), true).forEach(function(key) {
+      _defineProperty(target, key, source[key]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : module_esm_ownKeys(Object(source)).forEach(function(key) {
+      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+    });
+  }
+  return target;
+}
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+var activeFocusTraps = function() {
+  var trapQueue = [];
+  return {
+    activateTrap: function activateTrap(trap) {
+      if (trapQueue.length > 0) {
+        var activeTrap = trapQueue[trapQueue.length - 1];
+        if (activeTrap !== trap) {
+          activeTrap.pause();
+        }
+      }
+      var trapIndex = trapQueue.indexOf(trap);
+      if (trapIndex === -1) {
+        trapQueue.push(trap);
+      } else {
+        trapQueue.splice(trapIndex, 1);
+        trapQueue.push(trap);
+      }
+    },
+    deactivateTrap: function deactivateTrap(trap) {
+      var trapIndex = trapQueue.indexOf(trap);
+      if (trapIndex !== -1) {
+        trapQueue.splice(trapIndex, 1);
+      }
+      if (trapQueue.length > 0) {
+        trapQueue[trapQueue.length - 1].unpause();
+      }
+    }
+  };
+}();
+var isSelectableInput = function isSelectableInput2(node) {
+  return node.tagName && node.tagName.toLowerCase() === "input" && typeof node.select === "function";
+};
+var isEscapeEvent = function isEscapeEvent2(e) {
+  return e.key === "Escape" || e.key === "Esc" || e.keyCode === 27;
+};
+var isTabEvent = function isTabEvent2(e) {
+  return e.key === "Tab" || e.keyCode === 9;
+};
+var delay = function delay2(fn) {
+  return setTimeout(fn, 0);
+};
+var findIndex = function findIndex2(arr, fn) {
+  var idx = -1;
+  arr.every(function(value, i) {
+    if (fn(value)) {
+      idx = i;
+      return false;
+    }
+    return true;
+  });
+  return idx;
+};
+var valueOrHandler = function valueOrHandler2(value) {
+  for (var _len = arguments.length, params = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    params[_key - 1] = arguments[_key];
+  }
+  return typeof value === "function" ? value.apply(void 0, params) : value;
+};
+var getActualTarget = function getActualTarget2(event) {
+  return event.target.shadowRoot && typeof event.composedPath === "function" ? event.composedPath()[0] : event.target;
+};
+var createFocusTrap = function createFocusTrap2(elements, userOptions) {
+  var doc = (userOptions === null || userOptions === void 0 ? void 0 : userOptions.document) || document;
+  var config = _objectSpread2({
+    returnFocusOnDeactivate: true,
+    escapeDeactivates: true,
+    delayInitialFocus: true
+  }, userOptions);
+  var state = {
+    // containers given to createFocusTrap()
+    // @type {Array<HTMLElement>}
+    containers: [],
+    // list of objects identifying tabbable nodes in `containers` in the trap
+    // NOTE: it's possible that a group has no tabbable nodes if nodes get removed while the trap
+    //  is active, but the trap should never get to a state where there isn't at least one group
+    //  with at least one tabbable node in it (that would lead to an error condition that would
+    //  result in an error being thrown)
+    // @type {Array<{
+    //   container: HTMLElement,
+    //   tabbableNodes: Array<HTMLElement>, // empty if none
+    //   focusableNodes: Array<HTMLElement>, // empty if none
+    //   firstTabbableNode: HTMLElement|null,
+    //   lastTabbableNode: HTMLElement|null,
+    //   nextTabbableNode: (node: HTMLElement, forward: boolean) => HTMLElement|undefined
+    // }>}
+    containerGroups: [],
+    // same order/length as `containers` list
+    // references to objects in `containerGroups`, but only those that actually have
+    //  tabbable nodes in them
+    // NOTE: same order as `containers` and `containerGroups`, but __not necessarily__
+    //  the same length
+    tabbableGroups: [],
+    nodeFocusedBeforeActivation: null,
+    mostRecentlyFocusedNode: null,
+    active: false,
+    paused: false,
+    // timer ID for when delayInitialFocus is true and initial focus in this trap
+    //  has been delayed during activation
+    delayInitialFocusTimer: void 0
+  };
+  var trap;
+  var getOption = function getOption2(configOverrideOptions, optionName, configOptionName) {
+    return configOverrideOptions && configOverrideOptions[optionName] !== void 0 ? configOverrideOptions[optionName] : config[configOptionName || optionName];
+  };
+  var findContainerIndex = function findContainerIndex2(element) {
+    return state.containerGroups.findIndex(function(_ref) {
+      var container = _ref.container, tabbableNodes = _ref.tabbableNodes;
+      return container.contains(element) || // fall back to explicit tabbable search which will take into consideration any
+      //  web components if the `tabbableOptions.getShadowRoot` option was used for
+      //  the trap, enabling shadow DOM support in tabbable (`Node.contains()` doesn't
+      //  look inside web components even if open)
+      tabbableNodes.find(function(node) {
+        return node === element;
+      });
+    });
+  };
+  var getNodeForOption = function getNodeForOption2(optionName) {
+    var optionValue = config[optionName];
+    if (typeof optionValue === "function") {
+      for (var _len2 = arguments.length, params = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+        params[_key2 - 1] = arguments[_key2];
+      }
+      optionValue = optionValue.apply(void 0, params);
+    }
+    if (optionValue === true) {
+      optionValue = void 0;
+    }
+    if (!optionValue) {
+      if (optionValue === void 0 || optionValue === false) {
+        return optionValue;
+      }
+      throw new Error("`".concat(optionName, "` was specified but was not a node, or did not return a node"));
+    }
+    var node = optionValue;
+    if (typeof optionValue === "string") {
+      node = doc.querySelector(optionValue);
+      if (!node) {
+        throw new Error("`".concat(optionName, "` as selector refers to no known node"));
+      }
+    }
+    return node;
+  };
+  var getInitialFocusNode = function getInitialFocusNode2() {
+    var node = getNodeForOption("initialFocus");
+    if (node === false) {
+      return false;
+    }
+    if (node === void 0) {
+      if (findContainerIndex(doc.activeElement) >= 0) {
+        node = doc.activeElement;
+      } else {
+        var firstTabbableGroup = state.tabbableGroups[0];
+        var firstTabbableNode = firstTabbableGroup && firstTabbableGroup.firstTabbableNode;
+        node = firstTabbableNode || getNodeForOption("fallbackFocus");
+      }
+    }
+    if (!node) {
+      throw new Error("Your focus-trap needs to have at least one focusable element");
+    }
+    return node;
+  };
+  var updateTabbableNodes = function updateTabbableNodes2() {
+    state.containerGroups = state.containers.map(function(container) {
+      var tabbableNodes = tabbable(container, config.tabbableOptions);
+      var focusableNodes = focusable(container, config.tabbableOptions);
+      return {
+        container,
+        tabbableNodes,
+        focusableNodes,
+        firstTabbableNode: tabbableNodes.length > 0 ? tabbableNodes[0] : null,
+        lastTabbableNode: tabbableNodes.length > 0 ? tabbableNodes[tabbableNodes.length - 1] : null,
+        /**
+         * Finds the __tabbable__ node that follows the given node in the specified direction,
+         *  in this container, if any.
+         * @param {HTMLElement} node
+         * @param {boolean} [forward] True if going in forward tab order; false if going
+         *  in reverse.
+         * @returns {HTMLElement|undefined} The next tabbable node, if any.
+         */
+        nextTabbableNode: function nextTabbableNode(node) {
+          var forward = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : true;
+          var nodeIdx = focusableNodes.findIndex(function(n) {
+            return n === node;
+          });
+          if (nodeIdx < 0) {
+            return void 0;
+          }
+          if (forward) {
+            return focusableNodes.slice(nodeIdx + 1).find(function(n) {
+              return isTabbable(n, config.tabbableOptions);
+            });
+          }
+          return focusableNodes.slice(0, nodeIdx).reverse().find(function(n) {
+            return isTabbable(n, config.tabbableOptions);
+          });
+        }
+      };
+    });
+    state.tabbableGroups = state.containerGroups.filter(function(group) {
+      return group.tabbableNodes.length > 0;
+    });
+    if (state.tabbableGroups.length <= 0 && !getNodeForOption("fallbackFocus")) {
+      throw new Error("Your focus-trap must have at least one container with at least one tabbable node in it at all times");
+    }
+  };
+  var tryFocus = function tryFocus2(node) {
+    if (node === false) {
+      return;
+    }
+    if (node === doc.activeElement) {
+      return;
+    }
+    if (!node || !node.focus) {
+      tryFocus2(getInitialFocusNode());
+      return;
+    }
+    node.focus({
+      preventScroll: !!config.preventScroll
+    });
+    state.mostRecentlyFocusedNode = node;
+    if (isSelectableInput(node)) {
+      node.select();
+    }
+  };
+  var getReturnFocusNode = function getReturnFocusNode2(previousActiveElement) {
+    var node = getNodeForOption("setReturnFocus", previousActiveElement);
+    return node ? node : node === false ? false : previousActiveElement;
+  };
+  var checkPointerDown = function checkPointerDown2(e) {
+    var target = getActualTarget(e);
+    if (findContainerIndex(target) >= 0) {
+      return;
+    }
+    if (valueOrHandler(config.clickOutsideDeactivates, e)) {
+      trap.deactivate({
+        // if, on deactivation, we should return focus to the node originally-focused
+        //  when the trap was activated (or the configured `setReturnFocus` node),
+        //  then assume it's also OK to return focus to the outside node that was
+        //  just clicked, causing deactivation, as long as that node is focusable;
+        //  if it isn't focusable, then return focus to the original node focused
+        //  on activation (or the configured `setReturnFocus` node)
+        // NOTE: by setting `returnFocus: false`, deactivate() will do nothing,
+        //  which will result in the outside click setting focus to the node
+        //  that was clicked, whether it's focusable or not; by setting
+        //  `returnFocus: true`, we'll attempt to re-focus the node originally-focused
+        //  on activation (or the configured `setReturnFocus` node)
+        returnFocus: config.returnFocusOnDeactivate && !isFocusable(target, config.tabbableOptions)
+      });
+      return;
+    }
+    if (valueOrHandler(config.allowOutsideClick, e)) {
+      return;
+    }
+    e.preventDefault();
+  };
+  var checkFocusIn = function checkFocusIn2(e) {
+    var target = getActualTarget(e);
+    var targetContained = findContainerIndex(target) >= 0;
+    if (targetContained || target instanceof Document) {
+      if (targetContained) {
+        state.mostRecentlyFocusedNode = target;
+      }
+    } else {
+      e.stopImmediatePropagation();
+      tryFocus(state.mostRecentlyFocusedNode || getInitialFocusNode());
+    }
+  };
+  var checkTab = function checkTab2(e) {
+    var target = getActualTarget(e);
+    updateTabbableNodes();
+    var destinationNode = null;
+    if (state.tabbableGroups.length > 0) {
+      var containerIndex = findContainerIndex(target);
+      var containerGroup = containerIndex >= 0 ? state.containerGroups[containerIndex] : void 0;
+      if (containerIndex < 0) {
+        if (e.shiftKey) {
+          destinationNode = state.tabbableGroups[state.tabbableGroups.length - 1].lastTabbableNode;
+        } else {
+          destinationNode = state.tabbableGroups[0].firstTabbableNode;
+        }
+      } else if (e.shiftKey) {
+        var startOfGroupIndex = findIndex(state.tabbableGroups, function(_ref2) {
+          var firstTabbableNode = _ref2.firstTabbableNode;
+          return target === firstTabbableNode;
+        });
+        if (startOfGroupIndex < 0 && (containerGroup.container === target || isFocusable(target, config.tabbableOptions) && !isTabbable(target, config.tabbableOptions) && !containerGroup.nextTabbableNode(target, false))) {
+          startOfGroupIndex = containerIndex;
+        }
+        if (startOfGroupIndex >= 0) {
+          var destinationGroupIndex = startOfGroupIndex === 0 ? state.tabbableGroups.length - 1 : startOfGroupIndex - 1;
+          var destinationGroup = state.tabbableGroups[destinationGroupIndex];
+          destinationNode = destinationGroup.lastTabbableNode;
+        }
+      } else {
+        var lastOfGroupIndex = findIndex(state.tabbableGroups, function(_ref3) {
+          var lastTabbableNode = _ref3.lastTabbableNode;
+          return target === lastTabbableNode;
+        });
+        if (lastOfGroupIndex < 0 && (containerGroup.container === target || isFocusable(target, config.tabbableOptions) && !isTabbable(target, config.tabbableOptions) && !containerGroup.nextTabbableNode(target))) {
+          lastOfGroupIndex = containerIndex;
+        }
+        if (lastOfGroupIndex >= 0) {
+          var _destinationGroupIndex = lastOfGroupIndex === state.tabbableGroups.length - 1 ? 0 : lastOfGroupIndex + 1;
+          var _destinationGroup = state.tabbableGroups[_destinationGroupIndex];
+          destinationNode = _destinationGroup.firstTabbableNode;
+        }
+      }
+    } else {
+      destinationNode = getNodeForOption("fallbackFocus");
+    }
+    if (destinationNode) {
+      e.preventDefault();
+      tryFocus(destinationNode);
+    }
+  };
+  var checkKey = function checkKey2(e) {
+    if (isEscapeEvent(e) && valueOrHandler(config.escapeDeactivates, e) !== false) {
+      e.preventDefault();
+      trap.deactivate();
+      return;
+    }
+    if (isTabEvent(e)) {
+      checkTab(e);
+      return;
+    }
+  };
+  var checkClick = function checkClick2(e) {
+    var target = getActualTarget(e);
+    if (findContainerIndex(target) >= 0) {
+      return;
+    }
+    if (valueOrHandler(config.clickOutsideDeactivates, e)) {
+      return;
+    }
+    if (valueOrHandler(config.allowOutsideClick, e)) {
+      return;
+    }
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  };
+  var addListeners = function addListeners2() {
+    if (!state.active) {
+      return;
+    }
+    activeFocusTraps.activateTrap(trap);
+    state.delayInitialFocusTimer = config.delayInitialFocus ? delay(function() {
+      tryFocus(getInitialFocusNode());
+    }) : tryFocus(getInitialFocusNode());
+    doc.addEventListener("focusin", checkFocusIn, true);
+    doc.addEventListener("mousedown", checkPointerDown, {
+      capture: true,
+      passive: false
+    });
+    doc.addEventListener("touchstart", checkPointerDown, {
+      capture: true,
+      passive: false
+    });
+    doc.addEventListener("click", checkClick, {
+      capture: true,
+      passive: false
+    });
+    doc.addEventListener("keydown", checkKey, {
+      capture: true,
+      passive: false
+    });
+    return trap;
+  };
+  var removeListeners = function removeListeners2() {
+    if (!state.active) {
+      return;
+    }
+    doc.removeEventListener("focusin", checkFocusIn, true);
+    doc.removeEventListener("mousedown", checkPointerDown, true);
+    doc.removeEventListener("touchstart", checkPointerDown, true);
+    doc.removeEventListener("click", checkClick, true);
+    doc.removeEventListener("keydown", checkKey, true);
+    return trap;
+  };
+  trap = {
+    get active() {
+      return state.active;
+    },
+    get paused() {
+      return state.paused;
+    },
+    activate: function activate(activateOptions) {
+      if (state.active) {
+        return this;
+      }
+      var onActivate = getOption(activateOptions, "onActivate");
+      var onPostActivate = getOption(activateOptions, "onPostActivate");
+      var checkCanFocusTrap = getOption(activateOptions, "checkCanFocusTrap");
+      if (!checkCanFocusTrap) {
+        updateTabbableNodes();
+      }
+      state.active = true;
+      state.paused = false;
+      state.nodeFocusedBeforeActivation = doc.activeElement;
+      if (onActivate) {
+        onActivate();
+      }
+      var finishActivation = function finishActivation2() {
+        if (checkCanFocusTrap) {
+          updateTabbableNodes();
+        }
+        addListeners();
+        if (onPostActivate) {
+          onPostActivate();
+        }
+      };
+      if (checkCanFocusTrap) {
+        checkCanFocusTrap(state.containers.concat()).then(finishActivation, finishActivation);
+        return this;
+      }
+      finishActivation();
+      return this;
+    },
+    deactivate: function deactivate(deactivateOptions) {
+      if (!state.active) {
+        return this;
+      }
+      var options = _objectSpread2({
+        onDeactivate: config.onDeactivate,
+        onPostDeactivate: config.onPostDeactivate,
+        checkCanReturnFocus: config.checkCanReturnFocus
+      }, deactivateOptions);
+      clearTimeout(state.delayInitialFocusTimer);
+      state.delayInitialFocusTimer = void 0;
+      removeListeners();
+      state.active = false;
+      state.paused = false;
+      activeFocusTraps.deactivateTrap(trap);
+      var onDeactivate = getOption(options, "onDeactivate");
+      var onPostDeactivate = getOption(options, "onPostDeactivate");
+      var checkCanReturnFocus = getOption(options, "checkCanReturnFocus");
+      var returnFocus = getOption(options, "returnFocus", "returnFocusOnDeactivate");
+      if (onDeactivate) {
+        onDeactivate();
+      }
+      var finishDeactivation = function finishDeactivation2() {
+        delay(function() {
+          if (returnFocus) {
+            tryFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation));
+          }
+          if (onPostDeactivate) {
+            onPostDeactivate();
+          }
+        });
+      };
+      if (returnFocus && checkCanReturnFocus) {
+        checkCanReturnFocus(getReturnFocusNode(state.nodeFocusedBeforeActivation)).then(finishDeactivation, finishDeactivation);
+        return this;
+      }
+      finishDeactivation();
+      return this;
+    },
+    pause: function pause() {
+      if (state.paused || !state.active) {
+        return this;
+      }
+      state.paused = true;
+      removeListeners();
+      return this;
+    },
+    unpause: function unpause() {
+      if (!state.paused || !state.active) {
+        return this;
+      }
+      state.paused = false;
+      updateTabbableNodes();
+      addListeners();
+      return this;
+    },
+    updateContainerElements: function updateContainerElements(containerElements) {
+      var elementsAsArray = [].concat(containerElements).filter(Boolean);
+      state.containers = elementsAsArray.map(function(element) {
+        return typeof element === "string" ? doc.querySelector(element) : element;
+      });
+      if (state.active) {
+        updateTabbableNodes();
+      }
+      return this;
+    }
+  };
+  trap.updateContainerElements(elements);
+  return trap;
+};
+
+// packages/focus/src/index.js
+function focus_dist_module_esm_src_default(Alpine) {
+  let lastFocused;
+  let currentFocused;
+  window.addEventListener("focusin", () => {
+    lastFocused = currentFocused;
+    currentFocused = document.activeElement;
+  });
+  Alpine.magic("focus", (el) => {
+    let within = el;
+    return {
+      __noscroll: false,
+      __wrapAround: false,
+      within(el2) {
+        within = el2;
+        return this;
+      },
+      withoutScrolling() {
+        this.__noscroll = true;
+        return this;
+      },
+      noscroll() {
+        this.__noscroll = true;
+        return this;
+      },
+      withWrapAround() {
+        this.__wrapAround = true;
+        return this;
+      },
+      wrap() {
+        return this.withWrapAround();
+      },
+      focusable(el2) {
+        return isFocusable(el2);
+      },
+      previouslyFocused() {
+        return lastFocused;
+      },
+      lastFocused() {
+        return lastFocused;
+      },
+      focused() {
+        return currentFocused;
+      },
+      focusables() {
+        if (Array.isArray(within))
+          return within;
+        return focusable(within, { displayCheck: "none" });
+      },
+      all() {
+        return this.focusables();
+      },
+      isFirst(el2) {
+        let els = this.all();
+        return els[0] && els[0].isSameNode(el2);
+      },
+      isLast(el2) {
+        let els = this.all();
+        return els.length && els.slice(-1)[0].isSameNode(el2);
+      },
+      getFirst() {
+        return this.all()[0];
+      },
+      getLast() {
+        return this.all().slice(-1)[0];
+      },
+      getNext() {
+        let list = this.all();
+        let current = document.activeElement;
+        if (list.indexOf(current) === -1)
+          return;
+        if (this.__wrapAround && list.indexOf(current) === list.length - 1) {
+          return list[0];
+        }
+        return list[list.indexOf(current) + 1];
+      },
+      getPrevious() {
+        let list = this.all();
+        let current = document.activeElement;
+        if (list.indexOf(current) === -1)
+          return;
+        if (this.__wrapAround && list.indexOf(current) === 0) {
+          return list.slice(-1)[0];
+        }
+        return list[list.indexOf(current) - 1];
+      },
+      first() {
+        this.focus(this.getFirst());
+      },
+      last() {
+        this.focus(this.getLast());
+      },
+      next() {
+        this.focus(this.getNext());
+      },
+      previous() {
+        this.focus(this.getPrevious());
+      },
+      prev() {
+        return this.previous();
+      },
+      focus(el2) {
+        if (!el2)
+          return;
+        setTimeout(() => {
+          if (!el2.hasAttribute("tabindex"))
+            el2.setAttribute("tabindex", "0");
+          el2.focus({ preventScroll: this.__noscroll });
+        });
+      }
+    };
+  });
+  Alpine.directive("trap", Alpine.skipDuringClone(
+    (el, { expression, modifiers }, { effect, evaluateLater, cleanup }) => {
+      let evaluator = evaluateLater(expression);
+      let oldValue = false;
+      let options = {
+        escapeDeactivates: false,
+        allowOutsideClick: true,
+        fallbackFocus: () => el
+      };
+      let undoInert = () => {
+      };
+      if (modifiers.includes("noautofocus")) {
+        options.initialFocus = false;
+      } else {
+        let autofocusEl = el.querySelector("[autofocus]");
+        if (autofocusEl)
+          options.initialFocus = autofocusEl;
+      }
+      if (modifiers.includes("inert")) {
+        options.onPostActivate = () => {
+          Alpine.nextTick(() => {
+            undoInert = setInert(el);
+          });
+        };
+      }
+      let trap = createFocusTrap(el, options);
+      let undoDisableScrolling = () => {
+      };
+      const releaseFocus = () => {
+        undoInert();
+        undoInert = () => {
+        };
+        undoDisableScrolling();
+        undoDisableScrolling = () => {
+        };
+        trap.deactivate({
+          returnFocus: !modifiers.includes("noreturn")
+        });
+      };
+      effect(() => evaluator((value) => {
+        if (oldValue === value)
+          return;
+        if (value && !oldValue) {
+          if (modifiers.includes("noscroll"))
+            undoDisableScrolling = disableScrolling();
+          setTimeout(() => {
+            trap.activate();
+          }, 15);
+        }
+        if (!value && oldValue) {
+          releaseFocus();
+        }
+        oldValue = !!value;
+      }));
+      cleanup(releaseFocus);
+    },
+    // When cloning, we only want to add aria-hidden attributes to the
+    // DOM and not try to actually trap, as trapping can mess with the
+    // live DOM and isn't just isolated to the cloned DOM.
+    (el, { expression, modifiers }, { evaluate }) => {
+      if (modifiers.includes("inert") && evaluate(expression))
+        setInert(el);
+    }
+  ));
+}
+function setInert(el) {
+  let undos = [];
+  crawlSiblingsUp(el, (sibling) => {
+    let cache = sibling.hasAttribute("aria-hidden");
+    sibling.setAttribute("aria-hidden", "true");
+    undos.push(() => cache || sibling.removeAttribute("aria-hidden"));
+  });
+  return () => {
+    while (undos.length)
+      undos.pop()();
+  };
+}
+function crawlSiblingsUp(el, callback) {
+  if (el.isSameNode(document.body) || !el.parentNode)
+    return;
+  Array.from(el.parentNode.children).forEach((sibling) => {
+    if (sibling.isSameNode(el)) {
+      crawlSiblingsUp(el.parentNode, callback);
+    } else {
+      callback(sibling);
+    }
+  });
+}
+function disableScrolling() {
+  let overflow = document.documentElement.style.overflow;
+  let paddingRight = document.documentElement.style.paddingRight;
+  let scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+  document.documentElement.style.overflow = "hidden";
+  document.documentElement.style.paddingRight = `${scrollbarWidth}px`;
+  return () => {
+    document.documentElement.style.overflow = overflow;
+    document.documentElement.style.paddingRight = paddingRight;
+  };
+}
+
+// packages/focus/builds/module.js
+var focus_dist_module_esm_module_default = focus_dist_module_esm_src_default;
+
+/*! Bundled license information:
+
+tabbable/dist/index.esm.js:
+  (*!
+  * tabbable 5.3.3
+  * @license MIT, https://github.com/focus-trap/tabbable/blob/master/LICENSE
+  *)
+
+focus-trap/dist/focus-trap.esm.js:
+  (*!
+  * focus-trap 6.9.4
+  * @license MIT, https://github.com/focus-trap/focus-trap/blob/master/LICENSE
+  *)
+*/
+
+;// ./assets/js/src/modules/deep-links.js
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+/**
+ * Deep Link Handler for Admin Settings
+ *
+ * Provides automatic highlighting and scrolling to elements based on URL hash
+ * Supports nested panels and automatic accordion/panel opening
+ *
+ * @since 2.29.0
+ */
+
+/* global Alpine, setTimeout */
+
+function initDeepLinkHandler() {
+  // Register the deep link handler as an Alpine store
+  document.addEventListener("alpine:init", function () {
+    Alpine.store("deepLink", {
+      /**
+       * Initialize the deep link handler
+       */
+      init: function init() {
+        var _this = this;
+        // Check for deep link after Alpine components are ready
+        this.checkDeepLink();
+
+        // Listen for hash changes
+        window.addEventListener("hashchange", function () {
+          return _this.checkDeepLink();
+        });
+      },
+      /**
+       * Check and process deep link from URL hash
+       */
+      checkDeepLink: function checkDeepLink() {
+        var _this2 = this;
+        var hash = window.location.hash.replace("#", "");
+        if (!hash) return;
+
+        // Small delay to ensure Alpine components are initialized
+        setTimeout(function () {
+          _this2.processDeepLink(hash);
+        }, 100);
+      },
+      /**
+       * Process a deep link target
+       * @param {string} targetId - The ID to target
+       */
+      processDeepLink: function processDeepLink(targetId) {
+        // Try to find the target element
+        var target = document.getElementById(targetId);
+
+        // Also check for elements with data-deeplink-id attribute (for flexibility)
+        var altTarget = document.querySelector("[data-deeplink-id=\"".concat(targetId, "\"]"));
+        var element = target || altTarget;
+        if (!element) {
+          // Try with underscores replaced by hyphens (common variation)
+          var alternateId = targetId.replace(/_/g, "-");
+          var alternateElement = document.getElementById(alternateId);
+          if (alternateElement) {
+            this.processElement(alternateElement);
+          }
+          return;
+        }
+        this.processElement(element);
+      },
+      /**
+       * Process the found element
+       * @param {HTMLElement} element - The element to process
+       */
+      processElement: function processElement(element) {
+        var _this3 = this;
+        // Open parent panels if the element is hidden
+        this.openParentPanels(element);
+
+        // Wait for panels to open
+        setTimeout(function () {
+          // Scroll to and highlight the element
+          _this3.highlightElement(element);
+        }, 350); // Wait for panel animations
+      },
+      /**
+       * Open any parent collapsible panels
+       * @param {HTMLElement} element - The target element
+       */
+      openParentPanels: function openParentPanels(element) {
+        var parent = element.parentElement;
+        while (parent && parent !== document.body) {
+          // Check for Alpine x-show or x-collapse attributes
+          if (parent.hasAttribute("x-show") || parent.hasAttribute("x-collapse")) {
+            // Try to find the Alpine component that controls this panel
+            var alpineParent = this.findAlpineParent(parent);
+            if (alpineParent) {
+              this.openAlpinePanel(alpineParent, parent);
+            }
+          }
+
+          // Check for payment method cards (special case)
+          var paymentCard = parent.closest(".affwp-payment-card");
+          if (paymentCard) {
+            var methodId = paymentCard.getAttribute("data-method");
+            if (methodId) {
+              // Open the payment method panel by dispatching event
+              var component = Alpine.$data(paymentCard);
+              if (component && typeof component.panelOpen !== "undefined") {
+                component.panelOpen = true;
+              }
+            }
+          }
+          parent = parent.parentElement;
+        }
+      },
+      /**
+       * Find the Alpine component that controls a panel
+       * @param {HTMLElement} panel - The panel element
+       * @returns {HTMLElement|null} The Alpine component element
+       */
+      findAlpineParent: function findAlpineParent(panel) {
+        var current = panel;
+        while (current && current !== document.body) {
+          if (current.hasAttribute("x-data")) {
+            return current;
+          }
+          current = current.parentElement;
+        }
+        return null;
+      },
+      /**
+       * Open an Alpine-controlled panel
+       * @param {HTMLElement} component - The Alpine component
+       * @param {HTMLElement} panel - The panel to open
+       */
+      openAlpinePanel: function openAlpinePanel(component, panel) {
+        // Get the x-show attribute value
+        var showAttribute = panel.getAttribute("x-show");
+        if (showAttribute) {
+          // Parse the variable name from x-show
+          var matches = showAttribute.match(/^(\w+)/);
+          if (matches) {
+            var varName = matches[1];
+            // Set the variable to true using Alpine's reactivity
+            var alpineData = Alpine.$data(component);
+            if (alpineData && typeof alpineData[varName] !== "undefined") {
+              alpineData[varName] = true;
+            }
+          }
+        }
+      },
+      /**
+       * Highlight an element with visual feedback
+       * @param {HTMLElement} element - The element to highlight
+       */
+      highlightElement: function highlightElement(element) {
+        // Scroll to element
+        element.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+
+        // Add highlight classes
+        var highlightClasses = ["ring-2", "ring-affwp-brand-500", "ring-offset-2", "transition-all"];
+
+        // Check if element has custom highlight classes
+        var customClasses = element.getAttribute("data-deeplink-highlight");
+        if (customClasses) {
+          var _element$classList;
+          (_element$classList = element.classList).add.apply(_element$classList, _toConsumableArray(customClasses.split(" ")));
+        } else {
+          var _element$classList2;
+          (_element$classList2 = element.classList).add.apply(_element$classList2, highlightClasses);
+        }
+
+        // Remove highlight after delay
+        var duration = element.getAttribute("data-deeplink-duration") || 2000;
+        setTimeout(function () {
+          if (customClasses) {
+            var _element$classList3;
+            (_element$classList3 = element.classList).remove.apply(_element$classList3, _toConsumableArray(customClasses.split(" ")));
+          } else {
+            var _element$classList4;
+            (_element$classList4 = element.classList).remove.apply(_element$classList4, highlightClasses);
+          }
+        }, parseInt(duration));
+      },
+      /**
+       * Programmatically navigate to a deep link
+       * @param {string} targetId - The ID to navigate to
+       * @param {boolean} updateUrl - Whether to update the URL hash
+       */
+      navigateTo: function navigateTo(targetId) {
+        var updateUrl = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+        if (updateUrl) {
+          window.location.hash = targetId;
+        } else {
+          this.processDeepLink(targetId);
+        }
+      }
+    });
+
+    // Auto-initialize after Alpine starts
+    Alpine.nextTick(function () {
+      Alpine.store("deepLink").init();
+    });
+  });
+}
+;// ./assets/js/src/admin.js
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 /* global affwp_vars, jQuery, window, wp, document */
 /* eslint-disable camelcase */
 /* eslint-disable */
 
-jQuery( document ).ready( function( $ ) {
-	// Settings uploader.
-	var file_frame;
-	window.formfield = '';
-
-	// TO DO: Need to determine ideal size for these
-	// And move this to be more global as we use it in other places in our settings.
-	const affwpSelect2Width = '175px';
-
-	// Check if we can use select2 globally. It may be not loaded on non-affiliatewp pages.
-	if ( typeof $.fn.select2 !== 'undefined' ) {
-		const $select2Elements = $( '.affwp-use-select2' );
-
-		$select2Elements.closest( 'tr' ).addClass( 'affwp-select2-initialized' );
-
-		// Apply a simple select2 to select elements to keep all them with the same aspect.
-		$select2Elements.select2( {
-			width: affwpSelect2Width,
-			minimumResultsForSearch: -1,
-		} );
-
-		// Open the Type select2 dropdown when clicking on the Type label.
-		$( '.affwp-select2-initialized label' ).on( 'click', function() {
-			$( this ).closest( 'tr' ).find( 'select:first' ).select2( 'open' );
-		} );
-	}
-
-	$('body').on('click', '.affwp_settings_upload_button', function(e) {
-
-		e.preventDefault();
-
-		var button = $(this);
-
-		window.formfield = $(this).prev();
-		// If the media frame already exists, reopen it.
-		if( file_frame ) {
-			file_frame.open();
-			return;
-		}
-
-		// Create the media frame
-		file_frame = wp.media.frames.file_frame = wp.media({
-			frame: 'post',
-			state: 'insert',
-			title: button.data( 'uploader_title' ),
-			button: {
-				text: button.data( 'uploader_button_text' )
-			},
-			multiple: false
-		});
-
-		file_frame.on( 'menu:render:default', function( view ) {
-			// Store our views in an object,
-			var views = {};
-
-			// Unset default menu items
-			view.unset( 'library-separator' );
-			view.unset( 'gallery' );
-			view.unset( 'featured-image' );
-			view.unset( 'embed' );
-
-			// Initialize the views in our view object
-			view.set( views );
-		});
-
-		// When an image is selected, run a callback
-		file_frame.on( 'insert', function() {
-			var selection = file_frame.state().get( 'selection' );
-
-			selection.each( function( attachment, index ) {
-				attachment = attachment.toJSON();
-				window.formfield.val(attachment.url);
-
-				// Dispatch a custom event with the new URL
-				var event = new CustomEvent('mediaURLChanged', { detail: { url: attachment.url } });
-				document.dispatchEvent(event);
-			});
-		});
-
-		// Open the modal
-		file_frame.open();
-	});
-
-	var file_frame;
-	window.formfield = '';
-
-	// Show referral export form
-	$('.affwp-referrals-export-toggle').click(function() {
-		$('.affwp-referrals-export-toggle').toggle();
-		$('#affwp-referrals-export-form').slideToggle();
-	});
-
-	// datepicker
-	if( $('.affwp-datepicker').length ) {
-		$('.affwp-datepicker').datepicker({dateFormat: 'mm/dd/yy'});
-	}
-
-	// Ajax user search.
-	$( '.affwp-user-search' ).each( function(){
-		var $all_input_fields,
-			$all_fields_excluding_search,
-			$this = $( this ),
-			$action = 'affwp_search_users',
-			$search = $this.val(),
-			$status = $this.data( 'affwp-status' ),
-			$form = $this.closest( 'form' ),
-			$submit = $form.find( ':submit.button-primary' ),
-			$submit_default_value = $submit.val(),
-			$user_creation_fields = $( '.affwp-user-email-wrap, .affwp-user-pass-wrap' ),
-			$on_complete_enabled = $this.hasClass( 'affwp-enable-on-complete' );
-
-		if( $on_complete_enabled === true ){
-			$all_input_fields = $form.find( 'input, select' );
-			$all_fields_excluding_search = $all_input_fields.not( $this );
-		}
-
-		$this.on( 'input', function(){
-			$user_creation_fields.hide();
-		} );
-
-		$this.autocomplete( {
-			source: ajaxurl + '?action=' + $action + '&term=' + $search + '&status=' + $status,
-			messages: {
-				// This is specified as such because we want to force screen readers to read the message in the response callback
-				noResults: $on_complete_enabled ? '' : 'No users found'
-			},
-			delay: 500,
-			minLength: 2,
-			position: { offset: '0, -1' },
-			search: function(){
-				if( $this.hasClass( 'affwp-enable-on-complete' ) ){
-					$( 'div.notice' ).remove();
-					$user_creation_fields.hide();
-				}
-			},
-			open: function(){
-				$this.addClass( 'open' );
-			},
-			close: function(){
-				$this.removeClass( 'open' );
-			},
-			response: function( event, ui ){
-				if( ui.content.length === 0 && $this.hasClass( 'affwp-enable-on-complete' ) ){
-					// This triggers when no results are found
-					$( '<div class="notice notice-error affwp-new-affiliate-error"><p>' + affwp_vars.no_user_found + '</p></div>' ).insertAfter( $this );
-					wp.a11y.speak( affwp_vars.no_user_found, 'polite' );
-
-					$form.find( 'input, select' ).prop( 'disabled', false );
-
-					$( '.affwp-user-email-wrap, .affwp-user-pass-wrap' ).show();
-					$( '.affwp-user-email' ).prop( 'required' );
-					$( '.search-description' ).hide();
-
-					$submit.val( affwp_vars.user_and_affiliate_input );
-				}else{
-					wp.a11y.speak( affwp_vars.valid_user_selected, 'polite' );
-				}
-			},
-			select: function(){
-
-				if( $this.hasClass( 'affwp-enable-on-complete' ) ){
-
-					$.ajax( {
-						type: 'POST',
-						url: ajaxurl,
-						data: {
-							action: 'affwp_check_user_login',
-							user: $this.val()
-						},
-						dataType: "json",
-						success: function( response ){
-
-							if( response.success ){
-
-								if( false === response.data.affiliate ){
-
-									$form.find( 'input, select' ).prop( 'disabled', false );
-
-								}else{
-
-									var viewLink = '<a href="' + response.data.url + '">' + affwp_vars.view_affiliate + '</a>';
-
-									$( '<div class="notice notice-info affwp-new-affiliate-error"><p>' + affwp_vars.existing_affiliate + ' ' + viewLink + '</p></div>' ).insertAfter( $this );
-
-									$this.prop( 'disabled', false );
-
-								}
-							}
-
-						}
-
-					} ).fail( function( response ){
-						if( window.console && window.console.log ){
-							console.log( response );
-						}
-					} );
-				}
-			}
-		} );
-
-		// Immediately disable all other fields when this input updates.
-		if( $on_complete_enabled === true ){
-			$this.on( 'input', function(){
-				$all_fields_excluding_search.prop( 'disabled', true );
-				$submit.val( $submit_default_value );
-			} );
-		}
-	} );
-
-	// select image for creative
-	var file_frame;
-	$( 'body' ).on( 'click', '.upload_image_button', function( e ){
-
-		e.preventDefault();
-
-		var formfield = $( this ).prev();
-
-		// If the media frame already exists, reopen it.
-		if( file_frame ){
-			//file_frame.uploader.uploader.param( 'post_id', set_to_post_id );
-			file_frame.open();
-			return;
-		}
-
-		// Create the media frame.
-		file_frame = wp.media.frames.file_frame = wp.media( {
-			frame: 'select',
-			title: 'Choose Image',
-			multiple: false,
-			library: {
-				type: 'image'
-			},
-			button: {
-				text: 'Use Image'
-			}
-		} );
-
-		file_frame.on( 'menu:render:default', function(view) {
-			// Store our views in an object.
-			var views = {};
-
-			// Unset default menu items
-			view.unset('library-separator');
-			view.unset('gallery');
-			view.unset('featured-image');
-			view.unset('embed');
-
-			// Initialize the views in our view object.
-			view.set(views);
-		});
-
-		// When an image is selected, run a callback.
-		file_frame.on( 'select', function() {
-			var attachment = file_frame.state().get('selection').first().toJSON();
-			formfield.val(attachment.url);
-
-			var img = $('<img />');
-			img.attr('src', attachment.url);
-			// replace previous image with new one if selected
-			$('#preview_image').empty().append( img );
-
-			// show preview div when image exists
-			if ( $('#preview_image img') ) {
-				$('#preview_image').show();
-			}
-		});
-
-		// Finally, open the modal
-		file_frame.open();
-	});
-
-	// Confirm referral deletion
-	$('body').on('click', '.affiliates_page_affiliate-wp-referrals .delete', function(e) {
-
-		if( confirm( affwp_vars.confirm_delete_referral) ) {
-			return true;
-		}
-
-		return false;
-
-	});
-
-	/**
-	 * Launch a confirmation modal with customizable settings.
-	 *
-	 * Uses jQuery Confirm.
-	 *
-	 * @see https://craftpip.github.io/jquery-confirm/
-	 *
-	 * @since 2.27.0
-	 *
-	 * @param {string} title   Title.
-	 * @param {string} content Content.
-	 * @param {Object} args    Overriding Args.
-	 *
-	 * @return {Object} Modal Object.
-	 */
-	function getConfirmationModal( title, content, args = {} ) {
-
-		return jQuery.alert(
-			jQuery.extend(
-				{
-					title,
-					content,
-					backgroundDismiss: true,
-					icon: 'fa fa-info-circle',
-					type: 'lightgreen',
-					boxWidth: 420,
-					useBootstrap: false,
-					theme: 'modern,affiliatewp-education',
-					closeIcon: true,
-					draggable: false,
-					dragWindowBorder: false,
-					keyboardEnabled: true,
-				},
-				args
-			)
-		);
-	}
-
-	/**
-	 * Displays a holding period confirmation modal.
-	 *
-	 * @param {string}   title                 The title of the modal.
-	 * @param {Function} confirmation_callback The callback function to execute on confirmation.
-	 * @return {Object}                        The confirmation modal object.
-	 */
-	function showHoldingPeriodModal( title, confirmation_callback ) {
-
-		return getConfirmationModal(
-			title,
-			affwp_vars.holdingPeriodModal.content,
-			{
-				icon: 'fa fa-warning',
-				onKeydown: function (event) {
-					// Check if the pressed key is escape (key code 27).
-					if ( event.which === 27 ) {
-						// If escape key is pressed, close the modal.
-						this.close();
-					}
-					// Prevent confirmation if enter key is pressed.
-					if ( event.which === 13 ) {
-						event.preventDefault();
-						return false;
-					}
-				},
-				buttons: {
-					payNow: {
-						text: affwp_vars.holdingPeriodModal.confirm,
-						action: confirmation_callback,
-						disabled: false,
-						btnClass: 'btn-confirm',
-					},
-					cancel: {
-						text: affwp_vars.holdingPeriodModal.cancel,
-						action: function () {
-							this.close();
-						},
-						disabled: false,
-						btnClass: 'btn',
-					},
-				},
-			}
-		);
-	}
-
-	/**
-	 * Confirm PayPal payouts - Pay Now via PayPal for commissions in the holding period.
-	 */
-	$( '.affiliates_page_affiliate-wp-referrals .affwp-pay-now-via-paypal.affwp-holding-period' ).on( 'click', function( e ) {
-		e.preventDefault();
-
-		const payNowLink = $( this ).attr( 'href' );
-
-		showHoldingPeriodModal(
-			affwp_vars.holdingPeriodModal.rowActionsTitle,
-			function() {
-				this.close();
-				window.location.href = payNowLink;
-			}
-		);
-	} );
-
-	/**
-	 * Checks if any table rows contain the holding-period class.
-	 *
-	 * @returns {boolean} True if there is a holding period referrals, false otherwise.
-	 */
-	function hasHoldingPeriodReferrals() {
-		let hasHoldingPeriod = false;
-
-		// Loop through each row in the table.
-		$( '.referrals.affwp-table tbody tr' ).each( function() {
-			const $row = $( this );
-
-			// Skip this row if the checkbox is not checked.
-			if ( $row.find( '.check-column input:checked' ).length === 0 ) {
-				return true;
-			}
-
-			// Skip this row if it does not contain the holding-period class.
-			if ( $row.find( '.affwp-holding-period' ).length === 0 ) {
-				return true;
-			}
-
-			// Otherwise, we know we have at least one holding period referral.
-			hasHoldingPeriod = true;
-			return false; // Return false to exit the loop.
-		} );
-
-		return hasHoldingPeriod;
-	}
-
-	/**
-	 * Handles bulk actions on the referrals page, showing a confirmation modal if necessary.
-	 */
-	$( '.affiliates_page_affiliate-wp-referrals #doaction, .affiliates_page_affiliate-wp-referrals #doaction2' ).on( 'click', function( e ) {
-
-		// Determine which button was clicked.
-		let action;
-		if ( this.id === 'doaction' ) {
-			action = $( '#affwp-referrals-filter-form select[name="action"]' ).val();
-		} else if ( this.id === 'doaction2' ) {
-			action = $( '#affwp-referrals-filter-form select[name="action2"]' ).val();
-		}
-
-		// If the bulk action is not 'pay_now', there's nothing to do.
-		if ( action !== 'pay_now' ) {
-			return;
-		}
-
-		e.preventDefault();
-
-		// If there are no holding period referrals, proceed with the bulk action.
-		if ( ! hasHoldingPeriodReferrals() ) {
-			$( '#affwp-referrals-filter-form' ).off( 'submit' ).submit();
-			return;
-		}
-
-		// Otherwise, show the holding period confirmation modal.
-		showHoldingPeriodModal(
-			affwp_vars.holdingPeriodModal.bulkActionsTitle,
-			function() {
-				this.close();
-				$( '#affwp-referrals-filter-form' ).off( 'submit' ).submit();
-			}
-		);
-	} );
-
-	function maybe_activate_migrate_users_button() {
-		var checked = $('#affiliate-wp-migrate-user-accounts input:checkbox:checked' ).length,
-				$button = $('#affiliate-wp-migrate-user-accounts input[type=submit]');
-
-		if ( checked > 0 ) {
-			$button.prop( 'disabled', false );
-		} else {
-			$button.prop( 'disabled', true );
-		}
-	}
-
-	maybe_activate_migrate_users_button();
-
-	$('body').on('change', '#affiliate-wp-migrate-user-accounts input:checkbox', function() {
-		maybe_activate_migrate_users_button();
-	});
-
-	$('#affwp_add_affiliate #status').change(function() {
-
-		var status = $(this).val();
-		if( 'active' == status ) {
-			$('#affwp-welcome-email-row').show();
-		} else {
-			$('#affwp-welcome-email-row').hide();
-			$('#affwp-welcome-email-row #welcome_email').prop( 'checked', false );
-		}
-
-	});
-
-	// Generate Code button in Affiliates > Add / Edit.
-	$( '#generate-coupon-code-button' ).on( 'click', function( event ) {
-		event.preventDefault();
-
-		$.ajax( {
-			type : 'POST',
-			url  : ajaxurl,
-			data : {
-				action: 'affwp_generate_coupon_code',
-				affiliate_id: $( this ).data( 'affiliate_id' )
-			},
-			dataType: "json",
-			success : function (response) {
-				if ( response.success && response.data.coupon_code ) {
-					$( '#coupon_code' ).val( response.data.coupon_code );
-				}
-			}
-		} );
-
-	} );
-
-	// Live preview functionality for the coupon tab settings.
-	if ( '?page=affiliate-wp-settings&tab=coupons' === window.location.search ) {
-		/**
-		 * Gets and sanitizes the current value of the custom text field.
-		 *
-		 * @since 2.8
-		 *
-		 * @return {string} Returns sanitized custom text value. If empty, defaults to 'TEXT'.
-		 */
-		const getCustomText = function () {
-			var customText = document.getElementById( 'affwp_settings[coupon_custom_text]' ).value;
-
-			if ( '' === customText ) {
-				return 'TEXT';
-			} else {
-				// Only display alphanumeric.
-				return customText.replace(/[^0-9a-z]/gi, '');
-			}
-		}
-
-		/**
-		 * Returns the live preview version of a given coupon format text.
-		 *
-		 * This replaces merge tags with preview defaults, capitalizes it, and removes hyphens if necessary.
-		 *
-		 * @since 2.8
-		 *
-		 * @param  {string} text Coupon format option text.
-		 * @return {string}      Return coupon format live preview text.
-		 */
-		const returnLivePreviewText = function ( text ) {
-			// Replace coupon code, username, first name, coupon amount, and custom text merge tags.
-			var previewText = text;
-			previewText     = previewText.replace( '{coupon_code}',   'FGFUVCQOK1' );
-			previewText     = previewText.replace( '{user_name}',     'CREATIVELABS' );
-			previewText     = previewText.replace( '{first_name}',    'BOB' );
-			previewText     = previewText.replace( '{coupon_amount}', '10' );
-			previewText     = previewText.replace( '{custom_text}',    getCustomText() );
-
-			// Capitalize preview.
-			previewText = previewText.toUpperCase();
-
-			// Keep or remove hyphens.
-			var keepHyphens = checkHyphenDelimiterSetting();
-			if ( true === keepHyphens ) {
-				return previewText;
-			} else {
-				return previewText.replace( /-/g, '' );
-			}
-		}
-
-		/**
-		 * Updates coupon format options with live preview options.
-		 * Also, adds/removes hyphens as necessary.
-		 *
-		 * @since  2.8
-		 *
-		 * @return void.
-		 */
-		const updateCouponFormatOptions = function () {
-			var hyphenSettingChecked = checkHyphenDelimiterSetting();
-			var formatOptions        = document.getElementById('affwp_settings[coupon_format]').options;
-
-			if ( true === hyphenSettingChecked ) {
-				// Add hyphens.
-				for ( var index = 0; index < formatOptions.length; index++ ) {
-					formatOptions[index].text = returnLivePreviewText( couponFormatOptions[index] );
-				}
-			} else {
-				// Remove hyphens.
-				for ( var index = 0; index < formatOptions.length; index++ ) {
-				    formatOptions[index].text = formatOptions[index].text.replace( /-/g, '' );
-				}
-			}
-
-		}
-
-		/**
-		 * Checks if the Coupon Hyphen Delimiter setting is enabled.
-		 *
-		 * @since  2.8
-		 *
-		 * @return {boolean} True if Coupon Hyphen Delimiter setting is checked, otherwise, false.
-		 */
-		const checkHyphenDelimiterSetting = function () {
-			return $( "input[id='affwp_settings[coupon_hyphen_delimiter]']" ).is( ':checked' );
-		}
-
-		/**
-		 * Resets the currently selected coupon format option to be the coupon format value with merge tags.
-		 *
-		 * @since  2.8
-		 *
-		 * @return void.
-		 */
-		const resetCFSelectedOption = function () {
-			// Get the currently selected coupon format option's value.
-			var formatValue = $( "select[id='affwp_settings[coupon_format]'] option:selected" )[0].value;
-
-			// Remove hyphen if hyphen delimiter setting is false.
-			if ( false === checkHyphenDelimiterSetting() ) {
-				formatValue = formatValue.replace( /-/g, '' );
-			}
-
-			// Make the selected option display the coupon format value.
-			$( "select[id='affwp_settings[coupon_format]'] option:selected" )[0].text = formatValue;
-		}
-
-		// Setup format options.
-		var formatOptions       = document.getElementById('affwp_settings[coupon_format]').options;
-		var couponFormatOptions = [];
-
-		for ( var option = 0; option < formatOptions.length; option++ ) {
-			// Add options for live preview.
-		    couponFormatOptions.push( formatOptions[option].text );
-			// Change Coupon Format options to live preview.
-		    formatOptions[option].text = returnLivePreviewText( couponFormatOptions[option] );
-		};
-
-		// Update the selected option to display coupon format value
-		resetCFSelectedOption();
-
-		// On coupon format setting change, return options to live preview and the selected option as the coupon format.
-		$( "select[id='affwp_settings[coupon_format]']" ).on( 'change', function ( event ) {
-			// Make options display preview values.
-			updateCouponFormatOptions();
-			// Make the current selected option display as the coupon format with merge tags.
-			resetCFSelectedOption();
-		});
-
-		// Add or remove hyphens in the coupon format live preview based on the Hyphen Delimiter setting.
-		$( "input[id='affwp_settings[coupon_hyphen_delimiter]']" ).on( 'click', function ( event ) {
-			// Update options display preview values with or without hyphens.
-			updateCouponFormatOptions();
-			// Make the current selected option display as the coupon format with merge tags.
-			resetCFSelectedOption();
-		});
-
-		// Update live preview as you edit the custom text field.
-		$( "input[id='affwp_settings[coupon_custom_text]']" ).on( 'keyup', function () {
-			// Change Coupon Format options to live preview.
-			for ( var i = 0; i < formatOptions.length; i++ ) {
-			    formatOptions[i].text = returnLivePreviewText( couponFormatOptions[i] );
-			}
-		});
-	};
-
-	// Dismiss promo notices.
-	$( '.affwp-promo-notice' ).each( function () {
-		const notice = $( this );
-		const noticeId = notice.data( 'id' );
-		const nonce = notice.data( 'nonce' );
-		const lifespan = notice.data( 'lifespan' );
-
-		notice.on( 'click', '.notice-dismiss, .affwp-notice-dismiss', function( event ) {
-			wp.ajax.send( 'affwp_dismiss_promo', {
-				data: {
-					notice_id: noticeId,
-					nonce: nonce,
-					lifespan: lifespan,
-				},
-				success: function() {
-					notice.slideUp( 'fast' );
-
-					// Remove previously set "seen" local storage.
-					const uid = userSettings.uid ? userSettings.uid : 0;
-					const seenKey = 'affwp-notice-' + noticeId + '-seen-' + uid;
-					window.localStorage.removeItem( seenKey );
-				},
-			} );
-		} );
-	} );
-
-	// Move "Top of Page" promos to the top of content (before Help/Screen Options).
-	const topOfPageNotice = jQuery( '.affwp-admin-notice-top-of-page' );
-
-	if ( topOfPageNotice.length > 0 ) {
-		const topOfPageNoticeEl = topOfPageNotice.detach();
-
-		jQuery( '#wpbody-content' ).prepend( topOfPageNoticeEl );
-
-		const uid = userSettings.uid ? userSettings.uid : 0;
-		const noticeId = topOfPageNoticeEl.data( 'id' );
-		const seenKey = 'affwp-notice-' + noticeId + '-seen-' + uid;
-
-		if ( window.localStorage.getItem( seenKey ) ) {
-			topOfPageNoticeEl.show();
-		} else {
-			setTimeout( function() {
-				window.localStorage.setItem( seenKey, true );
-				topOfPageNotice.slideDown();
-			}, 1500 );
-		}
-	}
-
-	/**
-	 * Support to show/hide the Referral basis based on the affiliate rate type.
-	 * Used in Affiliate WP Settings, edit affiliate admin page, and new affiliate admin page.
-	 *
-	 * @since 2.3
-	 */
-	if( $.inArray( pagenow, ['affiliates_page_affiliate-wp-affiliates', 'affiliates_page_affiliate-wp-settings'] ) > -1 ){
-		var flatRateBasisField;
-		var referralRateTypeField;
-
-		if( pagenow === 'affiliates_page_affiliate-wp-settings' ){
-			flatRateBasisField = $( '.affwp-referral-rate-type-field' );
-			referralRateTypeField = $( 'input[name="affwp_settings[referral_rate_type]"]' );
-		}else{
-			flatRateBasisField = $( '#flat_rate_basis' ).closest( 'tr' );
-			referralRateTypeField = $( '#rate_type' );
-		}
-
-		referralRateTypeField.on( 'change', function( e ){
-			if( 'flat' !== e.target.value ){
-				flatRateBasisField.hide();
-			}else{
-				flatRateBasisField.show();
-			}
-		} );
-	}
-
-	/**
-	 * Support to show/hide the reCAPTCHA Score Threshold based on the reCAPTCHA Type.
-	 * Used in Affiliate WP Settings.
-	 *
-	 * @since 2.10.0
-	 */
-	if ( $.inArray( pagenow, [ 'affiliates_page_affiliate-wp-settings' ] ) > -1 ) {
-
-		// Accordions.
-		$( '.affwp-accordion' ).each( function() {
-
-			const $accordion = $( this );
-
-			$accordion.find( '> .affwp-accordion-item > .affwp-accordion-title' ).on( 'click', function( e ) {
-
-				e.stopPropagation();
-
-				const $accordionItem = $( this ).parent();
-
-				// Close other accordion items.
-				if ( $accordion.data( 'toggle' ) !== undefined ) {
-					$accordionItem.siblings().not( $accordionItem.get( 0 ) ).addClass( 'affwp-accordion-collapsed' );
-				}
-
-				// Toggle the clicked item.
-				$accordionItem.toggleClass( 'affwp-accordion-collapsed' );
-			} );
-
-		} );
-
-		// Visibility.
-		function affwpShouldFieldBeVisible( fieldVal, expectedVal, compare ) {
-			if ( [ '==', '===' ].includes( compare ) && fieldVal == expectedVal ) {
-				return true;
-			}
-
-			if ( [ '!=', '<>' ].includes( compare ) && fieldVal != expectedVal ) {
-				return true;
-			}
-
-			return false;
-		}
-
-		function affwpIsVisible( $field, expectedValue, comparison ) {
-			if ( ! $field.get( 0 ) ) {
-				return '';
-			}
-
-			const tag = $field.get( 0 ).tagName;
-
-			if ( tag === 'INPUT' && $field.attr( 'type' ) === 'radio' ) {
-				return affwpShouldFieldBeVisible( $field.filter( ':checked' ).val(), expectedValue, comparison );
-			}
-
-			if ( tag === 'INPUT' && $field.attr( 'type' ) === 'checkbox' ) {
-				return affwpShouldFieldBeVisible( $field.is( ':checked' ), expectedValue, comparison );
-			}
-
-			if ( tag === 'SELECT' ) {
-				return affwpShouldFieldBeVisible( $field.val(), expectedValue, comparison );
-			}
-		}
-
-		// Field visibility.
-		$( 'tr[data-visibility]' ).each( function() {
-			const $row = $( this );
-			const $form = $( '#affwp-settings-form' );
-			const ruleset = $row.data( 'visibility' );
-
-			if ( ! Array.isArray( ruleset.rule ) ) {
-				ruleset.rule = [ ruleset.rule ];
-			}
-
-			const getField = ( rule ) => {
-				const requiredOption = rule.required_option || false;
-				return requiredOption !== false
-					? $form.find( `[name="affwp_settings[${ rule.required_field }][${ requiredOption }]"]` )
-					: $form.find( `[name="affwp_settings[${ rule.required_field }]"]` );
-			};
-
-			const evaluateRules = ( rules ) => {
-				return rules.every( ( rule ) => {
-					const $field = getField( rule );
-					const comparison = rule.compare || '==';
-					return affwpIsVisible( $field, rule.value, comparison );
-				} );
-			};
-
-			const toggleVisibility = () => {
-				if ( evaluateRules( ruleset.rule ) ) {
-					$row.show();
-				} else {
-					$row.hide();
-				}
-			};
-
-			// Evaluate the initial state.
-			toggleVisibility();
-
-			// Attach change event to each field involved in the rules.
-			ruleset.rule.forEach( ( rule ) => {
-				const $field = getField( rule );
-				$field.on( 'change', toggleVisibility );
-			} );
-		} );
-
-		// Section visibility.
-		$( '.affwp-section[data-visibility]' ).each( function() {
-
-			const $section = $( this );
-			const $form   = $( '#affwp-settings-form' );
-			const ruleset = $section.data( 'visibility' );
-			const $field  = $form.find( `input[name="affwp_settings[${ruleset.required_field}]"]` );
-			const comparison = ruleset.hasOwnProperty( 'compare' )
-				? ruleset.compare
-				: '=='
-
-			$field.on( 'change', function () {
-
-				if ( affwpIsVisible( $field, ruleset.value, comparison ) ) {
-					$section.show();
-					return;
-				}
-
-				$section.hide();
-			} );
-		} );
-
-		// Select2
-
-		$( '#affwp-settings-form select' ).each( function() {
-
-			const $select = $( this );
-			const $row = $select.closest( 'tr' );
-
-			if (
-				[ 'portal_menu_links', 'affiliate_area_tabs_list' ].includes( $row.attr( 'id' ) ) ||
-				$row.hasClass( 'affwp-ignore-select2' ) ||
-				$select.closest( 'div' ).hasClass( 'affwp-ignore-select2' )
-			) {
-				return; // Skip for repeater fields
-			}
-
-			$row.addClass( 'affwp-select2-initialized' );
-
-			$select.select2(
-				affiliatewp.parseArgs(
-					/*
-					 * You can use an object with select2 arguments in your select tag to override
-					 * the select2 defaults or add new setting.
-					 */
-					$select.data( 'select2-settings' ) || {},
-					{
-						width: '240px',
-						minimumResultsForSearch: -1,
-						/**
-						 * Format the dropdown options.
-						 * Add a pro-badge to the QR Code option addProBadge class is present.
-						 *
-						 * @param {Object} option The option object.
-						 * @return {Object}        The option with or without the pro badge.
-						 */
-						templateResult( option ){
-
-							if ( ! option.id ) {
-								return option.text;
-							}
-
-							if ( option.element.classList.contains( 'addProBadge' ) ) {
-								return $(`<span>${option.text}</span><span class="affwp-settings-label-pro">PRO</span>`);
-							}
-
-							return option.text;
-						},
-						/**
-						 * Format the selected option.
-						 * Add a pro-badge to the option addProBadge class is present.
-						 *
-						 * @param {Object} option The option object.
-						 * @return {Object}       The option with or without the pro badge.
-						 */
-						templateSelection( option ) {
-
-							if ( ! option.id ) {
-								return option.text;
-							}
-
-							if ( option.element.classList.contains( 'addProBadge' ) ) {
-								return $( `<span>${option.text}</span><span class="affwp-settings-label-pro">PRO</span>` );
-							}
-
-							return option.text;
-						},
-					}
-				)
-			).on( 'change', function( e ) {
-				$( document ).trigger( 'affiliatewp_on_select_change', [ e ] );
-			} );
-		} );
-
-		// Open the Type select2 dropdown when clicking on the Type label.
-		$( '.affwp-select2-initialized label' ).on( 'click', function() {
-			$( this ).closest( 'tr' ).find( 'select:first' ).select2( 'open' );
-		} );
-	}
-
-	/**
-	 * Enable meta box toggle states
-	 *
-	 * @since  1.9
-	 *
-	 * @param  typeof postboxes postboxes object
-	 *
-	 * @return {void}
-	 */
-	if ( typeof postboxes !== 'undefined' && /affiliate-wp/.test( pagenow ) ) {
-		postboxes.add_postbox_toggles( pagenow );
-	}
-
-	/**
-	 * Handle plugin actions under About Us page.
-	 *
-	 * @since 2.14.0
-	 * @since 2.27.3 Update to how the update buttons are stripped of their content causing
-	 *               button height issues.
-	 */
-	if ( $.inArray( pagenow, [ 'affiliates_page_affiliate-wp-about' ] ) > -1 ) {
-
-		$( '.affwp-action-button' ).on( 'click', function() {
-
-			const $button = $( this );
-
-			if( $button.hasClass( 'disabled' ) ) {
-				return; // Do nothing if the plugin is already active.
-			}
-
-			if( $button.hasClass( 'status-go-to-url' ) ) {
-				window.open( $button.data( 'plugin' ), '_blank' );
-				return; // User was redirected. Nothing more to do here.
-			}
-
-			// Save the original button state and contents to use in case of failures.
-			const buttonOriginalText    = $button.text();
-			const buttonOriginalClasses = $button.attr( 'class' );
-
-			// At this point we only have the options either to install or activate plugins.
-			const action = $button.hasClass( 'status-missing' )
-				? 'affwp_install_plugin'
-				: 'affwp_activate_plugin';
-
-			// Container used to show notices.
-			const $actionContainer = $button.closest( '.affwp-addon-action' );
-
-			// Function used to display the notices, used either in case of success or failures calls.
-			const showNotice = ( $container, status, content ) => {
-				$container
-					.addClass( 'affwp-addon-action--' + status )
-					.attr(
-						'data-content',
-						content
-					)
-					.delay( 2500 )
-					.queue( function() {
-						$( this ).removeAttr( 'data-content' ).removeClass( 'affwp-addon-action--' + status );
-					});
-			}
-
-			$.ajax({
-				type: 'POST',
-				url: ajaxurl,
-				data: {
-					action: action,
-					nonce: affwp_about_vars.nonce,
-					plugin: $button.data( 'plugin' )
-				},
-				dataType: 'json',
-				beforeSend: function() {
-					$button
-						.html( '&nbsp;' ) // This ensures the height of the element is retained.
-						.removeAttr( 'class' )
-						.addClass( 'affwp-action-button button button-secondary disabled loading' );
-				},
-				success: function( response ){
-					if( response.success ){
-						$button.text( affwp_about_vars.i18n.activated );
-
-						$actionContainer.find( '.status-label')
-							.removeClass( 'status-inactive' )
-							.addClass( 'status-active' )
-							.text(affwp_about_vars.i18n.active );
-
-						showNotice(
-							$actionContainer,
-							'ok',
-							'affwp_activate_plugin' === action
-								? affwp_about_vars.i18n.pluginActivated
-								: affwp_about_vars.i18n.pluginInstalledAndActivated
-						);
-						return; // Success response, we can safely exit.
-					}
-
-					// Response failed for some some reason, errors returned by the ajax calls.
-					$button.text( buttonOriginalText ).removeAttr( 'class' ).addClass( buttonOriginalClasses );
-
-					// Show the notice with the error returned by the ajax call.
-					showNotice( $actionContainer, 'error', response.data );
-				},
-				complete: function() {
-					$button.removeClass( 'loading' );
-				}
-			}).fail( function( response ){
-				$button.text( buttonOriginalText ).removeAttr( 'class' ).addClass( buttonOriginalClasses );
-				showNotice( $actionContainer, 'error', affwp_about_vars.i18n.genericError );
-			});
-
-		});
-
+// Import Alpine and plugins.
+
+
+
+
+
+// Import custom modules.
+
+
+// Register Alpine plugins.
+module_default.plugin(module_esm_module_default);
+module_default.plugin(dist_module_esm_module_default);
+module_default.plugin(focus_dist_module_esm_module_default);
+
+// Make Alpine available globally for inline x-data.
+window.Alpine = module_default;
+
+// Initialize deep link handler before Alpine starts
+initDeepLinkHandler();
+
+// Wait for DOM to be ready before starting Alpine.
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    module_default.start();
+  });
+} else {
+  // DOM is already loaded.
+  module_default.start();
+}
+jQuery(document).ready(function ($) {
+  // Settings uploader.
+  var file_frame;
+  window.formfield = "";
+
+  // Use 'resolve' to let Select2 determine width from CSS/inline styles
+  var affwpSelect2Width = "resolve";
+
+  /**
+   * Initialize Select2 on affiliate settings dropdowns.
+   *
+   * Automatically adds search functionality to dropdowns with 10+ options.
+   * Supports per-field customization via data-select2-settings attribute.
+   *
+   * @since 2.28.0
+   *
+   * @example
+   * // HTML with custom settings
+   * <select class="affwp-use-select2"
+   *         data-select2-settings='{"minimum_results_for_search": 5, "width": "300px"}'>
+   *
+   * @example
+   * // PHP configuration
+   * 'select2' => [
+   *     'minimum_results_for_search' => 3,
+   *     'placeholder' => 'Select an option...'
+   * ]
+   */
+  if (typeof $.fn.select2 !== "undefined") {
+    var $select2Elements = $(".affwp-use-select2");
+    $select2Elements.closest("tr").addClass("affwp-select2-initialized");
+
+    // Apply select2 with support for per-field configuration.
+    $select2Elements.each(function () {
+      var $element = $(this);
+      var options = {
+        width: affwpSelect2Width,
+        minimumResultsForSearch: 10 // Show search for dropdowns with 10 or more options.
+      };
+
+      // Check for individual data attributes first (for backwards compatibility).
+      if ($element.data("minimum-results-for-search") !== undefined) {
+        options.minimumResultsForSearch = parseInt($element.data("minimum-results-for-search"), 10);
+      }
+
+      // Check for data-select2-settings attribute (from PHP settings).
+      // This should override individual attributes when present.
+      var select2SettingsAttr = $element.attr("data-select2-settings");
+      if (select2SettingsAttr) {
+        try {
+          var select2Settings = JSON.parse(select2SettingsAttr);
+          // Parse settings from PHP using underscore notation
+          if (select2Settings.minimum_results_for_search !== undefined) {
+            options.minimumResultsForSearch = parseInt(select2Settings.minimum_results_for_search, 10);
+          }
+          if (select2Settings.placeholder) {
+            options.placeholder = select2Settings.placeholder;
+            options.allowClear = true;
+          }
+          if (select2Settings.tags === true) {
+            options.tags = true;
+          }
+
+          // Allow explicit control over allowClear.
+          if (select2Settings.allow_clear !== undefined) {
+            options.allowClear = select2Settings.allow_clear;
+          }
+
+          // Allow custom width.
+          if (select2Settings.width) {
+            options.width = select2Settings.width;
+          }
+        } catch (e) {
+          // Only log errors in development environments
+          if (typeof SCRIPT_DEBUG !== "undefined" && SCRIPT_DEBUG) {
+            console.error("Failed to parse select2 settings:", e);
+          }
+        }
+      }
+
+      // Check for custom placeholder.
+      if ($element.data("placeholder")) {
+        options.placeholder = $element.data("placeholder");
+        options.allowClear = true;
+      }
+
+      // Check for tags support.
+      if ($element.data("tags") === true) {
+        options.tags = true;
+      }
+      $element.select2(options);
+    });
+
+    // Open the Type select2 dropdown when clicking on the Type label.
+    $(".affwp-select2-initialized label").on("click", function () {
+      var $select = $(this).closest("tr").find("select:first");
+      if ($select.hasClass("select2-hidden-accessible")) {
+        $select.select2("open");
+      }
+    });
+  }
+  $("body").on("click", ".affwp_settings_upload_button", function (e) {
+    e.preventDefault();
+    var button = $(this);
+    window.formfield = $(this).prev();
+    // If the media frame already exists, reopen it.
+    if (file_frame) {
+      file_frame.open();
+      return;
+    }
+
+    // Create the media frame
+    file_frame = wp.media.frames.file_frame = wp.media({
+      frame: "post",
+      state: "insert",
+      title: button.data("uploader_title"),
+      button: {
+        text: button.data("uploader_button_text")
+      },
+      multiple: false
+    });
+    file_frame.on("menu:render:default", function (view) {
+      // Store our views in an object,
+      var views = {};
+
+      // Unset default menu items
+      view.unset("library-separator");
+      view.unset("gallery");
+      view.unset("featured-image");
+      view.unset("embed");
+
+      // Initialize the views in our view object
+      view.set(views);
+    });
+
+    // When an image is selected, run a callback
+    file_frame.on("insert", function () {
+      var selection = file_frame.state().get("selection");
+      selection.each(function (attachment, index) {
+        attachment = attachment.toJSON();
+        window.formfield.val(attachment.url);
+
+        // Dispatch a custom event with the new URL
+        var event = new CustomEvent("mediaURLChanged", {
+          detail: {
+            url: attachment.url
+          }
+        });
+        document.dispatchEvent(event);
+      });
+    });
+
+    // Open the modal
+    file_frame.open();
+  });
+  var file_frame;
+  window.formfield = "";
+
+  // Show referral export form
+  $(".affwp-referrals-export-toggle").click(function () {
+    $(".affwp-referrals-export-toggle").toggle();
+    $("#affwp-referrals-export-form").slideToggle();
+  });
+
+  // datepicker
+  if ($(".affwp-datepicker").length) {
+    $(".affwp-datepicker").datepicker({
+      dateFormat: "mm/dd/yy"
+    });
   }
 
-	// Used in Affiliate WP Creative add/edit screen.
-	if ( $.inArray( pagenow, [ 'affiliates_page_affiliate-wp-creatives' ] ) > -1 ) {
-
-		/* eslint-disable no-undef */
-		if ( typeof affiliatewp !== 'undefined' && affiliatewp.has( 'qrcode' ) ) {
-
-			// Print QR Codes in admin list table.
-			$( '#the-list .column-preview' ).each( function() {
-
-				const $qrCode = $( this ).find( '.affwp-qrcode-preview' );
-
-				affiliatewp.qrcode(
-					$qrCode.get( 0 ),
-					$qrCode.data( 'url' ),
-					affiliatewp.parseArgs(
-						typeof $qrCode.data( 'settings' ) === 'object' ? $qrCode.data( 'settings' ) : {},
-						{
-							width: 80,
-							height: 80,
-							margin: 3,
-							errorCorrectionLevel: 'H'
-						}
-					)
-				);
-			} );
-
-			// Print QR Codes in add/edit screens.
-			const qrPreviewEl = document.getElementById( 'qr-preview' );
-
-			if ( qrPreviewEl ) {
-
-				const qrSettings = affiliatewp.parseArgs(
-					qrPreviewEl.dataset.settings
-						? JSON.parse( qrPreviewEl.dataset.settings )
-						: {
-							color: {
-								dark: '#444444',
-								light: '#FFFFFF'
-							}
-						},
-					{
-						width: 200,
-						height: 200,
-						margin: 3
-					}
-				);
-
-				// affwpCreativeUrls is globally available.
-				affiliatewp.qrcode( qrPreviewEl, affwpCreativeUrls.creativeUrl, qrSettings );
-
-				// Store the last input event (setTimeout) handler.
-				let inputHandler;
-
-				const getColorSettings = () => {
-
-					return {
-						dark: $( '#qrcode-code-color' ).val(),
-						light: $( '#qrcode-bg-color' ).val(),
-					};
-				}
-
-				// Function to update QR Code colors without generating a new QR Code.
-				const updateColors = () => {
-
-					const color = getColorSettings();
-
-					const existingQR = qrPreviewEl.firstChild;
-
-					if ( existingQR ) {
-						$( existingQR ).find( 'path:eq(0)' ).css( 'fill', color.light );
-						$( existingQR ).find( 'path:eq(1)' ).css( 'stroke', color.dark );
-					}
-				}
-
-				// Update the QR Code after stopping typing.
-				$( '.form-table #qrcode-url' ).on( 'input', function() {
-
-					const newUrl = $( this ).val();
-					const color = getColorSettings();
-
-					// Clean previous handler.
-					clearTimeout( inputHandler );
-
-					inputHandler = setTimeout(function() {
-						// Remove previous QR Code.
-						qrPreviewEl.removeChild( qrPreviewEl.firstChild );
-
-						// Generate the new QR Code.
-						affiliatewp.qrcode(
-							qrPreviewEl,
-							newUrl === '' ? affwpCreativeUrls.siteUrl : newUrl,
-							affiliatewp.parseArgs( { color }, qrSettings )
-						);
-
-						// Add/Remove updated class for a visual cue.
-						$( qrPreviewEl ).addClass( 'qr-code-updated' );
-
-						setTimeout( () => {
-							$( qrPreviewEl ).removeClass( 'qr-code-updated' );
-						}, 200 );
-
-					}, 1000 );
-				} );
-
-				// Attach color picker.
-				$( '.affwp-color-picker' ).wpColorPicker({
-					clear: function() {
-						updateColors();
-					},
-					change: function( event, ui ) {
-
-						$( this ).val( ui.color.toString() );
-
-						updateColors();
-
-						$( '.qrcode-disclaimer' ).fadeIn();
-					}
-				} );
-
-				// Manipulate the Clear button to set the default colors when clicked.
-				$( '.wp-picker-clear' ).on( 'click', function() {
-
-					const $self = $( this );
-					const color = $self.closest( '.qrcode-color-picker-container' ).data( 'default-color' );
-
-					$self.closest( '.qrcode-color-picker-container' ).find( 'input.affwp-color-picker' )
-						.val( color )
-						.trigger( 'change' );
-				} );
-			}
-		} // End QR Code generation.
-		/* eslint-enable no-undef */
-
-		$( '#affwp_add_creative, #affwp_edit_creative' ).on( 'submit', function( e ) {
-
-			const $name = $( '#name' );
-
-			// Anything different from yes, should submit normally.
-			if ( $name.data( 'private' ) !== 'yes' ) {
-				return true;
-			}
-
-			// Equal names, confirm before submitting.
-			if ( affwp_vars.creativeDefaultName === $name.val() && ! confirm( affwp_vars.creativeUpdateNameConfirm ) ) {
-				return false;
-			}
-
-			// Any other conditions submit normally.
-			return true;
-		} );
-
-		// Object to cache values based on a context.
-		const contexts = {
-			text_link: {
-				text: ""
-			},
-			image: {
-				text: ""
-			},
-			qr_code: {
-				text: ""
-			}
-		};
-
-		// Used to store the previous selected type.
-		let prevType = $( '#type' ).val();
-
-		$( '.form-table #type' ).select2( {
-			width: affwpSelect2Width,
-			minimumResultsForSearch: -1,
-			/**
-			 * Format the dropdown options.
-			 * Add a pro badge to the QR Code option addProBadge class is present.
-			 *
-			 * @param  {Object} option The option object.
-			 * @return {Object}        The option with or without the pro badge.
-			 */
-			templateResult ( option ) {
-
-				if ( ! option.id ) {
-					return option.text;
-				}
-
-				if (
-					'qr_code' === option.id &&
-					option.element.classList.contains( 'addProBadge' )
-				) {
-					return $( `<span>${option.text}</span><span class="affwp-settings-label-pro">PRO</span>` );
-				}
-
-				return option.text;
-			},
-			/**
-			 * Format the selected option.
-			 * Add a pro badge to the QR Code option addProBadge class is present.
-			 *
-			 * @param  {Object} option The option object.
-			 * @return {Object}       The option with or without the pro badge.
-			 */
-			templateSelection( option ) {
-
-				if ( ! option.id ) {
-					return option.text;
-				}
-
-				if (
-					'qr_code' === option.id &&
-					 option.element.classList.contains( 'addProBadge' )
-				) {
-					return $( `<span>${option.text}</span><span class="affwp-settings-label-pro">PRO</span>` );
-				}
-
-				return option.text;
-			},
-		} ).on( 'change', function( e ) {
-
-			// jQuery field objects.
-			const $text      = $( '#text' );
-			const $type      = $( '#type' );
-			const $image     = $( '#image' );
-			const $url       = $( '#url' );
-			const $qrCodeUrl = $( '#qrcode-url' );
-
-			// Reset the 'required' property from all.
-			$text.attr( 'required', false );
-			$image.attr( 'required', false );
-
-			// Set disabled attributes to their default states.
-			$url.attr( 'disabled', false );
-			$qrCodeUrl.attr( 'disabled', true );
-			$qrCodeUrl.closest( '.affwp-education-modal-input-wrapper' ).find( 'span' ).removeClass( 'affwp-education-modal' );
-
-			// Save the current text value to the context object.
-			contexts[prevType].text = $text.val();
-
-			// Update the previous type with the selected type.
-			prevType = $type.val();
-
-			// Populate the text field with the current context value.
-			$text.val( contexts[ $type.val() ].text );
-
-			// Change the context of the form table, so we know which fields to show/hide.
-			$( '.form-table' ).attr( 'data-current-context', $( this ).val() );
-
-			// Make image required.
-			if ( $type.val() === 'image' ) {
-				$image.attr( 'required', true );
-				return;
-			}
-
-			// Text is required for Text Links.
-			if ( $type.val() === 'text_link' ) {
-				$text.attr( 'required', true );
-			}
-
-			// User do not have a valid license anymore and is trying to edit a QR Code creative.
-			if ( $type.val() === 'qr_code' && $type.find( 'option:selected' ).hasClass( 'affwp-education-notice' ) ) {
-				$url.attr( 'disabled', true );
-				$qrCodeUrl.closest( '.affwp-education-modal-input-wrapper' ).find( 'span' ).addClass( 'affwp-education-modal' );
-				return;
-			}
-
-			// QR Code has a different URL field, so we disable the original one.
-			if ( $type.val() === 'qr_code' ) {
-				$url.attr( 'disabled', true );
-				$qrCodeUrl.attr( 'disabled', false );
-			}
-		} );
-
-		// Prevent from selecting pro features.
-		$( '#type' ).on( 'select2:selecting', function( e ) {
-
-			if ( ! $( e.target ).hasClass( 'select2-hidden-accessible' ) ) {
-				return; // Not a select2.
-			}
-
-			const selectedOptionClass = e.params.args.data.element.className;
-
-			// Check if product education modal should be displayed.
-			if ( ! ( selectedOptionClass && selectedOptionClass.includes( 'affwp-education-modal' ) ) ) {
-				return;
-			}
-
-			// Prevent option from being selected.
-			e.preventDefault();
-		} );
-
-		// Open the Type select2 dropdown when clicking on the Type label.
-		$( 'label[for="type"]' ).click( function() {
-			$( '#type' ).select2( 'open' );
-		} );
-
-		$('select#status').select2( {
-			width: affwpSelect2Width,
-			minimumResultsForSearch: -1,
-			/**
-			 * Format the dropdown options.
-			 * Add a pro badge to the Scheduled status when addProBadge class is present.
-			 *
-			 * @param  {Object} option The option object.
-			 * @return {Object}        The option with or without the pro badge.
-			 */
-			templateResult: function ( option ) {
-				if ( ! option.id ) {
-				  return option.text;
-				}
-
-				// Add the pro badge to the scheduled status in the select2 dropdown.
-				if ( 'scheduled' === option.id && $('.addProBadge').length > 0 ) {
-					return $(
-						`<span>${option.text}</span><span class="affwp-settings-label-pro">PRO</span>`
-					);
-				}
-
-				return option.text;
-			},
-			/**
-			 * Format the selected option.
-			 * Add a pro badge to the Scheduled status when addProBadge class is present.
-			 * @param  {Object} option The option object.
-			 * @return {Object}       The option with or without the pro badge.
-			 */
-			templateSelection: function( option ) {
-				if ( ! option.id ) {
-				  return option.text;
-				}
-
-				// Add the pro badge to the selected scheduled status.
-				if ( 'scheduled' === option.id && $('.addProBadge').length > 0 ) {
-					return $(
-						`<span>${option.text}</span><span class="affwp-settings-label-pro">PRO</span>`
-					);
-				}
-
-				return option.text;
-			},
-		} ).on( 'change', function( e ) {
-			// Display the schedule creatives setting if the Scheduled status is selected.
-			if ( $( '.affwp-schedule-creatives-setting' ).length > 0 && $( '#status' ).val() === 'scheduled' ) {
-				$( '.affwp-schedule-creatives-setting' ).removeClass( 'affwp-hidden' );
-				return;
-			}
-			// Don't hide the schedule creatives setting again if we are on the edit screen.
-			if ( $( '#affwp_edit_creative' ).length > 0 ) {
-				return;
-			}
-			$( '.affwp-schedule-creatives-setting').addClass( 'affwp-hidden' );
-		} );
-
-		// Open the Status select2 dropdown when clicking on the Status label.
-		$( 'label[for="status"]' ).click( function() {
-			$( '#status' ).select2( 'open' );
-		} );
-
-		// Schedule creative datepicker.
-		if( $( '.affwp-schedule-creative-datepicker' ).length ) {
-			// Select all elements with class 'affwp-schedule-creative-datepicker' and initialize a datepicker on them
-			$( '.affwp-schedule-creative-datepicker' ).datepicker( {
-				dateFormat: 'mm/dd/yy',
-				defaultDate: '',
-				showButtonPanel: true, // Show a button panel with today and close buttons
-				onSelect: function ( date ) {
-					// If this datepicker is the start date, set the minDate option. Otherwise, set the maxDate.
-					var option = $( this ).is( '.affwp-schedule-creative-datepicker[name="start_date"]' )
-						? 'minDate'
-						: 'maxDate',
-						// Find all datepicker inputs in the same container as the current datepicker.
-						dates = $( this )
-							.closest( '.schedule-creative-date-fields' )
-							.find( 'input' );
-
-					// Get the selected date plus one day.
-					if (option === 'minDate' ) {
-						date = new Date( $( this ).datepicker( 'getDate' ).getTime() + 86400000 );
-					// Get the selected date minus one day.
-					} else if (option === 'maxDate' ) {
-						date = new Date( $( this ).datepicker( 'getDate' ).getTime() - 86400000 );
-					}
-
-					// Set the minDate or maxDate option of the other datepicker input to the selected date.
-					dates.not( this ).datepicker( 'option', option, date );
-					// Trigger the change event on the current datepicker.
-					$( this ).trigger( 'change' );
-				},
-			} );
-		}
-	}
-
-	$( '.affwp-batch-form[data-batch_id="update-creative-names"] input[type="radio"]' ).on( 'change', function(){
-
-		const $option = $( this );
-
-		$( '#v2160-update-creative-names' )
-			.val(
-				$option.val() === 'private'
-					? affwp_vars.creativeUpgradeNoticeNo
-					: affwp_vars.creativeUpgradeNoticeYes
-			)
-			.removeClass( 'button-disabled' )
-			.attr( 'disabled', false );
-	} );
-
-	$( '.affwp-batch-form[data-batch_id="create-login-registration-pages"] input[type="radio"]' ).on( 'change', function(){
-
-		$( '#v2250-create-login-registration-pages' )
-			.val( $( this ).data( 'button-label' ) )
-			.removeClass( 'button-disabled' )
-			.attr( 'disabled', false );
-	} );
-
-	// Handle dismissible notices.
-	$( '.notice.is-dismissible .affwp-notice-dismiss' ).on( 'click', function( e ) {
-		window.location.href = $( this ).data( 'dismiss-url' );
-	} );
-} );
+  // Ajax user search.
+  $(".affwp-user-search").each(function () {
+    var $all_input_fields,
+      $all_fields_excluding_search,
+      $this = $(this),
+      $action = "affwp_search_users",
+      $search = $this.val(),
+      $status = $this.data("affwp-status"),
+      $form = $this.closest("form"),
+      $submit = $form.find(":submit.button-primary"),
+      $submit_default_value = $submit.val(),
+      $user_creation_fields = $(".affwp-user-email-wrap, .affwp-user-pass-wrap"),
+      $on_complete_enabled = $this.hasClass("affwp-enable-on-complete");
+    if ($on_complete_enabled === true) {
+      $all_input_fields = $form.find("input, select");
+      $all_fields_excluding_search = $all_input_fields.not($this);
+    }
+    $this.on("input", function () {
+      $user_creation_fields.hide();
+    });
+    $this.autocomplete({
+      source: ajaxurl + "?action=" + $action + "&term=" + $search + "&status=" + $status,
+      messages: {
+        // This is specified as such because we want to force screen readers to read the message in the response callback
+        noResults: $on_complete_enabled ? "" : "No users found"
+      },
+      delay: 500,
+      minLength: 2,
+      position: {
+        offset: "0, -1"
+      },
+      search: function search() {
+        if ($this.hasClass("affwp-enable-on-complete")) {
+          $("div.notice").remove();
+          $user_creation_fields.hide();
+        }
+      },
+      open: function open() {
+        $this.addClass("open");
+      },
+      close: function close() {
+        $this.removeClass("open");
+      },
+      response: function response(event, ui) {
+        if (ui.content.length === 0 && $this.hasClass("affwp-enable-on-complete")) {
+          // This triggers when no results are found
+          $('<div class="notice notice-error affwp-new-affiliate-error"><p>' + affwp_vars.no_user_found + "</p></div>").insertAfter($this);
+          wp.a11y.speak(affwp_vars.no_user_found, "polite");
+          $form.find("input, select").prop("disabled", false);
+          $(".affwp-user-email-wrap, .affwp-user-pass-wrap").show();
+          $(".affwp-user-email").prop("required");
+          $(".search-description").hide();
+          $submit.val(affwp_vars.user_and_affiliate_input);
+        } else {
+          wp.a11y.speak(affwp_vars.valid_user_selected, "polite");
+        }
+      },
+      select: function select() {
+        if ($this.hasClass("affwp-enable-on-complete")) {
+          $.ajax({
+            type: "POST",
+            url: ajaxurl,
+            data: {
+              action: "affwp_check_user_login",
+              user: $this.val()
+            },
+            dataType: "json",
+            success: function success(response) {
+              if (response.success) {
+                if (false === response.data.affiliate) {
+                  $form.find("input, select").prop("disabled", false);
+                } else {
+                  var viewLink = '<a href="' + response.data.url + '">' + affwp_vars.view_affiliate + "</a>";
+                  $('<div class="notice notice-info affwp-new-affiliate-error"><p>' + affwp_vars.existing_affiliate + " " + viewLink + "</p></div>").insertAfter($this);
+                  $this.prop("disabled", false);
+                }
+              }
+            }
+          }).fail(function (response) {
+            if (window.console && window.console.log) {
+              console.log(response);
+            }
+          });
+        }
+      }
+    });
+
+    // Immediately disable all other fields when this input updates.
+    if ($on_complete_enabled === true) {
+      $this.on("input", function () {
+        $all_fields_excluding_search.prop("disabled", true);
+        $submit.val($submit_default_value);
+      });
+    }
+  });
+
+  // select image for creative
+  var file_frame;
+  $("body").on("click", ".upload_image_button", function (e) {
+    e.preventDefault();
+    var formfield = $(this).prev();
+
+    // If the media frame already exists, reopen it.
+    if (file_frame) {
+      //file_frame.uploader.uploader.param( 'post_id', set_to_post_id );
+      file_frame.open();
+      return;
+    }
+
+    // Create the media frame.
+    file_frame = wp.media.frames.file_frame = wp.media({
+      frame: "select",
+      title: "Choose Image",
+      multiple: false,
+      library: {
+        type: "image"
+      },
+      button: {
+        text: "Use Image"
+      }
+    });
+    file_frame.on("menu:render:default", function (view) {
+      // Store our views in an object.
+      var views = {};
+
+      // Unset default menu items
+      view.unset("library-separator");
+      view.unset("gallery");
+      view.unset("featured-image");
+      view.unset("embed");
+
+      // Initialize the views in our view object.
+      view.set(views);
+    });
+
+    // When an image is selected, run a callback.
+    file_frame.on("select", function () {
+      var attachment = file_frame.state().get("selection").first().toJSON();
+      formfield.val(attachment.url);
+      var img = $("<img />");
+      img.attr("src", attachment.url);
+      // replace previous image with new one if selected
+      $("#preview_image").empty().append(img);
+
+      // show preview div when image exists
+      if ($("#preview_image img")) {
+        $("#preview_image").show();
+      }
+    });
+
+    // Finally, open the modal
+    file_frame.open();
+  });
+
+  // Confirm referral deletion
+  $("body").on("click", ".affiliates_page_affiliate-wp-referrals .delete", function (e) {
+    if (confirm(affwp_vars.confirm_delete_referral)) {
+      return true;
+    }
+    return false;
+  });
+
+  /**
+   * Launch a confirmation modal with customizable settings.
+   *
+   * Uses jQuery Confirm.
+   *
+   * @see https://craftpip.github.io/jquery-confirm/
+   *
+   * @since 2.27.0
+   *
+   * @param {string} title   Title.
+   * @param {string} content Content.
+   * @param {Object} args    Overriding Args.
+   *
+   * @return {Object} Modal Object.
+   */
+  function getConfirmationModal(title, content) {
+    var args = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+    return jQuery.alert(jQuery.extend({
+      title: title,
+      content: content,
+      backgroundDismiss: true,
+      icon: "fa fa-info-circle",
+      type: "lightgreen",
+      boxWidth: 420,
+      useBootstrap: false,
+      theme: "modern,affiliatewp-education",
+      closeIcon: true,
+      draggable: false,
+      dragWindowBorder: false,
+      keyboardEnabled: true
+    }, args));
+  }
+
+  /**
+   * Displays a holding period confirmation modal.
+   *
+   * @param {string}   title                 The title of the modal.
+   * @param {Function} confirmation_callback The callback function to execute on confirmation.
+   * @return {Object}                        The confirmation modal object.
+   */
+  function showHoldingPeriodModal(title, confirmation_callback) {
+    return getConfirmationModal(title, affwp_vars.holdingPeriodModal.content, {
+      icon: "fa fa-warning",
+      onKeydown: function onKeydown(event) {
+        // Check if the pressed key is escape (key code 27).
+        if (event.which === 27) {
+          // If escape key is pressed, close the modal.
+          this.close();
+        }
+        // Prevent confirmation if enter key is pressed.
+        if (event.which === 13) {
+          event.preventDefault();
+          return false;
+        }
+      },
+      buttons: {
+        payNow: {
+          text: affwp_vars.holdingPeriodModal.confirm,
+          action: confirmation_callback,
+          disabled: false,
+          btnClass: "btn-confirm"
+        },
+        cancel: {
+          text: affwp_vars.holdingPeriodModal.cancel,
+          action: function action() {
+            this.close();
+          },
+          disabled: false,
+          btnClass: "btn"
+        }
+      }
+    });
+  }
+
+  /**
+   * Confirm PayPal payouts - Pay Now via PayPal for commissions in the holding period.
+   */
+  $(".affiliates_page_affiliate-wp-referrals .affwp-pay-now-via-paypal.affwp-holding-period").on("click", function (e) {
+    e.preventDefault();
+    var payNowLink = $(this).attr("href");
+    showHoldingPeriodModal(affwp_vars.holdingPeriodModal.rowActionsTitle, function () {
+      this.close();
+      window.location.href = payNowLink;
+    });
+  });
+
+  /**
+   * Checks if any table rows contain the holding-period class.
+   *
+   * @returns {boolean} True if there is a holding period referrals, false otherwise.
+   */
+  function hasHoldingPeriodReferrals() {
+    var hasHoldingPeriod = false;
+
+    // Loop through each row in the table.
+    $(".referrals.affwp-table tbody tr").each(function () {
+      var $row = $(this);
+
+      // Skip this row if the checkbox is not checked.
+      if ($row.find(".check-column input:checked").length === 0) {
+        return true;
+      }
+
+      // Skip this row if it does not contain the holding-period class.
+      if ($row.find(".affwp-holding-period").length === 0) {
+        return true;
+      }
+
+      // Otherwise, we know we have at least one holding period referral.
+      hasHoldingPeriod = true;
+      return false; // Return false to exit the loop.
+    });
+    return hasHoldingPeriod;
+  }
+
+  /**
+   * Handles bulk actions on the referrals page, showing a confirmation modal if necessary.
+   */
+  $(".affiliates_page_affiliate-wp-referrals #doaction, .affiliates_page_affiliate-wp-referrals #doaction2").on("click", function (e) {
+    // Determine which button was clicked.
+    var action;
+    if (this.id === "doaction") {
+      action = $('#affwp-referrals-filter-form select[name="action"]').val();
+    } else if (this.id === "doaction2") {
+      action = $('#affwp-referrals-filter-form select[name="action2"]').val();
+    }
+
+    // If the bulk action is not 'pay_now', there's nothing to do.
+    if (action !== "pay_now") {
+      return;
+    }
+    e.preventDefault();
+
+    // If there are no holding period referrals, proceed with the bulk action.
+    if (!hasHoldingPeriodReferrals()) {
+      $("#affwp-referrals-filter-form").off("submit").submit();
+      return;
+    }
+
+    // Otherwise, show the holding period confirmation modal.
+    showHoldingPeriodModal(affwp_vars.holdingPeriodModal.bulkActionsTitle, function () {
+      this.close();
+      $("#affwp-referrals-filter-form").off("submit").submit();
+    });
+  });
+  function maybe_activate_migrate_users_button() {
+    var checked = $("#affiliate-wp-migrate-user-accounts input:checkbox:checked").length,
+      $button = $("#affiliate-wp-migrate-user-accounts input[type=submit]");
+    if (checked > 0) {
+      $button.prop("disabled", false);
+    } else {
+      $button.prop("disabled", true);
+    }
+  }
+  maybe_activate_migrate_users_button();
+  $("body").on("change", "#affiliate-wp-migrate-user-accounts input:checkbox", function () {
+    maybe_activate_migrate_users_button();
+  });
+  $("#affwp_add_affiliate #status").change(function () {
+    var status = $(this).val();
+    if ("active" == status) {
+      $("#affwp-welcome-email-row").show();
+    } else {
+      $("#affwp-welcome-email-row").hide();
+      $("#affwp-welcome-email-row #welcome_email").prop("checked", false);
+    }
+  });
+
+  // Generate Code button in Affiliates > Add / Edit.
+  $("#generate-coupon-code-button").on("click", function (event) {
+    event.preventDefault();
+    $.ajax({
+      type: "POST",
+      url: ajaxurl,
+      data: {
+        action: "affwp_generate_coupon_code",
+        affiliate_id: $(this).data("affiliate_id")
+      },
+      dataType: "json",
+      success: function success(response) {
+        if (response.success && response.data.coupon_code) {
+          $("#coupon_code").val(response.data.coupon_code);
+        }
+      }
+    });
+  });
+
+  // Live preview functionality for the coupon tab settings.
+  if ("?page=affiliate-wp-settings&tab=coupons" === window.location.search) {
+    /**
+     * Gets and sanitizes the current value of the custom text field.
+     *
+     * @since 2.8
+     *
+     * @return {string} Returns sanitized custom text value. If empty, defaults to 'TEXT'.
+     */
+    var getCustomText = function getCustomText() {
+      var customText = document.getElementById("affwp_settings[coupon_custom_text]").value;
+      if ("" === customText) {
+        return "TEXT";
+      } else {
+        // Only display alphanumeric.
+        return customText.replace(/[^0-9a-z]/gi, "");
+      }
+    };
+
+    /**
+     * Returns the live preview version of a given coupon format text.
+     *
+     * This replaces merge tags with preview defaults, capitalizes it, and removes hyphens if necessary.
+     *
+     * @since 2.8
+     *
+     * @param  {string} text Coupon format option text.
+     * @return {string}      Return coupon format live preview text.
+     */
+    var returnLivePreviewText = function returnLivePreviewText(text) {
+      // Replace coupon code, username, first name, coupon amount, and custom text merge tags.
+      var previewText = text;
+      previewText = previewText.replace("{coupon_code}", "FGFUVCQOK1");
+      previewText = previewText.replace("{user_name}", "CREATIVELABS");
+      previewText = previewText.replace("{first_name}", "BOB");
+      previewText = previewText.replace("{coupon_amount}", "10");
+      previewText = previewText.replace("{custom_text}", getCustomText());
+
+      // Capitalize preview.
+      previewText = previewText.toUpperCase();
+
+      // Keep or remove hyphens.
+      var keepHyphens = checkHyphenDelimiterSetting();
+      if (true === keepHyphens) {
+        return previewText;
+      } else {
+        return previewText.replace(/-/g, "");
+      }
+    };
+
+    /**
+     * Updates coupon format options with live preview options.
+     * Also, adds/removes hyphens as necessary.
+     *
+     * @since  2.8
+     *
+     * @return void.
+     */
+    var updateCouponFormatOptions = function updateCouponFormatOptions() {
+      var hyphenSettingChecked = checkHyphenDelimiterSetting();
+      var formatOptions = document.getElementById("affwp_settings[coupon_format]").options;
+      if (true === hyphenSettingChecked) {
+        // Add hyphens.
+        for (var index = 0; index < formatOptions.length; index++) {
+          formatOptions[index].text = returnLivePreviewText(couponFormatOptions[index]);
+        }
+      } else {
+        // Remove hyphens.
+        for (var index = 0; index < formatOptions.length; index++) {
+          formatOptions[index].text = formatOptions[index].text.replace(/-/g, "");
+        }
+      }
+    };
+
+    /**
+     * Checks if the Coupon Hyphen Delimiter setting is enabled.
+     *
+     * @since  2.8
+     *
+     * @return {boolean} True if Coupon Hyphen Delimiter setting is checked, otherwise, false.
+     */
+    var checkHyphenDelimiterSetting = function checkHyphenDelimiterSetting() {
+      return $("input[id='affwp_settings[coupon_hyphen_delimiter]']").is(":checked");
+    };
+
+    /**
+     * Resets the currently selected coupon format option to be the coupon format value with merge tags.
+     *
+     * @since  2.8
+     *
+     * @return void.
+     */
+    var resetCFSelectedOption = function resetCFSelectedOption() {
+      // Get the currently selected coupon format option's value.
+      var formatValue = $("select[id='affwp_settings[coupon_format]'] option:selected")[0].value;
+
+      // Remove hyphen if hyphen delimiter setting is false.
+      if (false === checkHyphenDelimiterSetting()) {
+        formatValue = formatValue.replace(/-/g, "");
+      }
+
+      // Make the selected option display the coupon format value.
+      $("select[id='affwp_settings[coupon_format]'] option:selected")[0].text = formatValue;
+    };
+
+    // Setup format options.
+    var formatOptions = document.getElementById("affwp_settings[coupon_format]").options;
+    var couponFormatOptions = [];
+    for (var option = 0; option < formatOptions.length; option++) {
+      // Add options for live preview.
+      couponFormatOptions.push(formatOptions[option].text);
+      // Change Coupon Format options to live preview.
+      formatOptions[option].text = returnLivePreviewText(couponFormatOptions[option]);
+    }
+
+    // Update the selected option to display coupon format value
+    resetCFSelectedOption();
+
+    // On coupon format setting change, return options to live preview and the selected option as the coupon format.
+    $("select[id='affwp_settings[coupon_format]']").on("change", function (event) {
+      // Make options display preview values.
+      updateCouponFormatOptions();
+      // Make the current selected option display as the coupon format with merge tags.
+      resetCFSelectedOption();
+    });
+
+    // Add or remove hyphens in the coupon format live preview based on the Hyphen Delimiter setting.
+    $("input[id='affwp_settings[coupon_hyphen_delimiter]']").on("click", function (event) {
+      // Update options display preview values with or without hyphens.
+      updateCouponFormatOptions();
+      // Make the current selected option display as the coupon format with merge tags.
+      resetCFSelectedOption();
+    });
+
+    // Update live preview as you edit the custom text field.
+    $("input[id='affwp_settings[coupon_custom_text]']").on("keyup", function () {
+      // Change Coupon Format options to live preview.
+      for (var i = 0; i < formatOptions.length; i++) {
+        formatOptions[i].text = returnLivePreviewText(couponFormatOptions[i]);
+      }
+    });
+  }
+
+  // Dismiss promo notices.
+  $(".affwp-promo-notice").each(function () {
+    var notice = $(this);
+    var noticeId = notice.data("id");
+    var nonce = notice.data("nonce");
+    var lifespan = notice.data("lifespan");
+    notice.on("click", ".notice-dismiss, .affwp-notice-dismiss", function (event) {
+      wp.ajax.send("affwp_dismiss_promo", {
+        data: {
+          notice_id: noticeId,
+          nonce: nonce,
+          lifespan: lifespan
+        },
+        success: function success() {
+          notice.slideUp("fast");
+
+          // Remove previously set "seen" local storage.
+          var uid = userSettings.uid ? userSettings.uid : 0;
+          var seenKey = "affwp-notice-" + noticeId + "-seen-" + uid;
+          window.localStorage.removeItem(seenKey);
+        }
+      });
+    });
+  });
+
+  // Move "Top of Page" promos to the top of content (before Help/Screen Options).
+  var topOfPageNotice = jQuery(".affwp-admin-notice-top-of-page");
+  if (topOfPageNotice.length > 0) {
+    var topOfPageNoticeEl = topOfPageNotice.detach();
+    jQuery("#wpbody-content").prepend(topOfPageNoticeEl);
+    var uid = userSettings.uid ? userSettings.uid : 0;
+    var noticeId = topOfPageNoticeEl.data("id");
+    var seenKey = "affwp-notice-" + noticeId + "-seen-" + uid;
+    if (window.localStorage.getItem(seenKey)) {
+      topOfPageNoticeEl.show();
+    } else {
+      setTimeout(function () {
+        window.localStorage.setItem(seenKey, true);
+        topOfPageNotice.slideDown();
+      }, 1500);
+    }
+  }
+
+  /**
+   * Support to show/hide the Referral basis based on the affiliate rate type.
+   * Used in Affiliate WP Settings, edit affiliate admin page, and new affiliate admin page.
+   *
+   * @since 2.3
+   */
+  if ($.inArray(pagenow, ["affiliates_page_affiliate-wp-affiliates", "affiliates_page_affiliate-wp-settings"]) > -1) {
+    var flatRateBasisField;
+    var referralRateTypeField;
+    if (pagenow === "affiliates_page_affiliate-wp-settings") {
+      flatRateBasisField = $(".affwp-referral-rate-type-field");
+      referralRateTypeField = $('input[name="affwp_settings[referral_rate_type]"]');
+    } else {
+      flatRateBasisField = $("#flat_rate_basis").closest("tr");
+      referralRateTypeField = $("#rate_type");
+    }
+    referralRateTypeField.on("change", function (e) {
+      if ("flat" !== e.target.value) {
+        flatRateBasisField.hide();
+      } else {
+        flatRateBasisField.show();
+      }
+    });
+  }
+
+  /**
+   * Support to show/hide the reCAPTCHA Score Threshold based on the reCAPTCHA Type.
+   * Used in Affiliate WP Settings.
+   *
+   * @since 2.10.0
+   */
+  if ($.inArray(pagenow, ["affiliates_page_affiliate-wp-settings"]) > -1) {
+    // Visibility.
+    var affwpShouldFieldBeVisible = function affwpShouldFieldBeVisible(fieldVal, expectedVal, compare) {
+      if (["==", "==="].includes(compare) && fieldVal == expectedVal) {
+        return true;
+      }
+      if (["!=", "<>"].includes(compare) && fieldVal != expectedVal) {
+        return true;
+      }
+      if (compare === "in" && Array.isArray(expectedVal) && expectedVal.includes(fieldVal)) {
+        return true;
+      }
+      return false;
+    };
+    var affwpIsVisible = function affwpIsVisible($field, expectedValue, comparison) {
+      if (!$field.get(0)) {
+        return "";
+      }
+      var tag = $field.get(0).tagName;
+      if (tag === "INPUT" && $field.attr("type") === "radio") {
+        return affwpShouldFieldBeVisible($field.filter(":checked").val(), expectedValue, comparison);
+      }
+      if (tag === "INPUT" && $field.attr("type") === "checkbox") {
+        return affwpShouldFieldBeVisible($field.is(":checked"), expectedValue, comparison);
+      }
+      if (tag === "SELECT") {
+        return affwpShouldFieldBeVisible($field.val(), expectedValue, comparison);
+      }
+    }; // Field visibility.
+    // CAPTCHA options template - info box visibility and visual selection
+    var initCaptchaInfoBoxes = function initCaptchaInfoBoxes() {
+      var $captchaRadios = $('input[name="affwp_settings[captcha_type]"]');
+      var $captchaOptions = $(".captcha-selector__option");
+      if (!$captchaRadios.length) {
+        return; // No CAPTCHA radios found
+      }
+      function updateInfoBoxVisibility() {
+        var selectedValue = $captchaRadios.filter(":checked").val();
+        var $captchaInfos = $(".captcha-selector__info-box");
+        var $infoBoxContainer = $(".captcha-selector__info-boxes");
+        var $captchaConfigRows = $("tr[data-captcha-type]");
+
+        // Update visual selection
+        $captchaOptions.removeClass("captcha-selector__option--selected");
+        $captchaOptions.filter("[data-value=\"".concat(selectedValue, "\"]")).addClass("captcha-selector__option--selected");
+
+        // Hide all info boxes instantly
+        $captchaInfos.hide();
+
+        // Hide all CAPTCHA configuration rows first (but only those without data-visibility)
+        $captchaConfigRows.not("[data-visibility]").addClass("affwp-hidden").removeClass("affwp-visible");
+
+        // Show the selected info box and config fields if not 'none'
+        if (selectedValue && selectedValue !== "none") {
+          $(".captcha-selector__info-box[data-captcha-type=\"".concat(selectedValue, "\"]")).show();
+          $infoBoxContainer.removeClass("captcha-selector__info-boxes--hidden");
+
+          // Show configuration rows for the selected CAPTCHA type (but only those without data-visibility)
+          $captchaConfigRows.filter("[data-captcha-type=\"".concat(selectedValue, "\"], [data-captcha-type=\"all\"]")).not("[data-visibility]").removeClass("affwp-hidden").addClass("affwp-visible");
+        } else {
+          // Hide info box container when 'none' is selected
+          $infoBoxContainer.addClass("captcha-selector__info-boxes--hidden");
+          // CAPTCHA config rows remain hidden (already hidden above)
+        }
+      }
+
+      // Handle option clicks (visual selection)
+      $captchaOptions.on("click", function () {
+        var selectedValue = $(this).data("value");
+        var $radio = $(this).find(".captcha-selector__option-input");
+
+        // Update radio button
+        $radio.prop("checked", true).trigger("change");
+      });
+
+      // Handle radio button changes
+      $captchaRadios.on("change", updateInfoBoxVisibility);
+
+      // Initialize on page load
+      updateInfoBoxVisibility();
+    }; // Initialize CAPTCHA info boxes if we're on the settings page
+    // Accordions.
+    $(".affwp-accordion").each(function () {
+      var $accordion = $(this);
+      $accordion.find("> .affwp-accordion-item > .affwp-accordion-title").on("click", function (e) {
+        e.stopPropagation();
+        var $accordionItem = $(this).parent();
+
+        // Close other accordion items.
+        if ($accordion.data("toggle") !== undefined) {
+          $accordionItem.siblings().not($accordionItem.get(0)).addClass("affwp-accordion-collapsed");
+        }
+
+        // Toggle the clicked item.
+        $accordionItem.toggleClass("affwp-accordion-collapsed");
+      });
+    });
+    $("tr[data-visibility]").each(function () {
+      var $row = $(this);
+      var $form = $("#affwp-settings-form");
+      var ruleset = $row.data("visibility");
+      if (!Array.isArray(ruleset.rule)) {
+        ruleset.rule = [ruleset.rule];
+      }
+      var getField = function getField(rule) {
+        var requiredOption = rule.required_option || false;
+        return requiredOption !== false ? $form.find("[name=\"affwp_settings[".concat(rule.required_field, "][").concat(requiredOption, "]\"]")) : $form.find("[name=\"affwp_settings[".concat(rule.required_field, "]\"]"));
+      };
+      var evaluateRules = function evaluateRules(rules) {
+        return rules.every(function (rule) {
+          var $field = getField(rule);
+          var comparison = rule.compare || "==";
+          return affwpIsVisible($field, rule.value, comparison);
+        });
+      };
+      var toggleVisibility = function toggleVisibility() {
+        if (evaluateRules(ruleset.rule)) {
+          $row.addClass("affwp-visible").removeClass("affwp-hidden");
+        } else {
+          $row.removeClass("affwp-visible").addClass("affwp-hidden");
+        }
+      };
+
+      // Evaluate the initial state.
+      toggleVisibility();
+
+      // Attach change event to each field involved in the rules.
+      ruleset.rule.forEach(function (rule) {
+        var $field = getField(rule);
+        $field.on("change", toggleVisibility);
+      });
+    });
+    if ($(".affwp-captcha-options-wrapper").length) {
+      initCaptchaInfoBoxes();
+    }
+
+    // Section visibility.
+    $(".affwp-section[data-visibility]").each(function () {
+      var $section = $(this);
+      var $form = $("#affwp-settings-form");
+      var ruleset = $section.data("visibility");
+      var $field = $form.find("input[name=\"affwp_settings[".concat(ruleset.required_field, "]\"]"));
+      var comparison = ruleset.hasOwnProperty("compare") ? ruleset.compare : "==";
+      var toggleSectionVisibility = function toggleSectionVisibility() {
+        if (affwpIsVisible($field, ruleset.value, comparison)) {
+          $section.addClass("affwp-visible").removeClass("affwp-hidden");
+        } else {
+          $section.removeClass("affwp-visible").addClass("affwp-hidden");
+        }
+      };
+
+      // Evaluate the initial state.
+      toggleSectionVisibility();
+
+      // Attach change event.
+      $field.on("change", toggleSectionVisibility);
+    });
+
+    // Select2
+
+    $("#affwp-settings-form select").each(function () {
+      var $select = $(this);
+      var $row = $select.closest("tr");
+      if (["portal_menu_links", "affiliate_area_tabs_list"].includes($row.attr("id")) || $row.hasClass("affwp-ignore-select2") || $select.closest("div").hasClass("affwp-ignore-select2") || $row.hasClass("affwp-select2-initialized") // Skip if already initialized
+      ) {
+        return; // Skip for specific fields or already initialized
+      }
+      $row.addClass("affwp-select2-initialized");
+      $select.select2(affiliatewp.parseArgs(
+      /*
+       * You can use an object with select2 arguments in your select tag to override
+       * the select2 defaults or add new setting.
+       */
+      $select.data("select2-settings") || {}, {
+        width: "240px",
+        minimumResultsForSearch: 10,
+        // Enable search for dropdowns with more than 10 options.
+        /**
+         * Format the dropdown options.
+         * Add a pro-badge to the QR Code option addProBadge class is present.
+         *
+         * @param {Object} option The option object.
+         * @return {Object}        The option with or without the pro badge.
+         */
+        templateResult: function templateResult(option) {
+          if (!option.id) {
+            return option.text;
+          }
+          if (option.element && option.element.classList.contains("addProBadge")) {
+            return $("<span>".concat(option.text, "</span><span class=\"affwp-settings-label-pro\">PRO</span>"));
+          }
+          return option.text;
+        },
+        /**
+         * Format the selected option.
+         * Add a pro-badge to the option addProBadge class is present.
+         *
+         * @param {Object} option The option object.
+         * @return {Object}       The option with or without the pro badge.
+         */
+        templateSelection: function templateSelection(option) {
+          if (!option.id) {
+            return option.text;
+          }
+          if (option.element && option.element.classList.contains("addProBadge")) {
+            return $("<span>".concat(option.text, "</span><span class=\"affwp-settings-label-pro\">PRO</span>"));
+          }
+          return option.text;
+        }
+      })).on("change", function (e) {
+        $(document).trigger("affiliatewp_on_select_change", [e]);
+      });
+    });
+
+    // Open the Type select2 dropdown when clicking on the Type label.
+    $(".affwp-select2-initialized label").on("click", function () {
+      var $select = $(this).closest("tr").find("select:first");
+      if ($select.hasClass("select2-hidden-accessible")) {
+        $select.select2("open");
+      }
+    });
+  }
+
+  /**
+   * Enable meta box toggle states
+   *
+   * @since  1.9
+   *
+   * @param  typeof postboxes postboxes object
+   *
+   * @return {void}
+   */
+  if (typeof postboxes !== "undefined" && /affiliate-wp/.test(pagenow)) {
+    postboxes.add_postbox_toggles(pagenow);
+  }
+
+  /**
+   * Handle plugin actions under About Us page.
+   *
+   * @since 2.14.0
+   * @since 2.27.3 Update to how the update buttons are stripped of their content causing
+   *               button height issues.
+   */
+  if ($.inArray(pagenow, ["affiliates_page_affiliate-wp-about"]) > -1) {
+    $(".affwp-action-button").on("click", function () {
+      var $button = $(this);
+      if ($button.hasClass("disabled")) {
+        return; // Do nothing if the plugin is already active.
+      }
+      if ($button.hasClass("status-go-to-url")) {
+        window.open($button.data("plugin"), "_blank");
+        return; // User was redirected. Nothing more to do here.
+      }
+
+      // Save the original button state and contents to use in case of failures.
+      var buttonOriginalText = $button.text();
+      var buttonOriginalClasses = $button.attr("class");
+
+      // At this point we only have the options either to install or activate plugins.
+      var action = $button.hasClass("status-missing") ? "affwp_install_plugin" : "affwp_activate_plugin";
+
+      // Container used to show notices.
+      var $actionContainer = $button.closest(".affwp-addon-action");
+
+      // Function used to display the notices, used either in case of success or failures calls.
+      var showNotice = function showNotice($container, status, content) {
+        $container.addClass("affwp-addon-action--" + status).attr("data-content", content).delay(2500).queue(function () {
+          $(this).removeAttr("data-content").removeClass("affwp-addon-action--" + status);
+        });
+      };
+      $.ajax({
+        type: "POST",
+        url: ajaxurl,
+        data: {
+          action: action,
+          nonce: affwp_about_vars.nonce,
+          plugin: $button.data("plugin")
+        },
+        dataType: "json",
+        beforeSend: function beforeSend() {
+          $button.html("&nbsp;") // This ensures the height of the element is retained.
+          .removeAttr("class").addClass("affwp-action-button button button-secondary disabled loading");
+        },
+        success: function success(response) {
+          if (response.success) {
+            $button.text(affwp_about_vars.i18n.activated);
+            $actionContainer.find(".status-label").removeClass("status-inactive").addClass("status-active").text(affwp_about_vars.i18n.active);
+            showNotice($actionContainer, "ok", "affwp_activate_plugin" === action ? affwp_about_vars.i18n.pluginActivated : affwp_about_vars.i18n.pluginInstalledAndActivated);
+            return; // Success response, we can safely exit.
+          }
+
+          // Response failed for some some reason, errors returned by the ajax calls.
+          $button.text(buttonOriginalText).removeAttr("class").addClass(buttonOriginalClasses);
+
+          // Show the notice with the error returned by the ajax call.
+          showNotice($actionContainer, "error", response.data);
+        },
+        complete: function complete() {
+          $button.removeClass("loading");
+        }
+      }).fail(function (response) {
+        $button.text(buttonOriginalText).removeAttr("class").addClass(buttonOriginalClasses);
+        showNotice($actionContainer, "error", affwp_about_vars.i18n.genericError);
+      });
+    });
+  }
+
+  // Used in Affiliate WP Creative add/edit screen.
+  if ($.inArray(pagenow, ["affiliates_page_affiliate-wp-creatives"]) > -1) {
+    /* eslint-disable no-undef */
+    if (typeof affiliatewp !== "undefined" && affiliatewp.has("qrcode")) {
+      // Print QR Codes in admin list table.
+      $("#the-list .column-preview").each(function () {
+        var $qrCode = $(this).find(".affwp-qrcode-preview");
+        affiliatewp.qrcode($qrCode.get(0), $qrCode.data("url"), affiliatewp.parseArgs(_typeof($qrCode.data("settings")) === "object" ? $qrCode.data("settings") : {}, {
+          width: 80,
+          height: 80,
+          margin: 3,
+          errorCorrectionLevel: "H"
+        }));
+      });
+
+      // Print QR Codes in add/edit screens.
+      var qrPreviewEl = document.getElementById("qr-preview");
+      if (qrPreviewEl) {
+        var qrSettings = affiliatewp.parseArgs(qrPreviewEl.dataset.settings ? JSON.parse(qrPreviewEl.dataset.settings) : {
+          color: {
+            dark: "#444444",
+            light: "#FFFFFF"
+          }
+        }, {
+          width: 200,
+          height: 200,
+          margin: 3
+        });
+
+        // affwpCreativeUrls is globally available.
+        affiliatewp.qrcode(qrPreviewEl, affwpCreativeUrls.creativeUrl, qrSettings);
+
+        // Store the last input event (setTimeout) handler.
+        var inputHandler;
+        var getColorSettings = function getColorSettings() {
+          return {
+            dark: $("#qrcode-code-color").val(),
+            light: $("#qrcode-bg-color").val()
+          };
+        };
+
+        // Function to update QR Code colors without generating a new QR Code.
+        var updateColors = function updateColors() {
+          var color = getColorSettings();
+          var existingQR = qrPreviewEl.firstChild;
+          if (existingQR) {
+            $(existingQR).find("path:eq(0)").css("fill", color.light);
+            $(existingQR).find("path:eq(1)").css("stroke", color.dark);
+          }
+        };
+
+        // Update the QR Code after stopping typing.
+        $(".form-table #qrcode-url").on("input", function () {
+          var newUrl = $(this).val();
+          var color = getColorSettings();
+
+          // Clean previous handler.
+          clearTimeout(inputHandler);
+          inputHandler = setTimeout(function () {
+            // Remove previous QR Code.
+            qrPreviewEl.removeChild(qrPreviewEl.firstChild);
+
+            // Generate the new QR Code.
+            affiliatewp.qrcode(qrPreviewEl, newUrl === "" ? affwpCreativeUrls.siteUrl : newUrl, affiliatewp.parseArgs({
+              color: color
+            }, qrSettings));
+
+            // Add/Remove updated class for a visual cue.
+            $(qrPreviewEl).addClass("qr-code-updated");
+            setTimeout(function () {
+              $(qrPreviewEl).removeClass("qr-code-updated");
+            }, 200);
+          }, 1000);
+        });
+
+        // Attach color picker.
+        $(".affwp-color-picker").wpColorPicker({
+          clear: function clear() {
+            updateColors();
+          },
+          change: function change(event, ui) {
+            $(this).val(ui.color.toString());
+            updateColors();
+            $(".qrcode-disclaimer").fadeIn();
+          }
+        });
+
+        // Manipulate the Clear button to set the default colors when clicked.
+        $(".wp-picker-clear").on("click", function () {
+          var $self = $(this);
+          var color = $self.closest(".qrcode-color-picker-container").data("default-color");
+          $self.closest(".qrcode-color-picker-container").find("input.affwp-color-picker").val(color).trigger("change");
+        });
+      }
+    } // End QR Code generation.
+    /* eslint-enable no-undef */
+
+    $("#affwp_add_creative, #affwp_edit_creative").on("submit", function (e) {
+      var $name = $("#name");
+
+      // Anything different from yes, should submit normally.
+      if ($name.data("private") !== "yes") {
+        return true;
+      }
+
+      // Equal names, confirm before submitting.
+      if (affwp_vars.creativeDefaultName === $name.val() && !confirm(affwp_vars.creativeUpdateNameConfirm)) {
+        return false;
+      }
+
+      // Any other conditions submit normally.
+      return true;
+    });
+
+    // Object to cache values based on a context.
+    var contexts = {
+      text_link: {
+        text: ""
+      },
+      image: {
+        text: ""
+      },
+      qr_code: {
+        text: ""
+      }
+    };
+
+    // Used to store the previous selected type.
+    var prevType = $("#type").val();
+    $(".form-table #type").select2({
+      width: affwpSelect2Width,
+      minimumResultsForSearch: -1,
+      /**
+       * Format the dropdown options.
+       * Add a pro badge to the QR Code option addProBadge class is present.
+       *
+       * @param  {Object} option The option object.
+       * @return {Object}        The option with or without the pro badge.
+       */
+      templateResult: function templateResult(option) {
+        if (!option.id) {
+          return option.text;
+        }
+        if ("qr_code" === option.id && option.element && option.element.classList.contains("addProBadge")) {
+          return $("<span>".concat(option.text, "</span><span class=\"affwp-settings-label-pro\">PRO</span>"));
+        }
+        return option.text;
+      },
+      /**
+       * Format the selected option.
+       * Add a pro badge to the QR Code option addProBadge class is present.
+       *
+       * @param  {Object} option The option object.
+       * @return {Object}       The option with or without the pro badge.
+       */
+      templateSelection: function templateSelection(option) {
+        if (!option.id) {
+          return option.text;
+        }
+        if ("qr_code" === option.id && option.element && option.element.classList.contains("addProBadge")) {
+          return $("<span>".concat(option.text, "</span><span class=\"affwp-settings-label-pro\">PRO</span>"));
+        }
+        return option.text;
+      }
+    }).on("change", function (e) {
+      // jQuery field objects.
+      var $text = $("#text");
+      var $type = $("#type");
+      var $image = $("#image");
+      var $url = $("#url");
+      var $qrCodeUrl = $("#qrcode-url");
+
+      // Reset the 'required' property from all.
+      $text.attr("required", false);
+      $image.attr("required", false);
+
+      // Set disabled attributes to their default states.
+      $url.attr("disabled", false);
+      $qrCodeUrl.attr("disabled", true);
+      $qrCodeUrl.closest(".affwp-education-modal-input-wrapper").find("span").removeClass("affwp-education-modal");
+
+      // Save the current text value to the context object.
+      contexts[prevType].text = $text.val();
+
+      // Update the previous type with the selected type.
+      prevType = $type.val();
+
+      // Populate the text field with the current context value.
+      $text.val(contexts[$type.val()].text);
+
+      // Change the context of the form table, so we know which fields to show/hide.
+      $(".form-table").attr("data-current-context", $(this).val());
+
+      // Make image required.
+      if ($type.val() === "image") {
+        $image.attr("required", true);
+        return;
+      }
+
+      // Text is required for Text Links.
+      if ($type.val() === "text_link") {
+        $text.attr("required", true);
+      }
+
+      // User do not have a valid license anymore and is trying to edit a QR Code creative.
+      if ($type.val() === "qr_code" && $type.find("option:selected").hasClass("affwp-education-notice")) {
+        $url.attr("disabled", true);
+        $qrCodeUrl.closest(".affwp-education-modal-input-wrapper").find("span").addClass("affwp-education-modal");
+        return;
+      }
+
+      // QR Code has a different URL field, so we disable the original one.
+      if ($type.val() === "qr_code") {
+        $url.attr("disabled", true);
+        $qrCodeUrl.attr("disabled", false);
+      }
+    });
+
+    // Prevent from selecting pro features.
+    $("#type").on("select2:selecting", function (e) {
+      if (!$(e.target).hasClass("select2-hidden-accessible")) {
+        return; // Not a select2.
+      }
+      var selectedOptionClass = e.params.args.data.element.className;
+
+      // Check if product education modal should be displayed.
+      if (!(selectedOptionClass && selectedOptionClass.includes("affwp-education-modal"))) {
+        return;
+      }
+
+      // Prevent option from being selected.
+      e.preventDefault();
+    });
+
+    // Open the Type select2 dropdown when clicking on the Type label.
+    $('label[for="type"]').click(function () {
+      $("#type").select2("open");
+    });
+    $("select#status").select2({
+      width: affwpSelect2Width,
+      minimumResultsForSearch: -1,
+      /**
+       * Format the dropdown options.
+       * Add a pro badge to the Scheduled status when addProBadge class is present.
+       *
+       * @param  {Object} option The option object.
+       * @return {Object}        The option with or without the pro badge.
+       */
+      templateResult: function templateResult(option) {
+        if (!option.id) {
+          return option.text;
+        }
+
+        // Add the pro badge to the scheduled status in the select2 dropdown.
+        if ("scheduled" === option.id && $(".addProBadge").length > 0) {
+          return $("<span>".concat(option.text, "</span><span class=\"affwp-settings-label-pro\">PRO</span>"));
+        }
+        return option.text;
+      },
+      /**
+       * Format the selected option.
+       * Add a pro badge to the Scheduled status when addProBadge class is present.
+       * @param  {Object} option The option object.
+       * @return {Object}       The option with or without the pro badge.
+       */
+      templateSelection: function templateSelection(option) {
+        if (!option.id) {
+          return option.text;
+        }
+
+        // Add the pro badge to the selected scheduled status.
+        if ("scheduled" === option.id && $(".addProBadge").length > 0) {
+          return $("<span>".concat(option.text, "</span><span class=\"affwp-settings-label-pro\">PRO</span>"));
+        }
+        return option.text;
+      }
+    }).on("change", function (e) {
+      // Display the schedule creatives setting if the Scheduled status is selected.
+      if ($(".affwp-schedule-creatives-setting").length > 0 && $("#status").val() === "scheduled") {
+        $(".affwp-schedule-creatives-setting").removeClass("affwp-hidden");
+        return;
+      }
+      // Don't hide the schedule creatives setting again if we are on the edit screen.
+      if ($("#affwp_edit_creative").length > 0) {
+        return;
+      }
+      $(".affwp-schedule-creatives-setting").addClass("affwp-hidden");
+    });
+
+    // Open the Status select2 dropdown when clicking on the Status label.
+    $('label[for="status"]').click(function () {
+      $("#status").select2("open");
+    });
+
+    // Schedule creative datepicker.
+    if ($(".affwp-schedule-creative-datepicker").length) {
+      // Select all elements with class 'affwp-schedule-creative-datepicker' and initialize a datepicker on them
+      $(".affwp-schedule-creative-datepicker").datepicker({
+        dateFormat: "mm/dd/yy",
+        defaultDate: "",
+        showButtonPanel: true,
+        // Show a button panel with today and close buttons
+        onSelect: function onSelect(date) {
+          // If this datepicker is the start date, set the minDate option. Otherwise, set the maxDate.
+          var option = $(this).is('.affwp-schedule-creative-datepicker[name="start_date"]') ? "minDate" : "maxDate",
+            // Find all datepicker inputs in the same container as the current datepicker.
+            dates = $(this).closest(".schedule-creative-date-fields").find("input");
+
+          // Get the selected date plus one day.
+          if (option === "minDate") {
+            date = new Date($(this).datepicker("getDate").getTime() + 86400000);
+            // Get the selected date minus one day.
+          } else if (option === "maxDate") {
+            date = new Date($(this).datepicker("getDate").getTime() - 86400000);
+          }
+
+          // Set the minDate or maxDate option of the other datepicker input to the selected date.
+          dates.not(this).datepicker("option", option, date);
+          // Trigger the change event on the current datepicker.
+          $(this).trigger("change");
+        }
+      });
+    }
+  }
+  $('.affwp-batch-form[data-batch_id="update-creative-names"] input[type="radio"]').on("change", function () {
+    var $option = $(this);
+    $("#v2160-update-creative-names").val($option.val() === "private" ? affwp_vars.creativeUpgradeNoticeNo : affwp_vars.creativeUpgradeNoticeYes).removeClass("button-disabled").attr("disabled", false);
+  });
+  $('.affwp-batch-form[data-batch_id="create-login-registration-pages"] input[type="radio"]').on("change", function () {
+    $("#v2250-create-login-registration-pages").val($(this).data("button-label")).removeClass("button-disabled").attr("disabled", false);
+  });
+
+  // Handle dismissible notices.
+  $(".notice.is-dismissible .affwp-notice-dismiss").on("click", function (e) {
+    window.location.href = $(this).data("dismiss-url");
+  });
+});
+/******/ })()
+;

@@ -1025,14 +1025,12 @@ class Affiliate_WP_WooCommerce extends Affiliate_WP_Base {
 			return false;
 		}
 
-		// Customers cannot refer themselves.
-		if ( $this->is_affiliate_email( $this->email, $affiliate_id ) ) {
-
-			$this->log( 'Draft referral rejected because affiliate\'s own account was used.' );
-			$this->mark_referral_failed( $referral_id );
-
-			return false;
-		}
+		// Check for self-referral BEFORE fraud detector filter modifies the result.
+		// This is the RAW email match check - we need to know this early to handle
+		// all three modes correctly: reject, flag, and allow.
+		//
+		// Check for self-referral (but don't stop execution yet - we need to calculate amount first).
+		$is_self_referral = $this->is_affiliate_email( $this->email, $affiliate_id );
 
 		// If an existing referral exists and it is paid or unpaid exit.
 		if ( ! is_wp_error( $existing ) && ( 'paid' === $existing->status || 'unpaid' === $existing->status ) ) {
@@ -1137,6 +1135,26 @@ class Affiliate_WP_WooCommerce extends Affiliate_WP_Base {
 
 		$visit_id = affiliate_wp()->tracking->get_visit_id();
 
+		// Handle self-referral BEFORE hydration if email matches and in "allow" mode.
+		// This ensures the visit flag is cleared before the referral inherits it.
+		if ( $is_self_referral ) {
+			$setting = affiliate_wp()->settings->get( 'fraud_prevention_self_referrals', 'reject' );
+
+			// If set to allow, clear the visit flag before hydration.
+			if ( 'allow' === $setting ) {
+				// Remove visit flag if it was set by fraud detector.
+				if ( $visit_id ) {
+					$visit = affwp_get_visit( $visit_id );
+					if ( $visit && 'self_referral' === $visit->flag ) {
+						affiliate_wp()->visits->update( $visit->visit_id, [ 'flag' => '' ] );
+					}
+				}
+
+				// Remove the filter that triggers self-referral flagging during hydration.
+				remove_filter( 'affwp_fraud_prevention_flag_self_referral', '__return_true' );
+			}
+		}
+
 		// Hydrates the previously created referral.
 		$this->hydrate_referral(
 			$referral_id,
@@ -1149,24 +1167,59 @@ class Affiliate_WP_WooCommerce extends Affiliate_WP_Base {
 			)
 		);
 
+		// Handle self-referral after hydration (so amount is properly calculated and stored).
+		if ( $is_self_referral ) {
+			// Get fraud prevention setting.
+			$setting = affiliate_wp()->settings->get( 'fraud_prevention_self_referrals', 'reject' );
+
+			// Handle based on setting.
+			if ( 'flag' === $setting ) {
+				// Flag mode: Just flag it, let it proceed to unpaid normally.
+				// The flag was already set by the fraud detector during hydration.
+				$this->log( 'Self-referral flagged for review.' );
+
+				// Continue to mark_referral_complete to set status to unpaid.
+			} elseif ( 'reject' === $setting ) {
+				// Reject mode: Set to rejected status.
+				$this->log( 'Self-referral rejected.' );
+				$this->mark_referral_rejected( $referral_id );
+			}
+			// Allow mode: Already handled before hydration, continue to mark_referral_complete normally.
+		}
+
 		$this->log( sprintf( 'WooCommerce referral #%d updated successfully.', $referral_id ) );
 	}
 
 	/**
 	 * Store a pending referral when a new order is created via WooCommerce checkout block.
 	 *
+	 * Note: This hook fires after the order status changes from 'checkout-draft' to 'pending'.
+	 * We accept both statuses for maximum compatibility:
+	 * - 'checkout-draft': For potential older WooCommerce versions
+	 * - 'pending': Current behavior where order is already transitioned when hook fires
+	 *
 	 * @since 2.9.4
+	 * @since 2.28.0 Included 'pending' as allowed status.
 	 *
 	 * @param \WC_Order $order WooCommerce order object.
 	 * @return void
 	 */
 	public function add_pending_referral_checkout_block( $order ) {
 
-		if ( 'checkout-draft' !== $order->get_status() ) {
+		if ( 'store-api' !== $order->get_created_via() ) {
 			return;
 		}
 
-		if ( 'store-api' !== $order->get_created_via() ) {
+		// Only process orders in checkout-draft or pending status
+		if ( ! in_array( $order->get_status(), array( 'checkout-draft', 'pending' ), true ) ) {
+			return;
+		}
+
+		// Check if a referral already exists to avoid duplicates
+		$existing_referral = affwp_get_referral_by( 'reference', $order->get_id(), $this->context );
+
+		if ( ! is_wp_error( $existing_referral ) ) {
+			// Referral already exists, don't create another one
 			return;
 		}
 
@@ -1375,14 +1428,31 @@ class Affiliate_WP_WooCommerce extends Affiliate_WP_Base {
 
 		$this->set_order( $order_id );
 
+		// Check if this is a self-referral that was already rejected.
+		$referral = affwp_get_referral_by( 'reference', $order_id, $this->context );
+
+		if ( ! is_wp_error( $referral ) && is_object( $referral ) ) {
+			// If already rejected, don't change status to unpaid.
+			if ( 'rejected' === $referral->status ) {
+				$this->log( 'Referral not marked as complete because it was rejected (self-referral).' );
+				return false;
+			}
+
+			// If flagged, allow it to proceed to unpaid (old addon behavior).
+			// The flag field will remain set for visibility in the dashboard.
+		}
+
 		if ( true === version_compare( WC()->version, '3.0.0', '>=' ) ) {
 			$payment_method = $this->order->get_payment_method();
 		} else {
 			$payment_method = get_post_meta( $order_id, '_payment_method', true );
 		}
 
-		// If the WC status is 'wc-processing' and a COD order, leave as 'pending'.
-		if ( 'wc-processing' == $this->order->get_status() && 'cod' === $payment_method ) {
+		/**
+		 * Skip completing the referral if the order status is 'pending' and payment method is COD.
+		 * This prevents referrals from being completed for COD orders that haven't been paid yet.
+		 */
+		if ( 'pending' === $this->order->get_status() && 'cod' === $payment_method ) {
 			return;
 		}
 

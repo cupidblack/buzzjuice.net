@@ -34,14 +34,14 @@ affwp_admin_require_connector();
 final class Connector extends \AffiliateWP\Admin\Connector {
 
 	/** @var string This is documented in includes/admin/class-connector.php */
-	protected array $connectable_args = array(
-		'affiliate' => array(
+	protected array $connectable_args = [
+		'affiliate' => [
 			'column_before' => 'username',
-		),
-		'group'    => array(
+		],
+		'group'    => [
 			'group_type' => 'affiliate-group',
-		),
-	);
+		],
+	];
 
 	/** @var string This is documented in includes/admin/class-connector.php */
 	protected $capability = 'manage_affiliates';
@@ -58,8 +58,8 @@ final class Connector extends \AffiliateWP\Admin\Connector {
 	 */
 	public function __construct( string $id ) {
 
-		$this->update_connectable_args( 'affiliate', array(
-			'lang' => array(
+		$this->update_connectable_args( 'affiliate', [
+			'lang' => [
 				'plural'      => __( 'Affiliates', 'affiliate-wp' ),
 				'single'      => __( 'Affiliate', 'affiliate-wp' ),
 
@@ -71,21 +71,21 @@ final class Connector extends \AffiliateWP\Admin\Connector {
 
 				// Translators: %s is the plural translations above.
 				'all'         => __( 'All %s', 'affiliate-wp' ),
-			),
+			],
 
 			// New/Edit screen tags/classes/etc.
 			'form_tags' => $this->get_form_tags(
-				array(
+				[
 					'form'       => 'tr',
 					'form_class' => 'form-row',
 					'row_tag'    => '',
 					'row_class'  => '',
-				)
+				]
 			),
-		) );
+		] );
 
-		$this->update_connectable_args( 'group', array(
-			'lang' => array(
+		$this->update_connectable_args( 'group', [
+			'lang' => [
 				'plural'      => __( 'Groups', 'affiliate-wp' ),
 				'single'      => __( 'Group', 'affiliate-wp' ),
 
@@ -97,8 +97,8 @@ final class Connector extends \AffiliateWP\Admin\Connector {
 
 				// Translators: %s is the plural translations above.
 				'all'         => __( 'All %s', 'affiliate-wp' ),
-			),
-		) );
+			],
+		] );
 
 		$this->modify_multiselect_position_to_after_status();
 
@@ -147,9 +147,8 @@ final class Connector extends \AffiliateWP\Admin\Connector {
 
 		$rate = $this->get_affiliate_group_rate_tooltip_text( $group );
 
-		return affwp_text_tooltip(
-			$title,
-			sprintf(
+		$tooltip_html = affwp_tooltip( [
+			'content' => sprintf(
 				'%1$s %2$s',
 				empty( $rate )
 					? __( 'No custom rate', 'affiliate-wp' )
@@ -160,7 +159,12 @@ final class Connector extends \AffiliateWP\Admin\Connector {
 					? sprintf( '<br> %s', __( 'Default Group', 'affiliate-wp' ) )
 					: ''
 			),
-			false
+		] );
+
+		return sprintf(
+			'<span class="cursor-help" data-tooltip-html="%s">%s</span>',
+			esc_attr( $tooltip_html ),
+			$title
 		);
 	}
 
@@ -223,8 +227,8 @@ final class Connector extends \AffiliateWP\Admin\Connector {
 	 */
 	private function modify_multiselect_position_to_after_status() {
 
-		add_filter( 'affwp_filter_hook_name_affwp_edit_affiliate_bottom', array( $this, 'set_group_selector_to_after_status_field' ) );
-		add_filter( 'affwp_filter_hook_name_affwp_new_affiliate_bottom', array( $this, 'set_group_selector_to_after_status_field' ) );
+		add_filter( 'affwp_filter_hook_name_affwp_edit_affiliate_bottom', [ $this, 'set_group_selector_to_after_status_field' ] );
+		add_filter( 'affwp_filter_hook_name_affwp_new_affiliate_bottom', [ $this, 'set_group_selector_to_after_status_field' ] );
 	}
 
 	/**

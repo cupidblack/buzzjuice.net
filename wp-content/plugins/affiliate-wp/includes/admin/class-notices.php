@@ -306,15 +306,6 @@ class Affiliate_WP_Admin_Notices {
 			$output .= self::show_notice( 'upgrade_v2250_create_login_registration_pages', false );
 		}
 
-		// Payouts Service.
-		if ( in_array( affwp_get_current_screen(), array( 'affiliate-wp-referrals', 'affiliate-wp-payouts' ), true ) ) {
-			$vendor_id  = affiliate_wp()->settings->get( 'payouts_service_vendor_id', 0 );
-			$access_key = affiliate_wp()->settings->get( 'payouts_service_access_key', '' );
-
-			if ( ! ( $vendor_id && $access_key ) && false === get_transient( 'affwp_payouts_service_notice' ) ) {
-				$output .= self::show_notice( 'payouts_service', false );
-			}
-		}
 
 		// Integrations.
 		$integrations = affiliate_wp()->integrations->get_enabled_integrations();
@@ -677,20 +668,6 @@ class Affiliate_WP_Admin_Notices {
 			'message' => sprintf( __( 'Website reconnected to the %s.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME ),
 		) );
 
-		// Payouts Service.
-		$message = '<p><strong>' . __( 'Effortlessly pay your affiliates', 'affiliate-wp' ) . '</strong></p>';
-
-		$message .= sprintf(
-			__( 'With the Payouts Service provided by AffiliateWP, you can easily pay affiliates in 50 countries using any debit or credit card. Learn more at <a href="%s" target="_blank">payouts.sandhillsplugins.com</a>.', 'affiliate-wp' ),
-			PAYOUTS_SERVICE_URL
-		);
-
-		$added = $this->add_notice( 'payouts_service', array(
-			'class'         => 'updated',
-			'message'       => $message,
-			'dismissible'   => true,
-			'dismiss_label' => _x( 'Maybe later', 'payouts service', 'affiliate-wp' ),
-		) );
 	}
 
 	/**

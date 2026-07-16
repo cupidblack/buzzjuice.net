@@ -31,38 +31,58 @@ if ( isset( $_REQUEST['delete_coupon'] ) && 1 == absint( $_REQUEST['delete_coupo
 	if ( ! is_wp_error( $coupon ) ) {
 		$coupon_deleted = affiliate_wp()->affiliates->coupons->delete( $coupon->ID );
 		if ( $coupon_deleted ) {
-			wp_safe_redirect( affwp_admin_url( 'affiliates', array(
-				'affiliate_id' => $affiliate->ID,
-				'action'       => 'edit_affiliate',
-				'affwp_notice' => 'dynamic_coupon_deleted',
-			) ) );
+			wp_safe_redirect(
+				affwp_admin_url(
+					'affiliates',
+					[
+						'affiliate_id' => $affiliate->ID,
+						'action'       => 'edit_affiliate',
+						'affwp_notice' => 'dynamic_coupon_deleted',
+					]
+				)
+			);
 			exit;
 		} else {
-			wp_safe_redirect( affwp_admin_url( 'affiliates', array(
-				'affiliate_id' => $affiliate->ID,
-				'action'       => 'edit_affiliate',
-				'affwp_notice' => 'dynamic_coupon_delete_failed',
-			) ) );
+			wp_safe_redirect(
+				affwp_admin_url(
+					'affiliates',
+					[
+						'affiliate_id' => $affiliate->ID,
+						'action'       => 'edit_affiliate',
+						'affwp_notice' => 'dynamic_coupon_delete_failed',
+					]
+				)
+			);
 			exit;
 		}
 	}
 }
 
 if ( isset( $_REQUEST['generate_coupon'] ) && 1 == absint( $_REQUEST['generate_coupon'] ) ) {
-	$coupon_created = affiliate_wp()->affiliates->coupons->add( array( 'affiliate_id' => $affiliate->ID ) );
+	$coupon_created = affiliate_wp()->affiliates->coupons->add( [ 'affiliate_id' => $affiliate->ID ] );
 	if ( $coupon_created ) {
-		wp_safe_redirect( affwp_admin_url( 'affiliates', array(
-			'affiliate_id' => $affiliate->ID,
-			'action'       => 'edit_affiliate',
-			'affwp_notice' => 'dynamic_coupon_created',
-		) ) );
+		wp_safe_redirect(
+			affwp_admin_url(
+				'affiliates',
+				[
+					'affiliate_id' => $affiliate->ID,
+					'action'       => 'edit_affiliate',
+					'affwp_notice' => 'dynamic_coupon_created',
+				]
+			)
+		);
 		exit;
 	} else {
-		wp_safe_redirect( affwp_admin_url( 'affiliates', array(
-			'affiliate_id' => $affiliate->ID,
-			'action'       => 'edit_affiliate',
-			'affwp_notice' => 'dynamic_coupon_create_failed',
-		) ) );
+		wp_safe_redirect(
+			affwp_admin_url(
+				'affiliates',
+				[
+					'affiliate_id' => $affiliate->ID,
+					'action'       => 'edit_affiliate',
+					'affwp_notice' => 'dynamic_coupon_create_failed',
+				]
+			)
+		);
 		exit;
 	}
 }
@@ -98,7 +118,8 @@ if ( isset( $_REQUEST['generate_coupon'] ) && 1 == absint( $_REQUEST['generate_c
 					<p class="description">
 						<?php
 						/* translators: 1: edit user link for the affiliate, 2: descriptive alt text for the user edit link */
-						echo sprintf( __( 'The affiliate&#8217;s first and/or last name. Will be empty if no name is specified. This can be changed on the <a href="%1$s" alt="%2$s">user edit screen</a>.', 'affiliate-wp' ),
+						printf(
+							__( 'The affiliate&#8217;s first and/or last name. Will be empty if no name is specified. This can be changed on the <a href="%1$s" alt="%2$s">user edit screen</a>.', 'affiliate-wp' ),
 							esc_url( get_edit_user_link( $affiliate->user_id ) ),
 							esc_attr__( 'A link to the user edit screen for this user.', 'affiliate-wp' )
 						);
@@ -128,7 +149,7 @@ if ( isset( $_REQUEST['generate_coupon'] ) && 1 == absint( $_REQUEST['generate_c
 				</th>
 
 				<td>
-					<input class="large-text" type="text" name="affiliate_url" id="affiliate_url" value="<?php echo esc_attr( affwp_get_affiliate_referral_url( array( 'affiliate_id' => $affiliate->affiliate_id ) ) ); ?>" disabled="1" />
+					<input class="large-text" type="text" name="affiliate_url" id="affiliate_url" value="<?php echo esc_attr( affwp_get_affiliate_referral_url( [ 'affiliate_id' => $affiliate->affiliate_id ] ) ); ?>" disabled="1" />
 					<p class="description"><?php _e( 'The affiliate&#8217;s referral URL. This is based on global settings.', 'affiliate-wp' ); ?></p>
 				</td>
 
@@ -226,7 +247,8 @@ if ( isset( $_REQUEST['generate_coupon'] ) && 1 == absint( $_REQUEST['generate_c
 					<p class="description">
 						<?php
 						/* translators: 1: edit user link for the affiliate, 2: descriptive alt text for the user edit link */
-						echo wp_sprintf( __( 'The affiliate&#8217;s website. Will be empty if no website is specified. This can be changed on the <a href="%1$s" alt="%2$s">user edit screen</a>.', 'affiliate-wp' ),
+						echo wp_sprintf(
+							__( 'The affiliate&#8217;s website. Will be empty if no website is specified. This can be changed on the <a href="%1$s" alt="%2$s">user edit screen</a>.', 'affiliate-wp' ),
 							esc_url( get_edit_user_link( $affiliate->user_id ) ),
 							esc_attr__( 'A link to the user edit screen for this user.', 'affiliate-wp' )
 						);
@@ -244,7 +266,15 @@ if ( isset( $_REQUEST['generate_coupon'] ) && 1 == absint( $_REQUEST['generate_c
 					<label for="rate_type_default"><?php esc_html_e( 'Referral Rate Type', 'affiliate-wp' ); ?></label>
 
 					<?php if ( affwp_affiliate_has_affiliate_group_overrides( $affiliate->affiliate_id, 'rate-type' ) ) : ?>
-						<?php affwp_icon_tooltip( __( 'This affiliate is in an affiliate group that has a custom rate type setting which will override this as long as they remain in that affiliate group.' ), 'warning' ); ?>
+						<?php
+						$tooltip_html = affwp_tooltip(
+							[
+								'content' => __( 'This affiliate is in an affiliate group that has a custom rate type setting which will override this as long as they remain in that affiliate group.', 'affiliate-wp' ),
+								'type'    => 'warning',
+							]
+						);
+						?>
+					<span class="dashicons dashicons-warning cursor-help" data-tooltip-html="<?php echo esc_attr( $tooltip_html ); ?>"></span>
 					<?php endif; ?>
 				</th>
 
@@ -275,7 +305,15 @@ if ( isset( $_REQUEST['generate_coupon'] ) && 1 == absint( $_REQUEST['generate_c
 					<?php esc_html_e( 'Flat Rate Referral Basis', 'affiliate-wp' ); ?>
 
 					<?php if ( affwp_affiliate_has_affiliate_group_overrides( $affiliate->affiliate_id, 'flat-rate-basis' ) ) : ?>
-						<?php affwp_icon_tooltip( __( 'This affiliate is in an affiliate group that has a custom flat rate basis setting which will override this as long as they remain in that affiliate group.' ), 'warning' ); ?>
+						<?php
+						$tooltip_html = affwp_tooltip(
+							[
+								'content' => __( 'This affiliate is in an affiliate group that has a custom flat rate basis setting which will override this as long as they remain in that affiliate group.', 'affiliate-wp' ),
+								'type'    => 'warning',
+							]
+						);
+						?>
+					<span class="dashicons dashicons-warning cursor-help" data-tooltip-html="<?php echo esc_attr( $tooltip_html ); ?>"></span>
 					<?php endif; ?>
 				</th>
 
@@ -302,7 +340,15 @@ if ( isset( $_REQUEST['generate_coupon'] ) && 1 == absint( $_REQUEST['generate_c
 					<label for="rate"><?php esc_html_e( 'Referral Rate', 'affiliate-wp' ); ?></label>
 
 					<?php if ( affwp_affiliate_has_affiliate_group_overrides( $affiliate->affiliate_id, 'rate' ) ) : ?>
-						<?php affwp_icon_tooltip( __( 'This affiliate is in an affiliate group that has a custom rate setting which will override this as long as they remain in that affiliate group.' ), 'warning' ); ?>
+						<?php
+						$tooltip_html = affwp_tooltip(
+							[
+								'content' => __( 'This affiliate is in an affiliate group that has a custom rate setting which will override this as long as they remain in that affiliate group.', 'affiliate-wp' ),
+								'type'    => 'warning',
+							]
+						);
+						?>
+					<span class="dashicons dashicons-warning cursor-help" data-tooltip-html="<?php echo esc_attr( $tooltip_html ); ?>"></span>
 					<?php endif; ?>
 				</th>
 
@@ -326,20 +372,20 @@ if ( isset( $_REQUEST['generate_coupon'] ) && 1 == absint( $_REQUEST['generate_c
 					<td>
 
 						<?php if ( ! empty( $dynamic_coupons ) ) : ?>
-							<?php foreach( $dynamic_coupons as $coupon ): ?>
+							<?php foreach ( $dynamic_coupons as $coupon ) : ?>
 								<p>
 									<input class="medium-text" type="text" name="dynamic_coupon" id="dynamic_coupon" readonly value="<?php echo esc_attr( $coupon->coupon_code ); ?>" />
-									<?php echo affwp_admin_link( 'affiliates', __( 'Delete Coupon', 'affiliate-wp' ), array( 'affiliate_id' => $affiliate->ID, 'action' => 'edit_affiliate', 'coupon_id' => $coupon->ID, 'delete_coupon' => 1 ), array( 'class' => 'button' ) ); ?>
+									<?php echo affwp_admin_link( 'affiliates', __( 'Delete Coupon', 'affiliate-wp' ), [ 'affiliate_id' => $affiliate->ID, 'action' => 'edit_affiliate', 'coupon_id' => $coupon->ID, 'delete_coupon' => 1 ], [ 'class' => 'button' ] ); ?>
 								</p>
 							<?php endforeach; ?>
-						<?php else: ?>
-							<?php echo affwp_admin_link( 'affiliates', __( 'Generate Coupon', 'affiliate-wp' ), array( 'affiliate_id' => $affiliate->ID, 'action' => 'edit_affiliate', 'generate_coupon' => 1 ), array( 'class' => 'button' ) ); ?>
+						<?php else : ?>
+							<?php echo affwp_admin_link( 'affiliates', __( 'Generate Coupon', 'affiliate-wp' ), [ 'affiliate_id' => $affiliate->ID, 'action' => 'edit_affiliate', 'generate_coupon' => 1 ], [ 'class' => 'button' ] ); ?>
 						<?php endif; ?>
 
 						<p class="description">
 							<?php
 							/* translators: Coupon settings tab URL */
-							printf( __( 'The affiliate&#8217;s dynamic coupon will use the settings from the selected <a href="%s">coupon template</a>.', 'affiliate-wp' ), esc_url( affwp_admin_url( 'settings', array( 'tab' => 'coupons' ) ) ) );
+							printf( __( 'The affiliate&#8217;s dynamic coupon will use the settings from the selected <a href="%s">coupon template</a>.', 'affiliate-wp' ), esc_url( affwp_admin_url( 'settings', [ 'tab' => 'coupons' ] ) ) );
 							?>
 						</p>
 
@@ -406,7 +452,7 @@ if ( isset( $_REQUEST['generate_coupon'] ) && 1 == absint( $_REQUEST['generate_c
 									?>
 								</p>
 
-							<?php else: ?>
+							<?php else : ?>
 
 								<p>
 									<?php
@@ -460,7 +506,8 @@ if ( isset( $_REQUEST['generate_coupon'] ) && 1 == absint( $_REQUEST['generate_c
 							$kyc_link = $payout_service_account['kyc_link'];
 
 							/* translators: 1: KYC URL, 2: descriptive alt text for the KYC link, 3: KYC link URL to be displayed */
-							echo wp_sprintf( __( '<a href="%1$s" target="_blank" alt="%2$s">%3$s</a>', 'affiliate-wp' ),
+							echo wp_sprintf(
+								__( '<a href="%1$s" target="_blank" alt="%2$s">%3$s</a>', 'affiliate-wp' ),
 								esc_url( $kyc_link ),
 								esc_attr__( 'A link to the identity verification page on the Payouts Service', 'affiliate-wp' ),
 								esc_url( $kyc_link )
@@ -548,7 +595,7 @@ if ( isset( $_REQUEST['generate_coupon'] ) && 1 == absint( $_REQUEST['generate_c
 
 			</tr>
 
-			<?php if( 'rejected' == $affiliate->status && ! empty( $reason ) ) : ?>
+			<?php if ( 'rejected' == $affiliate->status && ! empty( $reason ) ) : ?>
 				<tr class="form-row">
 
 					<th scope="row">

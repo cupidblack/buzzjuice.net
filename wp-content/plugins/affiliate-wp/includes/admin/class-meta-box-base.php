@@ -13,7 +13,7 @@
 namespace AffWP\Admin;
 
 // Exit if accessed directly
-if ( ! defined('ABSPATH') ) {
+if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
@@ -99,7 +99,7 @@ class Meta_Box {
 	 * @var     $affwp_screen The screen ID of the page on which to display this meta box.
 	 * @since   1.9
 	 */
-	private $affwp_screen = array(
+	private $affwp_screen = [
 		'toplevel_page_affiliate-wp',
 		'affiliates_page_affiliate-wp-affiliates',
 		'affiliates_page_affiliate-wp-referrals',
@@ -108,8 +108,8 @@ class Meta_Box {
 		'affiliates_page_affiliate-wp-reports',
 		'affiliates_page_affiliate-wp-tools',
 		'affiliates_page_affiliate-wp-settings',
-		'affiliates_page_affiliate-wp-add-ons'
-	);
+		'affiliates_page_affiliate-wp-add-ons',
+	];
 	/**
 	 * The position in which the meta box will be loaded.
 	 * AffiliateWP uses custom meta box contexts.
@@ -144,7 +144,6 @@ class Meta_Box {
 	 *
 	 * 'affwp_overview_meta_boxes': Loads on the Overview page.
 	 *
-	 *
 	 * @access  public
 	 * @var     $action
 	 * @since   1.9
@@ -169,7 +168,7 @@ class Meta_Box {
 	 * @since  1.9
 	 * @var    array
 	 */
-	public $extra_args = array();
+	public $extra_args = [];
 
 	/**
 	 * Constructor
@@ -189,17 +188,17 @@ class Meta_Box {
 	 *     @type string $display_callback Display callback for the meta box.
 	 * }
 	 */
-	public function __construct( $args = array() ) {
+	public function __construct( $args = [] ) {
 		if ( ! empty( $args ) ) {
 			$this->maybe_process_args( $args );
 		} else {
-			$this->display_callback = array( $this, 'content' );
+			$this->display_callback = [ $this, 'content' ];
 
 			$this->init();
 		}
 
-		add_action( 'add_meta_box', array( $this, 'add_meta_box' ) );
-		add_action( $this->action,  array( $this, 'add_meta_box' ) );
+		add_action( 'add_meta_box', [ $this, 'add_meta_box' ] );
+		add_action( $this->action, [ $this, 'add_meta_box' ] );
 	}
 
 	/**
@@ -214,17 +213,16 @@ class Meta_Box {
 	private function maybe_process_args( $args ) {
 
 		// Whitelist.
-		$required = array(
+		$required = [
 			'meta_box_id', 'tooltip', 'meta_box_name', 'action',
 			'context', 'display_callback', 'extra_args',
-		);
+		];
 
 		foreach ( $args as $arg => $value ) {
 			if ( in_array( $arg, $required, true ) ) {
 				$this->{$arg} = $value;
 			}
 		}
-
 	}
 
 	/**
@@ -255,24 +253,43 @@ class Meta_Box {
 	 */
 	public function add_meta_box() {
 
+		// Build the meta box name with tooltip if provided.
+		$meta_box_name = $this->meta_box_name;
+
 		if ( ! empty( $this->tooltip ) ) {
-			$screen = get_current_screen();
+			// Check if we have the new tooltip function available.
+			if ( function_exists( 'affwp_tooltip' ) ) {
+				// Generate properly formatted tooltip content.
+				$tooltip_content = affwp_tooltip( $this->tooltip );
 
-			if ( $screen instanceof \WP_Screen ) {
+				// Create the question mark icon with tooltip using the data-tooltip-html pattern.
+				$tooltip_icon = sprintf(
+					' <span class="dashicons dashicons-editor-help cursor-help text-gray-800" data-tooltip-html="%s"></span>',
+					esc_attr( $tooltip_content )
+				);
 
-				add_filter( "postbox_classes_{$screen->base}_{$this->meta_box_id}", function( $classes ) {
-					$classes[] = 'has-tooltip';
+				// Append tooltip icon to the meta box name.
+				$meta_box_name .= $tooltip_icon;
+			} else {
+				// Fallback to the old JavaScript-based system.
+				$screen = get_current_screen();
 
-					return $classes;
-				} );
-
+				if ( $screen instanceof \WP_Screen ) {
+					add_filter(
+						"postbox_classes_{$screen->base}_{$this->meta_box_id}",
+						function ( $classes ) {
+							$classes[] = 'has-tooltip';
+							return $classes;
+						}
+					);
+				}
 			}
 		}
 
 		add_meta_box(
 			$this->meta_box_id,
-			$this->meta_box_name,
-			array( $this, 'get_content' ),
+			$meta_box_name,
+			[ $this, 'get_content' ],
 			$this->affwp_screen,
 			$this->context,
 			'default',

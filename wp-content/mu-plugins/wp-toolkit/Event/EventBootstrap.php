@@ -15,7 +15,6 @@ class EventBootstrap
 {
     const MODULE_STATUS_OPTION = 'wp-toolkit_event_status';
     const STORAGE_FILE_NAME = '.wp-toolkit-event-stash';
-
     const WAF_REQUEST_BLOCKED_EVENT = 'WAF_REQUEST_BLOCKED_EVENT';
 
     /**
@@ -27,12 +26,12 @@ class EventBootstrap
         // @TODO move into the module
         add_action('wp-toolkit_waf_http_request_action_taken', [__CLASS__, 'storeWafRequest'], 10, 1);
 
-        if (CliHelper::is_cli() && \class_exists(\WP_CLI::class)) {
+        if (CliHelper::is_cli() && class_exists(\WP_CLI::class)) {
             \WP_CLI::add_command('wp-toolkit event', EventCommand::class);
             return;
         }
 
-        if (!\get_option(EventBootstrap::MODULE_STATUS_OPTION, false)) {
+        if (!get_option(EventBootstrap::MODULE_STATUS_OPTION, false)) {
             return;
         }
 
@@ -41,6 +40,7 @@ class EventBootstrap
 
     /**
      * @param string $vulnerabilityId
+     *
      * @return void
      */
     public static function storeWafRequest($vulnerabilityId)
@@ -52,7 +52,8 @@ class EventBootstrap
 
     /**
      * @param string $event
-     * @param array $body
+     * @param array  $body
+     *
      * @return void
      */
     public static function store($event, $body)
@@ -81,12 +82,7 @@ class EventBootstrap
      */
     public static function registerWordpressEvents()
     {
-        try {
-            $notifier = new WpToolkitNotifier((new HttpClientFactory())->getClient());
-        } catch (\Exception $e) {
-            error_log('Failed to create notifier: ' . $e->getMessage());
-            return;
-        }
+        $notifier = new WpToolkitNotifier(new HttpClientFactory());
 
         $pluginEventListener = new PluginEventListener($notifier);
         WordPressHelper::addAction('activated_plugin', [$pluginEventListener, 'activatedPluginHook'], 10, 2);

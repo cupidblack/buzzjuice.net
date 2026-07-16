@@ -162,10 +162,10 @@ class Affiliate_WP_Graph {
 	public function load_scripts() {
 		// Use minified libraries if SCRIPT_DEBUG is turned off
 		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
-		wp_enqueue_script( 'jquery-flot', AFFILIATEWP_PLUGIN_URL . 'assets/js/jquery.flot' . $suffix . '.js', array( 'jquery' ) );
+		wp_enqueue_script( 'jquery-flot', AFFILIATEWP_PLUGIN_URL . 'assets/js/vendor/jquery-flot/jquery.flot' . $suffix . '.js', array( 'jquery' ) );
 
 		if( $this->load_resize_script() ) {
-			wp_enqueue_script( 'jquery-flot-resize', AFFILIATEWP_PLUGIN_URL . 'assets/js/jquery.flot.resize' . $suffix . '.js', array( 'jquery' ) );
+			wp_enqueue_script( 'jquery-flot-resize', AFFILIATEWP_PLUGIN_URL . 'assets/js/vendor/jquery-flot/jquery.flot.resize' . $suffix . '.js', array( 'jquery' ) );
 		}
 	}
 

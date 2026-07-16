@@ -251,7 +251,38 @@ class Notifications_DB extends \Affiliate_WP_DB {
 			wp_cache_set( 'affwp_active_notification_count', $numberActive, $this->cache_group );
 		}
 
+		// Include the Payouts Service sunset notification in the count if applicable.
+		// This is checked outside of cache since the sunset condition can change independently.
+		if ( affwp_should_show_payouts_sunset_notification() ) {
+			$numberActive++;
+		}
+
 		return $numberActive;
+	}
+
+	/**
+	 * Marks all currently active notifications as dismissed.
+	 *
+	 * @since 2.30.0
+	 *
+	 * @return int Number of notifications dismissed.
+	 */
+	public function dismiss_active_notifications() {
+		$active_notifications = $this->get_active_notifications();
+
+		if ( empty( $active_notifications ) ) {
+			return 0;
+		}
+
+		$dismissed = 0;
+
+		foreach ( $active_notifications as $notification ) {
+			if ( $this->update_notification( $notification->id, array( 'dismissed' => 1 ) ) ) {
+				$dismissed++;
+			}
+		}
+
+		return $dismissed;
 	}
 
 	/**

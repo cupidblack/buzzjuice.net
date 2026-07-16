@@ -157,8 +157,6 @@ class DRM_Controller {
 		// Actions that changes the plugin behavior based on the DRM state and level.
 		add_action( 'affwp_notices_registry_init', array( $this, 'register_notices' ) );
 		add_action( 'admin_notices', array( $this, 'maybe_show_notices' ) );
-		add_action( 'admin_menu', array( $this, 'prevent_admin_pages_access' ) );
-		add_action( 'admin_menu', array( $this, 'deregister_submenus' ), 30 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'admin_body_class', array( $this, 'append_body_classes' ) );
 		add_action( 'wp_ajax_affiliatewp_handle_license_form_submission', array( $this, 'handle_ajax_license_submission' ) );
@@ -226,33 +224,6 @@ class DRM_Controller {
 	}
 
 	/**
-	 * Redirect the customer to the Affiliates admin page when locked.
-	 *
-	 * The best hook to run this method is with admin_menu, despite not being a method that is used to handle menus,
-	 * we must run after wp_loaded hook because we are using the affwp_is_admin_page() function, which doesn't work properly
-	 * if you try to call in earlier hooks.
-	 * Considering this, admin_menu is the next hook in the order that is admin-only.
-	 * Note: hooking into admin_init will also fail, because it runs after admin_menu and at this point the user will
-	 * get an access error because the menu doesn't exist anymore.
-	 *
-	 * @since 2.21.1
-	 */
-	public function prevent_admin_pages_access() {
-
-		if ( ! ( affwp_is_admin_page() && 'locked' === $this->level ) ) {
-			return; // Don't do redirects if it's not locked and not on an AffiliateWP admin page.
-		}
-
-		if ( filter_input( INPUT_GET, 'page' ) === 'affiliate-wp-affiliates' ) {
-			return; // Avoid multiple redirects.
-		}
-
-		wp_safe_redirect( affwp_admin_url( 'affiliates' ) );
-
-		die();
-	}
-
-	/**
 	 * Decide if notices should be shown to the user.
 	 *
 	 * @since 2.21.1
@@ -261,6 +232,14 @@ class DRM_Controller {
 
 		if ( false !== get_transient( 'affwp_drm_notice' ) ) {
 			return; // Do not show notices if the notice was temporarily dismissed already.
+		}
+
+		// On AffWP pages at med_level/locked, the modal is the touchpoint — skip the notice.
+		if (
+			in_array( $this->level, array( 'med_level', 'locked' ), true )
+			&& affwp_is_admin_page()
+		) {
+			return;
 		}
 
 		// Display notices to the customer.
@@ -358,9 +337,13 @@ class DRM_Controller {
 		}
 
 		// Send the email.
+		$subject = is_callable( $emails[ $notification_key ]['subject'] )
+			? call_user_func( $emails[ $notification_key ]['subject'] )
+			: $emails[ $notification_key ]['subject'];
+
 		if ( ! ( new Affiliate_WP_Emails() )->send(
 			affiliate_wp()->settings->get( 'affiliate_manager_email', get_option( 'admin_email' ) ),
-			$emails[ $notification_key ]['subject'],
+			$subject,
 			is_callable( $emails[ $notification_key ]['message'] )
 				? call_user_func( $emails[ $notification_key ]['message'] )
 				: $emails[ $notification_key ]['message']
@@ -383,62 +366,37 @@ class DRM_Controller {
 	}
 
 	/**
-	 * Deregister all AffiliateWP submenus, except by Affiliates, when site is locked out.
-	 *
-	 * This method is intended to run with the admin_menu hook, which is executed before, but also
-	 * after the admin_init hook (our starting point), so additional checks are done to check if this
-	 * class is fully loaded before trying to access the current_state property.
-	 *
-	 * @since 2.21.1
-	 */
-	public function deregister_submenus() {
-
-		// Don't show any DRM notices or locks.
-		if ( 'locked' !== $this->level ) {
-			return;
-		}
-
-		global $submenu;
-
-		array_map(
-			function( $submenu ) {
-
-				if ( 'affiliate-wp-affiliates' === $submenu[2] ) {
-					return; // Keep this one accessible.
-				}
-
-				remove_submenu_page( 'affiliate-wp', $submenu[2] );
-			},
-			$submenu['affiliate-wp']
-		);
-	}
-
-	/**
 	 * Enqueue the DRM lock scripts.
 	 *
 	 * @since 2.21.1
 	 */
 	public function enqueue_scripts() {
 
-		// No DRM locks.
-		if ( 'locked' !== $this->level ) {
+		if ( ! in_array( $this->level, array( 'locked', 'med_level' ), true ) ) {
+			return; // No DRM locks.
+		}
+
+		// Only render the DRM panel on AffiliateWP admin pages.
+		if ( ! affwp_is_admin_page() ) {
 			return;
 		}
 
-		add_action( 'affiliatewp_admin_education_strings', array( $this, 'append_js_strings' ) );
+		// Render the DRM dialog in admin_footer.
+		add_action( 'admin_footer', array( $this, 'output_drm_dialog' ) );
 
+		// Enqueue the DRM JS (handles auto-open, dismiss logic, AJAX form).
 		affiliate_wp()->scripts->enqueue(
 			'affiliatewp-drm',
-			array(
-				'jquery-confirm',
-				'affiliatewp-admin-education-core',
-			),
+			array(),
 			sprintf(
 				'%1$sadmin-drm%2$s.js',
 				affiliate_wp()->scripts->get_path(),
 				affiliate_wp()->scripts->get_suffix(),
 			)
 		);
+
+		// Pass DRM config to JS.
+		wp_localize_script( 'affiliatewp-drm', 'affwpDrm', $this->get_drm_js_config() );
 	}
 
 	/**
@@ -483,101 +441,333 @@ class DRM_Controller {
 	}
 
 	/**
-	 * Append the JS strings to be used with the modal.
+	 * Output the DRM panel inline in the admin page.
 	 *
-	 * @param array $js_strings The array of strings.
+	 * Renders as a positioned div inside #wpbody-content rather than
+	 * a floating modal. The sidebar and toolbar are completely unaffected.
 	 *
-	 * @since 2.21.1
+	 * @since 2.32.0
 	 */
-	public function append_js_strings( array $js_strings = array() ) : array {
+	public function output_drm_dialog() {
+
+		$is_med_level = 'med_level' === $this->level;
+		?>
+		<dialog
+			id="affwp-drm-panel"
+			role="alertdialog"
+			aria-labelledby="affwp-drm-title"
+			class="affwp-ui fixed inset-0 hidden items-center justify-center p-4 border-0 bg-transparent w-auto h-auto max-w-none max-h-none"
+			data-level="<?php echo esc_attr( $this->level ); ?>">
+			<div class="absolute inset-0 bg-gray-500/50"></div>
+			<div class="relative bg-white rounded-2xl p-8 sm:p-10 overflow-y-auto max-h-[calc(100vh-4rem)] max-w-2xl w-full shadow-2xl">
+				<?php if ( $is_med_level ) : ?>
+				<button type="button"
+					id="affwp-drm-close"
+					class="cursor-pointer absolute right-0 top-0 p-4 text-gray-400 hover:text-gray-500 z-10">
+					<span class="sr-only"><?php esc_html_e( 'Close', 'affiliate-wp' ); ?></span>
+					<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+				<?php endif; ?>
+				<?php echo $this->get_drm_modal_header(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php echo $this->get_drm_modal_content(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			</div>
+		</dialog>
+		<?php
+	}
+
+	/**
+	 * Build the DRM modal header HTML.
+	 *
+	 * @since 2.27.0
+	 *
+	 * @return string Header HTML.
+	 */
+	private function get_drm_modal_header() {
 
 		ob_start();
-
-		// Check if customer is facing issues with our API.
-		$api_last_status = get_transient( 'affwp_drm_api_status' );
-
 		?>
-		<p><?php esc_html_e( 'Your AffiliateWP license key is missing or is invalid. Without an active license key your front-end website is unaffected. However, you can no longer:', 'affiliate-wp' ); ?></p>
-		<ul class="affwp-drm-locked-features">
-			<li><?php esc_html_e( 'Disburse affiliate payouts', 'affiliate-wp' ); ?></li>
-			<li><?php esc_html_e( 'Register &amp; manage affiliates', 'affiliate-wp' ); ?></li>
-			<li><?php esc_html_e( 'Analyze performance data', 'affiliate-wp' ); ?></li>
-		</ul>
-		<p><?php esc_html_e( 'This problem is easy to fix!', 'affiliate-wp' ); ?></p>
-		<div class="jconfirm-buttons">
-			<a class="btn btn-confirm" href="<?php echo esc_url( $this->get_utm_link( 'pricing' ) ); ?>" target="_blank"><?php esc_html_e( 'Buy or renew your license', 'affiliate-wp' ); ?></a>
-		</div>
-		<p><?php esc_html_e( 'If you have an existing license key, locate it on your', 'affiliate-wp' ); ?> <a target="_blank" href="<?php echo esc_url( $this->get_utm_link( 'account' ) ); ?>"><?php esc_html_e( 'Account Page', 'affiliate-wp' ); ?></a> <?php esc_html_e( 'and enter it below:', 'affiliate-wp' ); ?></p>
-		<form id="affwp-drm-ajax-license-activation" autocomplete="off" class="jconfirm-buttons">
-			<input
-				name="license_key"
-				required
-				autocomplete="new-password"
-				type="password"
-				placeholder="<?php esc_attr_e( 'License Key', 'affiliate-wp' ); ?>"
+		<div class="text-center">
+			<svg class="size-12 text-red-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.814-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+			</svg>
+			<h3 id="affwp-drm-title" class="text-2xl font-bold text-gray-900 mb-2">
 				<?php
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The function returns an escaped string.
-				echo affiliatewp_tag_attr( 'value', 'failed' === $api_last_status ? $this->license_data->get_license_key() : '' );
-				?>
-			>
-			<button type="submit" class="btn btn-confirm">
-				<?php
-				if ( 'failed' === $api_last_status ) {
-					esc_html_e( 'Try again', 'affiliate-wp' );
+				if ( 'med_level' === $this->level ) {
+					$days = $this->get_days_until_lockout();
+					printf(
+						/* translators: %s - number of days wrapped in a span */
+						_n(
+							'Your affiliate management locks in <span class="text-red-600">%d day</span>',
+							'Your affiliate management locks in <span class="text-red-600">%d days</span>',
+							$days,
+							'affiliate-wp'
+						), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						$days
+					);
 				} else {
-					esc_html_e( 'Verify key', 'affiliate-wp' );
+					esc_html_e( 'AffiliateWP has been locked', 'affiliate-wp' );
 				}
 				?>
-			</button>
-		</form>
-		<?php if ( 'failed' === $api_last_status ) : ?>
-			<div id="affwp-drm-ajax-messages" data-type="error">
-				<?php
-				printf(
-					wp_kses(
-						/* translators: %s - Link to contact support */
-						__( 'Your previous attempt to activate your license was unsuccessful. Feel free to give it another try. If you encounter any issues, please don\'t hesitate to <a href="%s">contact our support team</a> for further assistance.', 'affiliate-wp' ),
-						array(
-							'a' => array(
-								'href' => array(),
-							),
-						)
-					),
-					esc_url( $this->get_utm_link( 'support' ) )
-				);
-				?>
-			</div>
-		<?php endif; ?>
-
+			</h3>
+		</div>
 		<?php
 
-		return array_merge_recursive(
-			$js_strings,
-			array(
-				'drm' => array(
-					'title'   => sprintf(
-						'<span style="color:#d63638">%1$s</span> %2$s',
-						__( 'ALERT!', 'affiliate-wp' ),
-						__( 'AffiliateWP Backend is Deactivated', 'affiliate-wp' )
+		return ob_get_clean();
+	}
+
+	/**
+	 * Build the DRM modal content HTML.
+	 *
+	 * @since 2.27.0
+	 *
+	 * @return string Content HTML.
+	 */
+	private function get_drm_modal_content() {
+
+		$affiliate_count    = affiliate_wp()->affiliates->count();
+		$pending_affiliates = affiliate_wp()->affiliates->count( array( 'status' => 'pending' ) );
+		$unpaid_referrals   = affiliate_wp()->referrals->count_by_status( 'unpaid' );
+		$unpaid_amount      = affiliate_wp()->referrals->unpaid_earnings( '', 0, false );
+		$unpaid_formatted   = affwp_currency_filter( affwp_format_amount( $unpaid_amount ) );
+		$api_last_status    = get_transient( 'affwp_drm_api_status' );
+
+		$x_svg = '<svg class="size-5 text-red-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
+
+		ob_start();
+		?>
+		<div class="text-center">
+			<p class="text-base text-gray-600 max-w-xl mx-auto mb-5">
+				<?php
+				if ( 'locked' === $this->level ) {
+					esc_html_e( 'Renew your license to restore access immediately.', 'affiliate-wp' );
+				} else {
+					esc_html_e( 'Your AffiliateWP license has expired or is missing.', 'affiliate-wp' );
+				}
+				?>
+			</p>
+
+			<div class="inline-flex flex-col gap-2.5 mb-8 text-left">
+				<?php if ( $affiliate_count > 0 ) : ?>
+					<div class="flex items-center gap-2.5 text-base font-medium text-gray-800">
+						<?php echo $x_svg; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php
+						if ( 'locked' === $this->level ) {
+							printf(
+								/* translators: %s - formatted affiliate count */
+								esc_html__( '%s affiliates left unmanaged', 'affiliate-wp' ),
+								number_format_i18n( $affiliate_count )
+							);
+						} else {
+							printf(
+								/* translators: %s - formatted affiliate count */
+								esc_html__( 'Manage your %s affiliates', 'affiliate-wp' ),
+								number_format_i18n( $affiliate_count )
+							);
+						}
+						?>
+					</div>
+				<?php else : ?>
+					<div class="flex items-center gap-2.5 text-base font-medium text-gray-800">
+						<?php echo $x_svg; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php esc_html_e( 'Register & manage affiliates', 'affiliate-wp' ); ?>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( $pending_affiliates > 0 ) : ?>
+					<div class="flex items-center gap-2.5 text-base font-medium text-gray-800">
+						<?php echo $x_svg; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php
+						if ( 'locked' === $this->level ) {
+							printf(
+								/* translators: %s - formatted pending affiliate count */
+								esc_html__( '%s affiliates waiting for review', 'affiliate-wp' ),
+								number_format_i18n( $pending_affiliates )
+							);
+						} else {
+							printf(
+								/* translators: %s - formatted pending affiliate count */
+								esc_html__( 'Review %s pending affiliates', 'affiliate-wp' ),
+								number_format_i18n( $pending_affiliates )
+							);
+						}
+						?>
+					</div>
+				<?php endif; ?>
+
+				<?php if ( $unpaid_referrals > 0 ) : ?>
+					<div class="flex items-center gap-2.5 text-base font-medium text-gray-800">
+						<?php echo $x_svg; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php
+						if ( 'locked' === $this->level && $unpaid_amount > 0 ) {
+							printf(
+								/* translators: 1: formatted currency amount, 2: formatted referral count */
+								esc_html__( '%1$s owed across %2$s referrals', 'affiliate-wp' ),
+								esc_html( $unpaid_formatted ),
+								number_format_i18n( $unpaid_referrals )
+							);
+						} elseif ( $unpaid_amount > 0 ) {
+							printf(
+								/* translators: 1: formatted currency amount, 2: formatted referral count */
+								esc_html__( 'Pay out %1$s across %2$s referrals', 'affiliate-wp' ),
+								esc_html( $unpaid_formatted ),
+								number_format_i18n( $unpaid_referrals )
+							);
+						} else {
+							printf(
+								/* translators: %s - formatted unpaid referral count */
+								esc_html__( 'Process %s unpaid referrals', 'affiliate-wp' ),
+								number_format_i18n( $unpaid_referrals )
+							);
+						}
+						?>
+					</div>
+				<?php else : ?>
+					<div class="flex items-center gap-2.5 text-base font-medium text-gray-800">
+						<?php echo $x_svg; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<?php esc_html_e( 'Disburse affiliate payouts', 'affiliate-wp' ); ?>
+					</div>
+				<?php endif; ?>
+
+			</div>
+
+			<div class="mb-6">
+				<?php
+				$cta_text = __( 'Get a license', 'affiliate-wp' );
+
+				if ( 'invalid' === $this->current_state && 'locked' === $this->level ) {
+					$cta_text = __( 'Restore access now', 'affiliate-wp' );
+				} elseif ( 'invalid' === $this->current_state ) {
+					$cta_text = __( 'Renew & restore access', 'affiliate-wp' );
+				}
+
+				affwp_button( array(
+					'text'       => $cta_text,
+					'variant'    => 'success',
+					'size'       => 'lg',
+					'href'       => $this->get_utm_link( 'pricing' ),
+					'attributes' => array(
+						'target'    => '_blank',
+						'autofocus' => true,
 					),
-					'message' => ob_get_clean(),
-					'ajax'    => array(
-						'buttonText'         => __( 'Verify key', 'affiliate-wp' ),
-						'success'            => __( 'Your license was activated successfully. Your page will be reloaded in 3s.', 'affiliate-wp' ),
-						'error'              => __( 'Sorry, we could not activate your license at the moment. Please refresh your page and try again.', 'affiliate-wp' ),
-						'invalid'            => __( 'The license key provided is invalid. Please check your license key and try again.', 'affiliate-wp' ),
-						'expired'            => sprintf( __( 'The license key provided is expired. <a href="%s" target="_blank">Renew your license</a>.', 'affiliate-wp' ), esc_url( $this->get_utm_link( 'account' ) ) ),
-						'licenseHttpFailure' => array(
-							'buttonText' => __( 'Try again', 'affiliate-wp' ),
-							'message'    => sprintf(
-								/* translators: %s - Link to contact support */
-								__( 'Your license key could not be verified, please try again in a few minutes. If you need assistance, please <a href="%s" target="_blank">contact our support team</a>.', 'affiliate-wp' ),
-								esc_url( $this->get_utm_link( 'support' ) )
-							),
-						),
-					),
+					'focus_ring' => false,
+					'rounded'    => 'lg',
+					'class'      => 'w-full justify-center sm:w-auto sm:px-12',
+				) );
+				?>
+			</div>
+
+			<?php $show_key_form = 'locked' === $this->level || 'failed' === $api_last_status; ?>
+			<div class="border-t border-gray-200 pt-5 mt-2 max-w-sm mx-auto">
+				<?php if ( ! $show_key_form ) : ?>
+				<button
+					id="affwp-drm-toggle-license-form"
+					type="button"
+					class="cursor-pointer w-full py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors flex items-center justify-center gap-2">
+					<?php esc_html_e( 'Already have a license key?', 'affiliate-wp' ); ?>
+					<svg class="size-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+					</svg>
+				</button>
+				<?php else : ?>
+				<p class="text-sm text-gray-500 text-center mb-3">
+					<?php esc_html_e( 'Already have a license key? Find it on your', 'affiliate-wp' ); ?>
+					<a href="<?php echo esc_url( $this->get_utm_link( 'account' ) ); ?>" target="_blank" class="text-affwp-brand-500 hover:underline"><?php esc_html_e( 'account page', 'affiliate-wp' ); ?></a>.
+				</p>
+				<?php endif; ?>
+
+				<div data-license-form-wrapper <?php echo ! $show_key_form ? 'hidden' : ''; ?> class="<?php echo ! $show_key_form ? 'mt-4' : ''; ?>">
+					<?php if ( ! $show_key_form ) : ?>
+					<p class="text-sm text-gray-500 mb-3">
+						<?php esc_html_e( 'Find it on your', 'affiliate-wp' ); ?>
+						<a href="<?php echo esc_url( $this->get_utm_link( 'account' ) ); ?>" target="_blank" class="text-affwp-brand-500 hover:underline"><?php esc_html_e( 'account page', 'affiliate-wp' ); ?></a>.
+					</p>
+					<?php endif; ?>
+
+					<form id="affwp-drm-ajax-license-activation" class="flex gap-2" autocomplete="off">
+						<input
+							name="license_key"
+							required
+							autocomplete="new-password"
+							type="password"
+							placeholder="<?php esc_attr_e( 'License Key', 'affiliate-wp' ); ?>"
+							class="flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+							<?php
+							// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The function returns an escaped string.
+							echo affiliatewp_tag_attr( 'value', 'failed' === $api_last_status ? $this->license_data->get_license_key() : '' );
+							?>
+						>
+						<?php
+						affwp_button( array(
+							'text'    => 'failed' === $api_last_status
+								? __( 'Try again', 'affiliate-wp' )
+								: __( 'Activate', 'affiliate-wp' ),
+							'variant' => 'secondary',
+							'size'    => 'md',
+							'type'    => 'submit',
+							'class'   => 'bg-white',
+						) );
+						?>
+					</form>
+
+					<div id="affwp-drm-ajax-messages" class="mt-2 text-sm"></div>
+				</div>
+			</div>
+		</div>
+		<?php
+
+		return ob_get_clean();
+	}
+
+	/**
+	 * Get the number of days until backend lockout.
+	 *
+	 * @since 2.27.0
+	 *
+	 * @return int Days remaining.
+	 */
+	private function get_days_until_lockout() : int {
+
+		try {
+			$days_elapsed = $this->days_elapsed();
+		} catch ( \Exception $e ) {
+			$days_elapsed = 0;
+		}
+
+		$locked_starts_at = 'invalid' === $this->current_state
+			? self::INVALID_LICENSE_LOCKED_STARTS_AT
+			: self::UNLICENSED_LOCKED_STARTS_AT;
+
+		return max( 1, $locked_starts_at - $days_elapsed );
+	}
+
+	/**
+	 * Get DRM configuration for JavaScript.
+	 *
+	 * @since 2.27.0
+	 *
+	 * @return array JS config.
+	 */
+	private function get_drm_js_config() : array {
+
+		return array(
+			'level'            => $this->level,
+			'modalId'          => 'affwp-drm-modal',
+			'daysUntilLockout' => $this->get_days_until_lockout(),
+			'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
+			'nonce'            => wp_create_nonce( 'affiliatewp-education' ),
+			'strings'          => array(
+				'buttonText' => __( 'Verify key', 'affiliate-wp' ),
+				'success'    => __( 'Your license was activated successfully. Your page will be reloaded in 3s.', 'affiliate-wp' ),
+				'error'      => __( 'Sorry, we could not activate your license at the moment. Please refresh your page and try again.', 'affiliate-wp' ),
+				'invalid'    => __( 'The license key provided is invalid. Please check your license key and try again.', 'affiliate-wp' ),
+				'expired'    => sprintf(
+					/* translators: %s - Link to renew license */
+					__( 'The license key provided is expired. <a href="%s" target="_blank">Renew your license</a>.', 'affiliate-wp' ),
+					esc_url( $this->get_utm_link( 'account' ) )
 				),
-			)
+			),
 		);
 	}
 
@@ -593,6 +783,11 @@ class DRM_Controller {
 	public function append_body_classes( string $classes ) : string {
 
 		if ( ! affwp_is_admin_page() ) {
+			return $classes;
+		}
+
+		// For med_level, JS controls the body class so blur can be removed on dismiss.
+		if ( 'med_level' === $this->level ) {
 			return $classes;
 		}
 
@@ -710,7 +905,7 @@ class DRM_Controller {
 		}
 
 		$start_date = new \DateTime( current_time( 'Y-m-d' ) );
-		$end_date   = new \DateTime( gmdate( 'Y-m-d', $timestamp ) );
+		$end_date   = new \DateTime( wp_date( 'Y-m-d', $timestamp ) );
 		$difference = $end_date->diff( $start_date );
 
 		return absint( $difference->format( '%a' ) );

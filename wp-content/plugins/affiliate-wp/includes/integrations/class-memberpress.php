@@ -106,7 +106,7 @@ class Affiliate_WP_MemberPress extends Affiliate_WP_Base {
 		// Customers cannot refer themselves.
 		if ( ! empty( $user->user_email ) && $this->is_affiliate_email( $user->user_email ) ) {
 			$this->log( 'Draft referral rejected because affiliate\'s own account was used.' );
-			$this->mark_referral_failed( $referral_id );
+			$this->mark_referral_rejected( $referral_id );
 			return;
 		}
 

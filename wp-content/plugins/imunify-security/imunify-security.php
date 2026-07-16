@@ -3,7 +3,7 @@
  * Plugin Name: Imunify Security
  * Plugin URI: https://imunify360.com/imunify-security-wp-plugin/
  * Description: Imunify Security WordPress plugin is a comprehensive tool offering malware scanning, firewall protection, and intrusion detection for WordPress websites.
- * Version: 3.0.4
+ * Version: 4.0.1
  * Requires at least: 5.0.0
  * Requires PHP: 5.6
  * Author: CloudLinux
@@ -12,7 +12,7 @@
  * Domain Path: /languages
  * Licence: CloudLinux Commercial License
  *
- * Copyright 2010-2025 CloudLinux
+ * Copyright 2010-2026 CloudLinux
  */
 
 use CloudLinux\Imunify\App\Plugin;
@@ -23,7 +23,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 define( 'IMUNIFY_SECURITY_SLUG', 'imunify-security' );
 define( 'IMUNIFY_SECURITY_PATH', dirname( __FILE__ ) );
-define( 'IMUNIFY_SECURITY_VERSION', '3.0.4' );
+define( 'IMUNIFY_SECURITY_VERSION', '4.0.1' );
 define( 'IMUNIFY_SECURITY_FILE_PATH', __FILE__ );
 
 spl_autoload_register(
@@ -46,6 +46,23 @@ spl_autoload_register(
 		}
 	}
 );
+
+register_activation_hook(
+	__FILE__,
+	array( \CloudLinux\Imunify\App\Bot\LifecycleHooks::class, 'onActivate' )
+);
+
+register_deactivation_hook(
+	__FILE__,
+	array( \CloudLinux\Imunify\App\Bot\LifecycleHooks::class, 'onDeactivate' )
+);
+
+register_uninstall_hook(
+	__FILE__,
+	array( \CloudLinux\Imunify\App\Bot\LifecycleHooks::class, 'onUninstall' )
+);
+
+add_action( 'plugins_loaded', array( \CloudLinux\Imunify\App\Bot\MuPluginSelfHealer::class, 'check' ) );
 
 try {
 	if ( ! class_exists( Plugin::class ) ) {

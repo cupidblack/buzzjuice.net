@@ -34,7 +34,7 @@ final class RuleValidator
 
     /**
      * @param string $field
-     * @param array $rule
+     * @param array  $rule
      *
      * @return void
      * @throws \WP_CLI\ExitException
@@ -58,7 +58,7 @@ final class RuleValidator
 
     /**
      * @param string $field
-     * @param array $rule
+     * @param array  $rule
      *
      * @return void
      * @throws \WP_CLI\ExitException

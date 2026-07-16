@@ -101,14 +101,9 @@ abstract class AffiliateWP_Requirements_Check_v1_1 {
 		// Merge add-on requirements (if any).
 		$this->requirements = array_merge( $this->requirements, $this->addon_requirements );
 
-		$affwp_version = get_option( 'affwp_version' );
-
-		// Always load translations.
-		if ( version_compare( $affwp_version, '2.7', '<' ) ) {
-			add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-		} else {
-			add_action( 'affwp_plugins_loaded', array( $this, 'load_textdomain' ) );
-		}
+		// Defer textdomain loading to 'init' to comply with WordPress 6.7+ requirements.
+		// WordPress handles "just in time" translation loading, so early __() calls still work.
+		add_action( 'init', array( $this, 'load_textdomain' ) );
 	}
 
 	/**

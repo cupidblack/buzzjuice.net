@@ -27,7 +27,8 @@ class TokenStorage
     /**
      * @param string $token
      * @param string $login
-     * @param int $ttl
+     * @param int    $ttl
+     *
      * @return void
      */
     public function saveToken($token, $login, $ttl)
@@ -41,13 +42,18 @@ class TokenStorage
     }
 
     /**
-     * @return void
+     * Removes all token data. Returns true if the token was present and successfully
+     * deleted by this call (caller may proceed with auth), false if it was already
+     * absent — i.e. consumed by a concurrent request (caller must abort).
+     *
+     * @return bool
      */
     public function removeTokenData()
     {
-        delete_option(self::WP_OPTION_TOKEN_HASH);
+        $claimed = delete_option(self::WP_OPTION_TOKEN_HASH);
         delete_option(self::WP_OPTION_LOGIN);
         delete_option(self::WP_OPTION_TTL);
+        return $claimed;
     }
 
     /**
@@ -76,12 +82,13 @@ class TokenStorage
 
     /**
      * @param string $option
+     *
      * @return string
      */
     private function getStringOption($option)
     {
         $result = get_option($option);
-        if (is_string($result)) {
+        if (\is_string($result)) {
             return $result;
         }
 

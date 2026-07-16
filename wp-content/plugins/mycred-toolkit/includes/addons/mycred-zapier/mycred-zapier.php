@@ -4,6 +4,7 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
+
 if (!defined('myCRED_ZAPIER')) {
 	define( 'myCRED_ZAPIER', __FILE__ );
 }
@@ -36,16 +37,18 @@ if ( ! class_exists( 'Mycred_Toolkit_Zapier') ) :
 		public function __construct() {
 
 			load_plugin_textdomain('mycred-zapier', false, MYCRED_ZAP_DIR . 'languages');
-			add_action('plugins_loaded', array( $this, 'mycred_zapier_init' ));
-			//register_activation_hook( myCRED_ZAPIER, 'create_mycred_zapier_table' );
+			
+			$this->mycred_zapier_init();
+
 		}
 
-
 		public function mycred_zapier_init() {
+			
 			if (!class_exists('myCRED_Addons_Module')) {
 				add_action('admin_notices', array( $this, 'require_mycred_to_be_installed' ));
 				return;
 			}
+			require_once MYCRED_ZAP_DIR . 'activate.php';
 			require_once MYCRED_ZAP_DIR . 'includes/class-mycred-zapier.php';
 			require_once MYCRED_ZAP_DIR . 'includes/mycred-zapier-api.php';
 		}

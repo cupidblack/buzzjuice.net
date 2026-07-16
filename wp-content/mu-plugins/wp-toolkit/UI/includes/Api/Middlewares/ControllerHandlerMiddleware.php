@@ -22,18 +22,17 @@ class ControllerHandlerMiddleware implements RequestHandlerInterface
     }
 
     /**
-     * @param \WP_REST_Request $request
      * @return \WP_REST_Response
      * @throws ServerException
      */
     public function handleRequest(\WP_REST_Request $request)
     {
-        $response = call_user_func($this->controller, $request);
+        $response = \call_user_func($this->controller, $request);
 
         if ($response instanceof \WP_REST_Response) {
             return $response;
         }
 
-        throw new ServerException('Response should be of type WP_REST_Response, ' . get_class($response) . ' given');
+        throw new ServerException('Response should be of type WP_REST_Response, ' . \get_class($response) . ' given');
     }
 }

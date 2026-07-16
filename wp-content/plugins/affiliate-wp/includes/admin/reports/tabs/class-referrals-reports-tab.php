@@ -22,7 +22,7 @@ class Tab extends Reports\Tab {
 		$this->tab_id   = 'referrals';
 		$this->label    = __( 'Referrals', 'affiliate-wp' );
 		$this->priority = 0;
-		$this->graph    = new \Affiliate_WP_Referrals_Graph;
+		$this->graph    = new \Affiliate_WP_Referrals_Graph();
 
 		$this->set_up_additional_filters();
 
@@ -39,11 +39,14 @@ class Tab extends Reports\Tab {
 
 		if ( $this->affiliate_id ) {
 
-			$affiliate_link = affwp_admin_url( 'referrals', array(
-				'affiliate_id' => $this->affiliate_id,
-				'orderby'      => 'status',
-				'order'        => 'ASC',
-			) );
+			$affiliate_link = affwp_admin_url(
+				'referrals',
+				[
+					'affiliate_id' => $this->affiliate_id,
+					'orderby'      => 'status',
+					'order'        => 'ASC',
+				]
+			);
 
 			$affiliate_name = affwp_get_affiliate_name( $this->affiliate_id );
 
@@ -51,174 +54,218 @@ class Tab extends Reports\Tab {
 				$affiliate_name = affwp_get_affiliate_username( $this->affiliate_id );
 			}
 
-			$this->register_tile( 'affiliate_total_earnings', array(
-				'label'           => __( 'Total Earnings (All Time)', 'affiliate-wp' ),
-				'type'            => 'amount',
-				'tooltip'         => __( 'Total amount of paid earnings (all time) for the given affiliate.', 'affiliate-wp' ),
-				'context'         => 'primary',
-				'data'            => affwp_get_affiliate_earnings( $this->affiliate_id ),
-				'comparison_data' => sprintf( __( 'Affiliate: <a href="%1$s">%2$s</a>', 'affiliate-wp' ),
-					esc_url( $affiliate_link ),
-					$affiliate_name
-				),
-			) );
+			$this->register_tile(
+				'affiliate_total_earnings',
+				[
+					'label'           => __( 'Total Earnings (All Time)', 'affiliate-wp' ),
+					'type'            => 'amount',
+					'tooltip'         => __( 'Total amount of paid earnings (all time) for the given affiliate.', 'affiliate-wp' ),
+					'context'         => 'primary',
+					'data'            => affwp_get_affiliate_earnings( $this->affiliate_id ),
+					'comparison_data' => sprintf(
+						__( 'Affiliate: <a href="%1$s">%2$s</a>', 'affiliate-wp' ),
+						esc_url( $affiliate_link ),
+						$affiliate_name
+					),
+				]
+			);
 
 			$total_unpaid_earnings = affwp_get_affiliate_unpaid_earnings( $this->affiliate_id );
 
-			$this->register_tile( 'affiliate_unpaid_earnings', array(
-				'label'           => __( 'Total Unpaid Earnings (All Time)', 'affiliate-wp' ),
-				'type'            => $total_unpaid_earnings ? 'amount' : '',
-				'tooltip'         => __( 'Total amount of unpaid earnings (all time) for the given affiliate.', 'affiliate-wp' ),
-				'context'         => 'secondary',
-				'data'            => $total_unpaid_earnings ? $total_unpaid_earnings : __( 'None', 'affiliate-wp' ),
-				'comparison_data' => sprintf( __( 'Affiliate: <a href="%1$s">%2$s</a>', 'affiliate-wp' ),
-					esc_url( $affiliate_link ),
-					$affiliate_name
-				),
-			) );
+			$this->register_tile(
+				'affiliate_unpaid_earnings',
+				[
+					'label'           => __( 'Total Unpaid Earnings (All Time)', 'affiliate-wp' ),
+					'type'            => $total_unpaid_earnings ? 'amount' : '',
+					'tooltip'         => __( 'Total amount of unpaid earnings (all time) for the given affiliate.', 'affiliate-wp' ),
+					'context'         => 'secondary',
+					'data'            => $total_unpaid_earnings ? $total_unpaid_earnings : __( 'None', 'affiliate-wp' ),
+					'comparison_data' => sprintf(
+						__( 'Affiliate: <a href="%1$s">%2$s</a>', 'affiliate-wp' ),
+						esc_url( $affiliate_link ),
+						$affiliate_name
+					),
+				]
+			);
 
-			$this->register_tile( 'affiliate_total_payouts', array(
-				'label'           => __( 'Payouts (All Time)', 'affiliate-wp' ),
-				'type'            => 'number',
-				'tooltip'         => __( 'Number of payouts (all time) for the given affiliate.', 'affiliate-wp' ),
-				'context'         => 'tertiary',
-				'data'            => affiliate_wp()->affiliates->payouts->count( array(
+			$this->register_tile(
+				'affiliate_total_payouts',
+				[
+					'label'           => __( 'Payouts (All Time)', 'affiliate-wp' ),
+					'type'            => 'number',
+					'tooltip'         => __( 'Number of payouts (all time) for the given affiliate.', 'affiliate-wp' ),
+					'context'         => 'tertiary',
+					'data'            => affiliate_wp()->affiliates->payouts->count(
+						[
+							'affiliate_id' => $this->affiliate_id,
+						]
+					),
+					/* translators: 1: Affiliate results URL, 2: Affiliate name, 3: Affiliate payouts URL, 4: Payouts view label */
+					'comparison_data' => sprintf(
+						__( 'Affiliate: <a href="%1$s">%2$s</a> | <a href="%3$s">%4$s</a>', 'affiliate-wp' ),
+						esc_url( $affiliate_link ),
+						$affiliate_name,
+						esc_url( affwp_admin_url( 'payouts', [ 'affiliate_id' => $this->affiliate_id ] ) ),
+						__( 'View Payouts', 'affiliate-wp' )
+					),
+				]
+			);
+
+			$affiliate_referrals = affiliate_wp()->referrals->get_referrals(
+				[
+					'number'       => -1,
+					'fields'       => 'amount',
 					'affiliate_id' => $this->affiliate_id,
-				) ),
-				/* translators: 1: Affiliate results URL, 2: Affiliate name, 3: Affiliate payouts URL, 4: Payouts view label */
-				'comparison_data' => sprintf( __( 'Affiliate: <a href="%1$s">%2$s</a> | <a href="%3$s">%4$s</a>', 'affiliate-wp' ),
-					esc_url( $affiliate_link ),
-					$affiliate_name,
-					esc_url( affwp_admin_url( 'payouts', array( 'affiliate_id' => $this->affiliate_id ) ) ),
-					__( 'View Payouts', 'affiliate-wp' )
-				),
-			) );
-
-			$affiliate_referrals = affiliate_wp()->referrals->get_referrals( array(
-				'number'       => -1,
-				'fields'       => 'amount',
-				'affiliate_id' => $this->affiliate_id,
-				'status'       => array( 'paid', 'unpaid' ),
-			) );
+					'status'       => [ 'paid', 'unpaid' ],
+				]
+			);
 
 			if ( ! $affiliate_referrals ) {
-				$affiliate_referrals = array( 0 );
+				$affiliate_referrals = [ 0 ];
 			}
 
-			$this->register_tile( 'affiliate_average_referral', array(
-				'label'           => __( 'Average Referral Amount (All Time)', 'affiliate-wp' ),
-				'type'            => 'amount',
-				'tooltip'         => __( 'Average referral amount (all time) for the given affiliate.', 'affiliate-wp' ),
-				'context'         => 'primary',
-				'data'            => array_sum( $affiliate_referrals ) / count( $affiliate_referrals ),
-				'comparison_data' => sprintf( __( 'Affiliate: <a href="%1$s">%2$s</a>', 'affiliate-wp' ),
-					esc_url( $affiliate_link ),
-					$affiliate_name
-				),
-			) );
+			$this->register_tile(
+				'affiliate_average_referral',
+				[
+					'label'           => __( 'Average Referral Amount (All Time)', 'affiliate-wp' ),
+					'type'            => 'amount',
+					'tooltip'         => __( 'Average referral amount (all time) for the given affiliate.', 'affiliate-wp' ),
+					'context'         => 'primary',
+					'data'            => array_sum( $affiliate_referrals ) / count( $affiliate_referrals ),
+					'comparison_data' => sprintf(
+						__( 'Affiliate: <a href="%1$s">%2$s</a>', 'affiliate-wp' ),
+						esc_url( $affiliate_link ),
+						$affiliate_name
+					),
+				]
+			);
 
+			$this->register_tile(
+				'affiliate_paid_unpaid_referrals',
+				[
+					'label'           => __( 'Paid / Unpaid Referrals', 'affiliate-wp' ),
+					'type'            => 'split-number',
+					'tooltip'         => __( 'Number of paid and unpaid referrals by selected time range for the given affiliate.', 'affiliate-wp' ),
+					'context'         => 'secondary',
+					'data'            => [
+						'first_value'  => affiliate_wp()->referrals->count_by_status( 'paid', $this->affiliate_id, $this->date_query ),
+						'second_value' => affiliate_wp()->referrals->count_by_status( 'unpaid', $this->affiliate_id, $this->date_query ),
+					],
+					/* translators: 1: Affiliate results URL, 2: Affiliate name, 3: Date comparison label for context */
+					'comparison_data' => sprintf(
+						__( 'Affiliate: <a href="%1$s">%2$s</a> | %3$s', 'affiliate-wp' ),
+						esc_url( $affiliate_link ),
+						$affiliate_name,
+						$this->get_date_comparison_label()
+					),
+				]
+			);
 
-			$this->register_tile( 'affiliate_paid_unpaid_referrals', array(
-				'label'           => __( 'Paid / Unpaid Referrals', 'affiliate-wp' ),
-				'type'            => 'split-number',
-				'tooltip'         => __( 'Number of paid and unpaid referrals by selected time range for the given affiliate.', 'affiliate-wp' ),
-				'context'         => 'secondary',
-				'data'            => array(
-					'first_value'  => affiliate_wp()->referrals->count_by_status( 'paid', $this->affiliate_id, $this->date_query ),
-					'second_value' => affiliate_wp()->referrals->count_by_status( 'unpaid', $this->affiliate_id, $this->date_query ),
-				),
-				/* translators: 1: Affiliate results URL, 2: Affiliate name, 3: Date comparison label for context */
-				'comparison_data' => sprintf( __( 'Affiliate: <a href="%1$s">%2$s</a> | %3$s', 'affiliate-wp' ),
-					esc_url( $affiliate_link ),
-					$affiliate_name,
-					$this->get_date_comparison_label()
-				),
-			) );
-
-			$this->register_tile( 'affiliate_pending_rejected_referrals', array(
-				'label'           => __( 'Pending / Rejected Referrals', 'affiliate-wp' ),
-				'type'            => 'split-number',
-				'tooltip'         => __( 'Number of pending and rejected referrals by selected time range for the given affiliate.', 'affiliate-wp' ),
-				'context'         => 'tertiary',
-				'data'            => array(
-					'first_value'  => affiliate_wp()->referrals->count_by_status( 'pending', $this->affiliate_id, $this->date_query ),
-					'second_value' => affiliate_wp()->referrals->count_by_status( 'rejected', $this->affiliate_id, $this->date_query ),
-				),
-				/* translators: 1: Affiliate results URL, 2: Affiliate name, 3: Date comparison label for context */
-				'comparison_data' => sprintf( __( 'Affiliate: <a href="%1$s">%2$s</a> | %3$s', 'affiliate-wp' ),
-					esc_url( $affiliate_link ),
-					$affiliate_name,
-					$this->get_date_comparison_label()
-				),
-			) );
-
+			$this->register_tile(
+				'affiliate_pending_rejected_referrals',
+				[
+					'label'           => __( 'Pending / Rejected Referrals', 'affiliate-wp' ),
+					'type'            => 'split-number',
+					'tooltip'         => __( 'Number of pending and rejected referrals by selected time range for the given affiliate.', 'affiliate-wp' ),
+					'context'         => 'tertiary',
+					'data'            => [
+						'first_value'  => affiliate_wp()->referrals->count_by_status( 'pending', $this->affiliate_id, $this->date_query ),
+						'second_value' => affiliate_wp()->referrals->count_by_status( 'rejected', $this->affiliate_id, $this->date_query ),
+					],
+					/* translators: 1: Affiliate results URL, 2: Affiliate name, 3: Date comparison label for context */
+					'comparison_data' => sprintf(
+						__( 'Affiliate: <a href="%1$s">%2$s</a> | %3$s', 'affiliate-wp' ),
+						esc_url( $affiliate_link ),
+						$affiliate_name,
+						$this->get_date_comparison_label()
+					),
+				]
+			);
 
 		} else {
 
-			$this->register_tile( 'all_time_paid_earnings', array(
-				'label'           => __( 'Paid Earnings', 'affiliate-wp' ),
-				'type'            => 'amount',
-				'tooltip'         => __( 'Total amount of paid earnings (all time) for all affiliates.', 'affiliate-wp' ),
-				'data'            => array_sum( affiliate_wp()->referrals->get_referrals( array(
-					'number' => -1,
-					'fields' => 'amount',
-					'status' => 'paid'
-				) ) ),
-				'comparison_data' => __( 'All Time', 'affiliate-wp' )
-			) );
+			$this->register_tile(
+				'all_time_paid_earnings',
+				[
+					'label'           => __( 'Paid Earnings', 'affiliate-wp' ),
+					'type'            => 'amount',
+					'tooltip'         => __( 'Total amount of paid earnings (all time) for all affiliates.', 'affiliate-wp' ),
+					'data'            => array_sum(
+						affiliate_wp()->referrals->get_referrals(
+							[
+								'number' => -1,
+								'fields' => 'amount',
+								'status' => 'paid',
+							]
+						)
+					),
+					'comparison_data' => __( 'All Time', 'affiliate-wp' ),
+				]
+			);
 
-			$this->register_tile( 'paid_earnings', array(
-				'label'           => __( 'Paid Earnings', 'affiliate-wp' ),
-				'context'         => 'secondary',
-				'type'            => 'amount',
-				'tooltip'         => __( 'Total amount of paid earnings by the selected date range for all affiliates.', 'affiliate-wp' ),
-				'data'            => affiliate_wp()->referrals->paid_earnings( $this->date_query, 0, false ),
-				'comparison_data' => $this->get_date_comparison_label(),
-			) );
+			$this->register_tile(
+				'paid_earnings',
+				[
+					'label'           => __( 'Paid Earnings', 'affiliate-wp' ),
+					'context'         => 'secondary',
+					'type'            => 'amount',
+					'tooltip'         => __( 'Total amount of paid earnings by the selected date range for all affiliates.', 'affiliate-wp' ),
+					'data'            => affiliate_wp()->referrals->paid_earnings( $this->date_query, 0, false ),
+					'comparison_data' => $this->get_date_comparison_label(),
+				]
+			);
 
-			$this->register_tile( 'unpaid_earnings', array(
-				'label'           => __( 'Unpaid Earnings', 'affiliate-wp' ),
-				'context'         => 'tertiary',
-				'type'            => 'amount',
-				'tooltip'         => __( 'Total amount of unpaid earnings by the selected date range for all affiliates.', 'affiliate-wp' ),
-				'data'            => affiliate_wp()->referrals->unpaid_earnings( $this->date_query, 0, false ),
-				'comparison_data' => $this->get_date_comparison_label(),
-			) );
+			$this->register_tile(
+				'unpaid_earnings',
+				[
+					'label'           => __( 'Unpaid Earnings', 'affiliate-wp' ),
+					'context'         => 'tertiary',
+					'type'            => 'amount',
+					'tooltip'         => __( 'Total amount of unpaid earnings by the selected date range for all affiliates.', 'affiliate-wp' ),
+					'data'            => affiliate_wp()->referrals->unpaid_earnings( $this->date_query, 0, false ),
+					'comparison_data' => $this->get_date_comparison_label(),
+				]
+			);
 
-			$this->register_tile( 'paid_unpaid_referrals', array(
-				'label'           => __( 'Paid / Unpaid Referrals', 'affiliate-wp' ),
-				'type'            => 'split-number',
-				'tooltip'         => __( 'Number of paid and unpaid by the selected date range for all affiliates.', 'affiliate-wp' ),
-				'data'            => array(
-					'first_value'  => affiliate_wp()->referrals->paid_count( $this->date_query ),
-					'second_value' => affiliate_wp()->referrals->unpaid_count( $this->date_query ),
-				),
-				'comparison_data' => $this->get_date_comparison_label(),
-			) );
+			$this->register_tile(
+				'paid_unpaid_referrals',
+				[
+					'label'           => __( 'Paid / Unpaid Referrals', 'affiliate-wp' ),
+					'type'            => 'split-number',
+					'tooltip'         => __( 'Number of paid and unpaid by the selected date range for all affiliates.', 'affiliate-wp' ),
+					'data'            => [
+						'first_value'  => affiliate_wp()->referrals->paid_count( $this->date_query ),
+						'second_value' => affiliate_wp()->referrals->unpaid_count( $this->date_query ),
+					],
+					'comparison_data' => $this->get_date_comparison_label(),
+				]
+			);
 
 			$all_referrals = affiliate_wp()->referrals->get_referrals(
-				array(
+				[
 					'number' => apply_filters( 'affwp_unlimited', -1, 'all_referrals_for_report_of_average_referral' ),
 					'fields' => 'amount',
-					'status' => array( 'paid', 'unpaid' ),
+					'status' => [ 'paid', 'unpaid' ],
 					'date'   => $this->date_query,
-				)
+				]
 			);
 
 			if ( ! $all_referrals ) {
-				$all_referrals = array( 0 );
+				$all_referrals = [ 0 ];
 			}
 
-			$this->register_tile( 'average_referral', array(
-				'label'           => __( 'Average Referral Amount', 'affiliate-wp' ),
-				'type'            => 'amount',
-				'tooltip'         => __( 'Average referral amount based on paid and unpaid referrals.', 'affiliate-wp' ),
-				'context'         => 'secondary',
-				'data'            => array_sum( $all_referrals ) / count( $all_referrals ),
-				'comparison_data' => $this->get_date_comparison_label(),
-			) );
+			$this->register_tile(
+				'average_referral',
+				[
+					'label'           => __( 'Average Referral Amount', 'affiliate-wp' ),
+					'type'            => 'amount',
+					'tooltip'         => __( 'Average referral amount based on paid and unpaid referrals.', 'affiliate-wp' ),
+					'context'         => 'secondary',
+					'data'            => array_sum( $all_referrals ) / count( $all_referrals ),
+					'comparison_data' => $this->get_date_comparison_label(),
+				]
+			);
 		}
-
 	}
 
 	/**
@@ -237,5 +284,4 @@ class Tab extends Reports\Tab {
 
 		$this->graph->display();
 	}
-
 }

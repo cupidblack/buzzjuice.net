@@ -21,7 +21,7 @@ final class LocaleContainer
     private $messagesFrontend;
 
     /**
-     * @param string $localeCode
+     * @param string                $localeCode
      * @param array<string, string> $messagesBackend
      * @param array<string, string> $messagesFrontend
      */

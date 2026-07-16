@@ -73,7 +73,7 @@ $qrcode_default_colors = affiliatewp_get_qrcode_default_colors();
 					<label for="type"><?php esc_html_e( 'Type', 'affiliate-wp' ); ?></label>
 				</th>
 				<td>
-					<select name="type" id="type">
+					<select name="type" id="type" class="affwp-use-select2">
 						<?php foreach ( affwp_get_creative_types() as $creative_type => $label ) : ?>
 
 							<?php
@@ -225,7 +225,7 @@ $qrcode_default_colors = affiliatewp_get_qrcode_default_colors();
 				</th>
 
 				<td>
-					<select name="status" id="status">
+					<select name="status" id="status" class="affwp-use-select2">
 						<?php foreach ( affwp_get_creative_statuses() as $status_key => $label ) : ?>
 
 							<?php

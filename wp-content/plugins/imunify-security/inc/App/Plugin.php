@@ -9,6 +9,7 @@
 namespace CloudLinux\Imunify\App;
 
 use CloudLinux\Imunify\App\Api\AjaxHandler;
+use CloudLinux\Imunify\App\Bot\OptOutFlag;
 use CloudLinux\Imunify\App\Defender\ChangelogWriter;
 use CloudLinux\Imunify\App\Defender\Defender;
 use CloudLinux\Imunify\App\Defender\DisabledRulesManager;
@@ -18,6 +19,7 @@ use CloudLinux\Imunify\App\Defender\Request;
 use CloudLinux\Imunify\App\Defender\RuleHitTracker;
 use CloudLinux\Imunify\App\Defender\RuleProvider;
 use CloudLinux\Imunify\App\Views\AdminPage;
+use CloudLinux\Imunify\App\Views\BotProtectionWidgetSection;
 use CloudLinux\Imunify\App\Views\Widget;
 
 /**
@@ -134,12 +136,30 @@ class Plugin {
 	 * @return void
 	 */
 	private function adminSetup() {
+		// Phase-1 bot protection section (DEF-42031). Owns state reads and
+		// the AJAX handler that writes bot-settings.php when the site owner
+		// changes preset or toggles the opt-out. No admin-post.php fallback
+		// — the detail pane is JS-only.
+		$botProtection = null;
+		if ( defined( 'WP_CONTENT_DIR' ) ) {
+			$botProtection                                        = new BotProtectionWidgetSection(
+				$this->container[ DataStore::class ],
+				(string) WP_CONTENT_DIR
+			);
+			$this->container[ BotProtectionWidgetSection::class ] = $botProtection;
+			add_action(
+				'wp_ajax_' . BotProtectionWidgetSection::AJAX_ACTION,
+				array( $botProtection, 'handleAjaxSubmission' )
+			);
+		}
+
 		// Create widget first.
 		$this->container[ Widget::class ] = new Widget(
 			$this->container[ AccessManager::class ],
 			$this->container[ DataStore::class ],
 			$this->container[ RuleProvider::class ],
-			$this->container[ RuleHitTracker::class ]
+			$this->container[ RuleHitTracker::class ],
+			$botProtection
 		);
 
 		// Instantiate AdminPage.
@@ -166,6 +186,85 @@ class Plugin {
 		if ( is_admin() ) {
 			$this->adminSetup();
 		}
+		if ( $this->isBotProtectionActive() ) {
+			$this->registerHoneypotHooks();
+		}
+	}
+
+	/**
+	 * Whether the bot-protection feature is active for the current request.
+	 *
+	 * The mu-plugin Pipeline respects three gates — the server-level
+	 * `ai_bot_protection` flag (from DEF-41872's plugin_config.php), the
+	 * site-owner `IMUNIFY_AI_BOT_PROTECTION` wp-config constant, and the
+	 * site-owner `bot-settings.php::enabled` flag (DEF-42031 widget). The
+	 * honeypot footer link and robots.txt Disallow must respect the same
+	 * gates so the trap is only visible when it's actually armed.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @return bool
+	 */
+	public function isBotProtectionActive() {
+		if ( defined( 'IMUNIFY_AI_BOT_PROTECTION' )
+			&& false === (bool) constant( 'IMUNIFY_AI_BOT_PROTECTION' ) ) {
+			return false;
+		}
+		$dataStore = $this->get( DataStore::class );
+		if ( null === $dataStore ) {
+			return false;
+		}
+		if ( ! $dataStore->getPluginConfig()->isAiBotProtectionEnabled() ) {
+			return false;
+		}
+		if ( defined( 'WP_CONTENT_DIR' ) ) {
+			$opt_out = OptOutFlag::load( (string) WP_CONTENT_DIR );
+			if ( ! $opt_out->isEnabled() ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Register the two honeypot front-end hooks.
+	 *
+	 * Kept as a public method rather than private init-flow wiring so
+	 * unit tests can call it in isolation. The caller (init()) gates
+	 * this on isBotProtectionActive().
+	 *
+	 * @since 4.0.0
+	 *
+	 * @return void
+	 */
+	public function registerHoneypotHooks() {
+		add_action( 'wp_footer', array( $this, 'printHoneypotFooterLink' ) );
+		add_filter( 'robots_txt', array( $this, 'filterRobotsTxt' ), 10, 2 );
+	}
+
+	/**
+	 * WP footer callback — emits the hidden honeypot link.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @return void
+	 */
+	public function printHoneypotFooterLink() {
+		// @phpcs:ignore WordPress.Security.EscapeOutput -- static literal HTML, no user input.
+		echo \CloudLinux\Imunify\App\Bot\Honeypot::footerLinkHtml();
+	}
+
+	/**
+	 * Robots.txt filter — appends the honeypot Disallow fragment.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @param string $output    Current robots.txt content.
+	 * @param bool   $is_public Whether the site is set to public.
+	 * @return string
+	 */
+	public function filterRobotsTxt( $output, $is_public ) {
+		return $output . "\n" . \CloudLinux\Imunify\App\Bot\Honeypot::robotsTxtFragment();
 	}
 
 	/**

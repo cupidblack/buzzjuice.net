@@ -297,7 +297,7 @@ return;
 			}
 
 
-			/* public function mycred_learndash_arrange_data( $specific_hook_data ) {
+			public function mycred_learndash_arrange_data( $specific_hook_data ) {
 			  
 				$hook_data = array();
 				foreach ( $specific_hook_data['creds'] as $key => $value ) {
@@ -309,28 +309,7 @@ return;
 					$hook_data[ $key ]['select_option'] = $specific_hook_data['select_option'][ $key ];
 				}
 				return $hook_data;
-			} */
-			
-			public function mycred_learndash_arrange_data( $specific_hook_data ) {
-
-                $hook_data = [];
-                $creds = bzj_safe_array($specific_hook_data['creds']);
-                $log = bzj_safe_array($specific_hook_data['log']);
-                $limit = bzj_safe_array($specific_hook_data['limit']);
-                $select_lesson = bzj_safe_array($specific_hook_data['select_lesson']);
-                $select_tag = bzj_safe_array($specific_hook_data['select_tag']);
-                $select_option = bzj_safe_array($specific_hook_data['select_option']);
-            
-                foreach ( $creds as $key => $value ) {
-                    $hook_data[$key]['creds']          = $value;
-                    $hook_data[$key]['log']            = $log[$key] ?? '';
-                    $hook_data[$key]['limit']          = $limit[$key] ?? '';
-                    $hook_data[$key]['select_lesson']  = $select_lesson[$key] ?? '';
-                    $hook_data[$key]['select_tag']     = $select_tag[$key] ?? '';
-                    $hook_data[$key]['select_option']  = $select_option[$key] ?? '';
-                }
-                return $hook_data;
-            }
+			}
 
 
 			/**

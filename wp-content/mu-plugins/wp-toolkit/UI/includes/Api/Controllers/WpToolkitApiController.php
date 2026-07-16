@@ -3,7 +3,7 @@
 
 namespace Webpros\WptkWpPlugin\WpToolkit\UI\Api\Controllers;
 
-use Webpros\WptkWpPlugin\WpToolkit\Common\Clients\HttpClientInterface;
+use Webpros\WptkWpPlugin\WpToolkit\Common\Clients\HttpClientFactoryInterface;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Models\WpToolkitRequest;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Exceptions\BadRequestException;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Helpers\ResponseHelper;
@@ -11,24 +11,24 @@ use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Helpers\ResponseHelper;
 class WpToolkitApiController
 {
     /**
-     * @var HttpClientInterface
+     * @var HttpClientFactoryInterface
      */
-    private $httpClient;
+    private $httpClientFactory;
 
-    public function __construct(HttpClientInterface $httpClient)
+    public function __construct(HttpClientFactoryInterface $httpClientFactory)
     {
-        $this->httpClient = $httpClient;
+        $this->httpClientFactory = $httpClientFactory;
     }
 
     /**
-     * @param \WP_REST_Request $request
      * @return \WP_REST_Response
      * @throws BadRequestException
      * @throws \Webpros\WptkWpPlugin\WpToolkit\UI\Api\Exceptions\ServerException
+     * @throws \RuntimeException
      */
     public function handleRequest(\WP_REST_Request $request)
     {
-        $response = $this->httpClient->request(
+        $response = $this->httpClientFactory->getClient()->request(
             $this->createWpToolkitRequest($request)
         );
 
@@ -36,7 +36,6 @@ class WpToolkitApiController
     }
 
     /**
-     * @param \WP_REST_Request $request
      * @return WpToolkitRequest
      * @throws BadRequestException
      */
@@ -55,7 +54,7 @@ class WpToolkitApiController
         $method = strtoupper($request->get_method());
         if (isset($wpRequestHeaders['x_wpt_method_override'][0])) {
             $overrideMethod = strtoupper($wpRequestHeaders['x_wpt_method_override'][0]);
-            if (!in_array($overrideMethod, ['PUT', 'PATCH', 'DELETE'], true)) {
+            if (!\in_array($overrideMethod, ['PUT', 'PATCH', 'DELETE'], true)) {
                 throw new BadRequestException('Invalid X-WPT-Method-Override value');
             }
             $method = $overrideMethod;

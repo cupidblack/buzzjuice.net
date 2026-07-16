@@ -31,7 +31,7 @@ final class AnalyticsParams implements \JsonSerializable
     private $id;
 
     /**
-     * @param bool $optedIn
+     * @param bool    $optedIn
      * @param ?string $key
      * @param ?string $host
      */
@@ -44,6 +44,7 @@ final class AnalyticsParams implements \JsonSerializable
 
     /**
      * @param ?string $key
+     *
      * @return self
      */
     public function setKey($key)
@@ -55,6 +56,7 @@ final class AnalyticsParams implements \JsonSerializable
 
     /**
      * @param ?string $host
+     *
      * @return self
      */
     public function setHost($host)
@@ -66,6 +68,7 @@ final class AnalyticsParams implements \JsonSerializable
 
     /**
      * @param ?string $id
+     *
      * @return self
      */
     public function setId($id)
@@ -77,6 +80,7 @@ final class AnalyticsParams implements \JsonSerializable
 
     /**
      * @param bool $state
+     *
      * @return self
      */
     public function setState($state)

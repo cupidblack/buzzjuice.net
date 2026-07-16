@@ -4,8 +4,8 @@
 namespace Webpros\WptkWpPlugin\WpToolkit\UI\Api;
 
 use Webpros\WptkWpPlugin\WpToolkit\Common\Clients\HttpClientFactory;
-use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Controllers\WpToolkitApiController;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Controllers\AnalyticsSettingsController;
+use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Controllers\WpToolkitApiController;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Middlewares\ControllerHandlerMiddleware;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Middlewares\ErrorCatchingMiddleware;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Permissions\UserRolePermissionHandler;
@@ -34,7 +34,7 @@ class Router
                 'wp-toolkit/api',
                 '/(?P<slug>.+)/',
                 self::ALL_METHODS,
-                [new WpToolkitApiController((new HttpClientFactory())->getClient()), 'handleRequest'],
+                [new WpToolkitApiController(new HttpClientFactory()), 'handleRequest'],
                 [new UserRolePermissionHandler(['administrator']), 'handlePermissions'],
             ],
         ];
@@ -58,6 +58,7 @@ class Router
 
     /**
      * @param callable $controller
+     *
      * @return RequestHandlerInterface
      */
     private static function middlewares($controller)
@@ -70,11 +71,12 @@ class Router
     }
 
     /**
-     * @param string $nameSpace
-     * @param string $path
-     * @param string $method
+     * @param string   $nameSpace
+     * @param string   $path
+     * @param string   $method
      * @param callable $controller
      * @param callable $permissionHandler
+     *
      * @return void
      */
     private static function registerRoute($nameSpace, $path, $method, $controller, $permissionHandler)

@@ -40,15 +40,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	// View toggle event listener.
 	const viewToggle = document.getElementById('viewToggle');
-	viewToggle.addEventListener('change', function() {
-		isConfirmationView = viewToggle.checked;
-		widgetContainers.forEach(function(widgetContainer) {
-			let shadow = widgetContainer.shadowRoot;
-			if (shadow) {
-				showConfirmation(mockResponse, shadow, isConfirmationView);
-			}
+	if (viewToggle) {
+		viewToggle.addEventListener('change', function() {
+			isConfirmationView = viewToggle.checked;
+			widgetContainers.forEach(function(widgetContainer) {
+				let shadow = widgetContainer.shadowRoot;
+				if (shadow) {
+					showConfirmation(mockResponse, shadow, isConfirmationView);
+				}
+			});
 		});
-	});
+	}
 
 	// Form event listener.
 	function widgetAttachFormSubmitEvent(shadow) {
@@ -72,8 +74,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
 		setTimeout(() => {
 			showConfirmation(mockResponse, shadow, true);
-			viewToggle.checked = true;
-
+			if (viewToggle) {
+				viewToggle.checked = true;
+			}
 		}, 1000);
 	}
 
@@ -107,22 +110,33 @@ document.addEventListener("DOMContentLoaded", function() {
 		const button = shadow.querySelector('#signup-affiliate-preview');
 
 		if (shouldShow) {
-			if (response && response.data && response.data.affiliate_link) {
+			if (response && response.data && response.data.affiliate_link && confirmationView) {
 				confirmationView.innerHTML = confirmationView.innerHTML.replace('{affiliateLink}', response.data.affiliate_link);
 				confirmationView.style.display = 'block';
-				initialView.style.display = 'none';
+				if (initialView) {
+					initialView.style.display = 'none';
+				}
 			}
 		} else {
-			confirmationView.style.display = 'none';
-			initialView.style.display = 'block';
-
-			resetButtonState(button);
+			if (confirmationView) {
+				confirmationView.style.display = 'none';
+			}
+			if (initialView) {
+				initialView.style.display = 'block';
+			}
+			if (button) {
+				resetButtonState(button);
+			}
 		}
 		attachCopyLinkButtonEventListener(shadow);
 	}
 
 	// Reset the button to its original state.
 	function resetButtonState(button) {
+		if (!button) {
+			return;
+		}
+		
 		const svgSpinner = button.querySelector('svg');
 		const originalButtonText = button.querySelector('#originalButtonText');
 		const processingText = button.querySelector('#processingText');
@@ -176,16 +190,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	// Listen for changes on the brand color input and generate shades.
 	const colorInput = document.getElementById('affwp_settings[affiliate_signup_widget_brand_color]');
-	colorInput.addEventListener('input', (event) => {
-		const colorValue = event.target.value;
+	if (colorInput) {
+		colorInput.addEventListener('input', (event) => {
+			const colorValue = event.target.value;
 
-		widgetContainers.forEach(function(widgetContainer) {
-			let shadow = widgetContainer.shadowRoot;
-			if(shadow) {
-				generateShades(colorValue, shadow);
-			}
+			widgetContainers.forEach(function(widgetContainer) {
+				let shadow = widgetContainer.shadowRoot;
+				if(shadow) {
+					generateShades(colorValue, shadow);
+				}
+			});
 		});
-	});
+	}
 
 	// Generate brand color shades.
 	function generateShades(brandColor, shadow) {
@@ -322,18 +338,21 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	// Reset color link.
 	const resetLink = document.querySelector('.affwp-reset-color-link');
-
-	resetLink.addEventListener('click', function(event) {
-		event.preventDefault();
-		widgetContainers.forEach(function(widgetContainer) {
-		let shadow = widgetContainer.shadowRoot;
-		if(shadow) {
-			const defaultColor = '#4b64e2';
-			colorInput.value = defaultColor;
-			generateShades(defaultColor, shadow);
-		}
+	if (resetLink) {
+		resetLink.addEventListener('click', function(event) {
+			event.preventDefault();
+			widgetContainers.forEach(function(widgetContainer) {
+				let shadow = widgetContainer.shadowRoot;
+				if(shadow) {
+					const defaultColor = '#4b64e2';
+					if (colorInput) {
+						colorInput.value = defaultColor;
+					}
+					generateShades(defaultColor, shadow);
+				}
+			});
 		});
-	});
+	}
 
 	/**
 	 * Live preview for text and style changes.
@@ -377,13 +396,17 @@ document.addEventListener("DOMContentLoaded", function() {
 	}
 
 	function resetToInitialView(shadow) {
-		viewToggle.checked = false;
+		if (viewToggle) {
+			viewToggle.checked = false;
+		}
 		isConfirmationView = false;
 		showConfirmation(mockResponse, shadow, false);
 	}
 
 	function switchToConfirmationView(shadow) {
-		viewToggle.checked = true;
+		if (viewToggle) {
+			viewToggle.checked = true;
+		}
 		isConfirmationView = true;
 		showConfirmation(mockResponse, shadow, true);
 	}

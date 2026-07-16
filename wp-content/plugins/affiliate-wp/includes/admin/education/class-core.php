@@ -47,7 +47,9 @@ class Core {
 	 * @since 2.18.0
 	 */
 	public function init() {
-		add_action( 'plugins_loaded', array( $this, 'hooks' ) );
+		// Deferred to 'init' to avoid _load_textdomain_just_in_time warnings in WordPress 6.7+.
+		// The hooks() method uses esc_html__() and __() for translations.
+		add_action( 'init', array( $this, 'hooks' ) );
 	}
 
 	/**

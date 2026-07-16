@@ -161,13 +161,15 @@ class Affiliate_WP_EDD extends Affiliate_WP_Base {
 			return;
 		}
 
-		// Customers cannot refer themselves.
-		if ( $this->is_affiliate_email( $customer_email, $affiliate_id ) ) {
-			$this->log( 'Draft referral rejected because affiliate\'s own account was used.' );
-			$this->mark_referral_failed( $referral_id );
+		// Check for self-referral BEFORE fraud detector filter modifies the result.
+		// We need the raw email match check to properly handle "allow" mode.
+		$user_email    = affwp_get_affiliate_email( $affiliate_id );
+		$payment_email = affwp_get_affiliate_payment_email( $affiliate_id );
+		$is_email_match = ( is_email( $customer_email ) && ( $user_email === $customer_email || $payment_email === $customer_email ) );
 
-			return false;
-		}
+		// Check for self-referral (but don't stop execution yet - we need to calculate amount first).
+		// This calls the fraud detector filter which may return false for "allow" mode.
+		$is_self_referral = $this->is_affiliate_email( $customer_email, $affiliate_id );
 
 		// If an existing referral exists and it is paid or unpaid exit.
 		if ( ! is_wp_error( $existing ) && ( 'paid' == $existing->status || 'unpaid' == $existing->status ) ) {
@@ -228,6 +230,27 @@ class Affiliate_WP_EDD extends Affiliate_WP_Base {
 			return; // Ignore a zero amount referral.
 		}
 
+		// Handle self-referral BEFORE hydration if email matches and in "allow" mode.
+		// This prevents the fraud detector from copying the visit flag to the referral.
+		if ( $is_email_match ) {
+			$setting = affiliate_wp()->settings->get( 'fraud_prevention_self_referrals', 'reject' );
+
+			if ( 'allow' === $setting ) {
+				// Clear visit flag before hydration to prevent it from being copied to referral.
+				$draft_referral = affwp_get_referral( $referral_id );
+				if ( ! empty( $draft_referral->visit_id ) ) {
+					$visit = affwp_get_visit( $draft_referral->visit_id );
+					if ( $visit && 'self_referral' === $visit->flag ) {
+						affiliate_wp()->visits->update( $visit->visit_id, array( 'flag' => '' ) );
+						$this->log( sprintf( 'Visit #%d flag cleared before hydration (allow mode).', $visit->visit_id ) );
+					}
+				}
+
+				// Remove the filter that triggers self-referral flagging during hydration.
+				remove_filter( 'affwp_fraud_prevention_flag_self_referral', '__return_true' );
+			}
+		}
+
 		// Hydrates the previously created referral.
 		$this->hydrate_referral(
 			$referral_id,
@@ -240,6 +263,32 @@ class Affiliate_WP_EDD extends Affiliate_WP_Base {
 				'context'     => $this->context,
 			)
 		);
+
+		// Handle self-referral after hydration (so amount is properly calculated and stored).
+		if ( $is_self_referral ) {
+
+			// Get fraud prevention setting.
+			$setting = affiliate_wp()->settings->get( 'fraud_prevention_self_referrals', 'reject' );
+
+			// Handle based on setting.
+			if ( 'flag' === $setting ) {
+				// Flag mode: Just flag it, let it proceed to unpaid normally.
+				// The flag was already set by the fraud detector during hydration.
+				$this->log( 'Self-referral flagged for review.' );
+
+				// Continue to mark_referral_complete to set status to unpaid.
+			} elseif ( 'reject' === $setting ) {
+				// Reject mode: Set to rejected status.
+				$this->log( 'Referral rejected because affiliate\'s own account was used.' );
+
+				// Get the referral object and reject it (allow rejecting pending referrals).
+				$referral = affwp_get_referral( $referral_id );
+				$this->reject_referral( $referral, true ); // true = allow rejecting pending referrals
+
+				return false; // Prevent mark_referral_complete from running.
+			}
+			// Allow mode: Already handled before hydration, continue to mark_referral_complete normally.
+		}
 
 		$this->log( sprintf( 'EDD referral #%d updated to pending successfully.', $referral_id ) );
 	}
@@ -762,6 +811,20 @@ class Affiliate_WP_EDD extends Affiliate_WP_Base {
 	*/
 	public function mark_referral_complete( $payment_id = 0 ) {
 
+		// Check if this is a self-referral that was already rejected.
+		$referral = affwp_get_referral_by( 'reference', $payment_id, $this->context );
+
+		if ( ! is_wp_error( $referral ) && is_object( $referral ) ) {
+			// If already rejected, don't change status to unpaid.
+			if ( 'rejected' === $referral->status ) {
+				$this->log( 'Referral not marked as complete because it was rejected (self-referral).' );
+				return false;
+			}
+
+			// If flagged, allow it to proceed to unpaid (old addon behavior).
+			// The flag field will remain set for visibility in the dashboard.
+		}
+
 		$this->complete_referral( $payment_id );
 	}
 
@@ -876,21 +939,33 @@ class Affiliate_WP_EDD extends Affiliate_WP_Base {
 			$user_name    = $user ? $user->user_login : '';
 		}
 ?>
-		<table class="form-table">
-			<tbody>
-				<tr class="form-field">
-					<th scope="row" valign="top">
-						<label for="user_name"><?php _e( 'Affiliate Discount?', 'affiliate-wp' ); ?></label>
-					</th>
-					<td>
-						<span class="affwp-ajax-search-wrap">
-							<input type="text" name="user_name" id="user_name" value="<?php echo esc_attr( $user_name ); ?>" class="affwp-user-search" data-affwp-status="active" autocomplete="off" style="width: 300px;" />
-						</span>
-						<p class="description"><?php _e( 'If you would like to connect this discount to an affiliate, enter the name of the affiliate it belongs to.', 'affiliate-wp' ); ?></p>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+		<?php if ( class_exists( 'EDD\Admin\Discounts\Editor\Form' ) ) : ?>
+			<div class="edd-form-group">
+				<label for="user_name"><?php _e( 'Affiliate Discount?', 'affiliate-wp' ); ?></label>
+				<div class="edd-form-group__control">
+					<span class="affwp-ajax-search-wrap">
+						<input type="text" name="user_name" id="user_name" value="<?php echo esc_attr( $user_name ); ?>" class="affwp-user-search edd-form-group__input" data-affwp-status="active" autocomplete="off" />
+					</span>
+				</div>
+				<p class="description"><?php _e( 'If you would like to connect this discount to an affiliate, enter the name of the affiliate it belongs to.', 'affiliate-wp' ); ?></p>
+			</div>
+		<?php else : ?>
+			<table class="form-table">
+				<tbody>
+					<tr class="form-field">
+						<th scope="row" valign="top">
+							<label for="user_name"><?php _e( 'Affiliate Discount?', 'affiliate-wp' ); ?></label>
+						</th>
+						<td>
+							<span class="affwp-ajax-search-wrap">
+								<input type="text" name="user_name" id="user_name" value="<?php echo esc_attr( $user_name ); ?>" class="affwp-user-search" data-affwp-status="active" autocomplete="off" style="width: 300px;" />
+							</span>
+							<p class="description"><?php _e( 'If you would like to connect this discount to an affiliate, enter the name of the affiliate it belongs to.', 'affiliate-wp' ); ?></p>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		<?php endif; ?>
 <?php
 	}
 

@@ -96,28 +96,29 @@ class Export_Affiliates extends Batch\Export\CSV implements Batch\With_PreFetch 
 	 *
 	 * @access public
 	 * @since  2.0
+	 * @since  2.27.9 - Removed translation functions from column headers for consistent export formatting
 	 *
 	 * @return array The list of CSV columns.
 	 */
 	public function csv_cols() {
 		return array(
-			'affiliate_id'    => __( 'Affiliate ID', 'affiliate-wp' ),
-			'email'           => __( 'Email', 'affiliate-wp' ),
-			'first_name'      => __( 'First Name', 'affiliate-wp' ),
-			'last_name'       => __( 'Last Name', 'affiliate-wp' ),
-			'payment_email'   => __( 'Payment Email', 'affiliate-wp' ),
-			'username'        => __( 'Username', 'affiliate-wp' ),
-			'affiliate_group' => __( 'Group', 'affiliate-wp' ),
-			'rate'            => __( 'Rate', 'affiliate-wp' ),
-			'rate_type'       => __( 'Rate Type', 'affiliate-wp' ),
-			'flat_rate_basis' => __( 'Flat Rate Basis', 'affiliate-wp' ),
-			'earnings'        => __( 'Earnings', 'affiliate-wp' ),
-			'unpaid_earnings' => __( 'Unpaid Earnings', 'affiliate-wp' ),
-			'referrals'       => __( 'Referrals', 'affiliate-wp' ),
-			'visits'          => __( 'Visits', 'affiliate-wp' ),
-			'conversion_rate' => __( 'Conversion Rate', 'affiliate-wp' ),
-			'status'          => __( 'Status', 'affiliate-wp' ),
-			'date_registered' => __( 'Date Registered', 'affiliate-wp' )
+			'affiliate_id'    => 'Affiliate ID',
+			'email'           => 'Email',
+			'first_name'      => 'First Name',
+			'last_name'       => 'Last Name',
+			'payment_email'   => 'Payment Email',
+			'username'        => 'Username',
+			'affiliate_group' => 'Group',
+			'rate'            => 'Rate',
+			'rate_type'       => 'Rate Type',
+			'flat_rate_basis' => 'Flat Rate Basis',
+			'earnings'        => 'Earnings',
+			'unpaid_earnings' => 'Unpaid Earnings',
+			'referrals'       => 'Referrals',
+			'visits'          => 'Visits',
+			'conversion_rate' => 'Conversion Rate',
+			'status'          => 'Status',
+			'date_registered' => 'Date Registered'
 		);
 	}
 

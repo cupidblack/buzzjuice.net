@@ -137,12 +137,12 @@ final class Scripts {
 	private function hooks() : void {
 
 		// Register namespace.
-		add_action( 'wp_enqueue_scripts', array( $this, 'register_namespace' ), 5 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'register_namespace' ), 5 );
+		add_action( 'wp_enqueue_scripts', [ $this, 'register_namespace' ], 5 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'register_namespace' ], 5 );
 
 		// Register and enqueue other scripts, extending our global.
-		add_action( 'wp_enqueue_scripts', array( $this, 'register_scripts' ), 5 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'register_scripts' ), 5 );
+		add_action( 'wp_enqueue_scripts', [ $this, 'register_scripts' ], 5 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'register_scripts' ], 5 );
 	}
 
 	/**
@@ -177,24 +177,36 @@ final class Scripts {
 				'%s/assets/fonts/font-awesome/font-awesome.min.css',
 				AFFILIATEWP_PLUGIN_URL
 			),
-			array(),
+			[],
 			$this->version
 		);
 
 		wp_register_style(
 			'jquery-confirm',
 			"{$this->path}vendor/jquery-confirm/jquery-confirm.min.css",
-			array( 'font-awesome' ),
+			[ 'font-awesome' ],
 			$this->version
 		);
 
 		wp_enqueue_script(
 			'jquery-confirm',
 			"{$this->path}vendor/jquery-confirm/jquery-confirm.min.js",
-			array( 'jquery' ),
+			[ 'jquery' ],
 			$this->version,
 			true
 		);
+
+		// Register unified admin tooltips script.
+		wp_register_script(
+			'affiliatewp-admin-tooltips',
+			"{$this->path}affiliatewp-admin-tooltips.js",
+			[ 'jquery', 'affiliatewp-tippy' ],
+			$this->version,
+			true
+		);
+
+		// Enqueue admin tooltips on all admin pages.
+		wp_enqueue_script( 'affiliatewp-admin-tooltips' );
 	}
 
 	/**
@@ -207,7 +219,7 @@ final class Scripts {
 		wp_register_style(
 			'affiliatewp-modal',
 			"{$this->path}vendor/fancybox/fancybox.css",
-			array(),
+			[],
 			$this->version
 		);
 
@@ -215,7 +227,7 @@ final class Scripts {
 		wp_register_script(
 			'affiliatewp',
 			"{$this->path}affiliatewp.js",
-			array(),
+			[],
 			$this->version,
 			true
 		);
@@ -224,7 +236,7 @@ final class Scripts {
 		wp_register_script(
 			'affiliatewp-fancybox',
 			"{$this->path}vendor/fancybox/fancybox.umd.js",
-			array(),
+			[],
 			$this->version,
 			true
 		);
@@ -232,10 +244,10 @@ final class Scripts {
 		wp_register_script(
 			'affiliatewp-modal',
 			"{$this->path}affiliatewp-modal{$this->suffix}.js",
-			array(
+			[
 				$this->namespace,
 				'affiliatewp-fancybox',
-			),
+			],
 			$this->version,
 			true
 		);
@@ -247,7 +259,7 @@ final class Scripts {
 		wp_register_script(
 			'md5',
 			"{$this->path}vendor/crypto/md5.min.js",
-			array(),
+			[],
 			$this->version,
 			true
 		);
@@ -255,7 +267,10 @@ final class Scripts {
 		wp_register_script(
 			'affiliatewp-crypto',
 			"{$this->path}affiliatewp-crypto{$this->suffix}.js",
-			array( 'md5' ),
+			[
+				$this->namespace, // Required to use .attach.
+				'md5',
+			],
 			$this->version,
 			true
 		);
@@ -264,7 +279,7 @@ final class Scripts {
 		wp_register_script(
 			'affiliatewp-infinite-scroll',
 			"{$this->path}affiliatewp-infinite-scroll{$this->suffix}.js",
-			array( $this->namespace ),
+			[ $this->namespace ],
 			$this->version,
 			true
 		);
@@ -273,7 +288,7 @@ final class Scripts {
 		wp_register_script(
 			'node-qrcode',
 			"{$this->path}vendor/qrcode/node-qrcode-build.min.js",
-			array(),
+			[],
 			$this->version,
 			true
 		);
@@ -281,11 +296,11 @@ final class Scripts {
 		wp_register_script(
 			'affiliatewp-qrcode',
 			"{$this->path}affiliatewp-qrcode{$this->suffix}.js",
-			array(
+			[
 				$this->namespace,
 				'affiliatewp-crypto',
 				'node-qrcode',
-			),
+			],
 			$this->version,
 			true
 		);
@@ -293,23 +308,23 @@ final class Scripts {
 		wp_register_script(
 			'affiliatewp-utils',
 			"{$this->path}affiliatewp-utils{$this->suffix}.js",
-			array(
+			[
 				$this->namespace,
 				'affiliatewp-tippy',
-			),
+			],
 			$this->version,
 			true
 		);
 
 		$json = wp_json_encode(
-			array(
-				'i18n' => array(
+			[
+				'i18n' => [
 					'copyHover'    => __( 'Copy', 'affiliate-wp' ),
 					'copyDisabled' => __( 'Error! Copy is not available.', 'affiliate-wp' ),
 					'copySuccess'  => __( 'Copied!', 'affiliate-wp' ),
 					'copyError'    => __( 'Error! Can not copy content.', 'affiliate-wp' ),
-				),
-			)
+				],
+			]
 		);
 
 		wp_add_inline_script( 'affiliatewp-utils', "affiliatewp.utils.data={$json};", 'after' );
@@ -325,10 +340,11 @@ final class Scripts {
 	 * @return void
 	 */
 	public function register_tooltip_scripts() : void {
+
 		wp_register_script(
 			'affiliatewp-popper',
 			"{$this->path}vendor/popper/popper.min.js",
-			array(),
+			[],
 			$this->version,
 			true
 		);
@@ -336,7 +352,7 @@ final class Scripts {
 		wp_register_script(
 			'affiliatewp-tippy',
 			"{$this->path}vendor/tippy/tippy.min.js",
-			array( 'affiliatewp-popper' ),
+			[ 'affiliatewp-popper' ],
 			$this->version,
 			true
 		);
@@ -344,10 +360,10 @@ final class Scripts {
 		wp_register_script(
 			'affiliatewp-tooltip',
 			"{$this->path}affiliatewp-tooltip{$this->suffix}.js",
-			array(
+			[
 				$this->namespace,
 				'affiliatewp-tippy',
-			),
+			],
 			$this->version,
 			true
 		);
@@ -363,7 +379,7 @@ final class Scripts {
 		wp_register_script(
 			$this->namespace,
 			"{$this->path}{$this->namespace}{$this->suffix}.js",
-			array(),
+			[],
 			$this->version,
 			true
 		);
@@ -383,7 +399,7 @@ final class Scripts {
 	 * @param string $src Optional file source. Overrides the default source path.
 	 * @return void
 	 */
-	public function enqueue( string $handle, array $dependencies = array(), string $src = '' ) : void {
+	public function enqueue( string $handle, array $dependencies = [], string $src = '' ) : void {
 
 		// Prevent duplicated dependencies.
 		$dependencies = array_unique( $dependencies );
@@ -404,7 +420,7 @@ final class Scripts {
 				: $src,
 			array_unique(
 				array_merge(
-					array( $this->namespace ),
+					[ $this->namespace ],
 					$dependencies
 				)
 			),

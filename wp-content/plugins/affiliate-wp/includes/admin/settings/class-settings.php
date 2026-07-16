@@ -16,7 +16,7 @@ use AffiliateWP\Admin\Settings\V2\Callbacks\License_Activator;
 use AffiliateWP\Admin\Settings\V2\Sections\Multi_Currency;
 use AffWP\Core\License;
 
-use function \AffiliateWP\Admin\Affiliates\Review_Affiliate\get_ai_settings;
+use function AffiliateWP\Admin\Affiliates\Review_Affiliate\get_ai_settings;
 
 #[\AllowDynamicProperties]
 
@@ -68,69 +68,90 @@ class Affiliate_WP_Settings {
 	 * @since 1.0
 	 *
 	 * @return void
-	*/
+	 */
 	public function __construct() {
 
-		$this->options = get_option( 'affwp_settings', array() );
+		$this->options = get_option( 'affwp_settings', [] );
+
+		// Recovery: if get_option failed (e.g. charset mismatch corrupting serialized data),
+		// attempt direct DB reads and serialized-string repair.
+		// Only attempt if the DB row actually has data (avoids queries on fresh installs).
+		if ( empty( $this->options ) ) {
+			global $wpdb;
+			$db_len = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT LENGTH(option_value) FROM {$wpdb->options} WHERE option_name = %s",
+					'affwp_settings'
+				)
+			);
+
+			if ( $db_len > 10 ) {
+				$this->options = self::recover_settings();
+			}
+		}
 
 		// Get the list of addons registered.
 		$this->addons = ( new \AffiliateWP\Admin\Addons() )->get_addons();
 
 		if ( ! is_array( $this->options ) ) {
-			$this->options = array();
+			$this->options = [];
 		}
 
 		// Set up.
-		add_action( 'admin_init', array( $this, 'register_settings' ) );
-		add_action( 'admin_init', array( $this, 'activate_license' ) );
-		add_action( 'admin_init', array( $this, 'deactivate_license' ) );
+		add_action( 'admin_init', [ $this, 'register_settings' ] );
+
+		// Refresh in-memory options after WordPress saves the option to prevent stale data.
+		add_action( 'update_option_affwp_settings', [ $this, 'refresh_options' ] );
+		add_action( 'admin_init', [ $this, 'activate_license' ] );
+		add_action( 'admin_init', [ $this, 'deactivate_license' ] );
+		add_filter( 'affwp_navigation_tabs', [ $this, 'add_new_badge_to_payouts_tab' ], 10, 3 );
 
 		// Global settings.
-		add_action( 'affwp_pre_get_registered_settings', array( $this, 'handle_global_license_setting' ) );
-		add_action( 'affwp_pre_get_registered_settings', array( $this, 'handle_global_debug_mode_setting' ) );
+		add_action( 'affwp_pre_get_registered_settings', [ $this, 'handle_global_license_setting' ] );
+		add_action( 'affwp_pre_get_registered_settings', [ $this, 'handle_global_debug_mode_setting' ] );
 
 		// Sanitization.
-		add_filter( 'affwp_settings_sanitize',             array( $this, 'sanitize_referral_variable'  ), 10, 2 );
-		add_filter( 'affwp_settings_sanitize',             array( $this, 'sanitize_coupon_template'    ), 10, 2 );
-		add_filter( 'affwp_settings_sanitize',             array( $this, 'sanitize_coupon_custom_text' ), 10, 2 );
-		add_filter( 'affwp_settings_sanitize_text',        array( $this, 'sanitize_text_fields'        ), 10, 2 );
-		add_filter( 'affwp_settings_sanitize_url',         array( $this, 'sanitize_url_fields'         ), 10, 2 );
-		add_filter( 'affwp_settings_sanitize_checkbox',    array( $this, 'sanitize_cb_fields'          ), 10, 2 );
-		add_filter( 'affwp_settings_sanitize_number',      array( $this, 'sanitize_number_fields'      ), 10, 2 );
-		add_filter( 'affwp_settings_sanitize_rich_editor', array( $this, 'sanitize_rich_editor_fields' ), 10, 2 );
+		add_filter( 'affwp_settings_sanitize', [ $this, 'sanitize_referral_variable' ], 10, 2 );
+		add_filter( 'affwp_settings_sanitize', [ $this, 'sanitize_coupon_template' ], 10, 2 );
+		add_filter( 'affwp_settings_sanitize', [ $this, 'sanitize_coupon_custom_text' ], 10, 2 );
+		add_filter( 'affwp_settings_sanitize_text', [ $this, 'sanitize_text_fields' ], 10, 2 );
+		add_filter( 'affwp_settings_sanitize_url', [ $this, 'sanitize_url_fields' ], 10, 2 );
+		add_filter( 'affwp_settings_sanitize_checkbox', [ $this, 'sanitize_cb_fields' ], 10, 2 );
+		add_filter( 'affwp_settings_sanitize_number', [ $this, 'sanitize_number_fields' ], 10, 2 );
+		add_filter( 'affwp_settings_sanitize_rich_editor', [ $this, 'sanitize_rich_editor_fields' ], 10, 2 );
 
 		// Capabilities
-		add_filter( 'option_page_capability_affwp_settings', array( $this, 'option_page_capability' ) );
+		add_filter( 'option_page_capability_affwp_settings', [ $this, 'option_page_capability' ] );
 
 		// Filter the general settings
-		add_filter( 'affwp_settings_advanced', array( $this, 'required_registration_fields' ) );
+		add_filter( 'affwp_settings_advanced', [ $this, 'required_registration_fields' ] );
 
 		// Filter the email settings
-		add_filter( 'affwp_settings_emails', array( $this, 'email_approval_settings' ) );
+		add_filter( 'affwp_settings_emails', [ $this, 'email_approval_settings' ] );
 
 		// Add starting Affiliate ID setting. Originally provided by Starting Affiliate ID addon.
-		add_filter( 'affwp_settings_affiliates', array( '\AffiliateWP\Admin\Starting_Affiliate_ID', 'add_starting_affiliate_id_setting' ) );
+		add_filter( 'affwp_settings_affiliates', [ '\AffiliateWP\Admin\Starting_Affiliate_ID', 'add_starting_affiliate_id_setting' ] );
 
 		// Set the affiliate ID when the minimum ID is updated.
-		add_action( 'pre_update_option_affwp_settings', array( '\AffiliateWP\Admin\Starting_Affiliate_ID', 'sync_affiliate_id' ), 10, 3 );
+		add_action( 'pre_update_option_affwp_settings', [ '\AffiliateWP\Admin\Starting_Affiliate_ID', 'sync_affiliate_id' ], 10, 3 );
 
 		// Ensure the Starting Affiliate ID value is always bigger than the last Affiliate ID.
-		add_action( 'affiliatewp_number_callback_starting_affiliate_id', array( '\AffiliateWP\Admin\Starting_Affiliate_ID', 'setting_value' ) );
+		add_action( 'affiliatewp_number_callback_starting_affiliate_id', [ '\AffiliateWP\Admin\Starting_Affiliate_ID', 'setting_value' ] );
 
 		// Register tabs to be displayed in the admin Settings screen.
-		add_action( 'admin_init', array( $this, 'register_admin_tabs' ) );
+		add_action( 'admin_init', [ $this, 'register_admin_tabs' ] );
 
 		// Check if coupons tab needs to be loaded.
-		add_filter( 'affwp_settings_tabs', array( $this, 'coupons_tab' ) );
+		add_filter( 'affwp_settings_tabs', [ $this, 'coupons_tab' ] );
 
 		// Register the sections of settings for each tab.
-		add_action( 'admin_init', array( $this, 'register_admin_sections' ) );
+		add_action( 'admin_init', [ $this, 'register_admin_sections' ] );
 
 		// Register the Signup Widget fields.
-		add_filter( 'affwp_settings_affiliates', array( $this, 'register_signup_widget_fields' ) );
+		add_filter( 'affwp_settings_affiliates', [ $this, 'register_signup_widget_fields' ] );
 
 		// Make compatible with non-mapped addons.
-		add_action( 'affiliatewp_after_register_admin_sections', array( $this, 'register_section_for_non_compatible_tabs' ) );
+		add_action( 'affiliatewp_after_register_admin_sections', [ $this, 'register_section_for_non_compatible_tabs' ] );
 
 		add_action( 'admin_init', [ $this, 'action_register_sections' ], 0 );
 	}
@@ -155,14 +176,14 @@ class Affiliate_WP_Settings {
 	private function supports_affiliate_signup_widgets() : bool {
 
 		$supported_integrations = affiliate_wp()->integrations->query(
-			array(
+			[
 				'supports' => 'affiliate_signup_widget',
 				'status'   => 'enabled',
-				'fields'   => array(
+				'fields'   => [
 					'ids',
 					'name',
-				),
-			)
+				],
+			]
 		);
 
 		return ! empty( $supported_integrations );
@@ -187,7 +208,7 @@ class Affiliate_WP_Settings {
 		return array_merge(
 			$settings,
 			$this->get_settings(
-				array(
+				[
 					'additional_registration_modes',
 					'affiliate_signup_widget_brand_color',
 					'affiliate_signup_widget_image',
@@ -196,7 +217,7 @@ class Affiliate_WP_Settings {
 					'affiliate_signup_widget_button_text',
 					'affiliate_signup_widget_confirmation_heading_text',
 					'affiliate_signup_widget_confirmation_text',
-				)
+				]
 			)
 		);
 	}
@@ -225,14 +246,14 @@ class Affiliate_WP_Settings {
 	public function register_section_for_non_compatible_tabs() {
 
 		// Add the tab key to the list below if you have added the section manually or wants to ignore.
-		$tabs_to_ignore = array(
+		$tabs_to_ignore = [
 			'general',
 			'affiliates',
 			'commissions',
 			'emails',
 			'advanced',
 			'coupons',
-		);
+		];
 
 		$tab_key = $this->get_active_tab();
 
@@ -262,7 +283,7 @@ class Affiliate_WP_Settings {
 				"affiliatewp_register_section_{$tab_key}",
 				isset( $settings[ $tab_key ] )
 					? array_keys( $settings[ $tab_key ] )
-					: array()
+					: []
 			),
 		);
 	}
@@ -279,9 +300,10 @@ class Affiliate_WP_Settings {
 				'general'      => __( 'General', 'affiliate-wp' ),
 				'affiliates'   => __( 'Affiliates', 'affiliate-wp' ),
 				'commissions'  => __( 'Commissions', 'affiliate-wp' ),
+				'payouts'      => __( 'Payouts', 'affiliate-wp' ),
 				'integrations' => __( 'Integrations', 'affiliate-wp' ),
-				'opt_in_forms' => __( 'Opt-In Form', 'affiliate-wp' ),
 				'emails'       => __( 'Emails', 'affiliate-wp' ),
+				'opt_in_forms' => __( 'Opt-In Form', 'affiliate-wp' ),
 				'advanced'     => __( 'Advanced', 'affiliate-wp' ),
 			]
 		);
@@ -301,9 +323,9 @@ class Affiliate_WP_Settings {
 			__( 'License', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_license',
-				array(
+				[
 					'license_key',
-				)
+				]
 			)
 		);
 
@@ -313,12 +335,12 @@ class Affiliate_WP_Settings {
 			__( 'Currency Settings', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_currency',
-				array(
+				[
 					'currency',
 					'currency_position',
 					'thousands_separator',
 					'decimal_separator',
-				)
+				]
 			)
 		);
 
@@ -328,9 +350,9 @@ class Affiliate_WP_Settings {
 			__( 'Setup Wizard', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_wizard',
-				array(
+				[
 					'wizard_button',
-				)
+				]
 			)
 		);
 
@@ -341,7 +363,7 @@ class Affiliate_WP_Settings {
 			__( 'Registration & Management', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_registration_management',
-				array(
+				[
 					'affiliates_page',
 					'affiliates_login_page',
 					'affiliates_registration_page',
@@ -350,23 +372,20 @@ class Affiliate_WP_Settings {
 					'require_approval',
 					'review_with_ai_instructions',
 					'starting_affiliate_id',
-					'recaptcha_type',
-					'recaptcha_site_key',
-					'recaptcha_secret_key',
-					'recaptcha_score_threshold',
 					'additional_registration_modes',
-				)
+				]
 			)
 		);
 
+		// Affiliate Signup Widget section
 		affiliate_wp()->settings->register_section(
 			'affiliates',
 			'affiliate_signup_widget',
 			__( 'Affiliate Signup Widget', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_affiliate_signup_widget',
-				array(
-					array(
+				[
+					[
 						'affiliate_signup_widget_brand_color',
 						'affiliate_signup_widget_image',
 						'affiliate_signup_widget_heading_text',
@@ -374,30 +393,56 @@ class Affiliate_WP_Settings {
 						'affiliate_signup_widget_button_text',
 						'affiliate_signup_widget_confirmation_heading_text',
 						'affiliate_signup_widget_confirmation_text',
-					),
-				),
+					],
+				],
 			),
-			sprintf( __( 'Turn customers into affiliates with one click. <a href="%s" target="_blank" rel="noopener noreferrer">Read our documentation</a> to learn more.', 'affiliate-wp' ), esc_url( 'https://affiliatewp.com/docs/affiliate-signup-widget' ) ),
-			array(
+			sprintf( __( 'Turn customers into affiliates with one click. <a href="%s" target="_blank" rel="noopener noreferrer">Read our documentation</a> to learn more.', 'affiliate-wp' ), esc_url( affwp_utm_link( 'https://affiliatewp.com/docs/affiliate-signup-widget', 'settings-affiliates', 'Affiliate Signup Widget' ) ) ),
+			[
 				'required_field' => 'additional_registration_modes',
 				'value'          => 'affiliate_signup_widget',
-			),
+			],
 			'affiliate_signup_widget',
 			'pro'
 		);
 
+		// Affiliate Links section
 		$this->register_section(
 			'affiliates',
 			'affiliate_links',
 			__( 'Affiliate Links', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_affiliate_links',
-				array(
+				[
 					'referral_var',
 					'referral_format',
 					'referral_pretty_urls',
-				)
+				]
 			)
+		);
+
+		// Affiliate Security section
+		$this->register_section(
+			'affiliates',
+			'affiliate_security',
+			__( 'Affiliate Registration & Login Security', 'affiliate-wp' ),
+			apply_filters(
+				'affiliatewp_register_section_affiliate_security',
+				[
+					'captcha_type',
+					'recaptcha_type',
+					'recaptcha_site_key',
+					'recaptcha_secret_key',
+					'recaptcha_score_threshold',
+					'hcaptcha_site_key',
+					'hcaptcha_secret_key',
+					'turnstile_site_key',
+					'turnstile_secret_key',
+					'captcha_protect_login',
+				]
+			),
+			__( 'Settings that secure the affiliate registration and login forms against bots and other abuse.', 'affiliate-wp' ),
+			[],
+			'affiliate_security'
 		);
 
 		$this->register_section(
@@ -417,20 +462,15 @@ class Affiliate_WP_Settings {
 			[],
 			'',
 			'',
-			sprintf( '<p>%s</p>%s',
+			[
 				__( 'Enable your affiliates to quickly share their affiliate links directly from their Affiliate Area using popular platforms and methods.', 'affiliate-wp' ),
-				sprintf(
-					/* translators: 1: Link to the doc page on affiliate link sharing. 2: Additional link attributes. 3: Accessibility text. */
-					__( '<a href="%1$s" %2$s>Learn more%3$s</a>', 'affiliate-wp' ),
-					esc_url( 'https://affiliatewp.com/docs/affiliate-link-sharing' ),
-					'target="_blank" rel="noopener"',
-					sprintf(
-						'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
-						/* translators: Hidden accessibility text. */
-						__( '(opens in a new tab)', 'affiliate-wp' )
-					)
-				)
-			),
+				[
+					'type'     => 'link',
+					'text'     => __( 'Learn more', 'affiliate-wp' ),
+					'url'      => affwp_utm_link( 'https://affiliatewp.com/docs/affiliate-link-sharing', 'settings-affiliates', 'Affiliate Link Sharing' ),
+					'external' => true,
+				],
+			],
 		);
 
 		$this->register_section(
@@ -439,9 +479,9 @@ class Affiliate_WP_Settings {
 			__( 'Affiliate UI', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_affiliate_ui',
-				array(
+				[
 					'logout_link',
-				)
+				]
 			)
 		);
 
@@ -451,24 +491,24 @@ class Affiliate_WP_Settings {
 			__( 'Affiliate Landing Pages', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_addon_landing_pages',
-				array(
+				[
 					'affiliate-landing-pages',
-				)
+				]
 			),
 			sprintf(
 				wp_kses( /* translators: %s - AffiliateWP.com Affiliate Landing Pages URL. */
 					__( 'Assign pages or posts to specific affiliates. <a href="%s" target="_blank" rel="noopener noreferrer">Read our documentation</a> to learn more.', 'affiliate-wp' ),
-					array(
-						'a' => array(
-							'href'   => array(),
-							'target' => array(),
-							'rel'    => array(),
-						),
-					)
+					[
+						'a' => [
+							'href'   => [],
+							'target' => [],
+							'rel'    => [],
+						],
+					]
 				),
 				affwp_utm_link( 'https://affiliatewp.com/docs/affiliate-landing-pages-installation-and-usage/', 'settings-affiliates', 'Affiliate Landing Pages Documentation' )
 			),
-			array(),
+			[],
 			'table',
 			'pro'
 		);
@@ -486,24 +526,24 @@ class Affiliate_WP_Settings {
 			 */
 			apply_filters(
 				'affiliatewp_register_section_addon_direct_link_tracking',
-				array(
+				[
 					'direct_link_tracking',
-				)
+				]
 			),
 			sprintf(
 				wp_kses( /* translators: %s - AffiliateWP.com Direct Link Tracking URL. */
 					__( 'Allow affiliates to link directly to your site, from their site, without the need for an affiliate link. <a href="%s" target="_blank" rel="noopener noreferrer">Read our documentation</a> to learn more.', 'affiliate-wp' ),
-					array(
-						'a' => array(
-							'href'   => array(),
-							'target' => array(),
-							'rel'    => array(),
-						),
-					)
+					[
+						'a' => [
+							'href'   => [],
+							'target' => [],
+							'rel'    => [],
+						],
+					]
 				),
 				affwp_utm_link( 'https://affiliatewp.com/docs/direct-link-tracking-installation-and-usage/', 'settings-affiliates', 'Direct Link Tracking Documentation' )
 			),
-			array(),
+			[],
 			'table',
 			'pro'
 		);
@@ -515,7 +555,7 @@ class Affiliate_WP_Settings {
 			__( 'Default Commission Settings', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_default_commission_settings',
-				array(
+				[
 					'referral_rate_type',
 					'flat_rate_basis',
 					'referral_rate',
@@ -526,43 +566,25 @@ class Affiliate_WP_Settings {
 					'revoke_on_refund',
 					'ignore_zero_referrals',
 					'commission_holding_period',
-				)
+				]
 			)
 		);
 
-		$this->register_section(
-			'commissions',
-			'payment_methods',
-			__( 'Payout Methods', 'affiliate-wp' ),
-			apply_filters(
-				'affiliatewp_register_section_payment_methods',
-				array(
-					'enable_payouts_service',
-					'paypal_payouts',
-					'manual_payouts',
-				)
-			)
-		);
-
-		$this->register_section(
-			'commissions',
-			'payouts_service',
-			__( 'Payouts Service Payment Method', 'affiliate-wp' ),
-			apply_filters(
-				'affiliatewp_register_section_payouts_service',
-				array(
-					'payouts_service_about',
-					'payouts_service_button',
-					'payouts_service_description',
-					'payouts_service_notice',
-				)
-			),
-			'',
-			array(
-				'required_field' => 'enable_payouts_service',
-				'value'          => true,
-			)
-		);
+		// Restore the Payout Methods section with migration notice (only show within version window)
+		if ( $this->should_show_payouts_ui_elements() ) {
+			$this->register_section(
+				'commissions',
+				'payment_methods',
+				__( 'Payout Methods', 'affiliate-wp' ),
+				apply_filters(
+					'affiliatewp_register_section_payment_methods',
+					[
+						'payment_methods_placeholder',
+					]
+				),
+				$this->payment_methods_migration_notice()
+			);
+		}
 
 		affiliate_wp()->settings->register_section(
 			'commissions',
@@ -577,24 +599,24 @@ class Affiliate_WP_Settings {
 			 */
 			apply_filters(
 				'affiliatewp_register_section_addon_recurring_referrals',
-				array(
+				[
 					'recurring',
-				)
+				]
 			),
 			sprintf(
 				wp_kses( /* translators: %s - AffiliateWP.com Direct Link Tracking URL. */
 					__( 'Track on-going referrals for subscription payments and membership plugins. <a href="%s" target="_blank" rel="noopener noreferrer">Read our documentation</a> to learn more.', 'affiliate-wp' ),
-					array(
-						'a' => array(
-							'href'   => array(),
-							'target' => array(),
-							'rel'    => array(),
-						),
-					)
+					[
+						'a' => [
+							'href'   => [],
+							'target' => [],
+							'rel'    => [],
+						],
+					]
 				),
 				affwp_utm_link( 'https://affiliatewp.com/docs/recurring-referrals-installation-and-usage/', 'settings-affiliates', 'Direct Link Tracking Documentation' )
 			),
-			array(),
+			[],
 			'table',
 			'pro'
 		);
@@ -612,129 +634,24 @@ class Affiliate_WP_Settings {
 			 */
 			apply_filters(
 				'affiliatewp_register_section_addon_multi_tier_commissions',
-				array(
+				[
 					'multi_tier_commissions',
-				)
+				]
 			),
 			'',
-			array(),
+			[],
 			'table',
 			'pro',
-			sprintf(
-				/* translators: 1: Link to the doc page on tiers. 2: Additional link attributes. 3: Accessibility text. */
-				'<p>' . __( 'Enhance your affiliate program with Multi-Tier Commissions. This feature enables you to reward your affiliates not only for their direct sales but also for the sales generated by their recruited network, encouraging a more dynamic and expansive affiliate strategy.', 'affiliate-wp' ) . '</p>' .
-				__( '<a href="%1$s" %2$s>Learn more%3$s</a>', 'affiliate-wp' ),
-				esc_url( 'https://affiliatewp.com/docs/multi-tier-commissions' ),
-				'target="_blank" rel="noopener"',
-				sprintf(
-					'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
-					/* translators: Hidden accessibility text. */
-					__( '(opens in a new tab)', 'affiliate-wp' )
-				)
-			),
-
+			[
+				__( 'Enhance your affiliate program with Multi-Tier Commissions. This feature enables you to reward your affiliates not only for their direct sales but also for the sales generated by their recruited network, encouraging a more dynamic and expansive affiliate strategy.', 'affiliate-wp' ),
+				[
+					'type'     => 'link',
+					'text'     => __( 'Learn more', 'affiliate-wp' ),
+					'url'      => affwp_utm_link( 'https://affiliatewp.com/docs/multi-tier-commissions', 'settings-commissions', 'Multi-Tier Commissions' ),
+					'external' => true,
+				],
+			],
 		);
-
-		// Emails.
-		affiliate_wp()->settings->register_section(
-			'emails',
-			'email_options',
-			__( 'Email Options', 'affiliate-wp' ),
-			apply_filters(
-				'affiliatewp_register_section_email_options',
-				array(
-					'email_logo',
-					'email_template',
-					'from_name',
-					'from_email',
-					'email_notifications',
-					'affiliate_email_summaries',
-					'affiliate_manager_email',
-				)
-			),
-		);
-
-		affiliate_wp()->settings->register_section(
-			'emails',
-			'registration_email_options',
-			__( 'Registration Email Options For Affiliate Manager', 'affiliate-wp' ),
-			apply_filters(
-				'affiliatewp_register_section_registration_email_options',
-				array(
-					'registration_subject',
-					'registration_email',
-				)
-			),
-		);
-
-		affiliate_wp()->settings->register_section(
-			'emails',
-			'new_referral_email_options_for_affiliate_manager',
-			__( 'New Referral Email Options for Affiliate Manager', 'affiliate-wp' ),
-			apply_filters(
-				'affiliatewp_register_section_new_referral_email_options_for_affiliate_manager',
-				array(
-					'new_admin_referral_subject',
-					'new_admin_referral_email',
-				)
-			),
-		);
-
-		affiliate_wp()->settings->register_section(
-			'emails',
-			'new_referral_email_options_for_affiliate',
-			__( 'New Referral Email Options For Affiliate', 'affiliate-wp' ),
-			apply_filters(
-				'affiliatewp_register_section_new_referral_email_options_for_affiliate',
-				array(
-					'referral_subject',
-					'referral_email',
-				)
-			),
-		);
-
-		affiliate_wp()->settings->register_section(
-			'emails',
-			'application_accepted_email_options',
-			__( 'Application Accepted Email Options For Affiliate', 'affiliate-wp' ),
-			apply_filters(
-				'affiliatewp_register_section_application_accepted_email_options',
-				array(
-					'accepted_subject',
-					'accepted_email',
-				)
-			),
-		);
-
-		// Conditionally display the extra email settings.
-		if ( affiliate_wp()->settings->get( 'require_approval' ) ) {
-
-			affiliate_wp()->settings->register_section(
-				'emails',
-				'application_pending_email_options',
-				__( 'Application Pending Email Options For Affiliate', 'affiliate-wp' ),
-				apply_filters(
-					'affiliatewp_register_section_application_pending_email_options',
-					array(
-						'pending_subject',
-						'pending_email',
-					)
-				),
-			);
-
-			affiliate_wp()->settings->register_section(
-				'emails',
-				'application_rejection_email_options',
-				__( 'Application Rejection Email Options For Affiliate', 'affiliate-wp' ),
-				apply_filters(
-					'affiliatewp_register_section_application_rejection_email_options',
-					array(
-						'rejection_subject',
-						'rejection_email',
-					)
-				),
-			);
-		}
 
 		// Advanced.
 		affiliate_wp()->settings->register_section(
@@ -743,11 +660,11 @@ class Affiliate_WP_Settings {
 			__( 'Tracking', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_tracking',
-				array(
+				[
 					'cookie_sharing',
 					'default_referral_url',
 					'referral_url_blacklist',
-				)
+				]
 			),
 		);
 
@@ -757,11 +674,11 @@ class Affiliate_WP_Settings {
 			__( 'Template File / Shortcode Settings', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_template_file_shortcode_settings',
-				array(
+				[
 					'terms_of_use_label',
 					'affiliate_area_forms',
 					'required_registration_fields',
-				)
+				]
 			),
 		);
 
@@ -771,9 +688,9 @@ class Affiliate_WP_Settings {
 			__( 'Email Summaries', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_email_summaries',
-				array(
+				[
 					'disable_monthly_email_summaries',
-				)
+				]
 			),
 		);
 
@@ -783,10 +700,10 @@ class Affiliate_WP_Settings {
 			__( 'Privacy & Logging', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_privacy_logging',
-				array(
+				[
 					'disable_ip_logging',
 					'debug_mode',
-				)
+				]
 			),
 		);
 
@@ -796,9 +713,9 @@ class Affiliate_WP_Settings {
 			__( 'Data Management', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_data_management',
-				array(
+				[
 					'uninstall_on_delete',
-				)
+				]
 			),
 		);
 
@@ -808,9 +725,9 @@ class Affiliate_WP_Settings {
 			__( 'Troubleshooting', 'affiliate-wp' ),
 			apply_filters(
 				'affiliatewp_register_section_troubleshooting',
-				array(
+				[
 					'tracking_fallback',
-				)
+				]
 			),
 		);
 
@@ -829,7 +746,7 @@ class Affiliate_WP_Settings {
 			 */
 			apply_filters(
 				'affiliatewp_register_section_coupons',
-				array(
+				[
 					'dynamic_coupons_header',
 					'coupon_template_woocommerce',
 					'dynamic_coupons',
@@ -837,7 +754,7 @@ class Affiliate_WP_Settings {
 					'coupon_format',
 					'coupon_custom_text',
 					'coupon_hyphen_delimiter',
-				)
+				]
 			),
 		);
 
@@ -855,10 +772,10 @@ class Affiliate_WP_Settings {
 			 */
 			apply_filters(
 				'affiliatewp_register_section_affiliate_link_discounts',
-				array(
+				[
 					'affiliate_link_discounts',
 					'affiliate_link_discounts_notification_theme',
-				)
+				]
 			),
 			sprintf(
 
@@ -868,11 +785,11 @@ class Affiliate_WP_Settings {
 
 					// Translators: %1$s is the URL to learn more, %2$s is the text to click to follow the link.
 					'<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
-					esc_url( 'https://affiliatewp.com/docs/affiliate-link-discounts' ),
+					esc_url( affwp_utm_link( 'https://affiliatewp.com/docs/affiliate-link-discounts', 'settings-commissions', 'Affiliate Link Discounts' ) ),
 					__( 'Read our documentation', 'affiliate-wp' )
 				)
 			),
-			array(),
+			[],
 			'',
 			'pro'
 		);
@@ -888,8 +805,8 @@ class Affiliate_WP_Settings {
 	 * key to the filtered array seen in this method.
 	 *
 	 * @since  1.0
-	 * @param  string  $key
-	 * @param  mixed   $default (optional)
+	 * @param  string $key
+	 * @param  mixed  $default (optional)
 	 * @return mixed
 	 */
 	public function get( $key, $default = false ) {
@@ -897,7 +814,7 @@ class Affiliate_WP_Settings {
 		// Only allow non-empty values, otherwise fallback to the default
 		$value = ! empty( $this->options[ $key ] ) ? $this->options[ $key ] : $default;
 
-		$zero_values_allowed = array( 'referral_rate', 'payouts_service_vendor_id' );
+		$zero_values_allowed = [ 'referral_rate', 'payouts_service_vendor_id' ];
 
 		/**
 		 * Filters settings allowed to accept 0 as a valid value without
@@ -926,7 +843,6 @@ class Affiliate_WP_Settings {
 		}
 
 		return $value;
-
 	}
 
 	/**
@@ -942,11 +858,11 @@ class Affiliate_WP_Settings {
 	public function set( $settings, $save = false ) {
 
 		if ( ! is_array( $settings ) ) {
-			$settings = array();
+			$settings = [];
 		}
 
 		if ( ! is_array( $this->options ) ) {
-			$this->options = array();
+			$this->options = [];
 		}
 
 		foreach ( $settings as $option => $value ) {
@@ -976,11 +892,11 @@ class Affiliate_WP_Settings {
 	 * @param array $options Optional. Options to save/overwrite directly. Default empty array.
 	 * @return bool False if the options were not updated (saved) successfully, true otherwise.
 	 */
-	protected function save( $options = array() ) {
+	protected function save( $options = [] ) {
 		$all_options = $this->get_all();
 
 		if ( empty( $all_options ) ) {
-			$all_options = array();
+			$all_options = [];
 		}
 
 		if ( ! empty( $options ) && is_array( $all_options ) ) {
@@ -990,7 +906,7 @@ class Affiliate_WP_Settings {
 		$updated = update_option( 'affwp_settings', $all_options );
 
 		// Refresh the options array available in memory (prevents unexpected race conditions).
-		$this->options = get_option( 'affwp_settings', array() );
+		$this->options = get_option( 'affwp_settings', [] );
 
 		return $updated;
 	}
@@ -1000,9 +916,150 @@ class Affiliate_WP_Settings {
 	 *
 	 * @since 1.0
 	 * @return array
-	*/
+	 */
 	public function get_all() {
 		return $this->options;
+	}
+
+	/**
+	 * Refresh the in-memory options from the database.
+	 *
+	 * Called after WordPress saves the affwp_settings option to ensure
+	 * $this->options stays in sync and prevents stale data from being
+	 * written back on subsequent save() calls within the same request.
+	 *
+	 * @since 2.29.1
+	 * @return void
+	 */
+	public function refresh_options() {
+		$value         = get_option( 'affwp_settings', [] );
+		$this->options = is_array( $value ) ? $value : [];
+	}
+
+	/**
+	 * Attempt to unserialize data and validate it as a non-empty settings array.
+	 *
+	 * @since 2.29.1
+	 * @param string|null $data Raw serialized string to attempt.
+	 * @return array Settings array on success, empty array on failure.
+	 */
+	private static function try_unserialize_settings( $data ) {
+		if ( ! is_string( $data ) || strlen( $data ) <= 10 ) {
+			return [];
+		}
+
+		$attempt = @unserialize( $data );
+
+		if ( is_array( $attempt ) && ! empty( $attempt ) ) {
+			return $attempt;
+		}
+
+		return [];
+	}
+
+	/**
+	 * Recover settings when get_option() fails.
+	 *
+	 * This handles the case where a MySQL charset mismatch (e.g. utf8mb4 connection
+	 * writing to a latin1 column) corrupts the serialized PHP data, causing
+	 * unserialize() to fail and get_option() to return false.
+	 *
+	 * Attempts multiple recovery strategies:
+	 * 1. Binary DB read (bypasses charset conversion)
+	 * 2. Repair serialized byte counts on the charset-converted value
+	 * 3. Repair serialized byte counts on the binary value
+	 *
+	 * If recovery succeeds, the corrected value is persisted back to the DB.
+	 *
+	 * @since 2.29.1
+	 * @return array Recovered settings array, or empty array if recovery fails.
+	 */
+	private static function recover_settings() {
+		global $wpdb;
+
+		$recovered = [];
+
+		// Try 1: binary read bypasses charset conversion entirely.
+		$raw_binary = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT CONVERT(option_value USING binary) FROM {$wpdb->options} WHERE option_name = %s",
+				'affwp_settings'
+			)
+		);
+
+		$recovered = self::try_unserialize_settings( $raw_binary );
+
+		// Try 2: repair byte counts on the charset-converted value.
+		if ( empty( $recovered ) ) {
+			$raw_converted = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
+					'affwp_settings'
+				)
+			);
+
+			$recovered = self::try_unserialize_settings( $raw_converted );
+
+			if ( empty( $recovered ) && $raw_converted ) {
+				$recovered = self::try_unserialize_settings( self::repair_serialized( $raw_converted ) );
+			}
+		}
+
+		// Try 3: repair byte counts on the binary value.
+		if ( empty( $recovered ) && $raw_binary ) {
+			$recovered = self::try_unserialize_settings( self::repair_serialized( $raw_binary ) );
+		}
+
+		// Persist the fix so subsequent requests don't need recovery.
+		if ( ! empty( $recovered ) ) {
+			$correct_serialized = maybe_serialize( $recovered );
+			$wpdb->update(
+				$wpdb->options,
+				[ 'option_value' => $correct_serialized ],
+				[ 'option_name' => 'affwp_settings' ]
+			);
+
+			// Update the alloptions cache so get_option() works for the rest of this request.
+			$alloptions = wp_cache_get( 'alloptions', 'options' );
+			if ( is_array( $alloptions ) ) {
+				$alloptions['affwp_settings'] = $correct_serialized;
+				wp_cache_set( 'alloptions', $alloptions, 'options' );
+			}
+			wp_cache_delete( 'affwp_settings', 'options' );
+		}
+
+		return $recovered;
+	}
+
+	/**
+	 * Repair a corrupted PHP serialized string by recalculating byte counts.
+	 *
+	 * When serialized data passes through a MySQL charset conversion (e.g.
+	 * utf8mb4 connection → latin1 column), multi-byte characters change size
+	 * but the `s:N:` headers keep the original byte count, breaking unserialize().
+	 * This walks the string and fixes every `s:N:"…";` so N matches the actual bytes.
+	 *
+	 * @param string $data Possibly-corrupt serialized string.
+	 * @return string Repaired serialized string.
+	 */
+	private static function repair_serialized( $data ) {
+		if ( @unserialize( $data ) !== false ) {
+			return $data;
+		}
+
+		// Fix string byte counts corrupted by MySQL charset conversion.
+		// Uses a lookahead to only match "; when followed by a valid serialized
+		// type marker (s:, i:, b:, a:, O:, d:, N;, }) — not inside HTML content
+		// like style="color:red;" where "; is followed by normal text.
+		$fixed = preg_replace_callback(
+			'/s:(\d+):"(.*?)";(?=s:\d|i:-?\d|b:[01]|d:[\d.]|a:\d|O:\d|N;|\}|$)/s',
+			function ( $m ) {
+				return 's:' . strlen( $m[2] ) . ':"' . $m[2] . '";';
+			},
+			$data
+		);
+
+		return ( $fixed !== null ) ? $fixed : $data;
 	}
 
 	/**
@@ -1010,14 +1067,17 @@ class Affiliate_WP_Settings {
 	 *
 	 * @since 1.0
 	 * @return void
-	*/
+	 */
 	function register_settings() {
 
-		if ( false == get_option( 'affwp_settings' ) ) {
-			add_option( 'affwp_settings' );
+		// Guard: if get_option returns false (e.g. due to charset-corrupted serialized data),
+		// recover settings instead of letting register_setting() call add_option() which
+		// would overwrite existing data in WP 6.6+ (ON DUPLICATE KEY UPDATE).
+		if ( false === get_option( 'affwp_settings' ) && empty( $this->options ) ) {
+			$this->options = self::recover_settings();
 		}
 
-		foreach( $this->get_registered_settings() as $tab => $settings ) {
+		foreach ( $this->get_registered_settings() as $tab => $settings ) {
 
 			add_settings_section(
 				'affwp_settings_' . $tab,
@@ -1032,25 +1092,25 @@ class Affiliate_WP_Settings {
 					continue; // Fields are enabled by default, skip this field if enabled is set and is false/empty.
 				}
 
-				if ( in_array( $option['type'] ?? '', ['checkbox', 'multicheck', 'radio'], true ) ) {
+				if ( in_array( $option['type'] ?? '', [ 'checkbox', 'multicheck', 'radio' ], true ) ) {
 					$name = $option['name'] ?? '';
 				} elseif ( isset( $option['name'] ) ) {
 					$name = sprintf( '<label for="affwp_settings[%s]">%s</label>', $key, $option['name'] );
 				}
 
-				$callback = ! empty( $option['callback'] ) ? $option['callback'] : array( $this, $option['type'] . '_callback' );
+				$callback = ! empty( $option['callback'] ) ? $option['callback'] : [ $this, $option['type'] . '_callback' ];
 
 				$visibility_rules = isset( $option['visibility'] )
-					? array(
+					? [
 						'rule'  => $option['visibility'],
 						'field' => $key,
-					)
+					]
 					: '';
 
 				add_settings_field(
 					'affwp_settings[' . $key . ']',
 					$name ?? '',
-					is_callable( $callback ) ? $callback : array( $this, 'missing_callback' ),
+					is_callable( $callback ) ? $callback : [ $this, 'missing_callback' ],
 					'affwp_settings_' . $tab,
 					'affwp_settings_' . $tab,
 					[
@@ -1071,7 +1131,7 @@ class Affiliate_WP_Settings {
 						'class'             => $option['class'] ?? '',
 						'tooltip'           => $option['tooltip'] ?? '',
 						'options_tooltips'  => $option['options_tooltips'] ?? '',
-						'education_modal'   => $option['education_modal'] ?? array(),
+						'education_modal'   => $option['education_modal'] ?? [],
 						'options_callback'  => $option['options_callback'] ?? '',
 						'visibility'        => $visibility_rules,
 						'feature_name'      => $option['feature_name'] ?? '',
@@ -1080,16 +1140,15 @@ class Affiliate_WP_Settings {
 						'activator_options' => wp_parse_args(
 							$option['activator_options'] ?? [],
 							License_Activator::get_instance()->get_defaults()
-						)
+						),
+						'row_id'            => $option['row_id'] ?? '',
 					]
 				);
 			}
-
 		}
 
 		// Creates our settings in the options table
-		register_setting( 'affwp_settings', 'affwp_settings', array( $this, 'sanitize_settings' ) );
-
+		register_setting( 'affwp_settings', 'affwp_settings', [ $this, 'sanitize_settings' ] );
 	}
 
 	/**
@@ -1097,8 +1156,13 @@ class Affiliate_WP_Settings {
 	 *
 	 * @since 1.0
 	 * @return array
-	*/
-	function sanitize_settings( $input = array() ) {
+	 */
+	function sanitize_settings( $input = [] ) {
+
+		$saved = get_option( 'affwp_settings', [] );
+		if ( ! is_array( $saved ) ) {
+			$saved = [];
+		}
 
 		if ( empty( $_POST['_wp_http_referer'] ) ) {
 			return $input;
@@ -1106,14 +1170,10 @@ class Affiliate_WP_Settings {
 
 		parse_str( $_POST['_wp_http_referer'], $referrer );
 
-		$saved    = get_option( 'affwp_settings', array() );
-		if( ! is_array( $saved ) ) {
-			$saved = array();
-		}
 		$settings = $this->get_registered_settings();
 		$tab      = isset( $referrer['tab'] ) ? $referrer['tab'] : 'general';
 
-		$input = $input ? $input : array();
+		$input = $input ? $input : [];
 
 		/**
 		 * Filters the input value for the AffiliateWP settings tab.
@@ -1130,18 +1190,18 @@ class Affiliate_WP_Settings {
 		$input = apply_filters( 'affwp_settings_' . $tab . '_sanitize', $input );
 
 		// Ensure a value is always passed for every checkbox
-		if( ! empty( $settings[ $tab ] ) ) {
+		if ( ! empty( $settings[ $tab ] ) ) {
 			foreach ( $settings[ $tab ] as $key => $setting ) {
 
 				// Single checkbox
-				if ( isset( $settings[ $tab ][ $key ][ 'type' ] ) && 'checkbox' == $settings[ $tab ][ $key ][ 'type' ] ) {
+				if ( isset( $settings[ $tab ][ $key ]['type'] ) && 'checkbox' == $settings[ $tab ][ $key ]['type'] ) {
 					$input[ $key ] = ! empty( $input[ $key ] );
 				}
 
 				// Multicheck list
-				if ( isset( $settings[ $tab ][ $key ][ 'type' ] ) && 'multicheck' == $settings[ $tab ][ $key ][ 'type' ] ) {
-					if( empty( $input[ $key ] ) ) {
-						$input[ $key ] = array();
+				if ( isset( $settings[ $tab ][ $key ]['type'] ) && 'multicheck' == $settings[ $tab ][ $key ]['type'] ) {
+					if ( empty( $input[ $key ] ) ) {
+						$input[ $key ] = [];
 					}
 				}
 			}
@@ -1156,13 +1216,13 @@ class Affiliate_WP_Settings {
 			}
 
 			// Get the setting type (checkbox, select, etc)
-			$type              = isset( $settings[ $tab ][ $key ][ 'type' ] ) ? $settings[ $tab ][ $key ][ 'type' ] : false;
-			$sanitize_callback = isset( $settings[ $tab ][ $key ][ 'sanitize_callback' ] ) ? $settings[ $tab ][ $key ][ 'sanitize_callback' ] : false;
+			$type              = isset( $settings[ $tab ][ $key ]['type'] ) ? $settings[ $tab ][ $key ]['type'] : false;
+			$sanitize_callback = isset( $settings[ $tab ][ $key ]['sanitize_callback'] ) ? $settings[ $tab ][ $key ]['sanitize_callback'] : false;
 			$input[ $key ]     = $value;
 
 			if ( $type ) {
 
-				if( $sanitize_callback && is_callable( $sanitize_callback ) ) {
+				if ( $sanitize_callback && is_callable( $sanitize_callback ) ) {
 
 					add_filter( 'affwp_settings_sanitize_' . $type, $sanitize_callback, 10, 2 );
 
@@ -1195,7 +1255,7 @@ class Affiliate_WP_Settings {
 			$input[ $key ] = apply_filters( 'affwp_settings_sanitize', $input[ $key ], $key );
 
 			// Now remove the filter
-			if( $sanitize_callback && is_callable( $sanitize_callback ) ) {
+			if ( $sanitize_callback && is_callable( $sanitize_callback ) ) {
 
 				remove_filter( 'affwp_settings_sanitize_' . $type, $sanitize_callback, 10 );
 
@@ -1205,7 +1265,6 @@ class Affiliate_WP_Settings {
 		add_settings_error( 'affwp-notices', '', __( 'Settings updated.', 'affiliate-wp' ), 'updated' );
 
 		return array_merge( $saved, $input );
-
 	}
 
 	/**
@@ -1213,12 +1272,12 @@ class Affiliate_WP_Settings {
 	 *
 	 * @since 1.7
 	 * @return string
-	*/
+	 */
 	public function sanitize_referral_variable( $value = '', $key = '' ) {
 
-		if( 'referral_var' === $key ) {
+		if ( 'referral_var' === $key ) {
 
-			if( empty( $value ) ) {
+			if ( empty( $value ) ) {
 
 				$value = 'ref';
 
@@ -1276,7 +1335,7 @@ class Affiliate_WP_Settings {
 	 *
 	 * @since 1.7
 	 * @return string
-	*/
+	 */
 	public function sanitize_text_fields( $value = '', $key = '' ) {
 		return sanitize_text_field( $value );
 	}
@@ -1286,7 +1345,7 @@ class Affiliate_WP_Settings {
 	 *
 	 * @since 1.7.15
 	 * @return string
-	*/
+	 */
 	public function sanitize_url_fields( $value = '', $key = '' ) {
 		return sanitize_text_field( $value );
 	}
@@ -1296,7 +1355,7 @@ class Affiliate_WP_Settings {
 	 *
 	 * @since 1.7
 	 * @return int
-	*/
+	 */
 	public function sanitize_cb_fields( $value = '', $key = '' ) {
 		return absint( $value );
 	}
@@ -1306,7 +1365,7 @@ class Affiliate_WP_Settings {
 	 *
 	 * @since 1.7
 	 * @return int
-	*/
+	 */
 	public function sanitize_number_fields( $value = '', $key = '' ) {
 		return floatval( $value );
 	}
@@ -1316,7 +1375,7 @@ class Affiliate_WP_Settings {
 	 *
 	 * @since 1.7
 	 * @return int
-	*/
+	 */
 	public function sanitize_rich_editor_fields( $value = '', $key = '' ) {
 		return wp_kses_post( $value );
 	}
@@ -1326,7 +1385,7 @@ class Affiliate_WP_Settings {
 	 *
 	 * @since 1.9
 	 * @return string
-	*/
+	 */
 	public function option_page_capability( $capability ) {
 		return 'manage_affiliate_options';
 	}
@@ -1362,12 +1421,91 @@ class Affiliate_WP_Settings {
 		return array_merge(
 			$tabs,
 			array_filter(
-				array(
+				[
 					'coupons' => affwp_get_dynamic_coupons_integrations()
 						? __( 'Coupons', 'affiliate-wp' )
-						: ''
-				)
+						: '',
+				]
 			)
+		);
+	}
+
+	/**
+	 * Determines if payouts-related UI elements (badges, notices) should be shown.
+	 *
+	 * This is used for both the "New!" badge on the Payouts tab and the migration
+	 * notice in the Commissions tab to ensure consistent visibility timing.
+	 *
+	 * @since 2.29.0
+	 * @return bool True if the UI elements should be shown, false otherwise.
+	 */
+	private function should_show_payouts_ui_elements() {
+		$current_version = get_option( 'affwp_version', '0.0.0' );
+		$upgraded_from   = get_option( 'affwp_version_upgraded_from', '0.0.0' );
+
+		// Version when Payouts tab is introduced.
+		$show_from = '2.29.0';
+		// Hide after this version (about 2-3 releases later).
+		$show_until = '2.31.0';
+
+		// Don't show for fresh installs.
+		if ( '0.0.0' === $upgraded_from ) {
+			return false;
+		}
+
+		// Show if current version is in the window.
+		return version_compare( $current_version, $show_from, '>=' ) &&
+				version_compare( $current_version, $show_until, '<' );
+	}
+
+	/**
+	 * Add NEW badge to the Payouts tab in navigation.
+	 *
+	 * @since 2.29.0
+	 *
+	 * @param array  $tabs       Tabs array.
+	 * @param string $active_tab Active tab slug.
+	 * @param array  $query_args Query arguments.
+	 * @return array Modified tabs array.
+	 */
+	public function add_new_badge_to_payouts_tab( $tabs, $active_tab, $query_args ) {
+		// Only modify on settings page.
+		if ( ! isset( $_GET['page'] ) || 'affiliate-wp-settings' !== $_GET['page'] ) {
+			return $tabs;
+		}
+
+		if ( isset( $tabs['payouts'] ) && $this->should_show_payouts_ui_elements() ) {
+			// Only add badge if it's not already there
+			if ( strpos( $tabs['payouts'], 'affwp-new-badge' ) === false ) {
+				$tabs['payouts'] .= ' <span class="affwp-new-badge text-red-600 align-super text-[9px] inline-block font-medium uppercase ml-0.5">' . __( 'New!', 'affiliate-wp' ) . '</span>';
+			}
+		}
+
+		return $tabs;
+	}
+
+	/**
+	 * Returns the migration notice HTML for the old payout methods section.
+	 *
+	 * @since 2.29.0
+	 *
+	 * @return string HTML content for the migration notice or empty string if not needed.
+	 */
+	private function payment_methods_migration_notice() {
+		$payouts_url = add_query_arg(
+			[
+				'page' => 'affiliate-wp-settings',
+				'tab'  => 'payouts',
+			],
+			admin_url( 'admin.php' )
+		);
+
+		return sprintf(
+			'<p>%s</p>
+			<p><a href="%s" class="button button-secondary">%s</a></p>',
+			__( 'Payout methods have moved to a dedicated <strong>Payouts</strong> tab for better organization and easier management.', 'affiliate-wp' ),
+			esc_url( $payouts_url ),
+			__( 'Go to Payouts Tab', 'affiliate-wp' )
 		);
 	}
 
@@ -1382,11 +1520,11 @@ class Affiliate_WP_Settings {
 	public function get_sections( string $tab_name ) : array {
 
 		if ( '' !== $tab_name && ! in_array( $tab_name, array_keys( $this->get_tabs() ), true ) ) {
-			return array(); // We do not want to return fields from a non-existent section.
+			return []; // We do not want to return fields from a non-existent section.
 		}
 
 		if ( ! isset( $this->sections[ $tab_name ] ) ) {
-			return array(); // No sections for this block.
+			return []; // No sections for this block.
 		}
 
 		/**
@@ -1417,7 +1555,7 @@ class Affiliate_WP_Settings {
 	 * @param array  $visibility Set of rules to control the visibility of the field.
 	 * @param string $template How the section must be rendered. Default to table.
 	 * @param string $license_level The minimum license level required to access the settings from this section.
-	 * @param mixed $tooltip Display a tooltip for the section. It can be either a string or a callable.
+	 * @param mixed  $tooltip Display a tooltip for the section. It can be either a string or a callable.
 	 */
 	public function register_section(
 		string $tab,
@@ -1425,7 +1563,7 @@ class Affiliate_WP_Settings {
 		string $title,
 		array $settings,
 		string $help_text = '',
-		array $visibility = array(),
+		array $visibility = [],
 		string $template = 'table',
 		string $license_level = '',
 		$tooltip = ''
@@ -1452,27 +1590,35 @@ class Affiliate_WP_Settings {
 			$field_val = affiliate_wp()->settings->get( $visibility['required_field'] );
 
 			// We don't save booleans, so we need to convert the visibility value to an integer.
-			$visibility['value'] = in_array( $field_val, array( 0, '0', 1, '1' ), true )
+			$visibility['value'] = in_array( $field_val, [ 0, '0', 1, '1' ], true )
 				? (int) $visibility['value']
 				: $visibility['value'];
 
 			if (
-				in_array( $visibility['compare'], array( '==', '===' ), true ) &&
+				in_array( $visibility['compare'], [ '==', '===' ], true ) &&
 				$field_val !== $visibility['value']
 			) {
 				$classes .= ' affwp-hidden';
 			}
 
 			if (
-				in_array( $visibility['compare'], array( '!=', '<>' ), true ) &&
+				in_array( $visibility['compare'], [ '!=', '<>' ], true ) &&
 				// phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison -- International simple comparison.
 				$field_val == $visibility['value']
 			) {
 				$classes .= ' affwp-hidden';
 			}
+
+			if (
+				'in' === $visibility['compare'] &&
+				is_array( $visibility['value'] ) &&
+				! in_array( $field_val, $visibility['value'], true )
+			) {
+				$classes .= ' affwp-hidden';
+			}
 		}
 
-		$this->sections[ $tab ][ sanitize_title( $handle ) ] = array(
+		$this->sections[ $tab ][ sanitize_title( $handle ) ] = [
 			'title'         => $title,
 			'fields'        => $settings,
 			'help_text'     => $help_text,
@@ -1481,13 +1627,13 @@ class Affiliate_WP_Settings {
 			'license_level' => in_array( $license_level, [ 'pro', 'plus', 'personal' ], true )
 				? $license_level
 				: '',
-			'template'      => in_array( $template, [ 'table', 'affiliate_signup_widget' ], true )
+			'template'      => in_array( $template, [ 'table', 'affiliate_signup_widget', 'affiliate_security' ], true )
 				? $template
 				: 'table',
 			'tooltip'       => is_callable( $tooltip )
 				? trim( call_user_func( $tooltip ) )
-				: trim( $tooltip )
-		);
+				: ( is_array( $tooltip ) ? $tooltip : trim( $tooltip ) ),
+		];
 	}
 
 	/**
@@ -1509,17 +1655,17 @@ class Affiliate_WP_Settings {
 		 */
 		return apply_filters(
 			'affwp_settings',
-			array(
-				'general' =>
+			[
+				'general'      =>
 					apply_filters(
 						'affwp_settings_general',
 						$this->get_settings(
-							array(
+							[
 								'license_key',
-							)
+							]
 						)
 					),
-				'affiliates' =>
+				'affiliates'   =>
 					apply_filters(
 						'affwp_settings_affiliates',
 						$this->get_settings(
@@ -1529,7 +1675,7 @@ class Affiliate_WP_Settings {
 								array_keys( get_ai_settings() ),
 
 								// Other settings.
-								array(
+								[
 									'affiliates_page',
 									'affiliates_login_page',
 									'affiliates_registration_page',
@@ -1537,10 +1683,16 @@ class Affiliate_WP_Settings {
 									'allow_affiliate_registration',
 									'require_approval',
 									'additional_registration_modes',
+									'captcha_type',
 									'recaptcha_type',
 									'recaptcha_site_key',
 									'recaptcha_secret_key',
 									'recaptcha_score_threshold',
+									'hcaptcha_site_key',
+									'hcaptcha_secret_key',
+									'turnstile_site_key',
+									'turnstile_secret_key',
+									'captcha_protect_login',
 									'referral_var',
 									'referral_format',
 									'referral_pretty_urls',
@@ -1552,15 +1704,15 @@ class Affiliate_WP_Settings {
 									'logout_link',
 									'affiliate-landing-pages',
 									'direct_link_tracking',
-								)
+								]
 							)
 						)
 					),
-				'commissions' =>
+				'commissions'  =>
 					apply_filters(
 						'affwp_settings_commissions',
 						$this->get_settings(
-							array(
+							[
 								'referral_rate_type',
 								'flat_rate_basis',
 								'referral_rate',
@@ -1571,64 +1723,35 @@ class Affiliate_WP_Settings {
 								'revoke_on_refund',
 								'ignore_zero_referrals',
 								'commission_holding_period',
-								'paypal_payouts',
-								'manual_payouts',
-								'payouts_service_about',
-								'payouts_service_button',
-								'enable_payouts_service',
-								'payouts_service_description',
-								'payouts_service_notice',
 								'recurring',
 								'multi_tier_commissions',
-							)
+							]
 						)
 					),
 				'integrations' =>
 					apply_filters(
 						'affwp_settings_integrations',
 						$this->get_settings(
-							array(
+							[
 								'integrations',
-							)
+							]
 						)
 					),
-				'emails' => apply_filters(
-					'affwp_settings_emails',
-					$this->get_settings(
-						array(
-							'email_logo',
-							'email_template',
-							'from_name',
-							'from_email',
-							'email_notifications',
-							'affiliate_email_summaries',
-							'affiliate_manager_email',
-							'registration_subject',
-							'registration_email',
-							'new_admin_referral_subject',
-							'new_admin_referral_email',
-							'referral_subject',
-							'referral_email',
-							'accepted_subject',
-							'accepted_email',
-						)
-					)
-				),
 				'opt_in_forms' => apply_filters(
 					'affwp_settings_opt_in_forms',
 					$this->get_settings(
-						array(
+						[
 							'opt_in_referral_amount',
 							'opt_in_referral_status',
 							'opt_in_success_message',
 							'opt_in_platform',
-						)
+						]
 					)
 				),
-				'advanced' => apply_filters(
+				'advanced'     => apply_filters(
 					'affwp_settings_advanced',
 					$this->get_settings(
-						array(
+						[
 							'currency',
 							'currency_position',
 							'thousands_separator',
@@ -1644,13 +1767,13 @@ class Affiliate_WP_Settings {
 							'required_registration_fields',
 							'tracking_fallback',
 							'uninstall_on_delete',
-						)
+						]
 					)
 				),
-				'coupons' => apply_filters(
+				'coupons'      => apply_filters(
 					'affwp_settings_coupons',
 					$this->get_settings(
-						array(
+						[
 							'dynamic_coupons_header',
 							'coupon_template_woocommerce',
 							'dynamic_coupons',
@@ -1660,10 +1783,10 @@ class Affiliate_WP_Settings {
 							'coupon_hyphen_delimiter',
 							'affiliate_link_discounts',
 							'affiliate_link_discounts_notification_theme',
-						)
+						]
 					)
 				),
-			)
+			]
 		);
 	}
 
@@ -1680,13 +1803,13 @@ class Affiliate_WP_Settings {
 	private function get_registration_modes() : array {
 
 		return array_filter(
-			array(
+			[
 				'none'                    => __( 'None', 'affiliate-wp' ),
 				'auto_register_new_users' => __( 'Automatically register new user accounts as affiliates', 'affiliate-wp' ),
 				'affiliate_signup_widget' => $this->supports_affiliate_signup_widgets()
 					? __( 'Convert customers into affiliates using the affiliate signup widget', 'affiliate-wp' )
 					: '',
-			)
+			]
 		);
 	}
 
@@ -1699,7 +1822,7 @@ class Affiliate_WP_Settings {
 	 * @param array $filter_by If supplied, will return only the specified settings.
 	 * @return array An array of settings.
 	 */
-	public function get_settings( array $filter_by = array() ) : array {
+	public function get_settings( array $filter_by = [] ) : array {
 
 		// get currently logged in username
 		$user_info = get_userdata( get_current_user_id() );
@@ -1717,7 +1840,8 @@ class Affiliate_WP_Settings {
 		$emails_tags_list = affwp_get_emails_tags_list();
 
 		/* translators: 1: Referral variable example affiliate URL, 2: Username example affiliate URL */
-		$referral_pretty_urls_desc = sprintf( __( 'Show pretty affiliate referral URLs to affiliates. For example: <strong>%1$s or %2$s</strong>', 'affiliate-wp' ),
+		$referral_pretty_urls_desc = sprintf(
+			__( 'Show pretty affiliate referral URLs to affiliates. For example: <strong>%1$s or %2$s</strong>', 'affiliate-wp' ),
 			home_url( '/' ) . affiliate_wp()->tracking->get_referral_var() . '/1',
 			home_url( '/' ) . trailingslashit( affiliate_wp()->tracking->get_referral_var() ) . $username
 		);
@@ -1732,91 +1856,82 @@ class Affiliate_WP_Settings {
 
 		// phpcs:disable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned -- Ignore complex array alignment.
 		// phpcs:disable WordPress.Arrays.CommaAfterArrayItem.NoComma -- Ignore old code base.
-		$settings = array(
-			'license_key' => array(
+		$settings = [
+			'license_key' => [
 				'name' => __( 'License Key', 'affiliate-wp' ),
 				/* translators: Support page URL */
-				'desc' => sprintf( __( 'Please enter your license key. An active license key is needed for automatic plugin updates and <a href="%s" target="_blank">support</a>.', 'affiliate-wp' ), 'https://affiliatewp.com/contact/' ),
+				'desc' => sprintf( __( 'Please enter your license key. An active license key is needed for automatic plugin updates and <a href="%s" target="_blank">support</a>.', 'affiliate-wp' ), esc_url( affwp_utm_link( 'https://affiliatewp.com/contact/', 'settings-general', 'License Key Support' ) ) ),
 				'type' => 'license',
 				'sanitize_callback' => 'sanitize_text_field',
-			),
-			'affiliates_page' => array(
+			],
+			'affiliates_page' => [
 				'name' => __( 'Affiliate Account Page', 'affiliate-wp' ),
 				'type' => 'select',
 				'options' => affwp_get_pages(),
 				'sanitize_callback' => 'absint',
-				'tooltip' => sprintf(
-					'<p>' . __( 'This is the page where affiliates will manage their affiliate account.', 'affiliate-wp' ) . '</p>' .
-					/* translators: 1: Link to the doc page for the affiliate account page. 2: Additional link attributes. 3: Accessibility text. */
-					__( '<a href="%1$s" %2$s>Learn more%3$s</a>', 'affiliate-wp' ),
-					esc_url( 'https://affiliatewp.com/docs/affiliate-account-page' ),
-					'target="_blank" rel="noopener"',
-					sprintf(
-						'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
-						/* translators: Hidden accessibility text. */
-						__( '(opens in a new tab)', 'affiliate-wp' )
-					)
-				),
-			),
-			'affiliates_login_page' => array(
+				'tooltip' => [
+					__( 'This is the page where affiliates will manage their affiliate account.', 'affiliate-wp' ),
+					[
+						'type'     => 'link',
+						'text'     => __( 'Learn more', 'affiliate-wp' ),
+						'url'      => affwp_utm_link( 'https://affiliatewp.com/docs/affiliate-account-page', 'settings-general', 'Affiliate Account Page' ),
+						'external' => true,
+					],
+				],
+			],
+			'affiliates_login_page' => [
 				'name' => __( 'Affiliate Login Page', 'affiliate-wp' ),
 				'type' => 'select',
 				'std'  => affwp_get_affiliate_area_page_id(), // Leave Affiliate Area as default for existing installations.
 				'options' => affwp_get_pages(),
 				'sanitize_callback' => 'absint',
-				'tooltip' => sprintf(
-					'<p>' . __( 'This is the page where affiliates will log in to access their affiliate account.', 'affiliate-wp' ) . '</p>' .
-					/* translators: 1: Link to the doc page for the affiliate login page. 2: Additional link attributes. 3: Accessibility text. */
-					__( '<a href="%1$s" %2$s>Learn more%3$s</a>', 'affiliate-wp' ),
-					esc_url( 'https://affiliatewp.com/docs/affiliate-login-page' ),
-					'target="_blank" rel="noopener"',
-					sprintf(
-						'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
-						/* translators: Hidden accessibility text. */
-						__( '(opens in a new tab)', 'affiliate-wp' )
-					)
-				),
-			),
-			'affiliates_registration_page' => array(
+				'tooltip' => [
+					__( 'This is the page where affiliates will log in to access their affiliate account.', 'affiliate-wp' ),
+					[
+						'type'     => 'link',
+						'text'     => __( 'Learn more', 'affiliate-wp' ),
+						'url'      => affwp_utm_link( 'https://affiliatewp.com/docs/affiliate-login-page', 'settings-general', 'Affiliate Login Page' ),
+						'external' => true,
+					],
+				],
+			],
+			'affiliates_registration_page' => [
 				'name' => __( 'Affiliate Registration Page', 'affiliate-wp' ),
 				'type' => 'select',
 				'std'  => affwp_get_affiliate_area_page_id(), // Leave Affiliate Area as default for existing installations.
 				'options' => affwp_get_pages(),
 				'sanitize_callback' => 'absint',
-				'tooltip' => sprintf(
-					'<p>' . __( 'This is the page where your visitors will register to become affiliates.', 'affiliate-wp' ) . '</p>' .
-					/* translators: 1: Link to the doc page for the affiliate registration page. 2: Additional link attributes. 3: Accessibility text. */
-					__( '<a href="%1$s" %2$s>Learn more%3$s</a>', 'affiliate-wp' ),
-					esc_url( 'https://affiliatewp.com/docs/affiliate-registration-page' ),
-					'target="_blank" rel="noopener"',
-					sprintf(
-						'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
-						/* translators: Hidden accessibility text. */
-						__( '(opens in a new tab)', 'affiliate-wp' )
-					)
-				),
-			),
-			'terms_of_use' => array(
+				'tooltip' => [
+					__( 'This is the page where your visitors will register to become affiliates.', 'affiliate-wp' ),
+					[
+						'type'     => 'link',
+						'text'     => __( 'Learn more', 'affiliate-wp' ),
+						'url'      => affwp_utm_link( 'https://affiliatewp.com/docs/affiliate-registration-page', 'settings-general', 'Affiliate Registration Page' ),
+						'external' => true,
+					],
+				],
+			],
+			'terms_of_use' => [
 				'name' => __( 'Terms of Use Page', 'affiliate-wp' ),
-				'desc' => sprintf( __( 'Select a Terms of Use page or <a href="%s">create one using a template</a>. This only affects the [affiliate_area] and [affiliate_registration] shortcodes.', 'affiliate-wp' ), esc_url( affwp_admin_url( 'tools', array( 'tab' => 'terms_of_use_generator' ) ) ) ),
+				'desc' => sprintf( __( 'Select a Terms of Use page or <a href="%s">create one using a template</a>. This only affects the [affiliate_area] and [affiliate_registration] shortcodes.', 'affiliate-wp' ), esc_url( affwp_admin_url( 'tools', [ 'tab' => 'terms_of_use_generator' ] ) ) ),
 				'type' => 'select',
 				'options' => affwp_get_pages(),
 				'sanitize_callback' => 'absint',
-			),
-			'terms_of_use_label' => array(
+			],
+			'terms_of_use_label' => [
 				'name' => __( 'Terms of Use Label', 'affiliate-wp' ),
 				'desc' => __( 'The text shown for the Terms of Use checkbox when using the [affiliate_area] or [affiliate_registration] shortcodes. When connected to the Payouts Service, it\'s also shown on the "Payout Settings" form, located within the Settings tab of the Affliate Area.', 'affiliate-wp' ),
 				'type' => 'text',
-				'std' => __( 'Agree to our Terms of Use and Privacy Policy', 'affiliate-wp' )
-			),
-			'referral_var' => array(
+				'std' => __( 'Agree to our Terms of Use and Privacy Policy', 'affiliate-wp' ),
+			],
+			'referral_var' => [
 				'name' => __( 'Referral Variable', 'affiliate-wp' ),
 				/* translators: Affiliate URL example text */
 				'desc' => sprintf( __( 'The URL variable for referral URLs. For example: <strong>%s</strong>.', 'affiliate-wp' ), esc_url( add_query_arg( affiliate_wp()->tracking->get_referral_var(), '1', home_url( '/' ) ) ) ),
 				'type' => 'text',
-				'std' => 'ref'
-			),
-			'referral_format' => array(
+				'std' => 'ref',
+			],
+			'referral_format' => [
 				'name' => __( 'Default Referral Format', 'affiliate-wp' ),
 				/* translators: 1: Affiliate URL example with referral variable, 2: Affiliate URL example with username */
 				'desc' => sprintf( __( 'Show referral URLs to affiliates with either their affiliate ID or Username appended.<br/> For example: <strong>%1$s or %2$s</strong>.', 'affiliate-wp' ), esc_url( add_query_arg( affiliate_wp()->tracking->get_referral_var(), '1', home_url( '/' ) ) ), esc_url( add_query_arg( affiliate_wp()->tracking->get_referral_var(), $username, home_url( '/' ) ) ) ),
@@ -1831,186 +1946,187 @@ class Affiliate_WP_Settings {
 				 */
 				'options' => apply_filters(
 					'affwp_settings_referral_format',
-					array(
+					[
 						'id'       => __( 'ID', 'affiliate-wp' ),
 						'username' => __( 'Username', 'affiliate-wp' ),
-					)
+					]
 				),
-				'std' => 'id'
-			),
-			'referral_pretty_urls' => array(
+				'std' => 'id',
+			],
+			'referral_pretty_urls' => [
 				'name' => __( 'Pretty Affiliate URLs', 'affiliate-wp' ),
 				'desc' => $referral_pretty_urls_desc,
 				'type' => 'checkbox',
 				'std'  => '1',
-			),
-			'referral_credit_last' => array(
+			],
+			'referral_credit_last' => [
 				'name' => __( 'Credit Last Referrer', 'affiliate-wp' ),
 				'desc' => __( 'Credit the last affiliate who referred the customer.', 'affiliate-wp' ),
 				'type' => 'checkbox',
-			),
-			'referral_rate_type' => array(
+			],
+			'referral_rate_type' => [
 				'name'    => __( 'Referral Rate Type', 'affiliate-wp' ),
 				'desc'    => __( 'Choose a referral rate type. Referrals can be based on either a percentage or a flat rate amount.', 'affiliate-wp' ),
 				'type'    => 'radio',
 				'options' => affwp_get_affiliate_rate_types(),
-				'std'     => 'percentage'
-			),
-			'flat_rate_basis' => array(
+				'std'     => 'percentage',
+			],
+			'flat_rate_basis' => [
 				'name'    => __( 'Flat Rate Referral Basis', 'affiliate-wp' ),
 				'desc'    => __( 'Flat rate referrals can be calculated on either a per product or per order basis.', 'affiliate-wp' ),
 				'type'    => 'radio',
 				'options' => affwp_get_affiliate_flat_rate_basis_types(),
 				'class'   => affwp_get_affiliate_rate_type() !== 'flat' ? 'affwp-referral-rate-type-field affwp-hidden' : 'affwp-referral-rate-type-field',
-				'std'     => 'per_product'
-			),
-			'referral_rate' => array(
+				'std'     => 'per_product',
+			],
+			'referral_rate' => [
 				'name' => __( 'Referral Rate', 'affiliate-wp' ),
 				'desc' => __( 'The default referral rate. A percentage if the Referral Rate Type is set to Percentage, a flat amount otherwise. Referral rates can also be set for each individual affiliate.', 'affiliate-wp' ),
 				'type' => 'number',
 				'size' => 'small',
 				'step' => '0.01',
 				'std'  => '20',
-			),
-			'exclude_shipping' => array(
+			],
+			'exclude_shipping' => [
 				'name' => __( 'Exclude Shipping', 'affiliate-wp' ),
 				'desc' => __( 'Exclude shipping costs from referral calculations.', 'affiliate-wp' ),
-				'type' => 'checkbox'
-			),
-			'exclude_tax' => array(
+				'type' => 'checkbox',
+			],
+			'exclude_tax' => [
 				'name' => __( 'Exclude Tax', 'affiliate-wp' ),
 				'desc' => __( 'Exclude taxes from referral calculations.', 'affiliate-wp' ),
-				'type' => 'checkbox'
-			),
-			'cookie_exp' => array(
-				'name' => __( 'Cookie Expiration', 'affiliate-wp' ),
-				'desc' => __( 'Enter how many days the referral tracking cookie should be valid for.', 'affiliate-wp' ),
-				'type' => 'number',
-				'size' => 'small',
-				'std'  => '30',
-			),
-			'cookie_sharing' => array(
+				'type' => 'checkbox',
+			],
+			'cookie_exp' => [
+				'name'   => __( 'Cookie Expiration', 'affiliate-wp' ),
+				'desc'   => __( 'Enter how many days the referral tracking cookie should be valid for.', 'affiliate-wp' ),
+				'type'   => 'number',
+				'size'   => 'small',
+				'std'    => '30',
+				'row_id' => 'cookie_expiration',
+			],
+			'cookie_sharing' => [
 				'name' => __( 'Cookie Sharing', 'affiliate-wp' ),
 				'desc' => __( 'Share tracking cookies with sub-domains in a multisite install. When enabled, tracking cookies created on domain.com will also be available on sub.domain.com. Note: this only applies to WordPress Multisite installs.', 'affiliate-wp' ),
 				'type' => 'checkbox',
-			),
-			'currency' => array(
+			],
+			'currency' => [
 				'name'    => __( 'Currency', 'affiliate-wp' ),
 				'desc'    => __( 'Choose your currency. Note that some payment gateways have currency restrictions.', 'affiliate-wp' ),
 				'type'    => 'select',
 				'options' => affwp_get_currencies(),
-			),
-			'currency_position' => array(
+			],
+			'currency_position' => [
 				'name' => __( 'Currency Symbol Position', 'affiliate-wp' ),
 				'desc' => __( 'Choose the location of the currency symbol.', 'affiliate-wp' ),
 				'type' => 'select',
-				'options' => array(
+				'options' => [
 					'before' => __( 'Before - $10', 'affiliate-wp' ),
-					'after' => __( 'After - 10$', 'affiliate-wp' )
-				),
-			),
-			'thousands_separator' => array(
+					'after' => __( 'After - 10$', 'affiliate-wp' ),
+				],
+			],
+			'thousands_separator' => [
 				'name' => __( 'Thousands Separator', 'affiliate-wp' ),
 				'desc' => __( 'The symbol (usually , or .) to separate thousands', 'affiliate-wp' ),
 				'type' => 'text',
 				'size' => 'small',
-				'std' => ','
-			),
-			'decimal_separator' => array(
+				'std' => ',',
+			],
+			'decimal_separator' => [
 				'name' => __( 'Decimal Separator', 'affiliate-wp' ),
 				'desc' => __( 'The symbol (usually , or .) to separate decimal points', 'affiliate-wp' ),
 				'type' => 'text',
 				'size' => 'small',
-				'std' => '.'
-			),
-			'form_settings' => array(
+				'std' => '.',
+			],
+			'form_settings' => [
 				'name' => '<strong>' . __( 'Affiliate Form Shortcode Settings', 'affiliate-wp' ) . '</strong>',
-				'type' => 'header'
-			),
-			'affiliate_area_forms' => array(
+				'type' => 'header',
+			],
+			'affiliate_area_forms' => [
 				'name' => __( 'Affiliate Area Forms', 'affiliate-wp' ),
 				/* translators: Miscellaneous settings screen URL */
 				'desc' => sprintf( __( 'Select which form(s) to show on the Affiliate Area page when using the [affiliate_area] shortcode. <a href="%s">Allow Affiliate Registration</a> must be enabled.', 'affiliate-wp' ), admin_url( 'admin.php?page=affiliate-wp-settings&tab=affiliates#allow_affiliate_registration' ) ),
 				'type' => 'select',
-				'options' => array(
+				'options' => [
 					'both'         => __( 'Affiliate Registration Form and Affiliate Login Form', 'affiliate-wp' ),
 					'registration' => __( 'Affiliate Registration Form Only', 'affiliate-wp' ),
 					'login'        => __( 'Affiliate Login Form Only', 'affiliate-wp' ),
-					'none'         => __( 'None', 'affiliate-wp' )
+					'none'         => __( 'None', 'affiliate-wp' ),
 
-				)
-			),
-			'integrations' => array(
+				],
+			],
+			'integrations' => [
 				'name' => __( 'Integrations', 'affiliate-wp' ),
 				'desc' => __( 'Choose the integrations to enable.', 'affiliate-wp' ),
 				'type' => 'multicheck',
-				'options' => affiliate_wp()->integrations->get_integrations()
-			),
-			'opt_in_referral_amount' => array(
+				'options' => affiliate_wp()->integrations->get_integrations(),
+			],
+			'opt_in_referral_amount' => [
 				'name' => __( 'Opt-In Referral Amount', 'affiliate-wp' ),
 				'type' => 'number',
 				'size' => 'small',
 				'step' => '0.01',
 				'std'  => '0.00',
 				'desc' => __( 'Enter the amount affiliates should receive for each opt-in referral. Default is 0.00.', 'affiliate-wp' ),
-			),
-			'opt_in_referral_status' => array(
+			],
+			'opt_in_referral_status' => [
 				'name' => __( 'Opt-In Referral Status', 'affiliate-wp' ),
 				'type' => 'radio',
-				'options'  => array(
+				'options'  => [
 					'pending' => __( 'Pending', 'affiliate-wp' ),
 					'unpaid'  => __( 'Unpaid', 'affiliate-wp' ),
-				),
+				],
 				'std' => 'pending',
 				'desc' => __( 'Select the status that should be assigned to opt-in referrals by default.', 'affiliate-wp' ),
-			),
-			'opt_in_success_message' => array(
+			],
+			'opt_in_success_message' => [
 				'name' => __( 'Message shown upon opt-in success', 'affiliate-wp' ),
 				'type' => 'rich_editor',
 				'std'  => 'You have subscribed successfully.',
 				'desc' => __( 'Enter the message you would like to show subscribers after they have opted-in successfully.', 'affiliate-wp' ),
-			),
-			'opt_in_platform' => array(
+			],
+			'opt_in_platform' => [
 				'name' => __( 'Platform', 'affiliate-wp' ),
-				'desc' => __( 'Select the opt-in platform provider you wish to use then click Save Changes to configure the settings. The opt-in form can be displayed on any page using the [opt_in] shortcode. <a href="https://affiliatewp.com/docs/opt-in-form-settings/" target="_blank" rel="noopener noreferrer">Learn more</a>.', 'affiliate-wp' ),
+				'desc' => sprintf( __( 'Select the opt-in platform provider you wish to use then click Save Changes to configure the settings. The opt-in form can be displayed on any page using the [opt_in] shortcode. <a href="%s" target="_blank" rel="noopener noreferrer">Learn more</a>.', 'affiliate-wp' ), esc_url( affwp_utm_link( 'https://affiliatewp.com/docs/opt-in-form-settings/', 'settings-opt-in', 'Opt-In Form Settings' ) ) ),
 				'type' => 'select',
-				'options' => array_merge( array( '' => __( '(select one)', 'affiliate-wp' ) ), affiliate_wp()->integrations->opt_in->platforms )
-			),
-			'email_options_header' => array(
+				'options' => array_merge( [ '' => __( '(select one)', 'affiliate-wp' ) ], affiliate_wp()->integrations->opt_in->platforms ),
+			],
+			'email_options_header' => [
 				'name' => '<strong>' . __( 'Email Options', 'affiliate-wp' ) . '</strong>',
 				'desc' => '',
-				'type' => 'header'
-			),
-			'email_logo' => array(
+				'type' => 'header',
+			],
+			'email_logo' => [
 				'name' => __( 'Logo', 'affiliate-wp' ),
 				'desc' => __( 'Upload or choose a logo to be displayed at the top of emails.', 'affiliate-wp' ),
-				'type' => 'upload'
-			),
-			'email_template' => array(
+				'type' => 'upload',
+			],
+			'email_template' => [
 				'name' => __( 'Email Template', 'affiliate-wp' ),
 				'desc' => __( 'Choose a template to use for email notifications.', 'affiliate-wp' ),
 				'type' => 'select',
-				'options' => affwp_get_email_templates()
-			),
-			'from_name' => array(
+				'options' => affwp_get_email_templates(),
+			],
+			'from_name' => [
 				'name' => __( 'From Name', 'affiliate-wp' ),
 				'desc' => __( 'The name that emails come from. This is usually your site name.', 'affiliate-wp' ),
 				'type' => 'text',
-				'std' => get_bloginfo( 'name' )
-			),
-			'from_email' => array(
+				'std' => get_bloginfo( 'name' ),
+			],
+			'from_email' => [
 				'name' => __( 'From Email', 'affiliate-wp' ),
 				'desc' => __( 'The email address to send emails from. This will act as the "from" and "reply-to" address.', 'affiliate-wp' ),
 				'type' => 'text',
-				'std' => get_bloginfo( 'admin_email' )
-			),
-			'email_notifications' => array(
+				'std' => get_bloginfo( 'admin_email' ),
+			],
+			'email_notifications' => [
 				'name' => __( 'Email Notifications', 'affiliate-wp' ),
 				'desc' => __( 'The email notifications sent to the affiliate manager and affiliate.', 'affiliate-wp' ),
 				'type' => 'multicheck',
 				'options' => $this->email_notifications(),
-			),
-			'affiliate_email_summaries' => array(
+			],
+			'affiliate_email_summaries' => [
 				'name' => __( 'Affiliate Email Summaries', 'affiliate-wp' ),
 				'desc' => sprintf(
 
@@ -2019,9 +2135,10 @@ class Affiliate_WP_Settings {
 
 					// %1$s.
 					sprintf(
-						'%1$s <a href="https://affiliatewp.com/docs/affiliate-email-summaries" target="_blank" rel="noopener noreferrer">%2$s</a>',
+						'%1$s <a href="%3$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
 						__( 'Learn More', 'affiliate-wp' ),
-						__( 'in our documentation.', 'affiliate-wp' )
+						__( 'in our documentation.', 'affiliate-wp' ),
+						esc_url( affwp_utm_link( 'https://affiliatewp.com/docs/affiliate-email-summaries', 'settings-emails', 'Affiliate Email Summaries' ) )
 					),
 
 					// %2$s
@@ -2036,148 +2153,157 @@ class Affiliate_WP_Settings {
 				),
 				'type'     => 'checkbox',
 				'disabled' => is_multisite(),
-			),
-			'affiliate_manager_email' => array(
+			],
+			'affiliate_manager_email' => [
 				'name' => __( 'Affiliate Manager Email', 'affiliate-wp' ),
 				'desc' => __( 'The email address(es) to receive affiliate manager notifications. Separate multiple email addresses with a comma (,). The admin email address will be used unless overridden.', 'affiliate-wp' ),
 				'type' => 'text',
 				'std'  => get_bloginfo( 'admin_email' ),
-			),
-			'registration_options_header' => array(
+			],
+			'registration_options_header' => [
 				'name' => '<strong>' . __( 'Registration Email Options For Affiliate Manager', 'affiliate-wp' ) . '</strong>',
 				'desc' => '',
-				'type' => 'header'
-			),
-			'registration_subject' => array(
+				'type' => 'header',
+			],
+			'registration_subject' => [
 				'name' => __( 'Registration Email Subject', 'affiliate-wp' ),
 				'desc' => __( 'Enter the subject line for the registration email sent to affiliate managers when new affiliates register. Supports template tags.', 'affiliate-wp' ),
 				'type' => 'text',
-				'std' => __( 'New Affiliate Registration', 'affiliate-wp' )
-			),
-			'registration_email' => array(
+				'std' => __( 'New Affiliate Registration', 'affiliate-wp' ),
+			],
+			'registration_email' => [
 				'name' => __( 'Registration Email Content', 'affiliate-wp' ),
 				'desc' => __( 'Enter the email to send when a new affiliate registers. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . $emails_tags_list,
 				'type' => 'rich_editor',
 				/* translators: Registration email content */
-				'std' => sprintf( __( 'A new affiliate has registered on your site, %s', 'affiliate-wp' ), home_url() ) . "\n\n" . __( 'Name: ', 'affiliate-wp' ) . "{name}\n\n{website}\n\n{promo_method}"
-			),
-			'new_admin_referral_options_header' => array(
+				'std' => sprintf( __( 'A new affiliate has registered on your site, %s', 'affiliate-wp' ), home_url() ) . "\n\n" . __( 'Name: ', 'affiliate-wp' ) . "{name}\n\n{website}\n\n{promo_method}",
+			],
+			'new_admin_referral_options_header' => [
 				'name' => '<strong>' . __( 'New Referral Email Options for Affiliate Manager', 'affiliate-wp' ) . '</strong>',
 				'desc' => '',
-				'type' => 'header'
-			),
-			'new_admin_referral_subject' => array(
+				'type' => 'header',
+			],
+			'new_admin_referral_subject' => [
 				'name' => __( 'New Referral Email Subject', 'affiliate-wp' ),
 				'desc' => __( 'Enter the subject line for the email sent to site the site affiliate manager when affiliates earn referrals. Supports template tags.', 'affiliate-wp' ),
 				'type' => 'text',
-				'std' => __( 'Referral Earned!', 'affiliate-wp' )
-			),
-			'new_admin_referral_email' => array(
+				'std' => __( 'Referral Earned!', 'affiliate-wp' ),
+			],
+			'new_admin_referral_email' => [
 				'name' => __( 'New Referral Email Content', 'affiliate-wp' ),
 				'desc' => __( 'Enter the email to send to site affiliate managers when new referrals are earned. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . $emails_tags_list,
 				'type' => 'rich_editor',
-				'std' => __( '{name} has been awarded a new referral of {amount} on {site_name}.', 'affiliate-wp' )
-			),
-			'new_referral_options_header' => array(
+				'std' => __( '{name} has been awarded a new referral of {amount} on {site_name}.', 'affiliate-wp' ),
+			],
+			'new_referral_options_header' => [
 				'name' => '<strong>' . __( 'New Referral Email Options For Affiliate', 'affiliate-wp' ) . '</strong>',
 				'desc' => '',
-				'type' => 'header'
-			),
-			'referral_subject' => array(
+				'type' => 'header',
+			],
+			'referral_subject' => [
 				'name' => __( 'New Referral Email Subject', 'affiliate-wp' ),
 				'desc' => __( 'Enter the subject line for new referral emails sent when affiliates earn referrals. Supports template tags.', 'affiliate-wp' ),
 				'type' => 'text',
-				'std' => __( 'Referral Awarded!', 'affiliate-wp' )
-			),
-			'referral_email' => array(
+				'std' => __( 'Referral Awarded!', 'affiliate-wp' ),
+			],
+			'referral_email' => [
 				'name' => __( 'New Referral Email Content', 'affiliate-wp' ),
 				'desc' => __( 'Enter the email to send on new referrals. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . $emails_tags_list,
 				'type' => 'rich_editor',
 				/* translators: Home URL */
-				'std' => __( 'Congratulations {name}!', 'affiliate-wp' ) . "\n\n" . __( 'You have been awarded a new referral of', 'affiliate-wp' ) . ' {amount} ' . sprintf( __( 'on %s!', 'affiliate-wp' ), home_url() ) . "\n\n" . __( 'Log into your affiliate area to view your earnings or disable these notifications:', 'affiliate-wp' ) . ' {login_url}'
-			),
-			'accepted_options_header' => array(
+				'std' => __( 'Congratulations {name}!', 'affiliate-wp' ) . "\n\n" . __( 'You have been awarded a new referral of', 'affiliate-wp' ) . ' {amount} ' . sprintf( __( 'on %s!', 'affiliate-wp' ), home_url() ) . "\n\n" . __( 'Log into your affiliate area to view your earnings or disable these notifications:', 'affiliate-wp' ) . ' {login_url}',
+			],
+			'accepted_options_header' => [
 				'name' => '<strong>' . __( 'Application Accepted Email Options For Affiliate', 'affiliate-wp' ) . '</strong>',
 				'desc' => '',
-				'type' => 'header'
-			),
-			'accepted_subject' => array(
+				'type' => 'header',
+			],
+			'accepted_subject' => [
 				'name' => __( 'Application Accepted Email Subject', 'affiliate-wp' ),
 				'desc' => __( 'Enter the subject line for accepted application emails sent to affiliates when their account is approved. Supports template tags.', 'affiliate-wp' ),
 				'type' => 'text',
-				'std' => __( 'Affiliate Application Accepted', 'affiliate-wp' )
-			),
-			'accepted_email' => array(
+				'std' => __( 'Affiliate Application Accepted', 'affiliate-wp' ),
+			],
+			'accepted_email' => [
 				'name' => __( 'Application Accepted Email Content', 'affiliate-wp' ),
 				'desc' => __( 'Enter the email to send when an application is accepted. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . $emails_tags_list,
 				'type' => 'rich_editor',
 				/* translators: Website URL */
-				'std' => __( 'Congratulations {name}!', 'affiliate-wp' ) . "\n\n" . sprintf( __( 'Your affiliate application on %s has been accepted!', 'affiliate-wp' ), home_url() ) . "\n\n" . __( 'Log into your affiliate area at', 'affiliate-wp' ) . ' {login_url}'
-			),
-			'allow_affiliate_registration' => array(
+				'std' => __( 'Congratulations {name}!', 'affiliate-wp' ) . "\n\n" . sprintf( __( 'Your affiliate application on %s has been accepted!', 'affiliate-wp' ), home_url() ) . "\n\n" . __( 'Log into your affiliate area at', 'affiliate-wp' ) . ' {login_url}',
+			],
+			'allow_affiliate_registration' => [
 				'name' => __( 'Allow Affiliate Registration', 'affiliate-wp' ),
 				'desc' => __( 'Allow users to register affiliate accounts for themselves.', 'affiliate-wp' ),
 				'type' => 'checkbox',
 				'std'  => '1',
-			),
-			'require_approval' => array(
+			],
+			'require_approval' => [
 				'name'  => __( 'Require Approval', 'affiliate-wp' ),
 				'desc'  => __( 'Require that Pending affiliate accounts must be approved before they can begin earning referrals.', 'affiliate-wp' ),
 				'type'  => 'checkbox',
 				'std'   => '1',
-				'class' => affiliate_wp()->settings->get( 'allow_affiliate_registration' ) ? '' : 'affwp-hidden',
-				'visibility' => array(
-					'required_field' => 'allow_affiliate_registration',
-					'value'          => true,
-				),
-			),
-			'logout_link' => array(
+			],
+			'logout_link' => [
 				'name' => __( 'Logout Link', 'affiliate-wp' ),
 				'desc' => __( 'Enabling this will show the logout link in both the Affiliate Area and the Affiliate Portal.', 'affiliate-wp' ),
 				'type' => 'checkbox',
-			),
-			'default_referral_url' => array(
+			],
+			'default_referral_url' => [
 				'name' => __( 'Default Referral URL', 'affiliate-wp' ),
 				'desc' => __( 'The default referral URL shown in the Affiliate Area.', 'affiliate-wp' ),
-				'type' => 'url'
-			),
-			'recaptcha_type' => array(
-				'name' => __( 'reCAPTCHA Type', 'affiliate-wp' ),
+				'type' => 'url',
+			],
+			'captcha_type' => [
+				'name' => __( 'CAPTCHA', 'affiliate-wp' ),
 				'type' => 'radio',
-				'options'  => array(
-					'none' => __( 'None', 'affiliate-wp' ),
-					'v2'   => __( 'reCAPTCHA v2 ("I\'m not a robot" Checkbox)', 'affiliate-wp' ),
-					'v3'   => __( 'reCAPTCHA v3', 'affiliate-wp' ),
-				),
+				'options'  => [
+					'hcaptcha'  => __( 'hCaptcha', 'affiliate-wp' ),
+					'recaptcha' => __( 'reCAPTCHA', 'affiliate-wp' ),
+					'turnstile' => __( 'Turnstile', 'affiliate-wp' ),
+					'none'      => __( 'None', 'affiliate-wp' ),
+				],
 				'std' => 'none',
-				'desc' => sprintf(
-					__( 'Select the reCAPTCHA type. <a href="%s" target="_blank" rel="noopener noreferrer">View our reCAPTCHA documentation</a> to learn more and for step-by-step instructions.', 'affiliate-wp' ),
-					'https://affiliatewp.com/docs/how-to-set-up-and-use-recaptcha-in-affiliatewp/'
-				),
-			),
-			'recaptcha_site_key' => array(
+				'desc' => [
+					__( 'CAPTCHA blocks bots from creating or logging in to affiliate accounts.', 'affiliate-wp' ),
+					sprintf(
+						/* translators: %1$s is a link to the CAPTCHA comparison page */
+						__( 'Not sure which service is right for you? <a href="%1$s" target="_blank" rel="noopener noreferrer">Check out our comparison</a> for more details.', 'affiliate-wp' ),
+						affwp_utm_link( 'https://affiliatewp.com/docs/how-to-set-up-and-use-captcha-in-affiliatewp/', 'captcha-security', 'comparison-link', 'security-settings' )
+					),
+				],
+			],
+			'recaptcha_type' => [
+				'name' => __( 'reCAPTCHA Version', 'affiliate-wp' ),
+				'type' => 'radio',
+				'options' => [
+					'v2' => __( 'reCAPTCHA v2 ("I\'m not a robot" Checkbox)', 'affiliate-wp' ),
+					'v3' => __( 'reCAPTCHA v3 (Invisible)', 'affiliate-wp' ),
+				],
+				'std' => 'v2',
+				'visibility' => [
+					'required_field' => 'captcha_type',
+					'value'          => 'recaptcha',
+				],
+			],
+			'recaptcha_site_key' => [
 				'name' => __( 'reCAPTCHA Site Key', 'affiliate-wp' ),
 				'desc' => __( 'This is used to identify your site to Google reCAPTCHA.', 'affiliate-wp' ),
 				'type' => 'text',
-				'class'   => in_array( affwp_recaptcha_type(), array( 'v2', 'v3' ), true ) ? '' : 'affwp-hidden',
-				'visibility' => array(
-					'required_field' => 'recaptcha_type',
-					'value'          => 'none',
-					'compare'        => '!=',
-				),
-			),
-			'recaptcha_secret_key' => array(
+				'visibility' => [
+					'required_field' => 'captcha_type',
+					'value'          => 'recaptcha',
+				],
+			],
+			'recaptcha_secret_key' => [
 				'name' => __( 'reCAPTCHA Secret Key', 'affiliate-wp' ),
 				'desc' => __( 'This is used for communication between your site and Google reCAPTCHA. Be sure to keep it a secret.', 'affiliate-wp' ),
 				'type' => 'text',
-				'class'   => in_array( affwp_recaptcha_type(), array( 'v2', 'v3' ), true ) ? '' : 'affwp-hidden',
-				'visibility' => array(
-					'required_field' => 'recaptcha_type',
-					'value'          => 'none',
-					'compare'        => '!=',
-				),
-			),
-			'recaptcha_score_threshold' => array(
+				'visibility' => [
+					'required_field' => 'captcha_type',
+					'value'          => 'recaptcha',
+				],
+			],
+			'recaptcha_score_threshold' => [
 				'name' => __( 'reCAPTCHA Score Threshold', 'affiliate-wp' ),
 				'type' => 'number',
 				'size' => 'small',
@@ -2185,76 +2311,132 @@ class Affiliate_WP_Settings {
 				'std'  => '0.4',
 				'min'  => '0.0',
 				'max'  => '1.0',
-				'class'   => affwp_recaptcha_type() === 'v3' ? '' : 'affwp-hidden',
-				'visibility' => array(
-					'required_field' => 'recaptcha_type',
-					'value'          => 'v3',
-				),
+				'visibility' => [
+					'rule' => [
+						[
+							'required_field' => 'captcha_type',
+							'value'          => 'recaptcha',
+						],
+						[
+							'required_field' => 'recaptcha_type',
+							'value'          => 'v3',
+						],
+					],
+				],
 				'desc' => __( 'reCAPTCHA v3 returns a score (1.0 is very likely a good interaction, 0.0 is very likely a bot). If the score less than or equal to this threshold, the affiliate registration will be blocked.', 'affiliate-wp' ),
-			),
-			'revoke_on_refund' => array(
+			],
+			'turnstile_site_key' => [
+				'name' => __( 'Turnstile Site Key', 'affiliate-wp' ),
+				'desc' => __( 'This is used to identify your site to Cloudflare Turnstile. Get your keys from the Cloudflare dashboard.', 'affiliate-wp' ),
+				'type' => 'text',
+				'visibility' => [
+					'required_field' => 'captcha_type',
+					'value'          => 'turnstile',
+				],
+			],
+			'turnstile_secret_key' => [
+				'name' => __( 'Turnstile Secret Key', 'affiliate-wp' ),
+				'desc' => __( 'This is used for communication between your site and Cloudflare Turnstile. Be sure to keep it a secret.', 'affiliate-wp' ),
+				'type' => 'text',
+				'visibility' => [
+					'required_field' => 'captcha_type',
+					'value'          => 'turnstile',
+				],
+			],
+			'hcaptcha_site_key' => [
+				'name' => __( 'hCaptcha Site Key', 'affiliate-wp' ),
+				'desc' => __( 'This is used to identify your site to hCaptcha. Get your keys from the hCaptcha dashboard.', 'affiliate-wp' ),
+				'type' => 'text',
+				'visibility' => [
+					'required_field' => 'captcha_type',
+					'value'          => 'hcaptcha',
+				],
+			],
+			'hcaptcha_secret_key' => [
+				'name' => __( 'hCaptcha Secret Key', 'affiliate-wp' ),
+				'desc' => __( 'This is used for communication between your site and hCaptcha. Be sure to keep it a secret.', 'affiliate-wp' ),
+				'type' => 'text',
+				'visibility' => [
+					'required_field' => 'captcha_type',
+					'value'          => 'hcaptcha',
+				],
+			],
+			'captcha_protect_login' => [
+				'name' => __( 'Add CAPTCHA to Affiliate Login form', 'affiliate-wp' ),
+				'desc' => __( 'Secures the login form too, blocking credential-stuffing and brute-force attacks.', 'affiliate-wp' ),
+				'tooltip' => [
+					__( 'Adds CAPTCHA to the affiliate login form to stop automated attacks such as credential-stuffing or brute-force attempts.', 'affiliate-wp' ),
+					__( 'Registration is already protected once you choose a provider.', 'affiliate-wp' ),
+					[
+						'type'     => 'link',
+						'text'     => __( 'Learn more', 'affiliate-wp' ),
+						'url'      => affwp_utm_link( 'https://affiliatewp.com/docs/how-to-set-up-and-use-captcha-in-affiliatewp/', 'captcha-security', 'tooltip-login-protection', 'security-settings' ),
+						'external' => true,
+					],
+				],
+				'type' => 'checkbox',
+				'std'  => false,
+			],
+			'revoke_on_refund' => [
 				'name' => __( 'Reject Unpaid Referrals on Refund', 'affiliate-wp' ),
 				'desc' => __( 'Automatically reject Unpaid referrals when the originating purchase is refunded or revoked.', 'affiliate-wp' ),
 				'type' => 'checkbox',
-				'std'  => '1'
-			),
-			'tracking_fallback' => array(
+				'std'  => '1',
+			],
+			'tracking_fallback' => [
 				'name' => __( 'Use Fallback Referral Tracking Method', 'affiliate-wp' ),
 				'desc' => __( 'The method used to track referral links can fail on sites that have jQuery errors. Enable Fallback Tracking if referrals are not being tracked properly.', 'affiliate-wp' ),
-				'type' => 'checkbox'
-			),
-			'ignore_zero_referrals' => array(
+				'type' => 'checkbox',
+			],
+			'ignore_zero_referrals' => [
 				'name' => __( 'Ignore Referrals with Zero Amount', 'affiliate-wp' ),
 				'desc' => __( 'Ignore referrals with a zero amount. This can be useful for multi-price products that start at zero, or if a discount was used which resulted in a zero amount. NOTE: If this setting is enabled and a visit results in a zero referral, the visit will be considered not converted.', 'affiliate-wp' ),
-				'type' => 'checkbox'
-			),
-			'commission_holding_period' => array(
+				'type' => 'checkbox',
+			],
+			'commission_holding_period' => [
 				'name' => __( 'Commission Holding Period', 'affiliate-wp' ),
 				'desc' => '',
 				'type' => 'number',
 				'size' => 'small',
 				'std'  => '0',
-				'tooltip' => sprintf(
-					'<p>' . __( 'The number of days to hold commissions before paying affiliates. Helps protect against refunds and fraud during the return period. Set to 0 for immediate commission payouts.', 'affiliate-wp' ) . '</p>' .
-					'<p>' . __( 'We recommend setting this to your refund period + 7 days. For example, if your refund period is 30 days, set this to 37 days.', 'affiliate-wp' ) . '</p>' .
-					/* translators: 1: Link to the doc page for the affiliate account page. 2: Additional link attributes. 3: Accessibility text. */
-					__( '<a href="%1$s" %2$s>Learn more%3$s</a>', 'affiliate-wp' ),
-					esc_url( 'https://affiliatewp.com/docs/paying-your-affiliates/#commission-holding-period' ),
-					'target="_blank" rel="noopener"',
-					sprintf(
-						'<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
-						/* translators: Hidden accessibility text. */
-						__( '(opens in a new tab)', 'affiliate-wp' )
-					)
-				),
-			),
-			'disable_ip_logging' => array(
+				'tooltip' => [
+					__( 'The number of days to hold commissions before paying affiliates. Helps protect against refunds and fraud during the return period. Set to 0 for immediate commission payouts.', 'affiliate-wp' ),
+					__( 'We recommend setting this to your refund period + 7 days. For example, if your refund period is 30 days, set this to 37 days.', 'affiliate-wp' ),
+					[
+						'type'     => 'link',
+						'text'     => __( 'Learn more', 'affiliate-wp' ),
+						'url'      => affwp_utm_link( 'https://affiliatewp.com/docs/paying-your-affiliates/#commission-holding-period', 'settings-advanced', 'Commission Holding Period' ),
+						'external' => true,
+					],
+				],
+			],
+			'disable_ip_logging' => [
 				'name' => __( 'Disable IP Address Logging', 'affiliate-wp' ),
-				'desc' => __( 'Disable logging of the customer IP address.', 'affiliate-wp' ),
-				'type' => 'checkbox'
-			),
-			'debug_mode' => array(
+				'desc' => __( 'Disable logging of IP addresses.', 'affiliate-wp' ),
+				'type' => 'checkbox',
+			],
+			'debug_mode' => [
 				'name' => __( 'Enable Debug Mode', 'affiliate-wp' ),
 				/* translators: Tools screen URL */
-				'desc' => sprintf( __( 'Enable debug mode. This will turn on error logging for the referral process to help identify issues. Logs are kept in <a href="%s">Affiliates &rarr; Tools</a>.', 'affiliate-wp' ), esc_url( affwp_admin_url( 'tools', array( 'tab' => 'debug' ) ) ) ),
-				'type' => 'checkbox'
-			),
-			'referral_url_blacklist' => array(
+				'desc' => sprintf( __( 'Enable debug mode. This will turn on error logging for the referral process to help identify issues. Logs are kept in <a href="%s">Affiliates &rarr; Tools</a>.', 'affiliate-wp' ), esc_url( affwp_admin_url( 'tools', [ 'tab' => 'debug' ] ) ) ),
+				'type' => 'checkbox',
+			],
+			'referral_url_blacklist' => [
 				'name' => __( 'Referral URL Blacklist', 'affiliate-wp' ),
 				'desc' => __( 'URLs placed here will be blocked from generating referrals. Enter one URL per line. NOTE: This will only apply to new visits after the URL has been saved.', 'affiliate-wp' ),
-				'type' => 'textarea'
-			),
-			'betas' => array(
+				'type' => 'textarea',
+			],
+			'betas' => [
 				'name' => __( 'Opt into development versions', 'affiliate-wp' ),
 				'desc' => __( 'Receive update notifications for development releases. When development versions are available, an update notification will be shown on your Plugins page.', 'affiliate-wp' ),
-				'type' => 'checkbox'
-			),
-			'uninstall_on_delete' => array(
+				'type' => 'checkbox',
+			],
+			'uninstall_on_delete' => [
 				'name' => __( 'Remove Data on Uninstall', 'affiliate-wp' ),
 				'desc' => __( 'Remove all saved data for AffiliateWP when the plugin is deleted.', 'affiliate-wp' ),
-				'type' => 'checkbox'
-			),
-			'disable_monthly_email_summaries' => array( // Also see affwp_email_summary() on naming of this setting.
+				'type' => 'checkbox',
+			],
+			'disable_monthly_email_summaries' => [ // Also see affwp_email_summary() on naming of this setting.
 				'name' => __( 'Disable Email Summaries', 'affiliate-wp' ),
 				'desc' => sprintf(
 				// Translators: %1$s is a link to preview the email.
@@ -2266,57 +2448,29 @@ class Affiliate_WP_Settings {
 					)
 				),
 				'type' => 'checkbox',
-			),
-			'manual_payouts' => array(
-				'name' => __( 'Manual Payouts', 'affiliate-wp' ),
-				'desc' => __( 'Pay your affiliates manually. Affiliates can be paid via PayPal, Skrill, a bank transfer, and other options', 'affiliate-wp' ),
-				'type' => 'checkbox',
-				'std'  => '0',
-			),
-			'payouts_service_about' => array(
-				'name' => '<strong>' . __( 'Payouts Service', 'affiliate-wp' ) . '</strong>',
-				'desc' => $this->payouts_service_about(),
+			],
+			'payment_methods_placeholder' => [
 				'type' => 'descriptive_text',
-			),
-			'payouts_service_button' => array(
-				'name' => __( 'Connection Status', 'affiliate-wp' ),
-				'desc' => $this->payouts_service_connection_status(),
-				'type' => 'descriptive_text',
-			),
-			'enable_payouts_service' => array(
-				'name' => __( 'Payouts Service', 'affiliate-wp' ),
-				/* translators: Payouts Service name retrieved from the PAYOUTS_SERVICE_NAME constant */
-				'desc' => sprintf( __( 'Enable the %s.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME ),
-				'type' => 'checkbox',
-				'std'  => '1',
-			),
-			'payouts_service_description' => array(
-				'name' => __( 'Registration Form Description', 'affiliate-wp' ),
-				'desc' => __( 'This will be displayed above the Payouts Service registration form fields. Here you can explain to your affiliates how/why to register for the Payouts Service.', 'affiliate-wp' ),
-				'type' => 'textarea',
-			),
-			'payouts_service_notice' => array(
-				'name' => __( 'Payouts Service Notice', 'affiliate-wp' ),
-				'desc' => __( 'This will be displayed at the top of each tab of the Affiliate Area for affiliates that have not registered their payout account.', 'affiliate-wp' ),
-				'type' => 'textarea',
-			),
-			'coupon_template_woocommerce'  => array(
+				'name' => '',
+				'desc' => '',
+			],
+			'coupon_template_woocommerce'  => [
 				'name'             => __( 'Coupon Template', 'affiliate-wp' ),
 				'desc'             => __( 'All dynamic coupons will use the settings from the selected coupon template.', 'affiliate-wp' ),
 				'type'             => 'select',
 				'options_callback' => $this->get_integration_callback( 'woocommerce', 'coupon_templates', 'options' ),
-			),
-			'dynamic_coupons'              => array(
+			],
+			'dynamic_coupons'              => [
 				'name' => __( 'Automatically Generate Coupons', 'affiliate-wp' ),
 				/* translators: Tools screen URL */
-				'desc' => sprintf( __( 'Automatically generate a coupon code for each registered affiliate.<p class="description">To bulk generate coupons for existing affiliates visit the <a href="%s">Tools</a> screen.</p>', 'affiliate-wp' ), esc_url( affwp_admin_url( 'tools', array( 'tab' => 'coupons' ) ) ) ),
+				'desc' => sprintf( __( 'Automatically generate a coupon code for each registered affiliate.<p class="description">To bulk generate coupons for existing affiliates visit the <a href="%s">Tools</a> screen.</p>', 'affiliate-wp' ), esc_url( affwp_admin_url( 'tools', [ 'tab' => 'coupons' ] ) ) ),
 				'type' => 'checkbox',
-			),
-			'affiliate_link_discounts' => array(
+			],
+			'affiliate_link_discounts' => [
 				'name' => __( 'Affiliate Link Discounts', 'affiliate-wp' ),
 				'desc' => __( 'Enable Affiliate Link Discounts', 'affiliate-wp' ),
 				'type' => 'checkbox',
-				'education_modal' => array(
+				'education_modal' => [
 					'show_pro_badge' => false,
 
 					// @TODO -- We should make the below test a function in the future.
@@ -2332,105 +2486,105 @@ class Affiliate_WP_Settings {
 						: true, // Show modal.
 					'name'           => __( 'Affiliate Link Discounts', 'affiliate-wp' ),
 					'utm_content'    => __( 'affiliate-link-discounts', 'affiliate-wp' ),
-				),
-			),
-			'affiliate_link_discounts_notification_theme' => array(
+				],
+			],
+			'affiliate_link_discounts_notification_theme' => [
 				'name'    => __( 'Discount Notification Theme', 'affiliate-wp' ),
 				'desc'    => __( "Choose how discount confirmation notifications appear to users. \"Automatic Theme\" adapts to match the user's system theme settings.", 'affiliate-wp' ),
 				'type'    => 'select',
-				'options' => array(
+				'options' => [
 					'auto'  => __( 'Automatic Theme (System Preference)', 'affiliate-wp' ),
 					'light' => __( 'Light Theme', 'affiliate-wp' ),
 					'dark'  => __( 'Dark Theme', 'affiliate-wp' ),
-				),
+				],
 				'std' => 'auto',
 				'class' => affiliate_wp()->settings->get( 'affiliate_link_discounts' ) ? '' : 'affwp-hidden',
-				'visibility' => array(
+				'visibility' => [
 					'required_field' => 'affiliate_link_discounts',
 					'value'          => true,
-				),
-			),
-			'dynamic_coupon_customization' => array(
+				],
+			],
+			'dynamic_coupon_customization' => [
 				'name' => __( 'Dynamic Coupon Customization', 'affiliate-wp' ),
 				'type' => 'header',
-			),
-			'coupon_format'                => array(
+			],
+			'coupon_format'                => [
 				'name'    => __( 'Coupon Format', 'affiliate-wp' ),
 				'desc'    => __( 'Select a coupon format for dynamically generated coupons.', 'affiliate-wp' ),
 				'type'    => 'select',
 				'options' => $this->list_coupon_format_options(),
-			),
-			'coupon_custom_text'           => array(
+			],
+			'coupon_custom_text'           => [
 				'name' => __( 'Custom Text', 'affiliate-wp' ),
 				'desc' => __( 'Text to use within the {custom_text} merge tag of the Coupon Format option.', 'affiliate-wp' ),
 				'type' => 'text',
-			),
-			'coupon_hyphen_delimiter'      => array(
+			],
+			'coupon_hyphen_delimiter'      => [
 				'name' => __( 'Hyphen Delimiter', 'affiliate-wp' ),
 				'desc' => __( 'Add a hyphen between each merge tag.', 'affiliate-wp' ),
 				'type' => 'checkbox',
-			),
-			'additional_registration_modes' => array(
+			],
+			'additional_registration_modes' => [
 				'name' => __( 'Additional Registration Modes', 'affiliate-wp' ),
 				'desc' => __( 'Additional Registration Modes can be used alongside the standard affiliate registration form(s).', 'affiliate-wp' ),
 				'type' => 'radio',
 				'options'  => $this->get_registration_modes(),
 				'std' => 'none',
-				'education_modal' => array(
-					'options' => array(
-						'affiliate_signup_widget' => array(
+				'education_modal' => [
+					'options' => [
+						'affiliate_signup_widget' => [
 							'enabled'     => ! affwp_can_access_pro_features(),
 							'name'        => __( 'Affiliate Signup Widget', 'affiliate-wp' ),
 							'utm_content' => __( 'affiliate-signup-widget', 'affiliate-wp' ),
-						)
-					),
-				),
-			),
-			'affiliate_signup_widget_image' => array(
+						],
+					],
+				],
+			],
+			'affiliate_signup_widget_image' => [
 				'name' => __( 'Image', 'affiliate-wp' ),
 				'desc' => __( 'Upload or choose an image to be displayed within the widget.', 'affiliate-wp' ),
 				'type' => 'upload',
-			),
-			'affiliate_signup_widget_brand_color' => array(
+			],
+			'affiliate_signup_widget_brand_color' => [
 				'name' => __( 'Brand Color', 'affiliate-wp' ),
 				'desc' => __( 'Select your brand color for the widget.', 'affiliate-wp' ),
 				'type' => 'color',
 				'std'  => '#4b64e2',
-			),
-			'affiliate_signup_widget_heading_text' => array(
+			],
+			'affiliate_signup_widget_heading_text' => [
 				'name' => __( 'Heading', 'affiliate-wp' ),
 				'desc' => __( 'The widget\'s heading.', 'affiliate-wp' ),
 				'type' => 'text',
 				'std'  => __( 'Earn with every referral!', 'affiliate-wp' ),
-			),
-			'affiliate_signup_widget_text' => array(
+			],
+			'affiliate_signup_widget_text' => [
 				'name' => __( 'Text', 'affiliate-wp' ),
 				'desc' => __( 'Concise, clear text enhances conversions. We recommend a maximum of 150 characters for effective engagement.', 'affiliate-wp' ),
 				'type' => 'textarea',
 				'size' => 'large',
 				'rows' => 3,
 				'std'  => __( 'Join our affiliate program and earn commission on every sale you refer', 'affiliate-wp' ),
-			),
-			'affiliate_signup_widget_button_text' => array(
+			],
+			'affiliate_signup_widget_button_text' => [
 				'name' => __( 'Button Text', 'affiliate-wp' ),
 				'desc' => __( 'The widget\'s button text.', 'affiliate-wp' ),
 				'type' => 'text',
 				'std'  => __( 'Start Earning Today', 'affiliate-wp' ),
-			),
-			'affiliate_signup_widget_confirmation_heading_text' => array(
+			],
+			'affiliate_signup_widget_confirmation_heading_text' => [
 				'name' => __( 'Confirmation Heading', 'affiliate-wp' ),
 				'desc' => __( 'The widget\'s confirmation heading.', 'affiliate-wp' ),
 				'type' => 'text',
 				'std'  => __( 'Congrats, you\'re in! Start earning now', 'affiliate-wp' ),
-			),
-			'affiliate_signup_widget_confirmation_text' => array(
+			],
+			'affiliate_signup_widget_confirmation_text' => [
 				'name' => __( 'Confirmation Text', 'affiliate-wp' ),
 				'desc' => __( 'The widget\'s confirmation text.', 'affiliate-wp' ),
 				'type' => 'textarea',
 				'size' => 'large',
 				'rows' => 3,
 				'std'  => __( 'Share your affiliate link below with friends. When they buy, you earn!', 'affiliate-wp' ),
-			),
+			],
 			'affiliate_link_sharing' => [
 				'name' => __( 'Affiliate Link Sharing', 'affiliate-wp' ),
 				'desc' => __( 'Enable your affiliates to quickly share their affiliate links directly from their Affiliate Area using popular platforms and methods.', 'affiliate-wp' ),
@@ -2480,7 +2634,7 @@ class Affiliate_WP_Settings {
 					'value'           => true,
 				],
 			],
-		);
+		];
 		// phpcs:enable WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned
 		// phpcs:enable WordPress.Arrays.CommaAfterArrayItem.NoComma
 
@@ -2489,54 +2643,54 @@ class Affiliate_WP_Settings {
 			get_ai_settings()
 		);
 
-		$settings['affiliate-landing-pages'] = array(
+		$settings['affiliate-landing-pages'] = [
 			'name'            => __( 'Landing Pages', 'affiliate-wp' ),
 			'desc'            => __( 'Check this option to enable Affiliate Landing Pages.', 'affiliate-wp' ),
 			'type'            => 'checkbox',
-			'education_modal' => array(
+			'education_modal' => [
 				'enabled'        => ! affwp_can_access_pro_features(),
 				'name'           => __( 'Affiliate Landing Pages', 'affiliate-wp' ),
 				'utm_content'    => __( 'affiliate-landing-pages', 'affiliate-wp' ),
 				'require_addon'  => $this->addons['landing_pages'] ?? [],
 				'show_pro_badge' => false,
 				'is_checked'     => affiliate_wp()->settings->get( 'affiliate-landing-pages' ) === 1,
-			),
-		);
+			],
+		];
 
-		$settings['direct_link_tracking'] = array(
+		$settings['direct_link_tracking'] = [
 			'name'            => __( 'Allow Direct Link Tracking', 'affiliate-wp' ),
 			'desc'            => __( 'Allow direct link tracking for all affiliates. Leave unchecked if you would like to enable direct link tracking on a per-affiliate level.', 'affiliate-wp' ),
 			'type'            => 'checkbox',
-			'education_modal' => array(
+			'education_modal' => [
 				'enabled'        => affwp_can_access_pro_features() ? false : true,
 				'name'           => __( 'Direct Link Tracking', 'affiliate-wp' ),
 				'utm_content'    => __( 'direct-link-tracking', 'affiliate-wp' ),
 				'require_addon'  => $this->addons['direct_link_tracking'] ?? [],
 				'show_pro_badge' => false,
 				'is_checked'     => affiliate_wp()->settings->get( 'direct_link_tracking' ) === 1,
-			),
-		);
+			],
+		];
 
-		$settings['recurring'] = array(
+		$settings['recurring'] = [
 			'name'            => __( 'Enable Recurring Referrals', 'affiliate-wp' ),
 			'desc'            => __( 'Check this box to enable referral tracking on all subscription payments.', 'affiliate-wp' ),
 			'type'            => 'checkbox',
-			'education_modal' => array(
+			'education_modal' => [
 				'enabled'        => ! affwp_can_access_pro_features(),
 				'name'           => __( 'Recurring Referrals', 'affiliate-wp' ),
 				'utm_content'    => __( 'recurring-referrals', 'affiliate-wp' ),
 				'require_addon'  => $this->addons['recurring_referrals'] ?? [],
 				'show_pro_badge' => false,
 				'is_checked'     => affiliate_wp()->settings->get( 'recurring' ) === 1,
-			),
-		);
+			],
+		];
 
-		$settings['multi_tier_commissions'] = array(
+		$settings['multi_tier_commissions'] = [
 			'name'            => __( 'Multi-Tier Commissions', 'affiliate-wp' ),
 			'desc'            => __( 'Enable Multi-Tier Commissions for all affiliates.', 'affiliate-wp' ),
 			'type'            => 'checkbox',
 			'std'             => '0',
-			'education_modal' => array(
+			'education_modal' => [
 				'enabled'        => ! affwp_can_access_pro_features(),
 				'name'           => __( 'Multi-Tier Commissions', 'affiliate-wp' ),
 				'utm_content'    => __( 'Multi-Tier Commissions', 'affiliate-wp' ),
@@ -2544,23 +2698,8 @@ class Affiliate_WP_Settings {
 				'show_pro_badge' => false,
 				'feature_name'   => 'multi-tier-commissions',
 				'is_checked'     => affiliate_wp()->settings->get( 'multi_tier_commissions' ) === 1,
-			),
-		);
-
-		$settings['paypal_payouts'] = array(
-			'name'            => __( 'PayPal Payouts', 'affiliate-wp' ),
-			'desc'            => __( 'Enable the PayPal Payouts payment method', 'affiliate-wp' ),
-			'type'            => 'checkbox',
-			'std'             => '0',
-			 'education_modal' => array(
-			 	'enabled'       => false,
-				'show_pro_badge' => false,
-			 	'name'          => __( 'PayPal Payouts', 'affiliate-wp' ),
-			 	'utm_content'   => __( 'PayPal Payouts', 'affiliate-wp' ),
-				 'require_addon' => $this->addons['paypal_payouts'] ?? [],
-			 	'is_checked'    => affiliate_wp()->settings->get( 'paypal_payouts' ) === 1,
-			 ),
-		);
+			],
+		];
 
 		if ( empty( $filter_by ) ) {
 			return $settings; // No filters, return all settings.
@@ -2583,24 +2722,23 @@ class Affiliate_WP_Settings {
 			return $general_settings;
 		}
 
-		$new_general_settings = array(
-			'required_registration_fields' => array(
-				'name' => __( 'Required Registration Fields', 'affiliate-wp' ),
-				'desc' => __( 'Select which fields should be required for affiliate registration when using the [affiliate_area] or [affiliate_registration] shortcodes. The <strong>Username</strong> and <strong>Account Email</strong> form fields are always required. The <strong>Password</strong> form field will be removed if not required.', 'affiliate-wp' ),
-				'type' => 'multicheck',
-				'options' => array(
+		$new_general_settings = [
+			'required_registration_fields' => [
+				'name'    => __( 'Required Registration Fields', 'affiliate-wp' ),
+				'desc'    => __( 'Select which fields should be required for affiliate registration when using the [affiliate_area] or [affiliate_registration] shortcodes. The <strong>Username</strong> and <strong>Account Email</strong> form fields are always required. The <strong>Password</strong> form field will be removed if not required.', 'affiliate-wp' ),
+				'type'    => 'multicheck',
+				'options' => [
 					'password'         => __( 'Password', 'affiliate-wp' ),
 					'your_name'        => __( 'Your Name', 'affiliate-wp' ),
 					'website_url'      => __( 'Website URL', 'affiliate-wp' ),
 					'payment_email'    => __( 'Payment Email', 'affiliate-wp' ),
 					'promotion_method' => __( 'How will you promote us?', 'affiliate-wp' ),
-				)
-			)
+				],
+			],
 
-		);
+		];
 
 		return array_merge( $general_settings, $new_general_settings );
-
 	}
 
 	/**
@@ -2613,13 +2751,12 @@ class Affiliate_WP_Settings {
 	 */
 	public function email_notifications( $install = false ) {
 
-		$emails = array(
-			'admin_affiliate_registration_email'       => __( 'Notify affiliate manager when a new affiliate has registered', 'affiliate-wp' ),
-			'admin_new_referral_email'                 => __( 'Notify affiliate manager when a new referral has been created', 'affiliate-wp' ),
-			'affiliate_new_referral_email'             => __( 'Notify affiliate when they earn a new referral', 'affiliate-wp' ),
-			'affiliate_application_accepted_email'     => __( 'Notify affiliate when their affiliate application is accepted', 'affiliate-wp' ),
-			'affiliate_application_accepted_email'     => __( 'Notify affiliate when their affiliate application is accepted', 'affiliate-wp' ),
-		);
+		$emails = [
+			'admin_affiliate_registration_email'   => __( 'Notify affiliate manager when a new affiliate has registered', 'affiliate-wp' ),
+			'admin_new_referral_email'             => __( 'Notify affiliate manager when a new referral has been created', 'affiliate-wp' ),
+			'affiliate_new_referral_email'         => __( 'Notify affiliate when they earn a new referral', 'affiliate-wp' ),
+			'affiliate_application_accepted_email' => __( 'Notify affiliate when their affiliate application is accepted', 'affiliate-wp' ),
+		];
 
 		if ( $this->get( 'require_approval' ) || true === $install ) {
 			$emails['affiliate_application_pending_email']  = __( 'Notify affiliate when their affiliate application is pending', 'affiliate-wp' );
@@ -2627,7 +2764,6 @@ class Affiliate_WP_Settings {
 		}
 
 		return $emails;
-
 	}
 
 	/**
@@ -2645,43 +2781,43 @@ class Affiliate_WP_Settings {
 
 		$emails_tags_list = affwp_get_emails_tags_list();
 
-		$new_email_settings = array(
-			'pending_options_header' => array(
+		$new_email_settings = [
+			'pending_options_header'   => [
 				'name' => '<strong>' . __( 'Application Pending Email Options For Affiliate', 'affiliate-wp' ) . '</strong>',
 				'desc' => '',
-				'type' => 'header'
-			),
-			'pending_subject' => array(
+				'type' => 'header',
+			],
+			'pending_subject'          => [
 				'name' => __( 'Application Pending Email Subject', 'affiliate-wp' ),
 				'desc' => __( 'Enter the subject line for pending affiliate application emails. Supports template tags.', 'affiliate-wp' ),
 				'type' => 'text',
-				'std' => __( 'Your Affiliate Application Is Being Reviewed', 'affiliate-wp' )
-			),
-			'pending_email' => array(
+				'std'  => __( 'Your Affiliate Application Is Being Reviewed', 'affiliate-wp' ),
+			],
+			'pending_email'            => [
 				'name' => __( 'Application Pending Email Content', 'affiliate-wp' ),
 				'desc' => __( 'Enter the email to send when an application is pending. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . $emails_tags_list,
 				'type' => 'rich_editor',
-				'std' => __( 'Hi {name}!', 'affiliate-wp' ) . "\n\n" . __( 'Thanks for your recent affiliate registration on {site_name}.', 'affiliate-wp' ) . "\n\n" . __( 'We&#8217;re currently reviewing your affiliate application and will be in touch soon!', 'affiliate-wp' ) . "\n\n"
-			),
-			'rejection_options_header' => array(
+				'std'  => __( 'Hi {name}!', 'affiliate-wp' ) . "\n\n" . __( 'Thanks for your recent affiliate registration on {site_name}.', 'affiliate-wp' ) . "\n\n" . __( 'We&#8217;re currently reviewing your affiliate application and will be in touch soon!', 'affiliate-wp' ) . "\n\n",
+			],
+			'rejection_options_header' => [
 				'name' => '<strong>' . __( 'Application Rejection Email Options For Affiliate', 'affiliate-wp' ) . '</strong>',
 				'desc' => '',
-				'type' => 'header'
-			),
-			'rejection_subject' => array(
+				'type' => 'header',
+			],
+			'rejection_subject'        => [
 				'name' => __( 'Application Rejection Email Subject', 'affiliate-wp' ),
 				'desc' => __( 'Enter the subject line for rejected affiliate application emails. Supports template tags.', 'affiliate-wp' ),
 				'type' => 'text',
-				'std' => __( 'Your Affiliate Application Has Been Rejected', 'affiliate-wp' )
-			),
-			'rejection_email' => array(
+				'std'  => __( 'Your Affiliate Application Has Been Rejected', 'affiliate-wp' ),
+			],
+			'rejection_email'          => [
 				'name' => __( 'Application Rejection Email Content', 'affiliate-wp' ),
 				'desc' => __( 'Enter the email to send when an application is rejected. HTML is accepted. Available template tags:', 'affiliate-wp' ) . '<br />' . $emails_tags_list,
 				'type' => 'rich_editor',
-				'std' => __( 'Hi {name},', 'affiliate-wp' ) . "\n\n" . __( 'We regret to inform you that your recent affiliate registration on {site_name} was rejected.', 'affiliate-wp' ) . "\n\n"
-			)
+				'std'  => __( 'Hi {name},', 'affiliate-wp' ) . "\n\n" . __( 'We regret to inform you that your recent affiliate registration on {site_name} was rejected.', 'affiliate-wp' ) . "\n\n",
+			],
 
-		);
+		];
 
 		return array_merge( $email_settings, $new_email_settings );
 	}
@@ -2808,8 +2944,9 @@ class Affiliate_WP_Settings {
 
 				<?php ob_start(); ?>
 
-				<span
-					class="affwp-education-modal"
+				<button
+					type="button"
+					class="affwp-education-modal affwp-link-button"
 					<?php echo affiliatewp_tag_attr( 'data-name', $education_name ); ?>
 					<?php echo affiliatewp_tag_attr( 'data-feature-name', $args['education_modal']['feature_name'] ?? '' ); ?>
 					<?php echo affiliatewp_tag_attr( 'data-utm-content', $education_utm ); ?>
@@ -2818,17 +2955,15 @@ class Affiliate_WP_Settings {
 					<?php echo affiliatewp_tag_attr( 'data-id', $addon_id ); ?>
 					<?php echo affiliatewp_tag_attr( 'data-plugin', $addon_path ); ?>
 					<?php echo affiliatewp_tag_attr( 'data-nonce', $addon_nonce ); ?>
-				>
-					<?php echo esc_html( $education_name ); ?>
-				</span>
+				><?php echo esc_html( sprintf( __( 'activate the %s addon', 'affiliate-wp' ), $education_name ) ); ?></button>
 
 				<?php $addon_clickable_el = ob_get_clean(); ?>
 
 				<?php
 
-				echo sprintf(
+				printf(
 					// Translators: %1$s is the addon name.
-					__( 'The required addon for this feature is currently deactivated. Please activate the %1$s addon to use this feature.', 'affiliate-wp' ),
+					__( 'The required addon for this feature is currently deactivated. Please %1$s to use this feature.', 'affiliate-wp' ),
 					// %1$s: Addon name.
 					$addon_clickable_el
 				);
@@ -2900,13 +3035,22 @@ class Affiliate_WP_Settings {
 							<?php echo affiliatewp_tag_attr( 'data-feature-name', $education_feature_name ); ?>
 							<?php echo affiliatewp_tag_attr( 'data-utm-content', $education_utm ); ?>
 							<?php echo checked( $option, $enabled, false ); ?>
-						> <?php echo $option ?>
+						> <?php echo $option; ?>
 					</label>
 					<?php if ( $show_pro_badge ) : ?>
 						<span class="affwp-settings-label-pro">Pro</span>
 					<?php endif; ?>
 					<?php if ( isset( $args['options_tooltips'][ $key ] ) ) : ?>
-						<?php affiliatewp_tooltip( $args['options_tooltips'][ $key ] ); ?>
+						<?php
+						// Generate tooltip content.
+						$tooltip_content = affwp_tooltip( $args['options_tooltips'][ $key ] );
+
+						// Output the icon with tooltip.
+						printf(
+							'<span class="dashicons dashicons-editor-help cursor-help" data-tooltip-html="%s"></span>',
+							esc_attr( $tooltip_content )
+						);
+						?>
 					<?php endif; ?>
 					<br>
 				<?php
@@ -2997,13 +3141,22 @@ class Affiliate_WP_Settings {
 						<?php echo affiliatewp_tag_attr( 'data-name', $education_name ); ?>
 						<?php echo affiliatewp_tag_attr( 'data-feature-name', $education_feature_name ); ?>
 						<?php echo affiliatewp_tag_attr( 'data-utm-content', $education_utm ); ?>
-					> <?php echo $option ?>
+					> <?php echo $option; ?>
 				</label>
 				<?php if ( $show_pro_badge ) : ?>
 					<span class="affwp-settings-label-pro">Pro</span>
 				<?php endif; ?>
 				<?php if ( isset( $args['options_tooltips'][ $key ] ) ) : ?>
-					<?php affiliatewp_tooltip( $args['options_tooltips'][ $key ] ); ?>
+					<?php
+					// Generate tooltip content.
+					$tooltip_content = affwp_tooltip( $args['options_tooltips'][ $key ] );
+
+					// Output the icon with tooltip.
+					printf(
+						'<span class="dashicons dashicons-editor-help cursor-help" data-tooltip-html="%s"></span>',
+						esc_attr( $tooltip_content )
+					);
+					?>
 				<?php endif; ?>
 				<br>
 
@@ -3029,19 +3182,20 @@ class Affiliate_WP_Settings {
 	 */
 	function color_callback( $args ) {
 
-		if ( isset( $this->options[ $args['id'] ] ) && ! empty( $this->options[ $args['id'] ] ) )
+		if ( isset( $this->options[ $args['id'] ] ) && ! empty( $this->options[ $args['id'] ] ) ) {
 			$value = $this->options[ $args['id'] ];
-		else
+		} else {
 			$value = isset( $args['std'] ) ? $args['std'] : '';
+		}
 
 		// Must use a 'readonly' attribute over disabled to ensure the value is passed in $_POST.
 		$readonly = $this->is_setting_disabled( $args ) ? __checked_selected_helper( $args['disabled'], true, false, 'readonly' ) : '';
 
-		$html = '<div style="display: flex; align-items: center; gap: 0.5rem;">';
+		$html  = '<div style="display: flex; align-items: center; gap: 0.5rem;">';
 		$html .= '<input type="color" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" value="' . esc_attr( stripslashes( $value ) ) . '" ' . $readonly . '/>';
 		$html .= '<a href="#" class="affwp-reset-color-link">Reset</a>';
 		$html .= '</div>';
-		$html .= '<p class="description">'  . $args['desc'] . '</p>';
+		$html .= '<p class="description">' . $args['desc'] . '</p>';
 
 		echo $html;
 	}
@@ -3058,17 +3212,18 @@ class Affiliate_WP_Settings {
 	 */
 	function text_callback( $args ) {
 
-		if ( isset( $this->options[ $args['id'] ] ) && ! empty( $this->options[ $args['id'] ] ) )
+		if ( isset( $this->options[ $args['id'] ] ) && ! empty( $this->options[ $args['id'] ] ) ) {
 			$value = $this->options[ $args['id'] ];
-		else
+		} else {
 			$value = isset( $args['std'] ) ? $args['std'] : '';
+		}
 
 		// Must use a 'readonly' attribute over disabled to ensure the value is passed in $_POST.
 		$readonly = $this->is_setting_disabled( $args ) ? __checked_selected_helper( $args['disabled'], true, false, 'readonly' ) : '';
 
-		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
-		$html = '<input type="text" class="' . $size . '-text" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" value="' . esc_attr( stripslashes( $value ) ) . '" ' . $readonly . '/>';
-		$html .= '<p class="description">'  . $args['desc'] . '</p>';
+		$size  = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
+		$html  = '<input type="text" class="' . $size . '-text" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" value="' . esc_attr( stripslashes( $value ) ) . '" ' . $readonly . '/>';
+		$html .= '<p class="description">' . $args['desc'] . '</p>';
 
 		echo $html;
 	}
@@ -3085,14 +3240,15 @@ class Affiliate_WP_Settings {
 	 */
 	function url_callback( $args ) {
 
-		if ( isset( $this->options[ $args['id'] ] ) )
+		if ( isset( $this->options[ $args['id'] ] ) ) {
 			$value = $this->options[ $args['id'] ];
-		else
+		} else {
 			$value = isset( $args['std'] ) ? $args['std'] : '';
+		}
 
-		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
-		$html = '<input type="url" class="' . $size . '-text" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" value="' . esc_attr( stripslashes( $value ) ) . '"/>';
-		$html .= '<p class="description">'  . $args['desc'] . '</p>';
+		$size  = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
+		$html  = '<input type="url" class="' . $size . '-text" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" value="' . esc_attr( stripslashes( $value ) ) . '"/>';
+		$html .= '<p class="description">' . $args['desc'] . '</p>';
 
 		echo $html;
 	}
@@ -3145,13 +3301,13 @@ class Affiliate_WP_Settings {
 		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
 		$html = '<input type="password" class="' . $size . '-text" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" value="' . esc_attr( stripslashes( $license_key ) ) . '" ' . $readonly . '/>';
 
-		if( 'valid' === $status && ! empty( $license_key ) ) {
+		if ( 'valid' === $status && ! empty( $license_key ) ) {
 			$html .= get_submit_button( __( 'Deactivate License', 'affiliate-wp' ), 'secondary', 'affwp_deactivate_license', false );
 			$html .= '<span style="color:green;">&nbsp;' . __( 'Your license is valid!', 'affiliate-wp' ) . '</span>';
-		} elseif( 'expired' === $status && ! empty( $license_key ) ) {
-			$renewal_url = esc_url( add_query_arg( array( 'edd_license_key' => $license_key, 'download_id' => 17 ), 'https://affiliatewp.com/checkout' ) );
-			$html .= '<a href="' . esc_url( $renewal_url ) . '" class="button-primary">' . __( 'Renew Your License', 'affiliate-wp' ) . '</a>';
-			$html .= '<br/><span style="color:red;">&nbsp;' . __( 'Your license has expired, renew today to continue getting updates and support!', 'affiliate-wp' ) . '</span>';
+		} elseif ( 'expired' === $status && ! empty( $license_key ) ) {
+			$renewal_url = esc_url( add_query_arg( [ 'edd_license_key' => $license_key, 'download_id' => 17 ], 'https://affiliatewp.com/checkout' ) );
+			$html       .= '<a href="' . esc_url( $renewal_url ) . '" class="button-primary">' . __( 'Renew Your License', 'affiliate-wp' ) . '</a>';
+			$html       .= '<br/><span style="color:red;">&nbsp;' . __( 'Your license has expired, renew today to continue getting updates and support!', 'affiliate-wp' ) . '</span>';
 		} else {
 			$html .= get_submit_button( __( 'Activate License', 'affiliate-wp' ), 'secondary', 'affwp_activate_license', false );
 		}
@@ -3218,8 +3374,8 @@ class Affiliate_WP_Settings {
 		$value = affwp_abs_number_round( $value );
 
 		// Other attributes and their defaults
-		$max  = isset( $args['max'] )  ? $args['max']  : 999999999;
-		$min  = isset( $args['min'] )  ? $args['min']  : 0;
+		$max  = isset( $args['max'] ) ? $args['max'] : 999999999;
+		$min  = isset( $args['min'] ) ? $args['min'] : 0;
 		$step = isset( $args['step'] ) ? $args['step'] : 1;
 		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
 
@@ -3237,7 +3393,7 @@ class Affiliate_WP_Settings {
 		$value = apply_filters( "affiliatewp_number_callback_{$args['id']}", $value ) ?? '';
 
 		$html  = '<input type="number" step="' . esc_attr( $step ) . '" max="' . esc_attr( $max ) . '" min="' . esc_attr( $min ) . '" class="' . $size . '-text" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" placeholder="' . esc_attr( $std ) . '" value="' . esc_attr( stripslashes( $value ) ) . '"/>';
-		$html .= '<p class="description"> '  . $args['desc'] . '</p>';
+		$html .= '<p class="description"> ' . $args['desc'] . '</p>';
 
 		echo $html;
 	}
@@ -3254,10 +3410,11 @@ class Affiliate_WP_Settings {
 	 */
 	function textarea_callback( $args ) {
 
-		if ( isset( $this->options[ $args['id'] ] ) )
+		if ( isset( $this->options[ $args['id'] ] ) ) {
 			$value = $this->options[ $args['id'] ];
-		else
+		} else {
 			$value = isset( $args['std'] ) ? $args['std'] : '';
+		}
 
 		if ( isset( $args['placeholder'] ) ) {
 			$args['placeholder'] = esc_attr( $args['placeholder'] );
@@ -3266,8 +3423,8 @@ class Affiliate_WP_Settings {
 		$rows = ( isset( $args['rows'] ) && ! is_null( $args['rows'] ) ) ? $args['rows'] : 5;
 		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'large';
 
-		$html = '<textarea class="' . $size . '-text" cols="50" rows="' . $rows . '" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" ' . ( ( isset( $args['disabled'] ) && $args['disabled'] ) ? ' disabled' : '' ) . ( isset( $args['placeholder'] ) ? " placeholder=\"{$args['placeholder']}\"" : '' ) . '>' . esc_textarea( stripslashes( $value ) ) . '</textarea>';
-		$html .= '<p class="description"> '  . $args['desc'] . '</p>';
+		$html  = '<textarea class="' . $size . '-text" cols="50" rows="' . $rows . '" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" ' . ( ( isset( $args['disabled'] ) && $args['disabled'] ) ? ' disabled' : '' ) . ( isset( $args['placeholder'] ) ? " placeholder=\"{$args['placeholder']}\"" : '' ) . '>' . esc_textarea( stripslashes( $value ) ) . '</textarea>';
+		$html .= '<p class="description"> ' . $args['desc'] . '</p>';
 
 		echo $html;
 	}
@@ -3284,14 +3441,15 @@ class Affiliate_WP_Settings {
 	 */
 	function password_callback( $args ) {
 
-		if ( isset( $this->options[ $args['id'] ] ) )
+		if ( isset( $this->options[ $args['id'] ] ) ) {
 			$value = $this->options[ $args['id'] ];
-		else
+		} else {
 			$value = isset( $args['std'] ) ? $args['std'] : '';
+		}
 
-		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
-		$html = '<input type="password" class="' . $size . '-text" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" value="' . esc_attr( $value ) . '"/>';
-		$html .= '<p class="description"> '  . $args['desc'] . '</p>';
+		$size  = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
+		$html  = '<input type="password" class="' . $size . '-text" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" value="' . esc_attr( $value ) . '"/>';
+		$html .= '<p class="description"> ' . $args['desc'] . '</p>';
 
 		echo $html;
 	}
@@ -3305,7 +3463,7 @@ class Affiliate_WP_Settings {
 	 * @param array $args Arguments passed by the setting
 	 * @return void
 	 */
-	function missing_callback($args) {
+	function missing_callback( $args ) {
 		/* translators: Setting ID */
 		printf( __( 'The callback function used for the <strong>%s</strong> setting is missing.', 'affiliate-wp' ), $args['id'] );
 	}
@@ -3335,6 +3493,10 @@ class Affiliate_WP_Settings {
 		<select
 			id="<?php echo esc_attr( "affwp_settings[{$args['id']}]" ); ?>"
 			name="<?php echo esc_attr( "affwp_settings[{$args['id']}]" ); ?>"
+			class="affwp-use-select2"
+			<?php if ( ! empty( $args['select2']['width'] ) ) : ?>
+				style="width: <?php echo esc_attr( $args['select2']['width'] ); ?>;"
+			<?php endif; ?>
 			<?php echo affiliatewp_tag_attr( 'data-select2-settings', $args['select2'] ?? [] ); ?>
 		>
 
@@ -3374,7 +3536,8 @@ class Affiliate_WP_Settings {
 
 		<?php if ( ! empty( $args['desc'] ) ) : ?>
 			<p class="description"><?php echo wp_kses( $args['desc'], affwp_kses() ); ?></p>
-		<?php endif;
+			<?php
+		endif;
 
 		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
@@ -3391,16 +3554,17 @@ class Affiliate_WP_Settings {
 	 */
 	function rich_editor_callback( $args ) {
 
-		if ( isset( $this->options[ $args['id'] ] ) )
+		if ( isset( $this->options[ $args['id'] ] ) ) {
 			$value = $this->options[ $args['id'] ];
-		else
+		} else {
 			$value = isset( $args['std'] ) ? $args['std'] : '';
+		}
 
 		ob_start();
-		wp_editor( stripslashes( $value ), 'affwp_settings_' . $args['id'], array( 'textarea_name' => 'affwp_settings[' . $args['id'] . ']' ) );
+		wp_editor( stripslashes( $value ), 'affwp_settings_' . $args['id'], [ 'textarea_name' => 'affwp_settings[' . $args['id'] . ']' ] );
 		$html = ob_get_clean();
 
-		$html .= '<br/><p class="description"> '  . $args['desc'] . '</p>';
+		$html .= '<br/><p class="description"> ' . $args['desc'] . '</p>';
 
 		echo $html;
 	}
@@ -3414,18 +3578,19 @@ class Affiliate_WP_Settings {
 	 * @param array $args Arguements passed by the setting
 	 */
 	function upload_callback( $args ) {
-		if( isset( $this->options[ $args['id'] ] ) )
+		if ( isset( $this->options[ $args['id'] ] ) ) {
 			$value = $this->options[ $args['id'] ];
-		else
+		} else {
 			$value = isset( $args['std'] ) ? $args['std'] : '';
+		}
 
 		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
 
-		$html = '<div style="display: flex; gap: 0.5rem;">';
+		$html  = '<div style="display: flex; gap: 0.5rem;">';
 		$html .= '<input type="text" class="' . $size . '-text" id="affwp_settings[' . $args['id'] . ']" name="affwp_settings[' . $args['id'] . ']" value="' . esc_attr( stripslashes( $value ) ) . '"/>';
 		$html .= '<input type="button" class="affwp_settings_upload_button button-secondary" value="' . __( 'Upload File', 'affiliate-wp' ) . '"/>';
 		$html .= '</div>';
-		$html .= '<p class="description"> '  . $args['desc'] . '</p>';
+		$html .= '<p class="description"> ' . $args['desc'] . '</p>';
 
 		echo $html;
 	}
@@ -3466,13 +3631,12 @@ class Affiliate_WP_Settings {
 
 		switch ( $type ) {
 			case 'options':
-
 				if ( 'coupon_templates' === $context ) {
-					$callback = array( $integration, 'get_coupon_templates_options' );
+					$callback = [ $integration, 'get_coupon_templates_options' ];
 				}
 
 				if ( 'coupons' === $context ) {
-					$callback = array( $integration, 'get_coupon_options' );
+					$callback = [ $integration, 'get_coupon_options' ];
 				}
 
 				break;
@@ -3498,7 +3662,6 @@ class Affiliate_WP_Settings {
 		/* translators: 1: Payouts Service URL */
 		$payouts_service_about .= '<p>' . sprintf( __( '<a href="%s" target="_blank">Learn more and view pricing.</a>', 'affiliate-wp' ), PAYOUTS_SERVICE_URL ) . '</p>';
 
-
 		return $payouts_service_about;
 	}
 
@@ -3515,30 +3678,33 @@ class Affiliate_WP_Settings {
 
 		if ( 'active' === $connection_status ) {
 
-			$payouts_service_disconnect_url = wp_nonce_url( add_query_arg( array( 'affwp_action' => 'payouts_service_disconnect' ) ), 'payouts_service_disconnect', 'payouts_service_disconnect_nonce' );
+			$payouts_service_disconnect_url = wp_nonce_url( add_query_arg( [ 'affwp_action' => 'payouts_service_disconnect' ] ), 'payouts_service_disconnect', 'payouts_service_disconnect_nonce' );
 
 			/* translators: Payouts Service name retrieved from the PAYOUTS_SERVICE_NAME constant */
 			$payouts_service_connection_status = '<p>' . sprintf( __( 'Your website is connected to the %s.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME ) . '</p>';
 			/* translators: Payouts Service name retrieved from the PAYOUTS_SERVICE_NAME constant */
-			$payouts_service_connection_status .= '<a href="'. esc_url( $payouts_service_disconnect_url ) .'" class="affwp-payouts-service-disconnect"><span>' . sprintf( __( 'Disconnect from the %s.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME ) . '</span></a>';
+			$payouts_service_connection_status .= '<a href="' . esc_url( $payouts_service_disconnect_url ) . '" class="affwp-payouts-service-disconnect"><span>' . sprintf( __( 'Disconnect from the %s.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME ) . '</span></a>';
 
 		} elseif ( 'inactive' === $connection_status ) {
 
-			$payouts_service_reconnect_url = wp_nonce_url( add_query_arg( array( 'affwp_action' => 'payouts_service_reconnect' ) ), 'payouts_service_reconnect', 'payouts_service_reconnect_nonce' );
+			$payouts_service_reconnect_url = wp_nonce_url( add_query_arg( [ 'affwp_action' => 'payouts_service_reconnect' ] ), 'payouts_service_reconnect', 'payouts_service_reconnect_nonce' );
 
 			/* translators: Payouts Service name retrieved from the PAYOUTS_SERVICE_NAME constant */
-			$payouts_service_connection_status = '<a href="'. esc_url( $payouts_service_reconnect_url ) .'" class="affwp-payouts-service-disconnect"><span>' . sprintf( __( 'Reconnect to the %s.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME ) . '</span></a>';
+			$payouts_service_connection_status = '<a href="' . esc_url( $payouts_service_reconnect_url ) . '" class="affwp-payouts-service-disconnect"><span>' . sprintf( __( 'Reconnect to the %s.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME ) . '</span></a>';
 			/* translators: 1: Payouts Service name retrieved from the PAYOUTS_SERVICE_NAME constant, 2: Payouts service documentation URL */
 			$payouts_service_connection_status .= '<p>' . sprintf( __( 'Have questions about connecting with the %1$s? See the <a href="%2$s" target="_blank" rel="noopener noreferrer">documentation</a>.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME, esc_url( PAYOUTS_SERVICE_DOCS_URL ) ) . '</p>';
 
 		} else {
 
-			$payouts_service_connect_url = add_query_arg( array(
-				'affwp_version' => AFFILIATEWP_VERSION,
-				'site_url'      => home_url(),
-				'redirect_url'  => urlencode( affwp_admin_url( 'settings', array( 'tab' => 'payouts_service' ) ) ),
-				'token'         => str_pad( wp_rand( wp_rand(), PHP_INT_MAX ), 100, wp_rand(), STR_PAD_BOTH ),
-			), PAYOUTS_SERVICE_URL . '/connect-site' );
+			$payouts_service_connect_url = add_query_arg(
+				[
+					'affwp_version' => AFFILIATEWP_VERSION,
+					'site_url'      => home_url(),
+					'redirect_url'  => urlencode( affwp_admin_url( 'settings', [ 'tab' => 'payouts_service' ] ) ),
+					'token'         => str_pad( wp_rand( wp_rand(), PHP_INT_MAX ), 100, wp_rand(), STR_PAD_BOTH ),
+				],
+				PAYOUTS_SERVICE_URL . '/connect-site'
+			);
 
 			/* translators: Payouts Service name retrieved from the PAYOUTS_SERVICE_NAME constant */
 			$payouts_service_connection_status = '<a href="' . esc_url( $payouts_service_connect_url ) . '" class="affwp-payouts-service-connect"><span>' . sprintf( __( 'Connect to the %s.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME ) . '</span></a>';
@@ -3559,19 +3725,22 @@ class Affiliate_WP_Settings {
 	public function handle_global_license_setting() {
 
 		if ( ! is_array( $this->options ) ) {
-			$this->options = array();
+			$this->options = [];
 		}
 
 		if ( self::global_license_set() ) {
 			$this->options['license_key'] = self::get_license_key();
 
-			add_filter( 'affwp_settings_general', function ( $general_settings ) {
-				$general_settings['license_key']['disabled'] = true;
-				/* translators: Support URL */
-				$general_settings['license_key']['desc']     = sprintf( __( 'Your license key is globally defined via <code>AFFILIATEWP_LICENSE_KEY</code> set in <code>wp-config.php</code>.<br />It cannot be modified from this screen.<br />An active license key is needed for automatic plugin updates and <a href="%s" target="_blank">support</a>.', 'affiliate-wp' ), 'https://affiliatewp.com/support/' );
+			add_filter(
+				'affwp_settings_general',
+				function ( $general_settings ) {
+					$general_settings['license_key']['disabled'] = true;
+					/* translators: Support URL */
+					$general_settings['license_key']['desc'] = sprintf( __( 'Your license key is globally defined via <code>AFFILIATEWP_LICENSE_KEY</code> set in <code>wp-config.php</code>.<br />It cannot be modified from this screen.<br />An active license key is needed for automatic plugin updates and <a href="%s" target="_blank">support</a>.', 'affiliate-wp' ), 'https://affiliatewp.com/support/' );
 
-				return $general_settings;
-			} );
+					return $general_settings;
+				}
+			);
 		}
 	}
 
@@ -3586,13 +3755,16 @@ class Affiliate_WP_Settings {
 			$this->options['debug_mode'] = 1;
 
 			// Globally enabled.
-			add_filter( 'affwp_settings_advanced', function( $misc_settings ) {
-				$misc_settings['debug_mode']['disabled'] = true;
-				/* translators: System Info screen URL */
-				$misc_settings['debug_mode']['desc']     = sprintf( __( 'Debug mode is globally enabled via <code>AFFILIATE_WP_DEBUG</code> set in <code>wp-config.php</code>. This setting cannot be modified from this screen. Logs are kept in <a href="%s">Affiliates > Tools</a>.', 'affiliate-wp' ), affwp_admin_url( 'tools', array( 'tab' => 'system_info' ) ) );
+			add_filter(
+				'affwp_settings_advanced',
+				function ( $misc_settings ) {
+					$misc_settings['debug_mode']['disabled'] = true;
+					/* translators: System Info screen URL */
+					$misc_settings['debug_mode']['desc'] = sprintf( __( 'Debug mode is globally enabled via <code>AFFILIATE_WP_DEBUG</code> set in <code>wp-config.php</code>. This setting cannot be modified from this screen. Logs are kept in <a href="%s">Affiliates > Tools</a>.', 'affiliate-wp' ), affwp_admin_url( 'tools', [ 'tab' => 'system_info' ] ) );
 
-				return $misc_settings;
-			} );
+					return $misc_settings;
+				}
+			);
 		}
 	}
 
@@ -3644,12 +3816,17 @@ class Affiliate_WP_Settings {
 		}
 
 		// If license activation attempt fails, redirect with notice.
-		if ( isset( $license_activation['license_status'] ) && $license_activation['license_status'] === false ){
-			wp_safe_redirect( affwp_admin_url( 'settings', array(
-				'affwp_notice'  => $license_activation['affwp_notice'],
-				'affwp_message' => $license_activation['affwp_message'],
-				'affwp_success' => 'no',
-			) ) );
+		if ( isset( $license_activation['license_status'] ) && $license_activation['license_status'] === false ) {
+			wp_safe_redirect(
+				affwp_admin_url(
+					'settings',
+					[
+						'affwp_notice'  => $license_activation['affwp_notice'],
+						'affwp_message' => $license_activation['affwp_message'],
+						'affwp_success' => 'no',
+					]
+				)
+			);
 			exit;
 		}
 
@@ -3668,12 +3845,16 @@ class Affiliate_WP_Settings {
 		// Otherwise, redirect with an error notice.
 		$error = isset( $license_data->error ) ? $license_data->error : 'missing';
 
-		wp_safe_redirect( affwp_admin_url( 'settings', array(
-			'affwp_notice'  => 'license-' . $error,
-			'affwp_success' => 'no',
-		) ) );
+		wp_safe_redirect(
+			affwp_admin_url(
+				'settings',
+				[
+					'affwp_notice'  => 'license-' . $error,
+					'affwp_success' => 'no',
+				]
+			)
+		);
 		exit;
-
 	}
 
 	/**
@@ -3685,15 +3866,15 @@ class Affiliate_WP_Settings {
 	 */
 	public function deactivate_license() {
 
-		if( ! isset( $_POST['affwp_settings'] ) ) {
+		if ( ! isset( $_POST['affwp_settings'] ) ) {
 			return;
 		}
 
-		if( ! isset( $_POST['affwp_deactivate_license'] ) ) {
+		if ( ! isset( $_POST['affwp_deactivate_license'] ) ) {
 			return;
 		}
 
-		if( ! isset( $_POST['affwp_settings']['license_key'] ) ) {
+		if ( ! isset( $_POST['affwp_settings']['license_key'] ) ) {
 			return;
 		}
 
@@ -3716,13 +3897,17 @@ class Affiliate_WP_Settings {
 
 		// Otherwise, redirect with an error notice.
 		if ( false === $license_deactivation['license_status'] ) {
-			wp_safe_redirect( affwp_admin_url( 'settings', array(
-				'message' => $license_deactivation['message'],
-				'success' => false,
-			) ) );
+			wp_safe_redirect(
+				affwp_admin_url(
+					'settings',
+					[
+						'message' => $license_deactivation['message'],
+						'success' => false,
+					]
+				)
+			);
 			exit;
 		}
-
 	}
 
 	/**
@@ -3736,7 +3921,7 @@ class Affiliate_WP_Settings {
 	 */
 	public function check_license( $force = false ) {
 
-		if( ! empty( $_POST['affwp_settings'] ) ) {
+		if ( ! empty( $_POST['affwp_settings'] ) ) {
 			return; // Don't fire when saving settings
 		}
 
@@ -3802,7 +3987,7 @@ class Affiliate_WP_Settings {
 	 * @return array Coupon format options.
 	 */
 	public function list_coupon_format_options() {
-		$coupon_formats = array(
+		$coupon_formats = [
 			'{coupon_code}'                             => '{coupon_code}',
 			'{user_name}'                               => '{user_name}',
 			'{coupon_code}-{coupon_amount}'             => '{coupon_code}-{coupon_amount}',
@@ -3819,7 +4004,7 @@ class Affiliate_WP_Settings {
 			'{coupon_amount}-{custom_text}-{user_name}' => '{coupon_amount}-{custom_text}-{user_name}',
 			'{first_name}-{user_name}'                  => '{first_name}-{user_name}',
 			'{user_name}-{first_name}'                  => '{user_name}-{first_name}',
-		);
+		];
 
 		return $coupon_formats;
 	}

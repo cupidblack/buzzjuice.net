@@ -35,21 +35,62 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 	 */
 	public function init() {
 
-		// Gravity Forms hooks
+		// Gravity Forms hooks.
 		add_filter( 'gform_entry_created', array( $this, 'add_pending_referral' ), 10, 2 );
 		add_action( 'gform_post_payment_completed', array( $this, 'mark_referral_complete' ), 10, 2 );
 		add_action( 'gform_post_payment_refunded', array( $this, 'revoke_referral_on_refund' ), 10, 2 );
 
-		// Internal hooks
+		// Internal hooks.
 		add_filter( 'affwp_referral_reference_column', array( $this, 'reference_link' ), 10, 2 );
 
-		// Form settings
-		add_filter( 'gform_form_settings', array( $this, 'add_settings' ), 10, 2 );
-		add_filter( 'gform_pre_form_settings_save', array( $this, 'save_settings' ) );
+		// Form Settings.
+		if ( $this->supports_addon_api() ) {
 
-		// Coupon settings
+			// Use the new Addon API to add the settings.
+			add_action( 'gform_loaded', [ $this, 'boostrap_addon_api_settings_class' ], 5 );
+
+		} else {
+
+			// Use the legacy API (for people with older versions of GF).
+			add_filter( 'gform_form_settings', array( $this, 'add_settings' ), 10, 2 );
+			add_filter( 'gform_pre_form_settings_save', array( $this, 'save_settings' ) );
+		}
+
+		// Coupon settings.
 		add_filter( 'gform_gravityformscoupons_feed_settings_fields', array( $this, 'coupon_settings' ), 10, 2 );
 		add_filter( 'admin_footer', array( $this, 'coupon_scripts' ) );
+	}
+
+	/**
+	 * Bootstrap in the Gravity Forms (2025) Settings class.
+	 *
+	 * This adds a new settings page for each form specifically for AffiliateWP.
+	 *
+	 * @since 2.27.8
+	 */
+	public function boostrap_addon_api_settings_class() : void {
+
+		if ( ! $this->supports_addon_api() ) {
+			return; // Not sure why anyone would load this, but since it's public check again.
+		}
+
+		require_once sprintf(
+			'%1$s/extras/class-gravity-forms-settings.php',
+			untrailingslashit( __DIR__ )
+		);
+
+		GFAddOn::register( '\AffiliateWP\Integrations\Extra\Gravity_Forms_Settings' );
+	}
+
+	/**
+	 * Does Gravity Forms support the Addon API?
+	 *
+	 * @since 2.27.8
+	 *
+	 * @return bool
+	 */
+	private function supports_addon_api() {
+		return method_exists( 'GFForms', 'include_addon_framework' );
 	}
 
 	/**
@@ -112,7 +153,7 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 			foreach ( $emails as $customer_email ) {
 				if ( $this->is_affiliate_email( $customer_email, $this->affiliate_id ) ) {
 					$this->log( 'Draft referral rejected because affiliate\'s own account was used.' );
-					$this->mark_referral_failed( $referral_id );
+					$this->mark_referral_rejected( $referral_id );
 
 					return false;
 				}
@@ -130,7 +171,7 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 
 			$price = GFCommon::to_number( $product['price'] );
 
-			if ( is_array( rgar( $product,'options' ) ) ) {
+			if ( is_array( rgar( $product, 'options' ) ) ) {
 				$count = count( $product['options'] );
 				$index = 1;
 
@@ -194,18 +235,18 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 			$amount = affwp_currency_filter( affwp_format_amount( $referral->amount ) );
 			$name   = affiliate_wp()->affiliates->get_affiliate_name( $referral->affiliate_id );
 			/* translators: 1: Referral ID, 2: Formatted referral amount, 3: Affiliate name, 4: Referral affiliate ID  */
-			$note   = sprintf( __( 'Referral #%1$d for %2$s recorded for %3$s (ID: %4$d).', 'affiliate-wp' ),
+			$note = sprintf(
+				__( 'Referral #%1$d for %2$s recorded for %3$s (ID: %4$d).', 'affiliate-wp' ),
 				$referral->referral_id,
 				$amount,
 				$name,
 				$referral->affiliate_id
 			);
 
-			GFFormsModel::add_note( $entry["id"], 0, 'AffiliateWP', $note );
+			GFFormsModel::add_note( $entry['id'], 0, 'AffiliateWP', $note );
 		} else {
 			affiliate_wp()->utils->log( 'mark_referral_complete: The referral could not be found.', $referral );
 		}
-
 	}
 
 	/**
@@ -226,13 +267,12 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 		if ( ! is_wp_error( $referral ) ) {
 			$amount = affwp_currency_filter( affwp_format_amount( $referral->amount ) );
 			$name   = affiliate_wp()->affiliates->get_affiliate_name( $referral->affiliate_id );
-			$note   = sprintf( __( 'Referral #%d for %s for %s rejected', 'affiliate-wp' ), $referral->referral_id, $amount, $name );
+			$note   = sprintf( __( 'Referral #%1$d for %2$s for %3$s rejected', 'affiliate-wp' ), $referral->referral_id, $amount, $name );
 
-			GFFormsModel::add_note( $entry["id"], 0, 'AffiliateWP', $note );
+			GFFormsModel::add_note( $entry['id'], 0, 'AffiliateWP', $note );
 		} else {
 			affiliate_wp()->utils->log( 'revoke_referral_on_refund: The referral could not be found.', $referral );
 		}
-
 	}
 
 	/**
@@ -295,16 +335,16 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 	 */
 	public function check_coupons( $form, $entry ) {
 
-		if( ! class_exists( 'GFCoupons' ) ) {
+		if ( ! class_exists( 'GFCoupons' ) ) {
 			return false;
 		}
 
-		$gf_coupons   = new \GFCoupons;
+		$gf_coupons   = new \GFCoupons();
 		$coupons      = $gf_coupons->get_submitted_coupon_codes( $form, $entry );
 		$coupon_field = $gf_coupons->get_coupon_field( $form );
 		$has_coupon   = false;
 
-		if( empty( $coupons ) ) {
+		if ( empty( $coupons ) ) {
 			return false;
 		}
 
@@ -312,26 +352,25 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 			return false;
 		}
 
-		foreach( $coupons as $coupon ) {
+		foreach ( $coupons as $coupon ) {
 
 			// Forms can have multiple coupons. If there are multiple affiliate coupons, the last one in the list will be used.
 
 			$config = $gf_coupons->get_config( $form, $coupon );
 
-			if( empty( $config['meta']['affwp_affiliate'] ) ) {
+			if ( empty( $config['meta']['affwp_affiliate'] ) ) {
 				continue;
 			}
 
 			$has_coupon = true;
-			$username  = $config['meta']['affwp_affiliate'];
-			$affiliate = affwp_get_affiliate( $username );
+			$username   = $config['meta']['affwp_affiliate'];
+			$affiliate  = affwp_get_affiliate( $username );
 
-			if( $affiliate && affiliate_wp()->tracking->is_valid_affiliate( $affiliate->ID ) ) {
+			if ( $affiliate && affiliate_wp()->tracking->is_valid_affiliate( $affiliate->ID ) ) {
 
 				$this->affiliate_id = $affiliate->ID;
 
 			}
-
 		}
 
 		return $has_coupon;
@@ -359,7 +398,6 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 		}
 
 		return $emails;
-
 	}
 
 	/**
@@ -391,10 +429,18 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 	/**
 	 * Register the form-specific settings
 	 *
-	 * @since  1.7
-	 * @return void
+	 * @since 1.7
+	 * @since 2.27.8 Checks for the Addon API, bails if we're supposed to use that API.
+	 *
+	 * @return array Settings.
+	 *
+	 * @throws \Exception If you try and use this method when the Addon API is available.
 	 */
 	public function add_settings( $settings, $form ) {
+
+		if ( $this->supports_addon_api() ) {
+			throw new \Exception( 'Using legacy method when the Addon API is available.' );
+		}
 
 		$checked  = rgar( $form, 'affwp_allow_referrals' );
 		$selected = rgar( $form, 'affwp_referral_type' );
@@ -403,9 +449,9 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 		$field .= ' <label for="affwp_allow_referrals">' . __( 'Enable affiliate referral creation for this form', 'affiliate-wp' ) . '</label>';
 
 		$field_type = '<select name="affwp_referral_type" id="affwp_referral_type">';
-			foreach( affwp_get_referral_types() as $type_id => $type ) {
-				$field_type .= '<option value="' . esc_attr( $type_id ) . '"' . selected( $type_id, $selected, false ) .'>' . esc_html( $type['label'] ) . '</option>';
-			}
+		foreach ( affwp_get_referral_types() as $type_id => $type ) {
+			$field_type .= '<option value="' . esc_attr( $type_id ) . '"' . selected( $type_id, $selected, false ) . '>' . esc_html( $type['label'] ) . '</option>';
+		}
 		$field_type .= '</select>';
 		$field_type .= ' <label for="affwp_referral_type">' . __( 'Referral Type', 'affiliate-wp' ) . '</label>';
 
@@ -419,21 +465,30 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 			</tr>';
 
 		return $settings;
-
 	}
 
 	/**
 	 * Save form settings
 	 *
+	 * @param mixed $form The form.
+	 *
 	 * @since 1.7
+	 * @since 2.27.8 Checks for the Addon API, bails if we're supposed to use that API.
+	 *
+	 * @return mixed The form (with new legacy settings added).
+	 *
+	 * @throws \Exception If we use this method to save settings, but the Addon API is available.
 	 */
 	public function save_settings( $form ) {
 
+		if ( $this->supports_addon_api() ) {
+			throw new \Exception( 'Using legacy method when the Addon API is available.' );
+		}
+
 		$form['affwp_allow_referrals'] = rgpost( 'affwp_allow_referrals' );
-		$form['affwp_referral_type'] = rgpost( 'affwp_referral_type' );
+		$form['affwp_referral_type']   = rgpost( 'affwp_referral_type' );
 
 		return $form;
-
 	}
 
 
@@ -445,15 +500,14 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 	public function coupon_settings( $settings, $addon ) {
 
 		$settings[2]['fields'][] = array(
-			'name'  => 'affwp_affiliate',
-			'label' => __( 'Affiliate Coupon', 'affiliate-wp' ),
-			'type'  => 'text',
-			'class' => 'affwp_gf_coupon',
-			'tooltip' => __( 'To connect this coupon to an affiliate, enter the username of the affiliate. Anytime this coupon is redeemed, the connected affiliate will receive a referral commission.', 'affiliate-wp' )
+			'name'    => 'affwp_affiliate',
+			'label'   => __( 'Affiliate Coupon', 'affiliate-wp' ),
+			'type'    => 'text',
+			'class'   => 'affwp_gf_coupon',
+			'tooltip' => __( 'To connect this coupon to an affiliate, enter the username of the affiliate. Anytime this coupon is redeemed, the connected affiliate will receive a referral commission.', 'affiliate-wp' ),
 		);
 
 		return $settings;
-
 	}
 
 	/**
@@ -463,14 +517,14 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 	 */
 	public function coupon_scripts() {
 
-		if( empty( $_GET['page'] ) || 'gravityformscoupons' !== $_GET['page'] ) {
+		if ( empty( $_GET['page'] ) || 'gravityformscoupons' !== $_GET['page'] ) {
 			return;
 		}
 
-		if( empty( $_GET['fid'] ) ) {
+		if ( empty( $_GET['fid'] ) ) {
 			return;
 		}
-?>
+		?>
 		<script type="text/javascript">
 		jQuery(document).ready(function($) {
 			// Ajax user search.
@@ -504,7 +558,7 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 			} );
 		});
 		</script>
-<?php
+		<?php
 	}
 
 	/**
@@ -514,7 +568,7 @@ class Affiliate_WP_Gravity_Forms extends Affiliate_WP_Base {
 	 *
 	 * @param int $entry_id The ID of the entry to retrieve customer details for.
 	 * @return array An array of the customer details
-	*/
+	 */
 	public function get_customer( $entry_id = 0 ) {
 
 		$customer = array();

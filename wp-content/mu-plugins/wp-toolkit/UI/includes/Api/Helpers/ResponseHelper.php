@@ -1,13 +1,14 @@
 <?php
 // Copyright 1999-2026. WebPros International GmbH. All rights reserved.
 
-namespace  Webpros\WptkWpPlugin\WpToolkit\UI\Api\Helpers;
+namespace Webpros\WptkWpPlugin\WpToolkit\UI\Api\Helpers;
 
 class ResponseHelper
 {
     /**
      * @param string|array $body
-     * @param int $statusCode
+     * @param int          $statusCode
+     *
      * @return \WP_REST_Response
      */
     public static function metaResponse($body, $statusCode = 200)
@@ -22,7 +23,8 @@ class ResponseHelper
 
     /**
      * @param array|null $body
-     * @param int $statusCode
+     * @param int        $statusCode
+     *
      * @return \WP_REST_Response
      */
     public static function proxyResponse($body, $statusCode = 200)
@@ -32,7 +34,8 @@ class ResponseHelper
 
     /**
      * @param array $data
-     * @param int $statusCode
+     * @param int   $statusCode
+     *
      * @return \WP_REST_Response
      */
     public static function success($data = [], $statusCode = 200)
@@ -42,7 +45,8 @@ class ResponseHelper
 
     /**
      * @param string $message
-     * @param int $statusCode
+     * @param int    $statusCode
+     *
      * @return \WP_REST_Response
      */
     public static function error($message, $statusCode = 400)

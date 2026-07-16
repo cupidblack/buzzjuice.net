@@ -34,7 +34,9 @@ function affwp_affiliate_groups_connector() {
 	// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found -- Used to cache.
 	return $instance = new \AffiliateWP\Admin\Groups\Affiliate_Groups\Affiliates\Connector( 'affiliate-groups' );
 }
-add_action( 'plugins_loaded', 'affwp_affiliate_groups_connector', 9 );
+// Deferred to 'init' to avoid _load_textdomain_just_in_time warnings in WordPress 6.7+.
+// The Connector class constructor uses __() for translations.
+add_action( 'init', 'affwp_affiliate_groups_connector', 0 );
 
 /*
  * Managers
@@ -61,4 +63,5 @@ function affwp_affiliate_groups_manager() {
 	// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found -- Used to cache instance.
 	return $instance = new \AffiliateWP\Admin\Groups\Affiliate_Groups\Management( 'affiliate-groups' );
 }
-add_action( 'plugins_loaded', 'affwp_affiliate_groups_manager', 10 );
+// Deferred to 'init' to avoid _load_textdomain_just_in_time warnings in WordPress 6.7+.
+add_action( 'init', 'affwp_affiliate_groups_manager', 1 );

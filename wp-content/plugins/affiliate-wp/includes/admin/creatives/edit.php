@@ -51,14 +51,17 @@ $qrcode_settings = $creative->get_qrcode_settings();
 							class="regular-text"
 							data-private="<?php echo $is_private ? 'yes' : 'no'; ?>"
 						>
-						<?php echo $is_private ? sprintf(
-							'<span class="affwp-admin-creative-name-warning">%s</span>',
-							affwp_icon_tooltip(
-								esc_html__( 'Enter a more descriptive name for this creative. The Notes field below contains the original name for your reference.', 'affiliate-wp' ),
-								'warning',
-								false
-							)
-						) : ''; ?>
+						<?php if ( $is_private ) : ?>
+							<?php
+							$tooltip_html = affwp_tooltip( [
+								'content' => esc_html__( 'Enter a more descriptive name for this creative. The Notes field below contains the original name for your reference.', 'affiliate-wp' ),
+								'type'    => 'warning',
+							] );
+							?>
+							<span class="affwp-admin-creative-name-warning">
+								<span class="dashicons dashicons-warning cursor-help" data-tooltip-html="<?php echo esc_attr( $tooltip_html ); ?>"></span>
+							</span>
+						<?php endif; ?>
 					</div>
 
 					<p class="description"><?php esc_html_e( 'The name of this creative. Use this to briefly describe the creative to your affiliates.', 'affiliate-wp' ); ?></p>
@@ -97,7 +100,7 @@ $qrcode_settings = $creative->get_qrcode_settings();
 					<label for="type"><?php esc_html_e( 'Type', 'affiliate-wp' ); ?></label>
 				</th>
 				<td>
-					<select name="type" id="type">
+					<select name="type" id="type" class="affwp-use-select2">
 						<?php foreach ( affwp_get_creative_types() as $creative_type => $label ) : ?>
 
 							<?php
@@ -329,7 +332,7 @@ $qrcode_settings = $creative->get_qrcode_settings();
 				</th>
 
 				<td>
-					<select name="status" id="status">
+					<select name="status" id="status" class="affwp-use-select2">
 
 						<?php foreach ( affwp_get_creative_statuses() as $status_key => $label ) : ?>
 

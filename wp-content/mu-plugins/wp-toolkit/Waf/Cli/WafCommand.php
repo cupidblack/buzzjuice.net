@@ -19,7 +19,6 @@ class WafCommand extends SwitchableCommand
      * @param array $assoc_args
      *
      * @return void
-     *
      * @throws WP_CLI\ExitException
      */
     public function delete($args, $assoc_args)

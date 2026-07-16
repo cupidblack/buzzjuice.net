@@ -60,7 +60,7 @@ class Affiliate_WP_Login {
 	 * @global $affwp_login_redirect
 	 * @param string $redirect Redirect page URL
 	 * @return string Login form
-	*/
+	 */
 	public function login_form( $redirect = '' ) {
 		global $affwp_login_redirect;
 
@@ -141,7 +141,6 @@ class Affiliate_WP_Login {
 					$this->add_error( 'password_incorrect', __( 'Incorrect username or password', 'affiliate-wp' ) );
 				}
 			}
-
 		}
 
 		if ( function_exists( 'is_limit_login_ok' ) && ! is_limit_login_ok() ) {
@@ -150,13 +149,23 @@ class Affiliate_WP_Login {
 
 		}
 
+		// CAPTCHA validation using the unified manager (only if login protection is enabled).
+		if ( AffWP_Captcha_Manager::is_login_enabled() ) {
+			$captcha_valid = AffWP_Captcha_Manager::validate_response( $data, 'login' );
+
+			if ( ! $captcha_valid ) {
+				$active_type   = AffWP_Captcha_Manager::get_active_type();
+				$error_message = AffWP_Captcha_Manager::get_error_message( $active_type );
+				$this->add_error( $active_type . '_required', $error_message );
+			}
+		}
+
 		/**
 		 * Fires immediately after processing an affiliate login form.
 		 *
 		 * @since 1.0
 		 */
 		do_action( 'affwp_process_login_form' );
-
 
 		// only log the user in if there are no errors
 		if ( empty( $this->errors ) ) {
@@ -177,15 +186,12 @@ class Affiliate_WP_Login {
 			$redirect = apply_filters( 'affwp_login_redirect', $redirect );
 
 			if ( $redirect ) {
-				wp_redirect( $redirect ); exit;
+				wp_redirect( $redirect );
+				exit;
 			}
+		} elseif ( function_exists( 'limit_login_failed' ) ) {
 
-		} else {
-
-			if ( function_exists( 'limit_login_failed' ) ) {
 				limit_login_failed( $user_login );
-			}
-
 		}
 	}
 
@@ -197,8 +203,9 @@ class Affiliate_WP_Login {
 	private function log_user_in( $user_id = 0, $user_login = '', $remember = false ) {
 
 		$user = get_userdata( $user_id );
-		if ( ! $user )
+		if ( ! $user ) {
 			return;
+		}
 
 		wp_set_auth_cookie( $user_id, $remember );
 		wp_set_current_user( $user_id, $user_login );
@@ -207,7 +214,6 @@ class Affiliate_WP_Login {
 		 * any WordPress core features, plugins, or themes hooking onto it.
 		 */
 		do_action( 'wp_login', $user_login, $user );
-
 	}
 
 	/**
@@ -232,14 +238,13 @@ class Affiliate_WP_Login {
 
 		echo '<div class="affwp-errors">';
 
-		foreach( $this->errors as $error_id => $error ) {
+		foreach ( $this->errors as $error_id => $error ) {
 
 			echo '<p class="affwp-error">' . esc_html( $error ) . '</p>';
 
 		}
 
 		echo '</div>';
-
 	}
 
 	/**
@@ -256,7 +261,6 @@ class Affiliate_WP_Login {
 		 *
 		 * @param string $url Login URL.
 		 */
-	    return apply_filters( 'affwp_login_url', get_permalink( affiliatewp_get_affiliate_login_page_id() ) );
+		return apply_filters( 'affwp_login_url', get_permalink( affiliatewp_get_affiliate_login_page_id() ) );
 	}
-
 }

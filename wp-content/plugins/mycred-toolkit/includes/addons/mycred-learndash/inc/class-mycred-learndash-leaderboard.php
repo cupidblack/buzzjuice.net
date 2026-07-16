@@ -910,7 +910,7 @@ style="<?php echo $based_lesson != 'specific_lesson' ? 'display: none;' : 'displ
 		}
 
 
-		/* if (is_array($settings) && isset($settings['leaderboard_type'])) {
+		if (is_array($settings) && isset($settings['leaderboard_type'])) {
 			$type = $settings['leaderboard_type'];
 		} 
 		foreach (get_post_meta($post_id, "leaderboard_{$type}_based", true) as $k => $value) {
@@ -927,86 +927,7 @@ style="<?php echo $based_lesson != 'specific_lesson' ? 'display: none;' : 'displ
 			} elseif ($k == 'leaderboard_taxonomy' || $k == 'leaderboard_posts' || $k == 'leaderboard_course_lesson_cat' || $k == 'leaderboard_lessons' || $k == 'leaderboard_select_topic' || $k == 'leaderboard_select_topic_cat' || $k == 'leaderboard_select_quiz' || $k == 'leaderboard_select_quiz_cat') {
 				$atts['ids'] = implode(',', $value);
 			}
-		} */
-
-        // Ensure $type is set if possible
-        $type = null;
-        if (is_array($settings) && isset($settings['leaderboard_type'])) {
-            $type = sanitize_key($settings['leaderboard_type']);
-        }
-        
-        // Defensive: Always use a string key that can't be empty or weird
-        if (!$type) {
-            if (function_exists('bzj_log_once')) {
-                bzj_log_once(
-                    'debug-mycred-toolkit.log',
-                    "Missing or invalid leaderboard_type in settings: " . var_export($settings, true),
-                    __FILE__, __LINE__, 60
-                );
-            }
-            return;
-        }
-        
-        // Fetch meta (may be array, JSON string, or scalar)
-        $meta_key = "leaderboard_{$type}_based";
-        $meta_val = get_post_meta($post_id, $meta_key, true);
-        
-        // Normalize meta to array
-        $leaderboard_entries = [];
-        if (is_array($meta_val) || is_object($meta_val)) {
-            $leaderboard_entries = (array)$meta_val;
-        } elseif (is_string($meta_val)) {
-            // Try JSON
-            $decoded = json_decode($meta_val, true);
-            if (is_array($decoded)) {
-                $leaderboard_entries = $decoded;
-            } else {
-                // Try PHP unserialize (WordPress sometimes does this)
-                $unserialized = maybe_unserialize($meta_val);
-                if (is_array($unserialized)) {
-                    $leaderboard_entries = $unserialized;
-                }
-            }
-        }
-        
-        // Only loop if entries are valid
-        if (is_array($leaderboard_entries) || is_object($leaderboard_entries)) {
-            foreach ($leaderboard_entries as $k => $value) {
-        
-                if ($k === 'learndash_lesson' || $k === 'learndash_lesson_topic') {
-                    $atts['associated_lesson_topic_id'] = $value;
-                }
-        
-                if ($k === "leaderboard_associated_course_{$type}") {
-                    $atts['associated_course_id'] = $value;
-                }
-        
-                if ($k === "leaderboard_based_{$type}") {
-                    $atts['based_on'] = $value;
-                } elseif (in_array($k, [
-                    'leaderboard_taxonomy', 'leaderboard_posts', 'leaderboard_course_lesson_cat', 'leaderboard_lessons',
-                    'leaderboard_select_topic', 'leaderboard_select_topic_cat', 'leaderboard_select_quiz', 'leaderboard_select_quiz_cat'
-                ], true)) {
-                    // Defensive: if $value is array, implode; else cast safely
-                    if (is_array($value)) {
-                        $atts['ids'] = implode(',', $value);
-                    } elseif (is_scalar($value) && strlen($value) > 0) {
-                        $atts['ids'] = (string)$value;
-                    }
-                }
-            }
-        } else {
-            // Log abnormal cases for diagnostics
-            if (function_exists('bzj_log_once')) {
-                bzj_log_once(
-                    'debug-mycred-toolkit.log',
-                    "mycred-leaderboard foreach() received non-iterable for '{$meta_key}', value: " . var_export($meta_val, true),
-                    __FILE__, __LINE__, 30
-                );
-            }
-        }
-
-
+		}
 
 		if (empty($atts['based_on'])) {
 			if ($message) {

@@ -15,9 +15,10 @@ class HttpRequestExtension implements ExtensionInterface
     }
 
     /**
-     * @param int $ruleId
+     * @param int    $ruleId
      * @param string $bodyData
      * @param string $blockType
+     *
      * @return void
      */
     public function logRequest($ruleId, $bodyData, $blockType)
@@ -40,6 +41,7 @@ class HttpRequestExtension implements ExtensionInterface
      * @param int $minutes
      * @param int $blockTime
      * @param int $attempts
+     *
      * @return false
      */
     public function isBlocked($minutes, $blockTime, $attempts)
@@ -49,6 +51,7 @@ class HttpRequestExtension implements ExtensionInterface
 
     /**
      * @param int $ruleId
+     *
      * @return never
      */
     public function forceExit($ruleId)
@@ -75,6 +78,7 @@ class HttpRequestExtension implements ExtensionInterface
     /**
      * @param array $whitelistRules
      * @param array $request
+     *
      * @return false
      */
     public function isWhitelisted($whitelistRules, $request)
@@ -87,6 +91,6 @@ class HttpRequestExtension implements ExtensionInterface
      */
     public function isFileUploadRequest()
     {
-        return isset($_FILES) && count($_FILES) > 0;
+        return isset($_FILES) && \count($_FILES) > 0;
     }
 }

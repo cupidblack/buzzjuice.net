@@ -36,9 +36,10 @@ class WpToolkitRequest
     /**
      * @param string $endpoint
      * @param string $method
-     * @param array $body
-     * @param array $headers
-     * @param array $query
+     * @param array  $body
+     * @param array  $headers
+     * @param array  $query
+     *
      * @throws BadRequestException
      */
     public function __construct(
@@ -47,9 +48,8 @@ class WpToolkitRequest
         $body = [],
         $headers = [],
         $query = []
-    )
-    {
-        if (!is_string($endpoint) || empty($endpoint)) {
+    ) {
+        if (!\is_string($endpoint) || empty($endpoint)) {
             throw new BadRequestException('Invalid wp-toolkit api endpoint');
         }
 
@@ -61,7 +61,7 @@ class WpToolkitRequest
             HttpClientInterface::METHOD_DELETE
         ];
 
-        if (!in_array($method, $allowedMethodTypes, true)) {
+        if (!\in_array($method, $allowedMethodTypes, true)) {
             throw new BadRequestException(
                 'Allowed method types are: ' . implode(', ', $allowedMethodTypes) . ', ' . $method . ' given'
             );
@@ -116,6 +116,7 @@ class WpToolkitRequest
 
     /**
      * @param string $endpoint
+     *
      * @return $this
      */
     public function setEndpoint($endpoint)
@@ -127,6 +128,7 @@ class WpToolkitRequest
 
     /**
      * @param string $method
+     *
      * @return $this
      */
     public function setMethod($method)
@@ -138,6 +140,7 @@ class WpToolkitRequest
 
     /**
      * @param array $body
+     *
      * @return $this
      */
     public function setBody($body)
@@ -149,6 +152,7 @@ class WpToolkitRequest
 
     /**
      * @param array $headers
+     *
      * @return $this
      */
     public function setHeaders($headers)
@@ -160,6 +164,7 @@ class WpToolkitRequest
 
     /**
      * @param array $query
+     *
      * @return $this
      */
     public function setQuery($query)

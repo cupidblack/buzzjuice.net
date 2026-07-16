@@ -85,6 +85,7 @@ if ( !class_exists( 'myCred_Zapier_module' ) ) :
 			}
 			#generate-zapier-api-key {
 				height: 42px;
+				margin-top: 12px;
 			}
 		</style>
 		<div class="mycred-ui-accordion">

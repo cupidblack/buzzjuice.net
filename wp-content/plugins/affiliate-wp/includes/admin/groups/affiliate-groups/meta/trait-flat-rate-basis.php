@@ -40,16 +40,15 @@ trait Flat_Rate_Basis {
 	 */
 	private function get_flat_rate_basis_description() : string {
 
-		return sprintf(
-
-			// Translators: %s is a tooltip with more information.
-			__( 'Choose the flat rate basis for all affiliates in this group.%s', 'affiliate-wp' ),
-			affwp_icon_tooltip(
-				__( 'Flat rate referrals can be calculated on a per product or per order basis. This is the flat rate basis all affiliates in this group will be assigned (regardless of their own settings or the site default).', 'affiliate-wp' ),
-				'normal',
-				false
-			)
+		$tooltip_html = affwp_tooltip(
+			__( 'Flat rate referrals can be calculated on a per product or per order basis. This is the flat rate basis all affiliates in this group will be assigned (regardless of their own settings or the site default).', 'affiliate-wp' )
 		);
+
+		return __( 'Choose the flat rate basis for all affiliates in this group.', 'affiliate-wp' ) . 
+			sprintf(
+				' <span class="dashicons dashicons-editor-help cursor-help" data-tooltip-html="%s"></span>',
+				esc_attr( $tooltip_html )
+			);
 	}
 
 	/**

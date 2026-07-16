@@ -167,7 +167,7 @@ return;
 			}
 
 
-			/* public function mycred_learndash_arrange_data( $specific_join_group_hook_data ) {
+			public function mycred_learndash_arrange_data( $specific_join_group_hook_data ) {
 			  
 				$hook_data = array();
 				foreach ( $specific_join_group_hook_data['creds'] as $key => $value ) {
@@ -179,28 +179,9 @@ return;
 						
 				}
 				return $hook_data;
-			} */
+			}
 
-		   public function mycred_learndash_arrange_data( $specific_join_group_hook_data ) {
-
-                $hook_data = [];
-                $creds = bzj_safe_array($specific_join_group_hook_data['creds']);
-                $log = bzj_safe_array($specific_join_group_hook_data['log']);
-                $limit = bzj_safe_array($specific_join_group_hook_data['limit']);
-                $select_group = bzj_safe_array($specific_join_group_hook_data['select_group']);
-                $join_group_select_group = bzj_safe_array($specific_join_group_hook_data['join_group_select_group']);
-            
-                foreach ( $creds as $key => $value ) {
-                    $hook_data[$key]['creds']                   = $value;
-                    $hook_data[$key]['log']                     = $log[$key] ?? '';
-                    $hook_data[$key]['limit']                   = $limit[$key] ?? '';
-                    $hook_data[$key]['select_group']            = $select_group[$key] ?? '';
-                    $hook_data[$key]['join_group_select_group'] = $join_group_select_group[$key] ?? '';
-                }
-                return $hook_data;
-            }
-
-
+		   
 
 			/**
 			 * Preferences for LearnDash

@@ -7,6 +7,7 @@ class UserProvider
 {
     /**
      * @param string $login
+     *
      * @return \WP_User|null
      */
     public function getAdminByLogin($login)
@@ -16,7 +17,7 @@ class UserProvider
             return null;
         }
 
-        if (!in_array('administrator', $user->roles)) {
+        if (!\in_array('administrator', $user->roles)) {
             return null;
         }
 

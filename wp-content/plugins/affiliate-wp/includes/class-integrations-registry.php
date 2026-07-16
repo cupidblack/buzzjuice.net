@@ -321,6 +321,11 @@ class Integrations_Registry extends Utils\Registry {
 	 */
 	public function register_core_integrations() {
 
+		$this->add_integration( 'charitable', array(
+			'name'  => 'Charitable',
+			'class' => '\Affiliate_WP_Charitable',
+		) );
+
 		$this->add_integration( 'contactform7', array(
 			'name'  => 'Contact Form 7',
 			'class' => '\Affiliate_WP_Contact_Form_7',

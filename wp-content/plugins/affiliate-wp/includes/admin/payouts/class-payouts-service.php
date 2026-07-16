@@ -25,18 +25,18 @@ class Affiliate_WP_Payouts_Service {
 	 */
 	public function __construct() {
 
-		add_filter( 'affwp_payout_methods',                             array( $this, 'add_payout_method' ) );
-		add_filter( 'affwp_is_payout_method_enabled',                   array( $this, 'is_payout_service_enabled' ), 10, 2 );
-		add_action( 'affwp_notices_registry_init',                      array( $this, 'register_admin_notices' ) );
+		add_filter( 'affwp_payout_methods', [ $this, 'add_payout_method' ], 100 );
+		add_filter( 'affwp_is_payout_method_enabled', [ $this, 'is_payout_service_enabled' ], 10, 2 );
+		add_action( 'affwp_notices_registry_init', [ $this, 'register_admin_notices' ] );
 
-		add_action( 'affwp_process_payouts_service_connect_completion', array( $this, 'complete_connection' ) );
-		add_action( 'affwp_payouts_service_reconnect',                  array( $this, 'reconnect_site' ) );
-		add_action( 'affwp_payouts_service_disconnect',                 array( $this, 'disconnect_site' ) );
+		add_action( 'affwp_process_payouts_service_connect_completion', [ $this, 'complete_connection' ] );
+		add_action( 'affwp_payouts_service_reconnect', [ $this, 'reconnect_site' ] );
+		add_action( 'affwp_payouts_service_disconnect', [ $this, 'disconnect_site' ] );
 
-		add_action( 'affwp_preview_payout_note_payouts-service',        array( $this, 'preview_payout_message' ) );
-		add_action( 'affwp_process_payout_payouts-service',             array( $this, 'process_payout' ), 10, 6 );
+		add_action( 'affwp_preview_payout_note_payouts-service', [ $this, 'preview_payout_message' ] );
+		add_action( 'affwp_process_payout_payouts-service', [ $this, 'process_payout' ], 10, 6 );
 
-		add_action( 'affwp_preview_payout_after_referrals_total_payouts-service', array( $this, 'display_fee' ), 10, 2 );
+		add_action( 'affwp_preview_payout_after_referrals_total_payouts-service', [ $this, 'display_fee' ], 10, 2 );
 	}
 
 	/**
@@ -49,13 +49,23 @@ class Affiliate_WP_Payouts_Service {
 	 */
 	public function add_payout_method( $payout_methods ) {
 
+		// Don't offer Payouts Service after the shutdown date.
+		if ( affwp_is_payouts_service_sunset_passed() ) {
+			return $payout_methods;
+		}
+
+		// Check if Payouts Service is enabled.
+		if ( ! affiliate_wp()->settings->get( 'enable_payouts_service', false ) ) {
+			return $payout_methods;
+		}
+
 		$vendor_id         = affiliate_wp()->settings->get( 'payouts_service_vendor_id', 0 );
 		$access_key        = affiliate_wp()->settings->get( 'payouts_service_access_key', '' );
 		$connection_status = affiliate_wp()->settings->get( 'payouts_service_connection_status', '' );
 
 		if ( 'active' !== $connection_status || ! ( $vendor_id && $access_key ) ) {
 			/* translators: 1: Payouts Service settings link */
-			$payout_methods['payouts-service'] = sprintf( __( 'Payouts Service - <a href="%s">Register and/or connect</a> your account to enable this payout method', 'affiliate-wp' ), affwp_admin_url( 'settings', array( 'tab' => 'payouts_service' ) ) );
+			$payout_methods['payouts-service'] = sprintf( __( 'Payouts Service - <a href="%s">Register and/or connect</a> your account to enable this payout method', 'affiliate-wp' ), affwp_admin_url( 'settings', [ 'tab' => 'payouts#payouts_service' ] ) );
 		} else {
 			$payout_methods['payouts-service'] = __( 'Payouts Service', 'affiliate-wp' );
 		}
@@ -117,20 +127,20 @@ class Affiliate_WP_Payouts_Service {
 			return;
 		}
 
-		$body_args = array(
+		$body_args = [
 			'payout_data'   => $data,
 			'currency'      => affwp_get_currency(),
 			'affwp_version' => AFFILIATEWP_VERSION,
-		);
+		];
 
 		$headers = affwp_get_payouts_service_http_headers();
 
-		$args = array(
+		$args = [
 			'body'      => $body_args,
 			'headers'   => $headers,
 			'timeout'   => 60,
 			'sslverify' => false,
-		);
+		];
 
 		$request = wp_remote_get( PAYOUTS_SERVICE_URL . '/wp-json/payouts/v1/fee', $args );
 
@@ -180,7 +190,6 @@ class Affiliate_WP_Payouts_Service {
 		</tr>
 
 		<?php
-
 	}
 
 	/**
@@ -199,6 +208,23 @@ class Affiliate_WP_Payouts_Service {
 	 */
 	public function process_payout( $start, $end, $minimum, $affiliate_id, $payout_method, $bypass_holding ) {
 
+		// Block payouts after the Payouts Service shutdown date.
+		if ( affwp_is_payouts_service_sunset_passed() ) {
+
+			$message = __( 'The Payouts Service was shut down on September 30, 2026. To continue paying your affiliates, please configure another payout method.', 'affiliate-wp' );
+
+			$redirect = affwp_admin_url(
+				'referrals',
+				[
+					'affwp_notice'     => 'payouts_service_error',
+					'affwp_ps_message' => urlencode( $message ),
+				]
+			);
+
+			wp_redirect( $redirect );
+			exit;
+		}
+
 		$vendor_id         = affiliate_wp()->settings->get( 'payouts_service_vendor_id', 0 );
 		$access_key        = affiliate_wp()->settings->get( 'payouts_service_access_key', '' );
 		$connection_status = affiliate_wp()->settings->get( 'payouts_service_connection_status', '' );
@@ -207,10 +233,13 @@ class Affiliate_WP_Payouts_Service {
 
 			$message = __( 'Your website is not connected to the Payouts Service', 'affiliate-wp' );
 
-			$redirect = affwp_admin_url( 'referrals', array(
-				'affwp_notice'     => 'payouts_service_error',
-				'affwp_ps_message' => urlencode( $message ),
-			) );
+			$redirect = affwp_admin_url(
+				'referrals',
+				[
+					'affwp_notice'     => 'payouts_service_error',
+					'affwp_ps_message' => urlencode( $message ),
+				]
+			);
 
 			wp_redirect( $redirect );
 			exit;
@@ -219,21 +248,24 @@ class Affiliate_WP_Payouts_Service {
 
 		$headers = affwp_get_payouts_service_http_headers();
 
-		$args = array(
+		$args = [
 			'headers'   => $headers,
 			'timeout'   => 60,
 			'sslverify' => false,
-		);
+		];
 
-		$payouts_service_url = add_query_arg( array(
-			'affwp_version' => AFFILIATEWP_VERSION,
-		), PAYOUTS_SERVICE_URL . '/wp-json/payouts/v1/vendor' );
+		$payouts_service_url = add_query_arg(
+			[
+				'affwp_version' => AFFILIATEWP_VERSION,
+			],
+			PAYOUTS_SERVICE_URL . '/wp-json/payouts/v1/vendor'
+		);
 
 		$request = wp_remote_get( $payouts_service_url, $args );
 
-		$error_redirect_args = array(
+		$error_redirect_args = [
 			'affwp_notice' => 'payouts_service_error',
-		);
+		];
 
 		if ( is_wp_error( $request ) ) {
 
@@ -251,24 +283,24 @@ class Affiliate_WP_Payouts_Service {
 
 			if ( 200 === (int) $response_code ) {
 
-				$args = array(
+				$args = [
 					'status'       => 'unpaid',
-					'date'         => array(
+					'date'         => [
 						'start' => $start,
 						'end'   => $end,
-					),
+					],
 					'number'       => -1,
 					'affiliate_id' => $affiliate_id,
-				);
+				];
 
 				// Final  affiliate / referral data to be paid out.
-				$data = array();
+				$data = [];
 
 				// The affiliates that have earnings to be paid.
-				$affiliates = array();
+				$affiliates = [];
 
 				// The affiliates that can't be paid out.
-				$invalid_affiliates = array();
+				$invalid_affiliates = [];
 
 				// Retrieve the referrals from the database.
 				$referrals = affiliate_wp()->referrals->get_referrals( $args );
@@ -300,11 +332,11 @@ class Affiliate_WP_Payouts_Service {
 
 							if ( false !== $payout_service_account['valid'] ) {
 
-								$data[ $referral->affiliate_id ] = array(
+								$data[ $referral->affiliate_id ] = [
 									'account_id' => $payout_service_account['account_id'],
 									'amount'     => $referral->amount,
-									'referrals'  => array( $referral->referral_id ),
-								);
+									'referrals'  => [ $referral->referral_id ],
+								];
 
 								$affiliates[] = $referral->affiliate_id;
 
@@ -316,7 +348,7 @@ class Affiliate_WP_Payouts_Service {
 						}
 					}
 
-					$payouts = array();
+					$payouts = [];
 
 					$i = 0;
 
@@ -330,14 +362,14 @@ class Affiliate_WP_Payouts_Service {
 							continue;
 						}
 
-						$payouts[ $affiliate_id ] = array(
+						$payouts[ $affiliate_id ] = [
 							'account_id'   => $payout['account_id'],
 							'affiliate_id' => $affiliate_id,
 							'amount'       => $payout['amount'],
 							'referrals'    => $payout['referrals'],
-						);
+						];
 
-						$i++;
+						++$i;
 					}
 
 					$response = $this->send_payout_request( $payouts );
@@ -368,16 +400,18 @@ class Affiliate_WP_Payouts_Service {
 								$payout_account = $payout_method['card'];
 							}
 
-							$payout_id = affwp_add_payout( array(
-								'status'               => 'processing',
-								'affiliate_id'         => $affiliate_id,
-								'referrals'            => $payout['referrals'],
-								'amount'               => $payout['amount'],
-								'payout_method'        => 'payouts-service',
-								'service_account'      => $payout_account,
-								'service_id'           => $response->payout_id,
-								'service_invoice_link' => $response->payment_link,
-							) );
+							$payout_id = affwp_add_payout(
+								[
+									'status'               => 'processing',
+									'affiliate_id'         => $affiliate_id,
+									'referrals'            => $payout['referrals'],
+									'amount'               => $payout['amount'],
+									'payout_method'        => 'payouts-service',
+									'service_account'      => $payout_account,
+									'service_id'           => $response->payout_id,
+									'service_invoice_link' => $response->payment_link,
+								]
+							);
 
 						}
 
@@ -385,9 +419,7 @@ class Affiliate_WP_Payouts_Service {
 						exit;
 
 					}
-
 				}
-
 			} else {
 
 				$message = $response->message;
@@ -415,22 +447,22 @@ class Affiliate_WP_Payouts_Service {
 	 * @param array $data Optional. Payout Data. Default empty array.
 	 * @return bool|WP_Error
 	 */
-	public function send_payout_request( $payouts = array() ) {
+	public function send_payout_request( $payouts = [] ) {
 
-		$body_args = array(
+		$body_args = [
 			'payout_data'   => $payouts,
 			'currency'      => affwp_get_currency(),
 			'affwp_version' => AFFILIATEWP_VERSION,
-		);
+		];
 
 		$headers = affwp_get_payouts_service_http_headers();
 
-		$args = array(
+		$args = [
 			'body'      => $body_args,
 			'headers'   => $headers,
 			'timeout'   => 60,
 			'sslverify' => false,
-		);
+		];
 
 		affiliate_wp()->utils->log( 'send_payout_request()', $body_args );
 
@@ -458,7 +490,7 @@ class Affiliate_WP_Payouts_Service {
 	 * @param array $data Optional. Payout Data. Default empty array.
 	 * @return void
 	 */
-	public function complete_connection( $data = array() ) {
+	public function complete_connection( $data = [] ) {
 
 		$errors = new \WP_Error();
 
@@ -484,16 +516,16 @@ class Affiliate_WP_Payouts_Service {
 
 		$headers = affwp_get_payouts_service_http_headers( false );
 
-		$body = array(
+		$body = [
 			'token'    => sanitize_text_field( $data['token'] ),
 			'site_url' => home_url(),
-		);
+		];
 
-		$args = array(
+		$args = [
 			'body'    => $body,
 			'headers' => $headers,
 			'timeout' => 60,
-		);
+		];
 
 		$api_url       = PAYOUTS_SERVICE_URL . '/wp-json/payouts/v1/vendor/validate-access-key';
 		$response      = wp_remote_post( $api_url, $args );
@@ -504,11 +536,12 @@ class Affiliate_WP_Payouts_Service {
 			affiliate_wp()->utils->log( 'payouts_service_connection_error', $response );
 
 			// Dump a user-friendly error message to the UI.
-			$message  = '<p>';
+			$message = '<p>';
 			/* translators: 1: Payouts Service name retrieved from the PAYOUTS_SERVICE_NAME constant, 2: Payouts service settings URL */
-			$message .= sprintf( __( 'There was an error connecting to the %1$s. Please <a href="%2$s">try again</a>. If you continue to have this problem, please contact support.', 'affiliate-wp' ),
+			$message .= sprintf(
+				__( 'There was an error connecting to the %1$s. Please <a href="%2$s">try again</a>. If you continue to have this problem, please contact support.', 'affiliate-wp' ),
 				PAYOUTS_SERVICE_NAME,
-				esc_url( affwp_admin_url( 'settings', array( 'tab' => 'payouts_service' ) ) )
+				esc_url( affwp_admin_url( 'settings', [ 'tab' => 'payouts_service' ] ) )
 			);
 			$message .= '</p>';
 
@@ -517,11 +550,11 @@ class Affiliate_WP_Payouts_Service {
 
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
 
-		$settings = array(
+		$settings = [
 			'payouts_service_access_key'        => $data['access_key'],
 			'payouts_service_vendor_id'         => $data['vendor_id'],
 			'payouts_service_connection_status' => 'active',
-		);
+		];
 
 		affiliate_wp()->settings->set( $settings, true );
 
@@ -529,7 +562,7 @@ class Affiliate_WP_Payouts_Service {
 			affwp_admin_url(
 				'settings',
 				[
-					'tab'          => 'commissions',
+					'tab'          => 'payouts',
 					'affwp_notice' => 'payouts_service_site_connected',
 				]
 			)
@@ -547,7 +580,7 @@ class Affiliate_WP_Payouts_Service {
 	 *
 	 * @return void
 	 */
-	public function reconnect_site( $data = array() ) {
+	public function reconnect_site( $data = [] ) {
 
 		if ( ! current_user_can( 'manage_affiliate_options' ) ) {
 			wp_die( __( 'You do not have permission to disconnect the site from the Payouts Service payments', 'affiliate-wp' ) );
@@ -559,15 +592,15 @@ class Affiliate_WP_Payouts_Service {
 
 		$headers = affwp_get_payouts_service_http_headers();
 
-		$body = array(
+		$body = [
 			'site_url' => home_url(),
-		);
+		];
 
-		$args = array(
+		$args = [
 			'body'    => $body,
 			'headers' => $headers,
 			'timeout' => 60,
-		);
+		];
 
 		$api_url       = PAYOUTS_SERVICE_URL . '/wp-json/payouts/v1/vendor/reconnect';
 		$response      = wp_remote_post( $api_url, $args );
@@ -579,13 +612,13 @@ class Affiliate_WP_Payouts_Service {
 
 			// Dump a user-friendly error message to the UI.
 			/* translators: 1: Payouts Service name retrieved from the PAYOUTS_SERVICE_NAME constant, 2: Payouts service settings URL */
-			$message = '<p>' . sprintf( __( 'Unable to reconnect to the %1$s. Please <a href="%2$s">try again</a>. If you continue to have this problem, please contact support.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME, esc_url( affwp_admin_url( 'settings', array( 'tab' => 'payouts_service' ) ) ) ) . '</p>';
+			$message = '<p>' . sprintf( __( 'Unable to reconnect to the %1$s. Please <a href="%2$s">try again</a>. If you continue to have this problem, please contact support.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME, esc_url( affwp_admin_url( 'settings', [ 'tab' => 'payouts_service' ] ) ) ) . '</p>';
 			wp_die( $message );
 		}
 
-		$settings = array(
-			'payouts_service_connection_status' => 'active'
-		);
+		$settings = [
+			'payouts_service_connection_status' => 'active',
+		];
 
 		affiliate_wp()->settings->set( $settings, true );
 
@@ -593,7 +626,7 @@ class Affiliate_WP_Payouts_Service {
 			affwp_admin_url(
 				'settings',
 				[
-					'tab'          => 'commissions',
+					'tab'          => 'payouts',
 					'affwp_notice' => 'payouts_service_site_reconnected',
 				]
 			)
@@ -611,7 +644,7 @@ class Affiliate_WP_Payouts_Service {
 	 *
 	 * @return void
 	 */
-	public function disconnect_site( $data = array() ) {
+	public function disconnect_site( $data = [] ) {
 
 		if ( ! current_user_can( 'manage_affiliate_options' ) ) {
 			wp_die( __( 'You do not have permission to disconnect the site from the Payouts Service payments', 'affiliate-wp' ) );
@@ -623,15 +656,15 @@ class Affiliate_WP_Payouts_Service {
 
 		$headers = affwp_get_payouts_service_http_headers();
 
-		$body = array(
+		$body = [
 			'site_url' => home_url(),
-		);
+		];
 
-		$args = array(
+		$args = [
 			'body'    => $body,
 			'headers' => $headers,
 			'timeout' => 60,
-		);
+		];
 
 		$api_url       = PAYOUTS_SERVICE_URL . '/wp-json/payouts/v1/vendor/disconnect';
 		$response      = wp_remote_post( $api_url, $args );
@@ -642,13 +675,13 @@ class Affiliate_WP_Payouts_Service {
 			affiliate_wp()->utils->log( 'payouts_service_disconnection_failure', $response );
 
 			/* translators: 1: Payouts Service name retrieved from the PAYOUTS_SERVICE_NAME constant, 2: Payouts service settings URL */
-			$message = '<p>' . sprintf( __( 'Unable to disconnect from the %1$s. Please <a href="%2$s">try again</a>. If you continue to have this problem, please contact support.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME, esc_url( affwp_admin_url( 'settings', array( 'tab' => 'payouts_service' ) ) ) ) . '</p>';
+			$message = '<p>' . sprintf( __( 'Unable to disconnect from the %1$s. Please <a href="%2$s">try again</a>. If you continue to have this problem, please contact support.', 'affiliate-wp' ), PAYOUTS_SERVICE_NAME, esc_url( affwp_admin_url( 'settings', [ 'tab' => 'payouts_service' ] ) ) ) . '</p>';
 			wp_die( $message );
 		}
 
-		$settings = array(
-			'payouts_service_connection_status' => 'inactive'
-		);
+		$settings = [
+			'payouts_service_connection_status' => 'inactive',
+		];
 
 		affiliate_wp()->settings->set( $settings, true );
 
@@ -656,7 +689,7 @@ class Affiliate_WP_Payouts_Service {
 			affwp_admin_url(
 				'settings',
 				[
-					'tab'          => 'commissions',
+					'tab'          => 'payouts',
 					'affwp_notice' => 'payouts_service_site_disconnected',
 				]
 			)
@@ -678,12 +711,14 @@ class Affiliate_WP_Payouts_Service {
 
 			$message = ! empty( $_REQUEST['affwp_ps_message'] ) ? urldecode( $_REQUEST['affwp_ps_message'] ) : '';
 
-			$registry->add_notice( 'payouts_service_error', array(
-				'class'   => 'error',
-				'message' => '<strong>' . __( 'Error:', 'affiliate-wp' ) . '</strong> ' . esc_html( $message ),
-			) );
+			$registry->add_notice(
+				'payouts_service_error',
+				[
+					'class'   => 'error',
+					'message' => '<strong>' . __( 'Error:', 'affiliate-wp' ) . '</strong> ' . esc_html( $message ),
+				]
+			);
 		}
 	}
-
 }
-new Affiliate_WP_Payouts_Service;
+new Affiliate_WP_Payouts_Service();

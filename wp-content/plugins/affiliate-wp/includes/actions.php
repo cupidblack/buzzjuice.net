@@ -16,7 +16,7 @@
  *
  * @since 1.0
  * @return void
-*/
+ */
 function affwp_do_actions() {
 	if ( isset( $_REQUEST['affwp_action'] ) ) {
 		$action = $_REQUEST['affwp_action'];
@@ -56,7 +56,7 @@ function affwp_remove_query_args( $query_args ) {
 			|| isset( $_GET['referral_id'] )
 			|| isset( $_GET['visit_id'] )
 			|| isset( $_GET['payout_id'] )
-	     )
+		)
 	) {
 		$query_args[] = '_wpnonce';
 	}
@@ -105,15 +105,16 @@ function affwp_process_add_affiliate_website( $affiliate_id, $args ) {
 
 		$user_id = affwp_get_affiliate_user_id( $affiliate_id );
 
-		$updated = wp_update_user( array(
-			'ID'       => $user_id,
-			'user_url' => $website_url
-		) );
+		$updated = wp_update_user(
+			[
+				'ID'       => $user_id,
+				'user_url' => $website_url,
+			]
+		);
 
 	}
 
 	return $updated;
-
 }
 add_action( 'affwp_insert_affiliate', 'affwp_process_add_affiliate_website', 11, 2 );
 
@@ -159,7 +160,6 @@ function affwp_display_post_states( $post_states, $post ) {
 	}
 
 	return $post_states;
-
 }
 add_filter( 'display_post_states', 'affwp_display_post_states', 10, 2 );
 
@@ -168,8 +168,8 @@ add_filter( 'display_post_states', 'affwp_display_post_states', 10, 2 );
  *
  * @since 2.1.11
  *
- * @param int 	$decimal_places Decimal Places.
- * @return int 	Number of decimal places
+ * @param int $decimal_places Decimal Places.
+ * @return int  Number of decimal places
  */
 function affwp_btc_decimal_count( $decimal_places ) {
 
@@ -178,7 +178,6 @@ function affwp_btc_decimal_count( $decimal_places ) {
 	}
 
 	return $decimal_places;
-
 }
 add_filter( 'affwp_decimal_count', 'affwp_btc_decimal_count' );
 
@@ -196,8 +195,7 @@ function affwp_show_affiliate_coupons_remove_template_redirect() {
 	}
 
 	$affiliatewp_show_affiliate_coupons = affiliatewp_show_affiliate_coupons();
-	remove_action( 'template_redirect', array( $affiliatewp_show_affiliate_coupons, 'no_access_redirect' ) );
-
+	remove_action( 'template_redirect', [ $affiliatewp_show_affiliate_coupons, 'no_access_redirect' ] );
 }
 add_action( 'template_redirect', 'affwp_show_affiliate_coupons_remove_template_redirect', 5 );
 
@@ -247,7 +245,7 @@ add_action( 'pre_user_query', 'affwp_handle_wp_user_query' );
  */
 function affwp_intercept_migrated_user_meta_fields( $value, $object_id, $meta_key, $single ) {
 
-	if ( in_array( $meta_key, function_exists( 'affwp_get_current_migrated_user_meta_fields' ) ? affwp_get_current_migrated_user_meta_fields() : array() ) ) {
+	if ( in_array( $meta_key, function_exists( 'affwp_get_current_migrated_user_meta_fields' ) ? affwp_get_current_migrated_user_meta_fields() : [] ) ) {
 		$affiliate_id = affwp_get_affiliate_id( $object_id );
 		$value        = affwp_get_affiliate_meta( $affiliate_id, affwp_remove_prefix( $meta_key ), $single );
 	}
@@ -272,7 +270,7 @@ add_filter( 'get_user_metadata', 'affwp_intercept_migrated_user_meta_fields', 2,
  */
 function affwp_intercept_migrated_user_meta_field_updates( $value, $object_id, $meta_key, $meta_value, $prev_value ) {
 
-	if ( in_array( $meta_key, function_exists( 'affwp_get_current_migrated_user_meta_fields' ) ? affwp_get_current_migrated_user_meta_fields() : array() ) ) {
+	if ( in_array( $meta_key, function_exists( 'affwp_get_current_migrated_user_meta_fields' ) ? affwp_get_current_migrated_user_meta_fields() : [] ) ) {
 		$affiliate_id = affwp_get_affiliate_id( $object_id );
 		$value        = affwp_update_affiliate_meta( $affiliate_id, affwp_remove_prefix( $meta_key ), $meta_value, $prev_value );
 	}
@@ -295,7 +293,7 @@ add_filter( 'update_user_metadata', 'affwp_intercept_migrated_user_meta_field_up
  */
 function affwp_intercept_migrated_user_meta_field_add( $value, $object_id, $meta_key, $meta_value, $unique ) {
 
-	if ( in_array( $meta_key, function_exists( 'affwp_get_current_migrated_user_meta_fields' ) ? affwp_get_current_migrated_user_meta_fields() : array() ) ) {
+	if ( in_array( $meta_key, function_exists( 'affwp_get_current_migrated_user_meta_fields' ) ? affwp_get_current_migrated_user_meta_fields() : [] ) ) {
 		$affiliate_id = affwp_get_affiliate_id( $object_id );
 		$value        = affwp_add_affiliate_meta( $affiliate_id, affwp_remove_prefix( $meta_key ), $meta_value, $unique );
 	}
@@ -316,12 +314,12 @@ add_filter( 'add_user_metadata', 'affwp_intercept_migrated_user_meta_field_add',
  * @param mixed    $_meta_value Metadata value. Serialized if non-scalar.
  */
 function affwp_delete_affiliate_meta_when_migrated_user_meta_is_deleted( $meta_ids, $object_id, $meta_key, $_meta_value ) {
-	if ( in_array( $meta_key, function_exists( 'affwp_get_current_migrated_user_meta_fields' ) ? affwp_get_current_migrated_user_meta_fields() : array() ) ) {
+	if ( in_array( $meta_key, function_exists( 'affwp_get_current_migrated_user_meta_fields' ) ? affwp_get_current_migrated_user_meta_fields() : [] ) ) {
 		$affiliate_id = affwp_get_affiliate_id( $object_id );
 		affwp_delete_affiliate_meta( $affiliate_id, affwp_remove_prefix( $meta_key ) );
 	}
 }
-add_action( "delete_user_metadata", 'affwp_delete_affiliate_meta_when_migrated_user_meta_is_deleted', 2, 4 );
+add_action( 'delete_user_metadata', 'affwp_delete_affiliate_meta_when_migrated_user_meta_is_deleted', 2, 4 );
 
 /**
  * Register all the connectables.
@@ -329,7 +327,6 @@ add_action( "delete_user_metadata", 'affwp_delete_affiliate_meta_when_migrated_u
  * @since 2.13.0 Added creatives, affiliates, and groups.
  */
 function affwp_register_connectables() : void {
-
 
 	static $do_once = false;
 
@@ -341,11 +338,11 @@ function affwp_register_connectables() : void {
 
 		// Affiliates.
 		affiliate_wp()->connections->register_connectable(
-			array(
+			[
 				'name'   => 'affiliate',
 				'table'  => affiliate_wp()->affiliates->table_name,
 				'column' => affiliate_wp()->affiliates->primary_key,
-			)
+			]
 		);
 	}
 
@@ -353,11 +350,11 @@ function affwp_register_connectables() : void {
 
 		// Creatives.
 		affiliate_wp()->connections->register_connectable(
-			array(
+			[
 				'name'   => 'creative',
 				'table'  => affiliate_wp()->creatives->table_name,
 				'column' => affiliate_wp()->creatives->primary_key,
-			)
+			]
 		);
 	}
 
@@ -365,11 +362,11 @@ function affwp_register_connectables() : void {
 
 		// Groups.
 		affiliate_wp()->connections->register_connectable(
-			array(
+			[
 				'name'   => 'group',
 				'table'  => affiliate_wp()->groups->table_name,
 				'column' => affiliate_wp()->groups->primary_key,
-			)
+			]
 		);
 	}
 
@@ -377,21 +374,6 @@ function affwp_register_connectables() : void {
 }
 add_action( 'affwp_plugins_loaded', 'affwp_register_connectables', -9999 );
 add_action( 'init', 'affwp_register_connectables', -9999 );
-
-/**
- * Load AlpineJS on all our admin pages.
- *
- * @since 2.13.0
- */
-function affwp_admin_enqueue_alpinejs() {
-
-	if ( ! affwp_is_admin_page() ) {
-		return; // Don't load AlpineJS on other pages in the admin other than ours.
-	}
-
-	wp_enqueue_script( 'alpinejs' );
-}
-add_action( 'admin_enqueue_scripts', 'affwp_admin_enqueue_alpinejs' );
 
 /**
  * If the user changes their password, they no longer have a generated password.

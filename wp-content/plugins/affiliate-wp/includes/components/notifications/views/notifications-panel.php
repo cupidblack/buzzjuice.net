@@ -49,6 +49,17 @@
 
 			<button
 				type="button"
+				class="affwp-notifications-dismiss-all"
+				x-cloak
+				x-show="$store.affwpNotifications.notificationsLoaded && $store.affwpNotifications.activeNotifications.filter(n => n.dismissible !== false).length"
+				x-on:click="$store.affwpNotifications.dismissAll( $event )"
+				x-bind:disabled="$store.affwpNotifications.isDismissingAll"
+			>
+				<?php esc_html_e( 'Dismiss all', 'affiliate-wp' ); ?>
+			</button>
+
+			<button
+				type="button"
 				class="affwp-close"
 				x-on:click="$store.affwpNotifications.closePanel()"
 			>
@@ -79,18 +90,20 @@
 									<a
 										:href="button.url"
 										:class="button.type === 'primary' ? 'button button-primary' : 'button button-secondary'"
-										target="_blank"
+										:target="button.target || '_blank'"
 										x-text="button.text"
 									></a>
 								</template>
 
-								<button
-									type="button"
-									class="affwp-notification--dismiss"
-									x-on:click="$store.affwpNotifications.dismiss( $event, index )"
-								>
-									<?php esc_html_e( 'Dismiss', 'affiliate-wp' ); ?>
-								</button>
+								<template x-if="notification.dismissible !== false">
+									<button
+										type="button"
+										class="affwp-notification--dismiss"
+										x-on:click="$store.affwpNotifications.dismiss( $event, index )"
+									>
+										<?php esc_html_e( 'Dismiss', 'affiliate-wp' ); ?>
+									</button>
+								</template>
 							</div>
 						</div>
 					</div>

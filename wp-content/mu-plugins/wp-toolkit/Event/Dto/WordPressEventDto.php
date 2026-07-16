@@ -15,8 +15,6 @@ class WordPressEventDto
     const EVENT_THEME_DELETE = 'themeDelete';
     const EVENT_THEME_SWITCH = 'themeSwitch';
     const EVENT_CORE_UPDATE = 'coreUpdate';
-
-
     const EVENTS = [
         self::EVENT_PLUGIN_INSTALL,
         self::EVENT_PLUGIN_UPDATE,
@@ -57,11 +55,12 @@ class WordPressEventDto
 
     /**
      * @param string $event
+     *
      * @return void
      */
     public function __construct($event)
     {
-        if (!in_array($event, self::EVENTS, true)) {
+        if (!\in_array($event, self::EVENTS, true)) {
             throw new \InvalidArgumentException('Invalid event type');
         }
 

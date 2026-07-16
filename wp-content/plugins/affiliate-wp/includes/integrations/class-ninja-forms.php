@@ -36,20 +36,18 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 	 */
 	public function init() {
 
-		if( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3.0', '>=' ) && ! get_option( 'ninja_forms_load_deprecated', FALSE ) ) {
-			add_action( 'nf_affiliatewp_add_referral',  array( $this, 'add_referral' ) );
-			add_filter( 'ninja_forms_register_actions', array( $this, 'register_actions' ) );
+		if ( version_compare( get_option( 'ninja_forms_version', '0.0.0' ), '3.0', '>=' ) && ! get_option( 'ninja_forms_load_deprecated', false ) ) {
+			add_action( 'nf_affiliatewp_add_referral', [ $this, 'add_referral' ] );
+			add_filter( 'ninja_forms_register_actions', [ $this, 'register_actions' ] );
 		} else {
-			add_action( 'nf_save_sub', array( $this, 'deprecated_add_referral' ) );
-			add_filter( 'ninja_forms_form_settings_restrictions', array( $this, 'deprecated_add_restriction_setting' ) );
+			add_action( 'nf_save_sub', [ $this, 'deprecated_add_referral' ] );
+			add_filter( 'ninja_forms_form_settings_restrictions', [ $this, 'deprecated_add_restriction_setting' ] );
 		}
 
-		add_action( 'untrash_post',  array( $this, 'restore_referral' ) );
-		add_action( 'delete_post',   array( $this, 'revoke_referral_on_delete' ) );
-		add_action( 'wp_trash_post', array( $this, 'revoke_referral_on_delete' ) );
-		add_filter( 'affwp_referral_reference_column', array( $this, 'reference_link' ), 10, 2 );
-
-
+		add_action( 'untrash_post', [ $this, 'restore_referral' ] );
+		add_action( 'delete_post', [ $this, 'revoke_referral_on_delete' ] );
+		add_action( 'wp_trash_post', [ $this, 'revoke_referral_on_delete' ] );
+		add_filter( 'affwp_referral_reference_column', [ $this, 'reference_link' ], 10, 2 );
 	}
 
 	/**
@@ -72,15 +70,15 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 		}
 
 		// Get the referral type.
-		$this->referral_type  = isset( $args['type'] ) ? $args['type'] : 'sale';
+		$this->referral_type = isset( $args['type'] ) ? $args['type'] : 'sale';
 
 		// Create draft referral.
 		$referral_id = $this->insert_draft_referral(
 			$this->affiliate_id,
-			array(
+			[
 				'reference'   => $reference,
 				'description' => $description,
-			)
+			]
 		);
 		if ( ! $referral_id ) {
 			$this->log( 'Draft referral creation failed.' );
@@ -90,7 +88,7 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 		// Customers cannot refer themselves.
 		if ( $this->is_affiliate_email( $customer_email ) ) {
 			$this->log( 'Referral not created because affiliate\'s own account was used.' );
-			$this->mark_referral_failed( $referral_id );
+			$this->mark_referral_rejected( $referral_id );
 			return;
 		}
 
@@ -100,10 +98,10 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 		// Hydrates the previously created referral.
 		$this->hydrate_referral(
 			$referral_id,
-			array(
+			[
 				'status' => 'pending',
 				'amount' => $referral_total,
-			)
+			]
 		);
 		$this->log( sprintf( 'Ninja Forms referral #%d updated to pending successfully.', $referral_id ) );
 
@@ -120,20 +118,19 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 	 */
 	public function restore_referral( $sub_id = 0 ) {
 
-		if( ! affiliate_wp()->settings->get( 'revoke_on_refund' ) ) {
+		if ( ! affiliate_wp()->settings->get( 'revoke_on_refund' ) ) {
 			return;
 		}
 
-		if( 'nf_sub' !== get_post_type( $sub_id ) ) {
+		if ( 'nf_sub' !== get_post_type( $sub_id ) ) {
 			return;
 		}
 
 		$referral_id = affiliate_wp()->referrals->get_column_by( 'referral_id', 'reference', $sub_id );
 
-		if( $referral_id ) {
+		if ( $referral_id ) {
 			affwp_set_referral_status( $referral_id, 'unpaid' );
 		}
-
 	}
 
 	/**
@@ -145,16 +142,15 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 	 */
 	public function revoke_referral_on_delete( $sub_id = 0 ) {
 
-		if( ! affiliate_wp()->settings->get( 'revoke_on_refund' ) ) {
+		if ( ! affiliate_wp()->settings->get( 'revoke_on_refund' ) ) {
 			return;
 		}
 
-		if( 'nf_sub' !== get_post_type( $sub_id ) ) {
+		if ( 'nf_sub' !== get_post_type( $sub_id ) ) {
 			return;
 		}
 
 		$this->reject_referral( $sub_id );
-
 	}
 
 	/**
@@ -167,7 +163,7 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 	 * @param   object|null $referral  Referral object.
 	 * @return  string Reference url.
 	 */
-	public function reference_link( $reference = 0, object $referral = null ) : string {
+	public function reference_link( $reference = 0, ?object $referral = null ) : string {
 
 		if ( ! is_object( $referral ) ) {
 			return $reference;
@@ -184,7 +180,6 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 			),
 			esc_html( $reference )
 		);
-
 	}
 
 	/**
@@ -197,32 +192,30 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 	 */
 	public function get_customer( $entry_id = 0 ) {
 
-		$customer = array();
+		$customer = [];
 
 		if ( class_exists( 'Ninja_Forms' ) ) {
 
 			$fields = Ninja_Forms()->form()->get_sub( $entry_id )->get_field_values();
 
-			if( ! is_array( $fields ) ) {
-				return array();
+			if ( ! is_array( $fields ) ) {
+				return [];
 			}
 
-			foreach( $fields as $key => $value ) {
+			foreach ( $fields as $key => $value ) {
 
-				if( false !== strpos( $key, 'email' ) ) {
+				if ( false !== strpos( $key, 'email' ) ) {
 					$customer['email'] = $value;
 				}
 
-				if( false !== strpos( $key, 'firstname' ) ) {
+				if ( false !== strpos( $key, 'firstname' ) ) {
 					$customer['first_name'] = $value;
 				}
 
-				if( false !== strpos( $key, 'lastname' ) ) {
+				if ( false !== strpos( $key, 'lastname' ) ) {
 					$customer['last_name'] = $value;
 				}
-
 			}
-
 		}
 
 		return $customer;
@@ -238,7 +231,7 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 	 */
 	public function register_actions( $actions ) {
 		require_once 'extras/class-ninja-forms-action-add-referral.php';
-		$actions[ 'affiliatewp_add_referral' ] = new Affiliate_WP_Ninja_Forms_Add_Referral();
+		$actions['affiliatewp_add_referral'] = new Affiliate_WP_Ninja_Forms_Add_Referral();
 
 		return $actions;
 	}
@@ -277,7 +270,6 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 
 		$this->insert_pending_referral( $referral_total, $sub_id, $description );
 		$this->complete_referral( $sub_id );
-
 	}
 
 	/**
@@ -289,16 +281,15 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 	 * @return  array
 	 */
 	public function deprecated_add_restriction_setting( $restrictions ) {
-		$restrictions['settings'][] = array(
+		$restrictions['settings'][] = [
 			'name'          => 'affwp_allow_referrals',
 			'type'          => 'checkbox',
 			'label'         => __( 'Allow Referrals', 'affiliate-wp' ),
 			'desc'          => __( 'Enable affiliate referral creation for this form?', 'affiliate-wp' ),
 			'default_value' => 0,
-		);
+		];
 
 		return $restrictions;
-
 	}
 
 	/**
@@ -312,14 +303,13 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 		global $ninja_forms_processing;
 
 		$user_info = $ninja_forms_processing->get_user_info();
-		if ( isset ( $user_info['billing']['email'] ) ) {
+		if ( isset( $user_info['billing']['email'] ) ) {
 			$email = $user_info['billing']['email'];
 		} else {
 			$email = '';
 		}
 
 		return $email;
-
 	}
 
 	/**
@@ -334,10 +324,10 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 
 		$total = $ninja_forms_processing->get_calc_total();
 
-		if ( is_array ( $total ) ) {
+		if ( is_array( $total ) ) {
 
 			// If this is an array, grab the string total.
-			if ( isset ( $total['total'] ) ) {
+			if ( isset( $total['total'] ) ) {
 
 				$purchase_total = $total['total'];
 
@@ -346,7 +336,6 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 				$purchase_total = '';
 
 			}
-
 		} else {
 
 			// This isn't an array, so $purchase_total can just be set to the string value.
@@ -355,7 +344,6 @@ class Affiliate_WP_Ninja_Forms extends Affiliate_WP_Base {
 			} else {
 				$purchase_total = 0.00;
 			}
-
 		}
 
 		return affwp_sanitize_amount( $purchase_total );

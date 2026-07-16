@@ -34,7 +34,9 @@ function affwp_creative_category_connector() {
 	// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found -- Used to cache instance.
 	return $instance = new \AffiliateWP\Admin\Groups\Creative_Categories\Connector( 'creative-categories' );
 }
-add_action( 'plugins_loaded', 'affwp_creative_category_connector', 9 );
+// Deferred to 'init' to avoid _load_textdomain_just_in_time warnings in WordPress 6.7+.
+// The Connector class constructor uses __() for translations.
+add_action( 'init', 'affwp_creative_category_connector', 0 );
 
 /*
  * Managers
@@ -61,7 +63,8 @@ function affwp_creative_category_manager() {
 	// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found -- Used to cache instance.
 	return $instance = new \AffiliateWP\Admin\Groups\Creative_Categories\Management( 'creative-categories' );
 }
-add_action( 'plugins_loaded', 'affwp_creative_category_manager', 10 );
+// Deferred to 'init' to avoid _load_textdomain_just_in_time warnings in WordPress 6.7+.
+add_action( 'init', 'affwp_creative_category_manager', 1 );
 
 /*
  * Customization's

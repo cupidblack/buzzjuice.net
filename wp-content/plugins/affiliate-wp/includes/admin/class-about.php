@@ -72,19 +72,18 @@ class About {
 	private function hooks() {
 
 		// Output tab `About` contents.
-		add_action( 'affwp_admin_about_contents_about', array( $this, 'about_us' ) );
-		add_action( 'affwp_admin_about_contents_about', array( $this, 'am_plugins_grid' ) );
+		add_action( 'affwp_admin_about_contents_about', [ $this, 'about_us' ] );
+		add_action( 'affwp_admin_about_contents_about', [ $this, 'am_plugins_grid' ] );
 
 		// Output tab `Getting Started` contents.
-		add_action( 'affwp_admin_about_contents_getting_started', array( $this, 'getting_started' ) );
-		add_action( 'affwp_admin_about_contents_getting_started', array( $this, 'getting_started_upgrade' )  );
+		add_action( 'affwp_admin_about_contents_getting_started', [ $this, 'getting_started' ] );
+		add_action( 'affwp_admin_about_contents_getting_started', [ $this, 'getting_started_upgrade' ] );
 
 		// Output tab `Personal/Plus vs Pro` contents.
 		// add_action( 'affwp_admin_about_contents_versus', array( $this, 'plan_comparison' )  );
 
 		// Enqueue styles and scripts.
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ), 99 );
-
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ], 99 );
 	}
 
 	/**
@@ -100,7 +99,7 @@ class About {
 		wp_enqueue_style(
 			'affwp_admin_addons',
 			sprintf(
-				"%s/assets/css/admin-addons%s.css",
+				'%s/assets/css/admin-addons%s.css',
 				untrailingslashit( AFFILIATEWP_PLUGIN_URL ),
 				defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min'
 			),
@@ -111,9 +110,9 @@ class About {
 		wp_localize_script(
 			'affwp-admin',
 			'affwp_about_vars',
-			array(
+			[
 				'nonce' => wp_create_nonce( 'affiliate-wp-admin' ),
-				'i18n'  => array(
+				'i18n'  => [
 					'active'                      => __( 'Active', 'affiliate-wp' ),
 					'inactive'                    => __( 'Inactive', 'affiliate-wp' ),
 					'activate'                    => __( 'Activate', 'affiliate-wp' ),
@@ -121,10 +120,9 @@ class About {
 					'pluginActivated'             => __( 'Plugin activated.', 'affiliate-wp' ),
 					'pluginInstalledAndActivated' => __( 'Plugin installed and activated.', 'affiliate-wp' ),
 					'genericError'                => __( 'Could not install the plugin. Please reload the page and try again.', 'affiliate-wp' ),
-				),
-			)
+				],
+			]
 		);
-
 	}
 
 	/**
@@ -136,11 +134,10 @@ class About {
 	 */
 	public function get_user_license_type() : string {
 
-		$license_data = affiliate_wp()->settings->get( 'license_status', array() );
+		$license_data = affiliate_wp()->settings->get( 'license_status', [] );
 		$license_id   = isset( $license_data->price_id ) ? absint( $license_data->price_id ) : false;
 
 		return strtolower( ( new License_Data() )->get_license_type( $license_id ) );
-
 	}
 
 	/**
@@ -155,15 +152,14 @@ class About {
 		// $license_type = self::get_instance()->get_user_license_type();
 
 		return array_filter(
-			array(
+			[
 				'about'           => __( 'About', 'affiliate-wp' ),
 				'getting_started' => __( 'Getting Started', 'affiliate-wp' ),
-//				'versus'          => in_array( $license_type, array( 'personal', 'plus' ) )
-//					? sprintf( '%1$s vs Pro', ucfirst( $license_type ) )
-//					: ''
-			)
+			// 'versus'          => in_array( $license_type, array( 'personal', 'plus' ) )
+			// ? sprintf( '%1$s vs Pro', ucfirst( $license_type ) )
+			// : ''
+			]
 		);
-
 	}
 
 	/**
@@ -227,7 +223,7 @@ class About {
 				<p><?php esc_html_e( 'Our goal is to take the pain out of setting up and managing your affiliate program, making it simple and efficient.', 'affiliate-wp' ); ?></p>
 				<p>
 					<?php
-						echo sprintf(
+						printf(
 							'%1$s <a href="%2$s" target="_blank" rel="noopener noreferrer">%3$s</a>, %4$s <a href="%5$s" target="_blank" rel="noopener noreferrer">%6$s</a>, %7$s <a href="%8$s" target="_blank" rel="noopener noreferrer">%9$s</a>%10$s',
 							esc_html__( 'AffiliateWP is brought to you by the same team that’s behind the largest WordPress resource site, ', 'affiliate-wp' ),
 							esc_url( 'https://www.wpbeginner.com/?utm_source=affiliatewp-plugin&utm_medium=plugin-about-page&utm_campaign=about-affiliatewp&utm_content=wpbeginner' ),
@@ -279,7 +275,7 @@ class About {
 				<p><?php esc_html_e( 'To begin, click Affiliates (under AffiliateWP) in the left-hand menu and then click the Add New button.', 'affiliate-wp' ); ?></p>
 				<p>
 					<?php
-					echo sprintf(
+					printf(
 						'<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
 						esc_url( 'https://affiliatewp.com/docs/adding-new-affiliates/?utm_source=wordpress&utm_medium=plugin-about-us&utm_campaign=getting-started&utm_content=how-to-add-your-first-affiliate#manual-add' ),
 						esc_html__( 'How to Add Your First Affiliate', 'affiliate-wp' ),
@@ -311,7 +307,7 @@ class About {
 	 */
 	public function getting_started_upgrade() : void {
 
-		if ( in_array( self::get_instance()->get_user_license_type(), array( 'professional', 'ultimate' ), true ) ) {
+		if ( in_array( self::get_instance()->get_user_license_type(), [ 'professional', 'ultimate' ], true ) ) {
 			return; // Show only for non-pro users.
 		}
 
@@ -330,7 +326,7 @@ class About {
 							'Thanks for being a loyal AffiliateWP user. <strong>Upgrade to AffiliateWP Pro</strong> to unlock all the awesome features and see why AffiliateWP is the best affiliate marketing plugin for WordPress.',
 							'affiliate-wp'
 						),
-						array( 'strong' => '' )
+						[ 'strong' => '' ]
 					);
 					?>
 				</p>
@@ -342,7 +338,7 @@ class About {
 							'AffiliateWP is used by over <strong>30,000+ smart business owners</strong>. We know that you will truly love using it.',
 							'affiliate-wp'
 						),
-						array( 'strong' => '' )
+						[ 'strong' => '' ]
 					);
 					?>
 				</p>
@@ -375,14 +371,14 @@ class About {
 					<?php
 					echo wp_kses(
 						__(
-							'Bonus: AffiliateWP users get <span class="discount">60% off the regular price</span>, automatically applied at checkout.',
+							'Bonus: AffiliateWP users get <span class="discount">50% off the regular price</span>, automatically applied at checkout.',
 							'affiliate-wp'
 						),
-						array(
-							'span' => array(
-								'class' => array(),
-							),
-						)
+						[
+							'span' => [
+								'class' => [],
+							],
+						]
 					);
 					?>
 				</p>
@@ -404,37 +400,40 @@ class About {
 	 */
 	public function get_features_list( string $license_type = '' ) : array {
 
-		$features_list =  array(
-			array(
+		$features_list = [
+			[
 				'name'            => __( 'Form Entries', 'affiliate-wp' ),
 				'description'     => __( 'Entries via Email Only', 'affiliate-wp' ),
 				'pro_description' => __( 'Complete Entry Management inside WordPress', 'affiliate-wp' ),
 				'icon'            => 'partial',
-				'plans'           => array( 'personal', 'plus' )
-			),
-			array(
+				'plans'           => [ 'personal', 'plus' ],
+			],
+			[
 				'name'            => __( 'Form Fields', 'affiliate-wp' ),
-				'description'     => __( "<b>Standard Fields Only</b><br>Name, Email, Single Line Text, Paragraph Text, Dropdown, Multiple Choice, Checkboxes, Numbers, and Number Slider", 'affiliate-wp' ),
-				'pro_description' => __( "<b>Access to all Standard and Fancy Fields</b><br>Address, Phone, Website / URL, Date / Time, Password, File Upload, Layout, Rich Text, Content, HTML, Pagebreaks, Entry Preview, Section Dividers, Ratings, and Hidden Field", 'affiliate-wp' ),
+				'description'     => __( '<b>Standard Fields Only</b><br>Name, Email, Single Line Text, Paragraph Text, Dropdown, Multiple Choice, Checkboxes, Numbers, and Number Slider', 'affiliate-wp' ),
+				'pro_description' => __( '<b>Access to all Standard and Fancy Fields</b><br>Address, Phone, Website / URL, Date / Time, Password, File Upload, Layout, Rich Text, Content, HTML, Pagebreaks, Entry Preview, Section Dividers, Ratings, and Hidden Field', 'affiliate-wp' ),
 				'icon'            => 'none',
-				'plans'           => array( 'personal', 'plus' )
-			),
-			array(
+				'plans'           => [ 'personal', 'plus' ],
+			],
+			[
 				'name'            => __( 'Form Fields Plus Only', 'affiliate-wp' ),
-				'description'     => __( "<b>Standard Fields Only</b><br>Name, Email, Single Line Text, Paragraph Text, Dropdown, Multiple Choice, Checkboxes, Numbers, and Number Slider", 'affiliate-wp' ),
-				'pro_description' => __( "<b>Access to all Standard and Fancy Fields</b><br>Address, Phone, Website / URL, Date / Time, Password, File Upload, Layout, Rich Text, Content, HTML, Pagebreaks, Entry Preview, Section Dividers, Ratings, and Hidden Field", 'affiliate-wp' ),
+				'description'     => __( '<b>Standard Fields Only</b><br>Name, Email, Single Line Text, Paragraph Text, Dropdown, Multiple Choice, Checkboxes, Numbers, and Number Slider', 'affiliate-wp' ),
+				'pro_description' => __( '<b>Access to all Standard and Fancy Fields</b><br>Address, Phone, Website / URL, Date / Time, Password, File Upload, Layout, Rich Text, Content, HTML, Pagebreaks, Entry Preview, Section Dividers, Ratings, and Hidden Field', 'affiliate-wp' ),
 				'icon'            => 'partial',
-				'plans'           => array( 'plus' )
-			),
-		);
+				'plans'           => [ 'plus' ],
+			],
+		];
 
 		if ( empty( $license_type ) ) {
 			return $features_list;
 		}
 
-		return array_filter( $features_list, function( $feature ) use ( $license_type ) {
-			return in_array( $license_type, $feature['plans'], true );
-		});
+		return array_filter(
+			$features_list,
+			function ( $feature ) use ( $license_type ) {
+				return in_array( $license_type, $feature['plans'], true );
+			}
+		);
 	}
 
 	/**
@@ -444,7 +443,6 @@ class About {
 	 *
 	 * @return void
 	 */
-
 	public function plan_comparison() : void {
 
 		$license_type = self::get_instance()->get_user_license_type();
@@ -475,14 +473,14 @@ class About {
 				</tr>
 				</thead>
 				<tbody>
-				<?php foreach( $feature_list as $feature ) : ?>
+				<?php foreach ( $feature_list as $feature ) : ?>
 					<tr>
-						<td><?php echo wp_kses( $feature['name'], array( 'b' => array(), 'br' => array() ) ) ?></td>
-						<td class="affwp-admin-feature-icon affwp-admin-feature-icon--<?php echo esc_attr( $feature['icon'] ) ?>">
-							<?php echo wp_kses( $feature['description'], array( 'b' => array(), 'br' => array() ) ) ?>
+						<td><?php echo wp_kses( $feature['name'], [ 'b' => [], 'br' => [] ] ); ?></td>
+						<td class="affwp-admin-feature-icon affwp-admin-feature-icon--<?php echo esc_attr( $feature['icon'] ); ?>">
+							<?php echo wp_kses( $feature['description'], [ 'b' => [], 'br' => [] ] ); ?>
 						</td>
 						<td class="affwp-admin-feature-icon affwp-admin-feature-icon--full">
-							<?php echo wp_kses( $feature['pro_description'], array( 'b' => array(), 'br' => array() ) ) ?>
+							<?php echo wp_kses( $feature['pro_description'], [ 'b' => [], 'br' => [] ] ); ?>
 						</td>
 					</tr>
 				<?php endforeach; ?>
@@ -501,8 +499,8 @@ class About {
 				<p>
 					<?php
 						echo wp_kses(
-							__( 'Bonus: AffiliateWP users get <span>60% off regular price</span>, automatically applied at checkout.', 'affiliate-wp' ),
-							array( 'span' => array( 'class' => array() ) )
+							__( 'Bonus: AffiliateWP users get <span>50% off regular price</span>, automatically applied at checkout.', 'affiliate-wp' ),
+							[ 'span' => [ 'class' => [] ] ]
 						);
 					?>
 				</p>
@@ -522,245 +520,245 @@ class About {
 	 */
 	protected function get_am_plugins() : array {
 
-		return array(
-			'optinmonster/optin-monster-wp-api.php' => array(
+		return [
+			'optinmonster/optin-monster-wp-api.php'        => [
 				'icon'  => $this->images_url . 'plugin-om.png',
 				'name'  => esc_html__( 'OptinMonster', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'Instantly get more subscribers, leads, and sales with the #1 conversion optimization toolkit. Create high converting popups, announcement bars, spin a wheel, and more with smart targeting and personalization.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/optinmonster/',
 				'url'   => 'https://downloads.wordpress.org/plugin/optinmonster.zip',
-			),
-			'google-analytics-for-wordpress/googleanalytics.php' => array(
+			],
+			'google-analytics-for-wordpress/googleanalytics.php' => [
 				'icon'  => $this->images_url . 'plugin-mi.png',
 				'name'  => esc_html__( 'MonsterInsights', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'The leading WordPress analytics plugin that shows you how people find and use your website, so you can make data driven decisions to grow your business. Properly set up Google Analytics without writing code.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/google-analytics-for-wordpress/',
 				'url'   => 'https://downloads.wordpress.org/plugin/google-analytics-for-wordpress.zip',
-				'pro'   => array(
+				'pro'   => [
 					'plug' => 'google-analytics-premium/googleanalytics-premium.php',
 					'icon' => $this->images_url . 'plugin-mi.png',
 					'name' => esc_html__( 'MonsterInsights Pro', 'affiliate-wp' ),
 					'desc' => esc_html__( 'The leading WordPress analytics plugin that shows you how people find and use your website, so you can make data driven decisions to grow your business. Properly set up Google Analytics without writing code.', 'affiliate-wp' ),
 					'url'  => 'https://www.monsterinsights.com/?utm_source=wpformsplugin&utm_medium=link&utm_campaign=About%20AffiliateWP',
 					'act'  => 'go-to-url',
-				),
-			),
-			'wp-mail-smtp/wp_mail_smtp.php' => array(
+				],
+			],
+			'wp-mail-smtp/wp_mail_smtp.php'                => [
 				'icon'  => $this->images_url . 'plugin-smtp.png',
 				'name'  => esc_html__( 'WP Mail SMTP', 'affiliate-wp' ),
 				'desc'  => esc_html__( "Improve your WordPress email deliverability and make sure that your website emails reach user's inbox with the #1 SMTP plugin for WordPress. Over 3 million websites use it to fix WordPress email issues.", 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/wp-mail-smtp/',
 				'url'   => 'https://downloads.wordpress.org/plugin/wp-mail-smtp.zip',
-				'pro'   => array(
+				'pro'   => [
 					'plug' => 'wp-mail-smtp-pro/wp_mail_smtp.php',
 					'icon' => $this->images_url . 'plugin-smtp.png',
 					'name' => esc_html__( 'WP Mail SMTP Pro', 'affiliate-wp' ),
 					'desc' => esc_html__( "Improve your WordPress email deliverability and make sure that your website emails reach user's inbox with the #1 SMTP plugin for WordPress. Over 3 million websites use it to fix WordPress email issues.", 'affiliate-wp' ),
 					'url'  => 'https://wpmailsmtp.com/?utm_source=wpformsplugin&utm_medium=link&utm_campaign=About%20AffiliateWP',
 					'act'  => 'go-to-url',
-				),
-			),
-			'all-in-one-seo-pack/all_in_one_seo_pack.php'  => array(
+				],
+			],
+			'all-in-one-seo-pack/all_in_one_seo_pack.php'  => [
 				'icon'  => $this->images_url . 'plugin-aioseo.png',
 				'name'  => esc_html__( 'AIOSEO', 'affiliate-wp' ),
 				'desc'  => esc_html__( "The original WordPress SEO plugin and toolkit that improves your website's search rankings. Comes with all the SEO features like Local SEO, WooCommerce SEO, sitemaps, SEO optimizer, schema, and more.", 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/all-in-one-seo-pack/',
 				'url'   => 'https://downloads.wordpress.org/plugin/all-in-one-seo-pack.zip',
-				'pro'   => array(
+				'pro'   => [
 					'plug' => 'all-in-one-seo-pack-pro/all_in_one_seo_pack.php',
 					'icon' => $this->images_url . 'plugin-aioseo.png',
 					'name' => esc_html__( 'AIOSEO Pro', 'affiliate-wp' ),
 					'desc' => esc_html__( "The original WordPress SEO plugin and toolkit that improves your website's search rankings. Comes with all the SEO features like Local SEO, WooCommerce SEO, sitemaps, SEO optimizer, schema, and more.", 'affiliate-wp' ),
 					'url'  => 'https://aioseo.com/?utm_source=wpformsplugin&utm_medium=link&utm_campaign=About%20AffiliateWP',
 					'act'  => 'go-to-url',
-				),
-			),
-			'coming-soon/coming-soon.php' => array(
+				],
+			],
+			'coming-soon/coming-soon.php'                  => [
 				'icon'  => $this->images_url . 'plugin-seedprod.png',
 				'name'  => esc_html__( 'SeedProd', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'The fastest drag & drop landing page builder for WordPress. Create custom landing pages without writing code, connect them with your CRM, collect subscribers, and grow your audience. Trusted by 1 million sites.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/coming-soon/',
 				'url'   => 'https://downloads.wordpress.org/plugin/coming-soon.zip',
-				'pro'   => array(
+				'pro'   => [
 					'plug' => 'seedprod-coming-soon-pro-5/seedprod-coming-soon-pro-5.php',
 					'icon' => $this->images_url . 'plugin-seedprod.png',
 					'name' => esc_html__( 'SeedProd Pro', 'affiliate-wp' ),
 					'desc' => esc_html__( 'The fastest drag & drop landing page builder for WordPress. Create custom landing pages without writing code, connect them with your CRM, collect subscribers, and grow your audience. Trusted by 1 million sites.', 'affiliate-wp' ),
 					'url'  => 'https://www.seedprod.com/?utm_source=wpformsplugin&utm_medium=link&utm_campaign=About%20AffiliateWP',
 					'act'  => 'go-to-url',
-				),
-			),
-			'rafflepress/rafflepress.php' => array(
+				],
+			],
+			'rafflepress/rafflepress.php'                  => [
 				'icon'  => $this->images_url . 'plugin-rp.png',
 				'name'  => esc_html__( 'RafflePress', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'Turn your website visitors into brand ambassadors! Easily grow your email list, website traffic, and social media followers with the most powerful giveaways & contests plugin for WordPress.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/rafflepress/',
 				'url'   => 'https://downloads.wordpress.org/plugin/rafflepress.zip',
-				'pro'   => array(
+				'pro'   => [
 					'plug' => 'rafflepress-pro/rafflepress-pro.php',
 					'icon' => $this->images_url . 'plugin-rp.png',
 					'name' => esc_html__( 'RafflePress Pro', 'affiliate-wp' ),
 					'desc' => esc_html__( 'Turn your website visitors into brand ambassadors! Easily grow your email list, website traffic, and social media followers with the most powerful giveaways & contests plugin for WordPress.', 'affiliate-wp' ),
 					'url'  => 'https://rafflepress.com/?utm_source=wpformsplugin&utm_medium=link&utm_campaign=About%20AffiliateWP',
 					'act'  => 'go-to-url',
-				),
-			),
-			'pushengage/main.php' => array(
+				],
+			],
+			'pushengage/main.php'                          => [
 				'icon'  => $this->images_url . 'plugin-pushengage.png',
 				'name'  => esc_html__( 'PushEngage', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'Connect with your visitors after they leave your website with the leading web push notification software. Over 10,000+ businesses worldwide use PushEngage to send 15 billion notifications each month.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/pushengage/',
 				'url'   => 'https://downloads.wordpress.org/plugin/pushengage.zip',
-			),
-			'instagram-feed/instagram-feed.php' => array(
+			],
+			'instagram-feed/instagram-feed.php'            => [
 				'icon'  => $this->images_url . 'plugin-sb-instagram.png',
 				'name'  => esc_html__( 'Smash Balloon Instagram Feeds', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'Easily display Instagram content on your WordPress site without writing any code. Comes with multiple templates, ability to show content from multiple accounts, hashtags, and more. Trusted by 1 million websites.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/instagram-feed/',
 				'url'   => 'https://downloads.wordpress.org/plugin/instagram-feed.zip',
-				'pro'   => array(
+				'pro'   => [
 					'plug' => 'instagram-feed-pro/instagram-feed.php',
 					'icon' => $this->images_url . 'plugin-sb-instagram.png',
 					'name' => esc_html__( 'Smash Balloon Instagram Feeds Pro', 'affiliate-wp' ),
 					'desc' => esc_html__( 'Easily display Instagram content on your WordPress site without writing any code. Comes with multiple templates, ability to show content from multiple accounts, hashtags, and more. Trusted by 1 million websites.', 'affiliate-wp' ),
 					'url'  => 'https://smashballoon.com/instagram-feed/?utm_source=wpformsplugin&utm_medium=link&utm_campaign=About%20AffiliateWP',
 					'act'  => 'go-to-url',
-				),
-			),
-			'custom-facebook-feed/custom-facebook-feed.php' => array(
+				],
+			],
+			'custom-facebook-feed/custom-facebook-feed.php' => [
 				'icon'  => $this->images_url . 'plugin-sb-fb.png',
 				'name'  => esc_html__( 'Smash Balloon Facebook Feeds', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'Easily display Facebook content on your WordPress site without writing any code. Comes with multiple templates, ability to embed albums, group content, reviews, live videos, comments, and reactions.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/custom-facebook-feed/',
 				'url'   => 'https://downloads.wordpress.org/plugin/custom-facebook-feed.zip',
-				'pro'   => array(
+				'pro'   => [
 					'plug' => 'custom-facebook-feed-pro/custom-facebook-feed.php',
 					'icon' => $this->images_url . 'plugin-sb-fb.png',
 					'name' => esc_html__( 'Smash Balloon Facebook Feeds Pro', 'affiliate-wp' ),
 					'desc' => esc_html__( 'Easily display Facebook content on your WordPress site without writing any code. Comes with multiple templates, ability to embed albums, group content, reviews, live videos, comments, and reactions.', 'affiliate-wp' ),
 					'url'  => 'https://smashballoon.com/custom-facebook-feed/?utm_source=wpformsplugin&utm_medium=link&utm_campaign=About%20AffiliateWP',
 					'act'  => 'go-to-url',
-				),
-			),
-			'feeds-for-youtube/youtube-feed.php' => array(
+				],
+			],
+			'feeds-for-youtube/youtube-feed.php'           => [
 				'icon'  => $this->images_url . 'plugin-sb-youtube.png',
 				'name'  => esc_html__( 'Smash Balloon YouTube Feeds', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'Easily display YouTube videos on your WordPress site without writing any code. Comes with multiple layouts, ability to embed live streams, video filtering, ability to combine multiple channel videos, and more.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/feeds-for-youtube/',
 				'url'   => 'https://downloads.wordpress.org/plugin/feeds-for-youtube.zip',
-				'pro'   => array(
+				'pro'   => [
 					'plug' => 'youtube-feed-pro/youtube-feed.php',
 					'icon' => $this->images_url . 'plugin-sb-youtube.png',
 					'name' => esc_html__( 'Smash Balloon YouTube Feeds Pro', 'affiliate-wp' ),
 					'desc' => esc_html__( 'Easily display YouTube videos on your WordPress site without writing any code. Comes with multiple layouts, ability to embed live streams, video filtering, ability to combine multiple channel videos, and more.', 'affiliate-wp' ),
 					'url'  => 'https://smashballoon.com/youtube-feed/?utm_source=wpformsplugin&utm_medium=link&utm_campaign=About%20AffiliateWP',
 					'act'  => 'go-to-url',
-				),
-			),
-			'custom-twitter-feeds/custom-twitter-feed.php' => array(
+				],
+			],
+			'custom-twitter-feeds/custom-twitter-feed.php' => [
 				'icon'  => $this->images_url . 'plugin-sb-twitter.png',
 				'name'  => esc_html__( 'Smash Balloon Twitter Feeds', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'Easily display Twitter content in WordPress without writing any code. Comes with multiple layouts, ability to combine multiple Twitter feeds, Twitter card support, tweet moderation, and more.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/custom-twitter-feeds/',
 				'url'   => 'https://downloads.wordpress.org/plugin/custom-twitter-feeds.zip',
-				'pro'   => array(
+				'pro'   => [
 					'plug' => 'custom-twitter-feeds-pro/custom-twitter-feed.php',
 					'icon' => $this->images_url . 'plugin-sb-twitter.png',
 					'name' => esc_html__( 'Smash Balloon Twitter Feeds Pro', 'affiliate-wp' ),
 					'desc' => esc_html__( 'Easily display Twitter content in WordPress without writing any code. Comes with multiple layouts, ability to combine multiple Twitter feeds, Twitter card support, tweet moderation, and more.', 'affiliate-wp' ),
 					'url'  => 'https://smashballoon.com/custom-twitter-feeds/?utm_source=wpformsplugin&utm_medium=link&utm_campaign=About%20AffiliateWP',
 					'act'  => 'go-to-url',
-				),
-			),
-			'trustpulse-api/trustpulse.php' => array(
+				],
+			],
+			'trustpulse-api/trustpulse.php'                => [
 				'icon'  => $this->images_url . 'plugin-trustpulse.png',
 				'name'  => esc_html__( 'TrustPulse', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'Boost your sales and conversions by up to 15% with real-time social proof notifications. TrustPulse helps you show live user activity and purchases to help convince other users to purchase.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/trustpulse-api/',
 				'url'   => 'https://downloads.wordpress.org/plugin/trustpulse-api.zip',
-			),
-			'searchwp/index.php' => array(
+			],
+			'searchwp/index.php'                           => [
 				'icon'  => $this->images_url . 'plugin-searchwp.png',
 				'name'  => esc_html__( 'SearchWP', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'The most advanced WordPress search plugin. Customize your WordPress search algorithm, reorder search results, track search metrics, and everything you need to leverage search to grow your business.', 'affiliate-wp' ),
 				'wporg' => false,
 				'url'   => 'https://searchwp.com/?utm_source=wpformsplugin&utm_medium=link&utm_campaign=About%20AffiliateWP',
 				'act'   => 'go-to-url',
-			),
-			'wpforms-lite/wpforms.php' => array(
+			],
+			'wpforms-lite/wpforms.php'                     => [
 				'icon'  => $this->images_url . 'plugin-wpforms.png',
 				'name'  => esc_html__( 'WPForms', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'The best drag & drop WordPress form builder. Easily create beautiful contact forms, surveys, payment forms, and more with our 100+ form templates. Trusted by over 4 million websites as the best forms plugin.', 'simple-pay' ),
 				'wporg' => 'https://wordpress.org/plugins/wpforms-lite/',
 				'url'   => 'https://downloads.wordpress.org/plugin/wpforms-lite.zip',
-				'pro'   => array(
+				'pro'   => [
 					'plug' => 'wpforms/wpforms.php',
 					'icon' => $this->images_url . 'plugin-wpforms.png',
-					'name'  => esc_html__( 'WPForms Pro', 'affiliate-wp' ),
-					'desc'  => esc_html__( 'The best drag & drop WordPress form builder. Easily create beautiful contact forms, surveys, payment forms, and more with our 100+ form templates. Trusted by over 4 million websites as the best forms plugin.', 'simple-pay' ),
+					'name' => esc_html__( 'WPForms Pro', 'affiliate-wp' ),
+					'desc' => esc_html__( 'The best drag & drop WordPress form builder. Easily create beautiful contact forms, surveys, payment forms, and more with our 100+ form templates. Trusted by over 4 million websites as the best forms plugin.', 'simple-pay' ),
 					'url'  => 'https://wpforms.com/?utm_source=wpsimplepay-plugin&utm_medium=link&utm_campaign=about-wpsimplepay',
 					'act'  => 'go-to-url',
-				),
-			),
-			'stripe/stripe-checkout.php' => array(
+				],
+			],
+			'stripe/stripe-checkout.php'                   => [
 				'icon'  => $this->images_url . 'plugin-wp-simple-pay.png',
 				'name'  => esc_html__( 'WP Simple Pay', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'The #1 Stripe payments plugin for WordPress. Start accepting one-time and recurring payments on your WordPress site without setting up a shopping cart. No code required.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/stripe/',
 				'url'   => 'https://downloads.wordpress.org/plugin/stripe.zip',
-				'pro'   => array(
+				'pro'   => [
 					'plug' => 'wp-simple-pay-pro-3/simple-pay.php',
 					'icon' => $this->images_url . 'plugin-wp-simple-pay.png',
 					'name' => esc_html__( 'WP Simple Pay Pro', 'affiliate-wp' ),
 					'desc' => esc_html__( 'The #1 Stripe payments plugin for WordPress. Start accepting one-time and recurring payments on your WordPress site without setting up a shopping cart. No code required.', 'affiliate-wp' ),
 					'url'  => 'https://wpsimplepay.com/?utm_source=wpformsplugin&utm_medium=link&utm_campaign=About%20AffiliateWP',
 					'act'  => 'go-to-url',
-				),
-			),
-			'easy-digital-downloads/easy-digital-downloads.php' => array(
+				],
+			],
+			'easy-digital-downloads/easy-digital-downloads.php' => [
 				'icon'  => $this->images_url . 'plugin-edd.png',
 				'name'  => esc_html__( 'Easy Digital Downloads', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'The best WordPress eCommerce plugin for selling digital downloads. Start selling eBooks, software, music, digital art, and more within minutes. Accept payments, manage subscriptions, advanced access control, and more.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/easy-digital-downloads/',
 				'url'   => 'https://downloads.wordpress.org/plugin/easy-digital-downloads.zip',
-			),
-			'sugar-calendar-lite/sugar-calendar-lite.php' => array(
+			],
+			'sugar-calendar-lite/sugar-calendar-lite.php'  => [
 				'icon'  => $this->images_url . 'plugin-sugarcalendar.png',
 				'name'  => esc_html__( 'Sugar Calendar', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'A simple & powerful event calendar plugin for WordPress that comes with all the event management features including payments, scheduling, timezones, ticketing, recurring events, and more.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/sugar-calendar-lite/',
 				'url'   => 'https://downloads.wordpress.org/plugin/sugar-calendar-lite.zip',
-				'pro'   => array(
+				'pro'   => [
 					'plug' => 'sugar-calendar/sugar-calendar.php',
 					'icon' => $this->images_url . 'plugin-sugarcalendar.png',
 					'name' => esc_html__( 'Sugar Calendar Pro', 'affiliate-wp' ),
 					'desc' => esc_html__( 'A simple & powerful event calendar plugin for WordPress that comes with all the event management features including payments, scheduling, timezones, ticketing, recurring events, and more.', 'affiliate-wp' ),
 					'url'  => 'https://sugarcalendar.com/?utm_source=wpformsplugin&utm_medium=link&utm_campaign=About%20AffiliateWP',
 					'act'  => 'go-to-url',
-				),
-			),
-			'charitable/charitable.php' => array(
+				],
+			],
+			'charitable/charitable.php'                    => [
 				'icon'  => $this->images_url . 'plugin-charitable.png',
 				'name'  => esc_html__( 'WP Charitable', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'Top-rated WordPress donation and fundraising plugin. Over 10,000+ non-profit organizations and website owners use Charitable to create fundraising campaigns and raise more money online.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/charitable/',
 				'url'   => 'https://downloads.wordpress.org/plugin/charitable.zip',
-			),
-			'insert-headers-and-footers/ihaf.php' => array(
+			],
+			'insert-headers-and-footers/ihaf.php'          => [
 				'icon'  => $this->images_url . 'plugin-wpcode.png',
 				'name'  => esc_html__( 'WPCode', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'Future proof your WordPress customizations with the most popular code snippet management plugin for WordPress. Trusted by over 1,500,000+ websites for easily adding code to WordPress right from the admin area.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/insert-headers-and-footers/',
 				'url'   => 'https://downloads.wordpress.org/plugin/insert-headers-and-footers.zip',
-			),
-			'duplicator/duplicator.php' => array(
+			],
+			'duplicator/duplicator.php'                    => [
 				'icon'  => $this->images_url . 'plugin-duplicator.png',
 				'name'  => esc_html__( 'Duplicator', 'affiliate-wp' ),
 				'desc'  => esc_html__( 'Leading WordPress backup & site migration plugin. Over 1,500,000+ smart website owners use Duplicator to make reliable and secure WordPress backups to protect their websites. It also makes website migration really easy.', 'affiliate-wp' ),
 				'wporg' => 'https://wordpress.org/plugins/duplicator/',
 				'url'   => 'https://downloads.wordpress.org/plugin/duplicator.zip',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -887,7 +885,7 @@ class About {
 						<div class="affwp-addon-details">
 							<span class="affwp-addon-img" style="background: none;">
 								<img
-									src="<?php echo esc_url( $plugin_data['details']['icon']  ); ?>"
+									src="<?php echo esc_url( $plugin_data['details']['icon'] ); ?>"
 									class="attachment-affwp-post-thumbnail size-affwp-post-thumbnail wp-post-image"
 									alt="<?php echo esc_attr( $plugin_data['details']['name'] ); ?>"
 									loading="lazy"

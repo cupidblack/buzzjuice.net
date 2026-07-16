@@ -226,7 +226,7 @@ class Affiliate_WP_LifterLMS extends Affiliate_WP_Base {
 		// Customers cannot refer themselves.
 		if ( $this->is_affiliate_email( $this->email, $affiliate_id ) ) {
 			$this->log( __( 'Referral not created because affiliate\'s own account was used.', 'affiliate-wp' ) );
-			$this->mark_referral_failed( $referral_id );
+			$this->mark_referral_rejected( $referral_id );
 			return;
 		}
 
@@ -336,7 +336,7 @@ class Affiliate_WP_LifterLMS extends Affiliate_WP_Base {
 		// Customers cannot refer themselves.
 		if ( $this->is_affiliate_email( $this->email, $affiliate_id ) ) {
 			$this->log( __( 'Referral not created because affiliate\'s own account was used.', 'affiliate-wp' ) );
-			$this->mark_referral_failed( $referral_id );
+			$this->mark_referral_rejected( $referral_id );
 			return;
 		}
 

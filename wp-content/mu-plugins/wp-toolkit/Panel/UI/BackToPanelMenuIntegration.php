@@ -57,8 +57,17 @@ class BackToPanelMenuIntegration
         $loading = esc_html($this->translator->translate('backToPanel.loading'));
         echo "<h1>{$heading}</h1>";
         echo "<span>{$loading}</span>";
-        if (!is_null($backUrl)) {
-            echo '<script>window.location = ' . (string) json_encode($backUrl) . ';</script>';
+
+        $sanitizedBackUrl = null;
+        if (!\is_null($backUrl)) {
+            $sanitizedBackUrl = esc_url_raw($backUrl, ['http', 'https']);
+            if ($sanitizedBackUrl === '') {
+                $sanitizedBackUrl = null;
+            }
+        }
+        $encoded = \is_null($sanitizedBackUrl) ? false : json_encode($sanitizedBackUrl);
+        if ($encoded !== false) {
+            echo '<script>window.location = ' . $encoded . ';</script>';
         } else {
             $errorMessage = esc_html($this->translator->translate('backToPanel.unableToRedirect'));
             echo "<p>{$errorMessage}</p>";

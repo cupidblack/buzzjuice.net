@@ -3,11 +3,11 @@
 
 namespace Webpros\WptkWpPlugin\WpToolkit\Common\Clients;
 
-use Webpros\WptkWpPlugin\WpToolkit\Common\Models\WpToolkitResponse;
-use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Exceptions\ServerException;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Models\ApiToken;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Models\WpToolkitRequest;
+use Webpros\WptkWpPlugin\WpToolkit\Common\Models\WpToolkitResponse;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Services\ApiTokenParser;
+use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Exceptions\ServerException;
 
 class PleskHttpClient implements HttpClientInterface
 {
@@ -24,7 +24,6 @@ class PleskHttpClient implements HttpClientInterface
     }
 
     /**
-     * @param WpToolkitRequest $request
      * @return WpToolkitResponse
      * @throws ServerException
      */
@@ -64,4 +63,3 @@ class PleskHttpClient implements HttpClientInterface
         return new WpToolkitResponse($body, $code);
     }
 }
-

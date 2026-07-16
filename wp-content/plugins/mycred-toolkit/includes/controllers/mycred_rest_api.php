@@ -87,13 +87,18 @@ if ( ! class_exists( 'MyCred_Addons_Rest_API' ) ) {
 		}
 		
 		public function get_addons_callback( $request ) {
-			$enabled_addons = get_option('mycred_enabled_addons', array());
-			$response = array();
+			if ( function_exists( 'mycred_get_active_addon_slugs' ) ) {
+				return rest_ensure_response( mycred_get_active_addon_slugs() );
+			}
 
-			foreach ($enabled_addons as $key => $addon) {
+			$enabled_addons = get_option( 'mycred_enabled_addons', array() );
+			$response       = array();
+
+			foreach ( $enabled_addons as $key => $addon ) {
 				$response[ $key ] = $addon;
 			}
-			return rest_ensure_response($response);
+
+			return rest_ensure_response( $response );
 		}
 
 		public function mycred_enable_toolkit_addon( $request ) {
@@ -119,53 +124,77 @@ if ( ! class_exists( 'MyCred_Addons_Rest_API' ) ) {
 
 			$addOnPath = MYCRED_TOOLKIT_ROOT_DIR . 'includes/addons/' . $addOnSlug . '/' . $addOnSlug . '.php';
 
-			if (file_exists($addOnPath)) {
+			if ( file_exists( $addOnPath ) ) {
 
-				$active_plugins = get_option('active_plugins', array());
-				foreach ($active_plugins as $plugin) {
-					if (strpos($plugin, $addOnSlug) !== false) {
+				$active_plugins = get_option( 'active_plugins', array() );
+				foreach ( $active_plugins as $plugin ) {
+					if ( strpos( $plugin, $addOnSlug ) !== false ) {
 
-						deactivate_plugins($plugin);
+						deactivate_plugins( $plugin );
 
-						$enabled_addons = get_option('mycred_enabled_addons', array());
-						if (!in_array($addOnSlug, $enabled_addons)) {
-							$enabled_addons[] = $addOnSlug;
-							update_option('mycred_enabled_addons', $enabled_addons);
+						if ( function_exists( 'mycred_set_addon_active' ) ) {
+							$result = mycred_set_addon_active( $addOnSlug, true );
+						} else {
+							$enabled_addons = get_option( 'mycred_enabled_addons', array() );
+							if ( ! in_array( $addOnSlug, $enabled_addons, true ) ) {
+								$enabled_addons[] = $addOnSlug;
+								update_option( 'mycred_enabled_addons', $enabled_addons );
+							}
+							$result = array( 'toggle' => true );
 						}
 
-						return rest_ensure_response(array(
-							'status' => 'success',
-							'message' => sprintf('Add-on "%s" has been enabled after deactivating the conflicting plugin.', $addOnTitle),
+						return rest_ensure_response( array(
+							'status'        => 'success',
+							'message'       => sprintf( 'Add-on "%s" has been enabled after deactivating the conflicting plugin.', $addOnTitle ),
 							'enabled_addon' => $addOnSlug,
-							'toggle' => true
-						));
+							'toggle'        => ! empty( $result['toggle'] ),
+						) );
 					}
 				}
 
-				$enabled_addons = get_option('mycred_enabled_addons', array());
+				if ( function_exists( 'mycred_set_addon_active' ) ) {
+					$prefs          = get_option( 'mycred_pref_addons', array( 'active' => array() ) );
+					$was_active     = is_array( $prefs['active'] ) && in_array( $addOnSlug, $prefs['active'], true );
+					$result         = mycred_set_addon_active( $addOnSlug );
+					$toggle         = ! empty( $result['toggle'] );
 
-				if (in_array($addOnSlug, $enabled_addons)) {
+					if ( ! $was_active && $toggle ) {
+						$this->register_mycred_toolkit_activation( $addOnSlug );
+					}
 
-					$enabled_addons = array_diff($enabled_addons, array( $addOnSlug ));
-					$message = sprintf('Add-on "%s" has been disabled successfully.', $addOnTitle);
-					$toggle = false;
+					$message = $toggle
+						? sprintf( 'Add-on "%s" has been enabled successfully.', $addOnTitle )
+						: sprintf( 'Add-on "%s" has been disabled successfully.', $addOnTitle );
 
-					$this->register_mycred_toolkit_activation( $addOnSlug );
-
-				} else {
-					$enabled_addons[] = $addOnSlug;
-					$message = sprintf('Add-on "%s" has been enabled successfully.', $addOnTitle);
-					$toggle = true;
+					return rest_ensure_response( array(
+						'status'        => 'success',
+						'message'       => $message,
+						'enabled_addon' => $addOnSlug,
+						'toggle'        => $toggle,
+					) );
 				}
 
-				update_option('mycred_enabled_addons', $enabled_addons);
+				$enabled_addons = get_option( 'mycred_enabled_addons', array() );
 
-				return rest_ensure_response(array(
-					'status' => 'success',
-					'message' => $message,
+				if ( in_array( $addOnSlug, $enabled_addons, true ) ) {
+					$enabled_addons = array_diff( $enabled_addons, array( $addOnSlug ) );
+					$message        = sprintf( 'Add-on "%s" has been disabled successfully.', $addOnTitle );
+					$toggle         = false;
+					$this->register_mycred_toolkit_activation( $addOnSlug );
+				} else {
+					$enabled_addons[] = $addOnSlug;
+					$message          = sprintf( 'Add-on "%s" has been enabled successfully.', $addOnTitle );
+					$toggle           = true;
+				}
+
+				update_option( 'mycred_enabled_addons', $enabled_addons );
+
+				return rest_ensure_response( array(
+					'status'        => 'success',
+					'message'       => $message,
 					'enabled_addon' => $addOnSlug,
-					'toggle' => $toggle
-				));
+					'toggle'        => $toggle,
+				) );
 			} else {
 				return rest_ensure_response(array(
 					'status' => 'error',
@@ -185,15 +214,26 @@ if ( ! class_exists( 'MyCred_Addons_Rest_API' ) ) {
 		}
 
 		public function mycred_addons_includes() {
-			if (is_plugin_active('mycred/mycred.php') && class_exists('myCRED_Core') ) {
+			if ( ! function_exists( 'is_plugin_active' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
 
-				$enabled_addons = get_option( 'mycred_enabled_addons', array() );
+			if ( ! class_exists( 'myCRED_Core' ) ) {
+				return;
+			}
 
-				foreach ($enabled_addons as $addOnSlug) {
-					$addOnPath = MYCRED_TOOLKIT_ROOT_DIR . 'includes/addons/' . $addOnSlug . '/' . $addOnSlug . '.php';
-					if ( file_exists($addOnPath) ) {
-						include_once $addOnPath;
-					}
+			if ( function_exists( 'mycred_maybe_finalize_addons_schema' ) ) {
+				mycred_maybe_finalize_addons_schema();
+			}
+
+			$enabled_addons = function_exists( 'mycred_get_active_addon_slugs' )
+				? mycred_get_active_addon_slugs()
+				: get_option( 'mycred_enabled_addons', array() );
+
+			foreach ( $enabled_addons as $addOnSlug ) {
+				$addOnPath = MYCRED_TOOLKIT_ROOT_DIR . 'includes/addons/' . $addOnSlug . '/' . $addOnSlug . '.php';
+				if ( file_exists( $addOnPath ) ) {
+					include_once $addOnPath;
 				}
 			}
 		}

@@ -143,7 +143,7 @@ trait Custom_Rate {
 				checked="checked"
 			<?php endif; ?>
 			x-init="data.showRateFields = $el.checked"
-			x-on:change="data.showRateFields = $el.checked"
+			x-on:change="data.showRateFields = $el.checked; if ($el.checked && window.affwpTooltips) { setTimeout(() => window.affwpTooltips.refresh(), 50); }"
 			aria-required="false"
 			aria-describedby="custom-rate-description"><?php // phpcs:ignore Squiz.PHP.EmbeddedPhp.ContentAfterOpen,Squiz.PHP.EmbeddedPhp.ContentBeforeOpen -- We want to eliminate the tabs from showing as an extra space.
 	}

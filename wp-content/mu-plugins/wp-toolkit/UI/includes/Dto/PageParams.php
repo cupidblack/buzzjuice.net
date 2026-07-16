@@ -23,7 +23,7 @@ final class PageParams implements \JsonSerializable
     /**
      * @param string $type
      * @param string $url
-     * @param bool $isActive
+     * @param bool   $isActive
      */
     public function __construct($type, $url, $isActive)
     {

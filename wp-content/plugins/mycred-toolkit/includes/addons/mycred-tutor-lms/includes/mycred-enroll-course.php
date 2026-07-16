@@ -40,7 +40,7 @@ if ( ! class_exists( 'mycred_tutor_lms_Geneal_Course_Hook_Class' ) ) :
 		 */
 		public function run() {
 
-			add_action( 'tutor_after_enroll', array( $this, 'my_cred_enroll_generl_course_func' ) , 10 , 1);
+			add_action( 'tutor_after_enrolled', array( $this, 'my_cred_enroll_generl_course_func' ) , 10 , 3);
 		}
 
 		/**
@@ -48,14 +48,12 @@ if ( ! class_exists( 'mycred_tutor_lms_Geneal_Course_Hook_Class' ) ) :
 		 * @since 1.8
 		 * @version 1.0
 		 */
-		public function my_cred_enroll_generl_course_func( $course ) {
+		public function my_cred_enroll_generl_course_func( $course_id, $user_id, $enrolled_id ) {
 
 			// Make sure user is not excluded
 			if ( !is_user_logged_in( ) ) {
 return;
 			}
-
-			$user_id = get_current_user_id( );
 		   
 			if ( $this->core->exclude_user( $user_id ) ) {
 return;

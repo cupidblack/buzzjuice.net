@@ -1845,12 +1845,12 @@ final class DB extends \Affiliate_WP_DB {
 
 		global $wpdb;
 
-		$wpdb->query(
+		$result = $wpdb->query(
 
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- No prepare needed here.
 			$this->inject_table_name(
 				'
-					CREATE TABLE `{table_name}` (
+					CREATE TABLE IF NOT EXISTS `{table_name}` (
 
 						`connection_id` bigint(20) NOT NULL AUTO_INCREMENT,
 
@@ -1866,11 +1866,15 @@ final class DB extends \Affiliate_WP_DB {
 			)
 		);
 
-		if ( $this->table_exists( $this->table_name ) ) {
-			return;
+		// If query failed (returned false), throw exception
+		if ( false === $result ) {
+			throw new \Exception( "Could not create table {$this->table_name}: " . $wpdb->last_error );
 		}
 
-		throw new \Exception( "Could not create table {$this->table_name}" );
+		// Clear any cached existence check for this table
+		if ( isset( $this->existence_cache['table_exists'][$this->table_name] ) ) {
+			unset( $this->existence_cache['table_exists'][$this->table_name] );
+		}
 	}
 
 	/**

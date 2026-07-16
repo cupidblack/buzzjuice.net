@@ -70,7 +70,7 @@ function affwp_get_payout( $payout = 0 ) {
  *
  * @return int|false The ID for the newly-added payout, otherwise false.
  */
-function affwp_add_payout( $args = array() ) {
+function affwp_add_payout( $args = [] ) {
 
 	if (
 
@@ -114,7 +114,7 @@ function affwp_add_payout( $args = array() ) {
 			$args['referrals'],
 
 			// Filter out any referrals that already have payouts for them.
-			function( $referral_id ) {
+			function ( $referral_id ) {
 
 				if ( false === affwp_get_referral_status( $referral_id ) ) {
 					return false; // Not a referral, remove from the list anyways.
@@ -164,7 +164,7 @@ function affwp_delete_payout( $payout ) {
 	}
 
 	// Handle updating paid referrals to unpaid.
-	if ( $payout && in_array( $payout->status, array( 'paid', 'processing' ) ) ) {
+	if ( $payout && in_array( $payout->status, [ 'paid', 'processing' ] ) ) {
 		$referrals = affiliate_wp()->affiliates->payouts->get_referral_ids( $payout );
 
 		foreach ( $referrals as $referral_id ) {
@@ -257,11 +257,11 @@ function affwp_get_payout_status_label( $payout_or_status ) {
  * @return array Key/value pairs of statuses where key is the status and the value is the label.
  */
 function affwp_get_payout_statuses() {
-	return array(
+	return [
 		'processing' => _x( 'Processing', 'payout', 'affiliate-wp' ),
 		'paid'       => _x( 'Paid', 'payout', 'affiliate-wp' ),
 		'failed'     => __( 'Failed', 'affiliate-wp' ),
-	);
+	];
 }
 
 /**
@@ -273,9 +273,9 @@ function affwp_get_payout_statuses() {
  */
 function affwp_get_payout_methods() {
 
-	$payout_methods = array(
+	$payout_methods = [
 		'manual' => __( 'Manual Payout', 'affiliate-wp' ),
-	);
+	];
 
 	/**
 	 * Filters the payout methods.
@@ -345,7 +345,7 @@ function affwp_is_payout_method_enabled( $payout_method ) {
  */
 function affwp_get_enabled_payout_methods() {
 
-	$enabled_methods = array();
+	$enabled_methods = [];
 
 	foreach ( affwp_get_payout_methods() as $payout_method => $label ) {
 		if ( affwp_is_payout_method_enabled( $payout_method ) ) {
@@ -364,7 +364,7 @@ function affwp_get_enabled_payout_methods() {
  * @return array Key/value pairs of reasons where key is the reason and the value is the label.
  */
 function affwp_get_preview_payout_request_failed_reasons() {
-	$reasons = array(
+	$reasons = [
 		'invalid_account'               => __( 'Invalid affiliate account', 'affiliate-wp' ),
 		'invalid_ps_account'            => __( 'Invalid Payouts Service account', 'affiliate-wp' ),
 		'minimum_payout'                => __( 'Doesn&#8217;t meet the minimum payout amount', 'affiliate-wp' ),
@@ -375,7 +375,7 @@ function affwp_get_preview_payout_request_failed_reasons() {
 		'unable_to_retrieve_ps_account' => __( 'Unable to retrieve Payouts Service account', 'affiliate-wp' ),
 		'unable_to_validate_payout'     => __( 'Unable to validate payout on the Payouts Service', 'affiliate-wp' ),
 		'user_account_deleted'          => __( 'Affiliate user account deleted', 'affiliate-wp' ),
-	);
+	];
 
 	/**
 	 * Filters the preview payout request failed reasons.
@@ -413,25 +413,25 @@ function affwp_get_preview_payout_request_failed_reason_label( $reason ) {
  */
 function affwp_validate_payouts_service_payout_data( $data ) {
 
-	$body_args = array(
+	$body_args = [
 		'payout_data'   => $data,
 		'currency'      => affwp_get_currency(),
 		'affwp_version' => AFFILIATEWP_VERSION,
-	);
+	];
 
 	$headers = affwp_get_payouts_service_http_headers();
 
-	$args = array(
+	$args = [
 		'body'      => $body_args,
 		'headers'   => $headers,
 		'timeout'   => 60,
 		'sslverify' => false,
-	);
+	];
 
 	$request = wp_remote_post( PAYOUTS_SERVICE_URL . '/wp-json/payouts/v1/validate-payout', $args );
 
-	$valid_payout_data   = array();
-	$invalid_payout_data = array();
+	$valid_payout_data   = [];
+	$invalid_payout_data = [];
 
 	foreach ( $data as $affiliate_id => $affiliate_data ) {
 		$invalid_payout_data[ $affiliate_id ] = 'unable_to_validate_payout';
@@ -450,10 +450,10 @@ function affwp_validate_payouts_service_payout_data( $data ) {
 		}
 	}
 
-	$validated_payout_data = array(
+	$validated_payout_data = [
 		'valid_payout_data'   => $valid_payout_data,
 		'invalid_payout_data' => $invalid_payout_data,
-	);
+	];
 
 	return $validated_payout_data;
 }
@@ -480,11 +480,11 @@ function affwp_is_payouts_service_enabled() {
  */
 function affwp_get_payouts_service_http_headers( $add_authorization_header = true ) {
 
-	$headers = array(
+	$headers = [
 		'Payouts-Service-Platform'         => 'affiliatewp',
 		'Payouts-Service-Platform-Url'     => site_url(),
 		'Payouts-Service-Platform-Version' => AFFILIATEWP_VERSION,
-	);
+	];
 
 	if ( true === $add_authorization_header ) {
 		$vendor_id  = affiliate_wp()->settings->get( 'payouts_service_vendor_id', 0 );
@@ -494,6 +494,90 @@ function affwp_get_payouts_service_http_headers( $add_authorization_header = tru
 	}
 
 	return $headers;
+}
+
+/**
+ * Checks if the Payouts Service has an active connection.
+ *
+ * Unlike affwp_is_payouts_service_enabled(), this only checks the connection status
+ * without requiring the toggle to be on or credentials to be valid. Used for the
+ * sunset notification which should show for any connected site regardless of toggle state.
+ *
+ * @since 2.32.0
+ *
+ * @see affwp_is_payouts_service_enabled() For the stricter "enabled and configured" check.
+ *
+ * @return bool True if the Payouts Service connection status is active.
+ */
+function affwp_is_payouts_service_connected() {
+	return 'active' === affiliate_wp()->settings->get( 'payouts_service_connection_status', '' );
+}
+
+/**
+ * Checks if the Payouts Service sunset date has passed.
+ *
+ * Uses the site's local timezone (via current_time) so the sunset occurs on
+ * September 30 in the customer's timezone, not UTC.
+ *
+ * @since 2.32.0
+ *
+ * @return bool True if the current date is past the sunset date.
+ */
+function affwp_is_payouts_service_sunset_passed() {
+	return current_time( 'Y-m-d' ) > AFFWP_PAYOUTS_SERVICE_SUNSET_DATE;
+}
+
+/**
+ * Checks if at least one alternative payout method (non-Payouts Service) is active.
+ *
+ * Looks for Stripe Payouts, PayPal Payouts, or Store Credit in the payment methods registry.
+ *
+ * @since 2.32.0
+ *
+ * @return bool True if at least one alternative payout method is active.
+ */
+function affwp_has_alternative_payout_method() {
+
+	// AffiliateWP_Payment_Methods is only available in admin context.
+	// Fall back to checking settings directly when the registry isn't loaded.
+	if ( ! class_exists( 'AffiliateWP_Payment_Methods' ) ) {
+		return (bool) affiliate_wp()->settings->get( 'stripe_payouts', false )
+			|| (bool) affiliate_wp()->settings->get( 'paypal_payouts', false )
+			|| (bool) affiliate_wp()->settings->get( 'store-credit', false );
+	}
+
+	$alternative_methods = [ 'stripe', 'paypal', 'store_credit' ];
+
+	foreach ( $alternative_methods as $method_id ) {
+		$method = AffiliateWP_Payment_Methods::get( $method_id );
+
+		if ( $method && 'active' === $method['status'] ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Determines whether the Payouts Service sunset notification should be shown.
+ *
+ * @since 2.32.0
+ *
+ * @return bool True if the notification should be displayed.
+ */
+function affwp_should_show_payouts_sunset_notification() {
+	if ( ! affwp_is_payouts_service_connected() ) {
+		return false;
+	}
+
+	// Auto-remove: if an alternative method is active, the user has already switched.
+	if ( ! affiliate_wp()->settings->get( 'enable_payouts_service', false )
+		&& affwp_has_alternative_payout_method() ) {
+		return false;
+	}
+
+	return true;
 }
 
 /**

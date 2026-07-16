@@ -38,19 +38,19 @@ function affwp_process_preview_payout( $data ) {
 	}
 
 	if ( ! current_user_can( 'manage_payouts' ) ) {
-		wp_die( __( 'You do not have permission to process payouts', 'affiliate-wp' ), __( 'Error', 'affiliate-wp' ), array( 'response' => 403 ) );
+		wp_die( __( 'You do not have permission to process payouts', 'affiliate-wp' ), __( 'Error', 'affiliate-wp' ), [ 'response' => 403 ] );
 	}
 
 	if ( ! wp_verify_nonce( $data['affwp_preview_payout_nonce'], 'affwp_preview_payout_nonce' ) ) {
-		wp_die( __( 'Security check failed', 'affiliate-wp' ), array( 'response' => 403 ) );
+		wp_die( __( 'Security check failed', 'affiliate-wp' ), [ 'response' => 403 ] );
 	}
 
 	$payout_methods = affwp_get_payout_methods();
 	if ( ! array_key_exists( $data['payout_method'], $payout_methods ) ) {
-		wp_die( __( 'Invalid payout method', 'affiliate-wp' ), array( 'response' => 403 ) );
+		wp_die( __( 'Invalid payout method', 'affiliate-wp' ), [ 'response' => 403 ] );
 	}
 
-	$query_args = array(
+	$query_args = [
 		'action'         => 'preview_payout',
 		'user_name'      => sanitize_text_field( $data['user_name'] ),
 		'from'           => sanitize_text_field( $data['from'] ),
@@ -58,12 +58,12 @@ function affwp_process_preview_payout( $data ) {
 		'bypass_holding' => isset( $data['bypass-holding'] ) ? 1 : 0,
 		'minimum'        => sanitize_text_field( $data['minimum'] ),
 		'payout_method'  => sanitize_text_field( $data['payout_method'] ),
-	);
+	];
 
 	$url = affwp_admin_url( 'payouts', $query_args );
 
-	wp_redirect( $url ); exit;
-
+	wp_redirect( $url );
+	exit;
 }
 add_action( 'affwp_preview_payout', 'affwp_process_preview_payout' );
 
@@ -109,7 +109,7 @@ function affwp_process_new_payout( $data ) {
 	$payout_methods = affwp_get_payout_methods();
 
 	if ( ! array_key_exists( $data['payout_method'], $payout_methods ) ) {
-		wp_die( __( 'Invalid payout method', 'affiliate-wp' ), array( 'response' => 403 ) );
+		wp_die( __( 'Invalid payout method', 'affiliate-wp' ), [ 'response' => 403 ] );
 	}
 
 	if ( ! empty( $data['user_name'] ) && ( $affiliate = affwp_get_affiliate( $data['user_name'] ) ) ) {
@@ -147,7 +147,6 @@ function affwp_process_new_payout( $data ) {
 		$payout_method,
 		(bool) $bypass_holding
 	);
-
 }
 add_action( 'affwp_new_payout', 'affwp_process_new_payout' );
 
@@ -165,7 +164,7 @@ function affwp_manual_payout_preview_payout_note() {
 	<p>
 		<?php
 		/* translators: Import/Export Tools screen URL */
-		printf( __( 'This will mark all unpaid referrals in this timeframe as paid. To export referrals with a status other than <em>unpaid</em>, go to the <a href="%s">Tools &rarr; Export</a> page.', 'affiliate-wp' ), esc_url( affwp_admin_url( 'tools', array( 'tab' => 'export_import' ) ) ) );
+		printf( __( 'This will mark all unpaid referrals in this timeframe as paid. To export referrals with a status other than <em>unpaid</em>, go to the <a href="%s">Tools &rarr; Export</a> page.', 'affiliate-wp' ), esc_url( affwp_admin_url( 'tools', [ 'tab' => 'export_import' ] ) ) );
 		?>
 	</p>
 	<?php

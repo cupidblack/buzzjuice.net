@@ -94,18 +94,38 @@ class Widget extends View {
 	private $hitTracker;
 
 	/**
+	 * Optional Phase-1 bot protection section.
+	 *
+	 * @var BotProtectionWidgetSection|null
+	 */
+	private $botProtection;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param AccessManager  $accessManager Access manager instance.
-	 * @param DataStore      $dataStore     Data store instance.
-	 * @param RuleProvider   $ruleProvider  Rule provider instance.
-	 * @param RuleHitTracker $hitTracker    Rule hit tracker instance.
+	 * @param AccessManager                   $accessManager Access manager instance.
+	 * @param DataStore                       $dataStore     Data store instance.
+	 * @param RuleProvider                    $ruleProvider  Rule provider instance.
+	 * @param RuleHitTracker                  $hitTracker    Rule hit tracker instance.
+	 * @param BotProtectionWidgetSection|null $botProtection Optional bot-protection
+	 *                                                      section (DEF-42031). When
+	 *                                                      null the section is simply
+	 *                                                      not rendered, keeping the
+	 *                                                      widget backwards compatible
+	 *                                                      with existing tests.
 	 */
-	public function __construct( AccessManager $accessManager, DataStore $dataStore, RuleProvider $ruleProvider, RuleHitTracker $hitTracker ) {
+	public function __construct(
+		AccessManager $accessManager,
+		DataStore $dataStore,
+		RuleProvider $ruleProvider,
+		RuleHitTracker $hitTracker,
+		BotProtectionWidgetSection $botProtection = null
+	) {
 		$this->accessManager = $accessManager;
 		$this->dataStore     = $dataStore;
 		$this->ruleProvider  = $ruleProvider;
 		$this->hitTracker    = $hitTracker;
+		$this->botProtection = $botProtection;
 
 		add_action( 'wp_dashboard_setup', array( $this, 'add' ) );
 		add_action( 'wp_ajax_imunify_snooze_widget', array( $this, 'snoozeWidget' ) );
@@ -175,6 +195,20 @@ class Widget extends View {
 				'malwareUrl'        => $this->getMalwareUrl(),
 				'wafUrl'            => $this->getWafUrl(),
 			);
+
+			// Phase-1 bot protection section (DEF-42031). The section is
+			// optional so tests that construct Widget with the legacy 4-arg
+			// signature still pass empty strings through. BotProtectionWidgetSection
+			// returns the row and pane as separate fragments — the row lives
+			// inside the main pane's nav-links, the pane is a sibling slide-in.
+			if ( null === $this->botProtection ) {
+				$templateData['botProtectionRowHtml']  = '';
+				$templateData['botProtectionPaneHtml'] = '';
+			} else {
+				$fragments                             = $this->botProtection->view();
+				$templateData['botProtectionRowHtml']  = $fragments['row'];
+				$templateData['botProtectionPaneHtml'] = $fragments['pane'];
+			}
 
 			$rules                          = $this->ruleProvider->loadRules();
 			$templateData['showWafSection'] = false;

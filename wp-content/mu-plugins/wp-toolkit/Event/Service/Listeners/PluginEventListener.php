@@ -23,7 +23,6 @@ class PluginEventListener
     private $pluginsToUpdate = [];
 
     /**
-     * @param WpToolkitNotifier $notifier
      * @return void
      */
     public function __construct(WpToolkitNotifier $notifier)
@@ -33,7 +32,8 @@ class PluginEventListener
 
     /**
      * @param string $pluginFile
-     * @param bool $networkWide
+     * @param bool   $networkWide
+     *
      * @return void
      */
     public function activatedPluginHook($pluginFile, $networkWide)
@@ -52,7 +52,8 @@ class PluginEventListener
 
     /**
      * @param string $pluginFile
-     * @param bool $networkWide
+     * @param bool   $networkWide
+     *
      * @return void
      */
     public function deactivatedPluginHook($pluginFile, $networkWide)
@@ -71,7 +72,8 @@ class PluginEventListener
 
     /**
      * @param string $pluginFile
-     * @param bool $deleted
+     * @param bool   $deleted
+     *
      * @return void
      */
     public function deletedPluginHook($pluginFile, $deleted)
@@ -88,7 +90,8 @@ class PluginEventListener
 
     /**
      * @param bool|\WP_Error $response
-     * @param array $options
+     * @param array          $options
+     *
      * @return void
      */
     public function upgraderPreUpdateHook($response, $options)
@@ -117,7 +120,8 @@ class PluginEventListener
 
     /**
      * @param \Plugin_Upgrader $pluginUpgrader
-     * @param array $options
+     * @param array            $options
+     *
      * @return void
      */
     public function upgraderProcessCompleteHook($pluginUpgrader, $options)

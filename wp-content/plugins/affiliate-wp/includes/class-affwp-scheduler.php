@@ -70,6 +70,7 @@ class Affiliate_WP_Scheduler {
 			'affwp_monthly_affiliate_email_summaries',
 			'affwp_send_scheduled_summary', // Possible created by affwp_schedule_summary().
 			'affwp_scheduled_creative_status_check',
+			'affwp_move_old_log_files',
 		) as $scheduled_action ) {
 
 			if ( ! is_string( $scheduled_action ) ) {

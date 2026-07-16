@@ -11,8 +11,9 @@ final class LocaleLoader
     }
 
     /**
-     * @param string $wpLocale WordPress locale code like en_US, fr_FR
+     * @param string $wpLocale            WordPress locale code like en_US, fr_FR
      * @param string $availableLocalesDir Path to directory containing locale PHP files (e.g. en-US.php)
+     *
      * @return LocaleContainer
      */
     public static function loadLocale($wpLocale, $availableLocalesDir)
@@ -22,14 +23,14 @@ final class LocaleLoader
         $localeContainer = null;
 
         // Basic sanitation
-        if (!is_string($wpLocale) || $wpLocale === '') {
+        if (!\is_string($wpLocale) || $wpLocale === '') {
             return self::loadFallbackLocale($dir);
         }
 
         // Convert WP style (en_US) to plugin style (en-US)
         $convertedCode = str_replace('_', '-', $wpLocale);
         $parts = explode('-', $convertedCode);
-        if (count($parts) >= 2) {
+        if (\count($parts) >= 2) {
             // Keep only first two segments (language + region) if more provided
             $language = strtolower($parts[0]);
             $region = strtoupper($parts[1]);
@@ -42,6 +43,10 @@ final class LocaleLoader
 
         if ($localeContainer) {
             return $localeContainer;
+        }
+
+        if (!preg_match('/^[a-zA-Z]{2,3}$/', $language)) {
+            return self::loadFallbackLocale($dir);
         }
 
         // Try relaxed match: only language part with any region present in directory
@@ -63,10 +68,15 @@ final class LocaleLoader
     /**
      * @param string $dir
      * @param string $code
+     *
      * @return ?LocaleContainer
      */
     private static function loadLocaleByCode($dir, $code)
     {
+        if (!preg_match('/^[a-zA-Z]{2,3}(-[a-zA-Z0-9]{2,4})?$/', $code)) {
+            return null;
+        }
+
         $file = $dir . DIRECTORY_SEPARATOR . $code . '.php';
         if (!is_readable($file)) {
             return null;
@@ -77,9 +87,9 @@ final class LocaleLoader
 
         /** @psalm-suppress UndefinedVariable */
         if (!isset($messagesBackend)
-            || !is_array($messagesBackend)
+            || !\is_array($messagesBackend)
             || !isset($messagesFrontend)
-            || !is_array($messagesFrontend)
+            || !\is_array($messagesFrontend)
         ) {
             throw new \RuntimeException("Locale file {$file} must define \$messagesBackend and \$messagesFrontend as arrays.");
         }
@@ -94,6 +104,7 @@ final class LocaleLoader
     /**
      * @param string $dir
      * @param string $fallbackCode
+     *
      * @return LocaleContainer
      */
     private static function loadFallbackLocale($dir, $fallbackCode = 'en-US')

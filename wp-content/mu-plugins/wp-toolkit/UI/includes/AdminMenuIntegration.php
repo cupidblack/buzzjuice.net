@@ -12,6 +12,7 @@ final class AdminMenuIntegration
     const PLUGIN_SETTINGS_PAGE_ID = 'settings';
     const PLUGIN_AUTO_UPDATES_SETTINGS_PAGE_ID = 'autoUpdatesSettings';
     const PLUGIN_SUBSCRIPTIONS_PAGE_ID = 'subscriptions';
+    const PLUGIN_SECURITY_MEASURES_PAGE_ID = 'securityMeasures';
 
     /**
      * @var array<string, bool|string>
@@ -63,12 +64,14 @@ final class AdminMenuIntegration
             || self::isPageActive(self::PLUGIN_VULNERABILITIES_PAGE_ID)
             || self::isPageActive(self::PLUGIN_SETTINGS_PAGE_ID)
             || self::isPageActive(self::PLUGIN_AUTO_UPDATES_SETTINGS_PAGE_ID)
-            || self::isPageActive(self::PLUGIN_SUBSCRIPTIONS_PAGE_ID);
+            || self::isPageActive(self::PLUGIN_SUBSCRIPTIONS_PAGE_ID)
+            || self::isPageActive(self::PLUGIN_SECURITY_MEASURES_PAGE_ID);
     }
 
     /**
      * @param string $productDisplayName
      * @param ?int   $menuPosition
+     *
      * @return void
      */
     public function addTopLevelMenuItem($productDisplayName, $menuPosition)
@@ -126,6 +129,17 @@ final class AdminMenuIntegration
                 $this->renderApp();
             }
         );
+
+        self::$pageIds[self::PLUGIN_SECURITY_MEASURES_PAGE_ID] = add_submenu_page(
+            UIBootstrap::PLUGIN_MAIN_PAGE_SLUG,
+            $this->translator->translate('menu.item.securityMeasures'),
+            $this->translator->translate('menu.item.securityMeasures'),
+            'manage_options',
+            UIBootstrap::PLUGIN_SECURITY_MEASURES_PAGE_SLUG,
+            function () {
+                $this->renderApp();
+            }
+        );
     }
 
     /**
@@ -144,6 +158,7 @@ HTML;
 
     /**
      * @param string $pageId
+     *
      * @return bool
      */
     public static function isPageActive($pageId)

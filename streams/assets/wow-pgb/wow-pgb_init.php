@@ -656,6 +656,55 @@ if ($transaction_kind == 'PRODUCT' || $transaction_kind == 'SALE' || $transactio
         $consumer_secret,
         $woocommerce_api_url
     );
+    
+    
+    
+    // ===== STREAMS SNAPSHOT: AffiliateWP Context (v2) =====
+    if (!isset($order_data['meta_data']) || !is_array($order_data['meta_data'])) {
+        $order_data['meta_data'] = [];
+    }
+    
+    $affwp_snapshot = [];
+    $affwp_cookie_keys = [
+        'affwp_ref',
+        'affwp_visit',
+        'affwp_visit_id',
+        'affwp_affiliate_id',
+        'affwp_campaign',
+        'affwp_coupon',
+        'affwp_referrer',
+    ];
+    
+    // Capture cookies (raw, no sanitization in Streams context)
+    foreach ($affwp_cookie_keys as $key) {
+        if (!empty($_COOKIE[$key])) {
+            $affwp_snapshot[$key] = (string) $_COOKIE[$key];
+        }
+    }
+    
+    // Add context
+    $affwp_snapshot['http_referer'] = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+    $affwp_snapshot['timestamp'] = gmdate('c');
+    $affwp_snapshot['wp_user_id'] = (int) $wordpress_user_id;
+    $affwp_snapshot['customer_email'] = $wowonder_email; // Already validated above
+    $affwp_snapshot['snapshot_version'] = '2'; // For future-proofing
+    
+    // Store snapshot as single JSON
+    $order_data['meta_data'][] = [
+        'key'   => '_buzzjuice_affwp_context_snapshot',
+        'value' => json_encode($affwp_snapshot),
+    ];
+    
+    // Store origin flag
+    $order_data['meta_data'][] = [
+        'key'   => '_buzzjuice_origin',
+        'value' => 'streams',
+    ];
+    
+    error_log('[BuzzWoW-Snapshot] Captured v2: ' . json_encode($affwp_snapshot));
+    // ===== END SNAPSHOT v2 =====
+    
+    
 
     // Debug: Log the full structure for inspection
     //error_log("✅ WooCommerce Order Data Inspection:\n" . print_r($order_data, true));

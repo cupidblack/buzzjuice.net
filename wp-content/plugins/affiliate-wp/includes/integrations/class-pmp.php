@@ -143,7 +143,7 @@ class Affiliate_WP_PMP extends Affiliate_WP_Base {
 		$user = get_userdata( $order->user_id );
 		if ( $user instanceof WP_User && $this->is_affiliate_email( $user->user_email, $affiliate_id ) ) {
 			$this->log( 'Referral not created because affiliate\'s own account was used.' );
-			$this->mark_referral_failed( $referral_id );
+			$this->mark_referral_rejected( $referral_id );
 			return;
 		}
 
@@ -352,7 +352,8 @@ class Affiliate_WP_PMP extends Affiliate_WP_Base {
 
 		}
 
-		$url = admin_url( 'admin.php?page=pmpro-orders&order=' . $reference );
+		// Include both 'order' and 'id' parameters for compatibility with PMPro versions before and after v3.6.
+		$url = admin_url( 'admin.php?page=pmpro-orders&order=' . $reference . '&id=' . $reference );
 
 		return '<a href="' . esc_url( $url ) . '">' . $reference . '</a>';
 	}

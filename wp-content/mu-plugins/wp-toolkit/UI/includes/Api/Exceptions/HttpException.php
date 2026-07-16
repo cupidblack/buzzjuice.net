@@ -3,4 +3,6 @@
 
 namespace Webpros\WptkWpPlugin\WpToolkit\UI\Api\Exceptions;
 
-class HttpException extends \Exception {}
+class HttpException extends \Exception
+{
+}

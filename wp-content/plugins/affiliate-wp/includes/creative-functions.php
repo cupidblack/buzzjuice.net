@@ -550,7 +550,7 @@ function affwp_creative_privacy_toggle( $creative = null ) {
 
 		<td>
 			<!-- Note, this field isn't actually saved to the DB for this creative, but instead triggers other fields. -->
-			<select id="creative-privacy">
+			<select id="creative-privacy" class="affwp-use-select2">
 				<option value="public" <?php selected( true, ! $private ); ?>><?php esc_html_e( 'Public', 'affiliate-wp' ); ?></option>
 				<option value="private"<?php selected( true, $private ); ?>><?php esc_html_e( 'Private', 'affiliate-wp' ); ?></option>
 			</select>

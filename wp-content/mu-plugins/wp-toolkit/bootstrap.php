@@ -8,8 +8,8 @@ use Webpros\WptkWpPlugin\WpToolkit\Login\LoginBootstrap;
 use Webpros\WptkWpPlugin\WpToolkit\Panel\PanelBootstrap;
 use Webpros\WptkWpPlugin\WpToolkit\UI\UIBootstrap;
 
-/* Do not access this file directly */
-if (!defined('ABSPATH')) {
+// Do not access this file directly
+if (!\defined('ABSPATH')) {
     header('Content-Type: text/plain');
     die(<<<MSG
  _________
@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
                 ||----w |
                 ||     ||
 MSG
-);
+    );
 }
 
 require_once __DIR__ . '/vendor/autoload.php';

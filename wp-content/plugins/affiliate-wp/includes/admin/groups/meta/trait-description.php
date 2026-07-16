@@ -48,6 +48,23 @@ trait Description {
 	 */
 	private function get_description_description() : string {
 
+		$tooltip_html = affwp_tooltip(
+			sprintf(
+
+				// Translators: %1$s is an explanation of the group type.
+				__( 'This description only appears here in the dashboard (admin) and can only be seen by administrators and those who can manage %1$s.', 'affiliate-wp' ),
+				isset( $this->item_single, $this->plural_title )
+					? sprintf(
+
+						// Translators: %1$s is the name of the item (single) e.g. 'creative'.
+						__( '%1$s %2$s', 'affiliate-wp' ),
+						strtolower( $this->item_single ),
+						strtolower( $this->plural_title )
+					)
+					: __( 'group', 'affiliate-wp' )
+			)
+		);
+
 		return sprintf(
 			'%1$s%2$s',
 			sprintf(
@@ -58,23 +75,9 @@ trait Description {
 					? strtolower( $this->single_title )
 					: __( 'group', 'affiliate-wp' )
 			),
-			affwp_icon_tooltip(
-				sprintf(
-
-					// Translators: %1$s is an explanation of the group type.
-					__( 'This description only appears here in the dashboard (admin) and can only be seen by administrators and those who can manage %1$s.', 'affiliate-wp' ),
-					isset( $this->item_single, $this->plural_title )
-						? sprintf(
-
-							// Translators: %1$s is the name of the item (single) e.g. 'creative'.
-							__( '%1$s %2$s', 'affiliate-wp' ),
-							strtolower( $this->item_single ),
-							strtolower( $this->plural_title )
-						)
-						: __( 'group', 'affiliate-wp' )
-				),
-				'normal',
-				false
+			sprintf(
+				' <span class="dashicons dashicons-editor-help cursor-help" data-tooltip-html="%s"></span>',
+				esc_attr( $tooltip_html )
 			)
 		);
 	}
@@ -230,24 +233,24 @@ trait Description {
 		if ( empty( trim( $description ) ) ) {
 
 			$group->update(
-				array(
+				[
 					'type' => $this->group_type,
-					'meta' => array(
+					'meta' => [
 						'description' => null, // Unset description.
-					),
-				)
+					],
+				]
 			);
 
 			return true;
 		}
 
 		$group->update(
-			array(
+			[
 				'type' => $this->group_type,
-				'meta' => array(
-					'description' => esc_html( str_replace( array( "\r\n", "\r", "\n", "\t" ), ' ', htmlentities2( $description ) ) ),
-				),
-			)
+				'meta' => [
+					'description' => esc_html( str_replace( [ "\r\n", "\r", "\n", "\t" ], ' ', htmlentities2( $description ) ) ),
+				],
+			]
 		);
 
 		return true;

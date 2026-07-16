@@ -21,7 +21,6 @@ class UserRolePermissionHandler implements PermissionHandlerInterface
     }
 
     /**
-     * @param \WP_REST_Request $request
      * @return bool
      */
     public function handlePermissions(\WP_REST_Request $request)
@@ -32,7 +31,7 @@ class UserRolePermissionHandler implements PermissionHandlerInterface
 
         $user = wp_get_current_user();
         foreach ($this->allowedRoles as $role) {
-            if (in_array($role, $user->roles)) {
+            if (\in_array($role, $user->roles)) {
                 return true;
             }
         }

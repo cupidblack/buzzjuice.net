@@ -220,9 +220,8 @@ final class Connector extends \AffiliateWP\Admin\Connector {
 		);
 
 
-		return affwp_text_tooltip(
-			" <strong>{$title}</strong>",
-			empty( $connected_affiliate_ids )
+		$tooltip_html = affwp_tooltip( [
+			'content' => empty( $connected_affiliate_ids )
 
 				// No affiliates in this affiliate group.
 				? __( 'No affiliates in this group.', 'affiliate-wp' )
@@ -237,7 +236,12 @@ final class Connector extends \AffiliateWP\Admin\Connector {
 						$connected_affiliate_ids
 					)
 				),
-			false
+		] );
+
+		return sprintf(
+			'<span class="cursor-help underline decoration-dotted" data-tooltip-html="%s"> <strong>%s</strong></span>',
+			esc_attr( $tooltip_html ),
+			$title
 		);
 	}
 

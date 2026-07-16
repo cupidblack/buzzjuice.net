@@ -47,7 +47,7 @@
 
 		<!-- Container 1 -->
 		<div class="flex w-full flex-col items-center space-y-4 sm:items-end">
-			<div class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black ring-opacity-5"><!-- Container 2 -->
+			<div class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white dark:bg-slate-800 shadow-lg ring-1 ring-black/5"><!-- Container 2 -->
 
 				<!-- Container 3 -->
 				<div class="p-4">

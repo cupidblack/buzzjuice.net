@@ -10,6 +10,7 @@ namespace CloudLinux\Imunify\App;
 
 use CloudLinux\Imunify\App\Model\Feature;
 use CloudLinux\Imunify\App\Model\FeatureType;
+use CloudLinux\Imunify\App\Model\PluginConfig;
 use CloudLinux\Imunify\App\Model\ScanData;
 use CloudLinux\Imunify\App\Exception\ApiException;
 
@@ -32,6 +33,16 @@ class DataStore {
 	 * Authentication file name.
 	 */
 	const AUTH_FILE = 'auth.php';
+
+	/**
+	 * Plugin config file name.
+	 *
+	 * Dedicated channel for WP-plugin-facing config (starting with
+	 * ai_bot_protection). Kept separate from scan_data.php so a config
+	 * toggle never has to rewrite the malware payload and so the
+	 * mu-plugin loads only what it needs on the hot path.
+	 */
+	const PLUGIN_CONFIG_FILE = 'plugin_config.php';
 
 	/**
 	 * API host.
@@ -59,6 +70,13 @@ class DataStore {
 	 * @var ScanData|null
 	 */
 	private $scanData = null;
+
+	/**
+	 * Plugin config (loaded lazily from plugin_config.php).
+	 *
+	 * @var \CloudLinux\Imunify\App\Model\PluginConfig|null
+	 */
+	private $pluginConfig = null;
 
 	/**
 	 * Data directory location. Default is WP_CONTENT_DIR.
@@ -115,6 +133,7 @@ class DataStore {
 	public function changeDataDirectory( $directory ) {
 		$this->dataDirectoryLocation = $directory;
 		$this->scanData              = null;
+		$this->pluginConfig          = null;
 	}
 
 	/**
@@ -171,6 +190,29 @@ class DataStore {
 			}
 		}
 		return $this->scanData;
+	}
+
+	/**
+	 * Retrieves the plugin config (lazy-loaded from plugin_config.php).
+	 *
+	 * Returns an empty PluginConfig — not null — when the file is
+	 * missing or malformed, so callers can unconditionally read
+	 * getters and rely on their documented safe defaults. This matters
+	 * for the mu-plugin hot path, which must not branch on the
+	 * presence of the file.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @return PluginConfig
+	 */
+	public function getPluginConfig() {
+		if ( null === $this->pluginConfig ) {
+			$rawData            = $this->load( self::PLUGIN_CONFIG_FILE );
+			$this->pluginConfig = PluginConfig::fromArray(
+				is_array( $rawData ) ? $rawData : array()
+			);
+		}
+		return $this->pluginConfig;
 	}
 
 	/**

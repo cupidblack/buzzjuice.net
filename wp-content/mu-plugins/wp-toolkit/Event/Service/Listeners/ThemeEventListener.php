@@ -21,7 +21,6 @@ class ThemeEventListener
     private $themesToUpdate = [];
 
     /**
-     * @param WpToolkitNotifier $notifier
      * @return void
      */
     public function __construct(WpToolkitNotifier $notifier)
@@ -30,8 +29,9 @@ class ThemeEventListener
     }
 
     /**
-     * @param string $newName
+     * @param string    $newName
      * @param \WP_Theme $newTheme
+     *
      * @return void
      */
     public function switchedThemeHook($newName, $newTheme)
@@ -57,7 +57,8 @@ class ThemeEventListener
      * Since WordPress 5.8.0
      *
      * @param string $stylesheet
-     * @param bool $deleted
+     * @param bool   $deleted
+     *
      * @return void
      */
     public function deletedThemeHook($stylesheet, $deleted)
@@ -74,7 +75,8 @@ class ThemeEventListener
 
     /**
      * @param bool|\WP_Error $response
-     * @param array $options
+     * @param array          $options
+     *
      * @return void
      */
     public function upgraderPreUpdateHook($response, $options)
@@ -103,7 +105,8 @@ class ThemeEventListener
 
     /**
      * @param \Theme_Upgrader $themeUpgrader
-     * @param array $options
+     * @param array           $options
+     *
      * @return void
      */
     public function upgraderProcessCompleteHook($themeUpgrader, $options)
@@ -130,7 +133,7 @@ class ThemeEventListener
 
         if ($upgraderOptions->getAction() === UpgraderOptionsDto::ACTION_UPDATE) {
             $updateThemes = $upgraderOptions->getThemes();
-            if (!is_array($updateThemes)) {
+            if (!\is_array($updateThemes)) {
                 return;
             }
 
@@ -148,7 +151,7 @@ class ThemeEventListener
                 $oldVersion = $oldTheme->get('Version');
                 $newVersion = $newTheme->get('Version');
 
-                if (!is_string($oldVersion) || !is_string($newVersion)) {
+                if (!\is_string($oldVersion) || !\is_string($newVersion)) {
                     continue;
                 }
 

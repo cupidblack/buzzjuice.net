@@ -34,7 +34,8 @@ function affwp_creatives_to_affiliate_groups_privacy_connector() {
 	// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found -- Used to cache.
 	return $instance = new \AffiliateWP\Admin\Creatives\Creative_Privacy\Affiliate_Groups\Connector( 'privacy:connect-creatives-to-affiliate-groups' );
 }
-add_action( 'plugins_loaded', 'affwp_creatives_to_affiliate_groups_privacy_connector', 9 );
+// Deferred to 'init' to avoid _load_textdomain_just_in_time warnings in WordPress 6.7+.
+add_action( 'init', 'affwp_creatives_to_affiliate_groups_privacy_connector', 0 );
 
 /**
  * Creative Privacy: Connector UI for Connecting Creatives to Affiliates (Privacy).
@@ -56,7 +57,8 @@ function affwp_affiliate_to_creative_privacy_connector() {
 	// phpcs:ignore Squiz.PHP.DisallowMultipleAssignments.Found -- Used to cache instance.
 	return $instance = new \AffiliateWP\Admin\Creatives\Creative_Privacy\Affiliates\Connector( 'privacy:creative-to-affiliate' );
 }
-add_action( 'plugins_loaded', 'affwp_affiliate_to_creative_privacy_connector', 9 );
+// Deferred to 'init' to avoid _load_textdomain_just_in_time warnings in WordPress 6.7+.
+add_action( 'init', 'affwp_affiliate_to_creative_privacy_connector', 0 );
 
 /*
  * Customization's

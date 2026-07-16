@@ -878,7 +878,7 @@ class Thrive_Apprentice extends \Affiliate_WP_Base {
 			$this->is_affiliate_email( $stripe_data['data']['object']['billing_details']['email'], $affiliatewp_meta['affiliate_id'] )
 		) {
 
-			$this->mark_referral_failed(
+			$this->mark_referral_rejected(
 				array(
 					'referral_id' => $referral->referral_id,
 					'reason'      => "Referral not created because affiliate's own account was used.",

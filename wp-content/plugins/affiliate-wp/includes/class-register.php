@@ -115,31 +115,31 @@ class Affiliate_WP_Register {
 		// Maybe register the group connectable.
 		if ( ! affiliate_wp()->connections->is_registered_connectable( 'group' ) ) {
 			affiliate_wp()->connections->register_connectable(
-				array(
+				[
 					'name'   => 'group',
 					'table'  => affiliate_wp()->groups->table_name,
 					'column' => affiliate_wp()->groups->primary_key,
-				)
+				]
 			);
 		}
 
 		// Maybe reigster the affiliate connectable.
 		if ( ! affiliate_wp()->connections->is_registered_connectable( 'affiliate' ) ) {
 			affiliate_wp()->connections->register_connectable(
-				array(
+				[
 					'name'   => 'affiliate',
 					'table'  => affiliate_wp()->affiliates->table_name,
 					'column' => affiliate_wp()->affiliates->primary_key,
-				)
+				]
 			);
 		}
 
 		// Try and connect the affiliate to the default group.
 		$connection_id = affiliate_wp()->connections->connect(
-			array(
+			[
 				'group'     => intval( $default_group->get_id() ),
 				'affiliate' => intval( $affiliate_id ),
-			),
+			],
 		);
 
 		if ( $this->is_numeric_and_gt_zero( $connection_id ) ) {
@@ -166,10 +166,10 @@ class Affiliate_WP_Register {
 
 		// This would only throw an error if something was wrong programatically.
 		foreach ( affiliate_wp()->groups->get_groups(
-			array(
+			[
 				'fields' => 'ids',
 				'type'   => 'affiliate-group',
-			)
+			]
 		) as $group_id ) {
 
 			// Convert the group to an object (instead of all of them at the beginning).
@@ -199,7 +199,7 @@ class Affiliate_WP_Register {
 	 * @global $affwp_register_redirect
 	 * @param string $redirect Redirect page URL
 	 * @return string Register form
-	*/
+	 */
 	public function register_form( $redirect = '' ) {
 		global $affwp_register_redirect;
 
@@ -221,7 +221,6 @@ class Affiliate_WP_Register {
 		 * @param string $output Registration form output.
 		 */
 		return apply_filters( 'affwp_register_form', ob_get_clean() );
-
 	}
 
 	/**
@@ -243,10 +242,10 @@ class Affiliate_WP_Register {
 		do_action( 'affwp_pre_process_register_form' );
 		$block_form = false;
 
-		if ( isset( $_POST['affwp_post_id'] ) && isset( $_POST['affwp_block_hash'] ) ) {
+	if ( isset( $_POST['affwp_post_id'] ) && isset( $_POST['affwp_block_hash'] ) ) {
 
-			// affwp_block_hash should be the hash of the registration form...
-			$block_form = affiliate_wp()->editor->get_submission_form( $_POST['affwp_post_id'], $_POST['affwp_block_hash'] );
+		// affwp_block_hash should be the hash of the registration form...
+		$block_form = affiliate_wp()->editor->get_submission_form( absint( $_POST['affwp_post_id'] ), $_POST['affwp_block_hash'] );
 
 			if ( is_wp_error( $block_form ) ) {
 				$this->add_error( 'invalid_form', __( 'Something went wrong when submitting this form, please contact an administrator.', 'affiliate-wp' ) );
@@ -309,7 +308,6 @@ class Affiliate_WP_Register {
 						if ( 'affwp_user_url' === $field_name && false === filter_var( esc_url( $field ), FILTER_VALIDATE_URL ) ) {
 							$this->add_error( 'invalid_url', __( 'Please enter a valid website URL', 'affiliate-wp' ) );
 						}
-
 					}
 				}
 
@@ -358,42 +356,37 @@ class Affiliate_WP_Register {
 							$this->add_error( 'password_missing', __( 'Both password fields are required.', 'affiliate-wp' ) );
 						}
 					}
-				} else {
-					if ( isset( $_POST['affwp_password_text'] ) && isset( $_POST['affwp_password_text_confirm'] )
-					     && ( $_POST['affwp_password_text'] !== $_POST['affwp_password_text_confirm'] )
+				} elseif ( isset( $_POST['affwp_password_text'] ) && isset( $_POST['affwp_password_text_confirm'] )
+						&& ( $_POST['affwp_password_text'] !== $_POST['affwp_password_text_confirm'] )
 					) {
+
 						$this->add_error( 'password_mismatch', __( 'Passwords do not match', 'affiliate-wp' ) );
-					}
 				}
+			} elseif ( false === $block_form ) {
 
-			} else {
-
-				if ( false === $block_form ) {
 					// Loop through required fields and show error message
-					foreach ( $this->required_fields() as $field_name => $value ) {
-						// Skip the password fields for logged-in users.
-						if ( 'affwp_user_pass' === $field_name || 'affwp_user_pass2' === $field_name ) {
-							continue;
-						}
+				foreach ( $this->required_fields() as $field_name => $value ) {
+					// Skip the password fields for logged-in users.
+					if ( 'affwp_user_pass' === $field_name || 'affwp_user_pass2' === $field_name ) {
+						continue;
+					}
 
-						// Skip field if it doesn't exist.
-						if ( ! isset( $data[ $field_name ] ) ) {
-							$this->add_error( $value['error_id'], $value['error_message'] );
-							continue;
-						}
+					// Skip field if it doesn't exist.
+					if ( ! isset( $data[ $field_name ] ) ) {
+						$this->add_error( $value['error_id'], $value['error_message'] );
+						continue;
+					}
 
-						if ( ! empty( $value['logged_out'] ) ) {
-							continue;
-						}
+					if ( ! empty( $value['logged_out'] ) ) {
+						continue;
+					}
 
-						$field = sanitize_text_field( $data[ $field_name ] );
+					$field = sanitize_text_field( $data[ $field_name ] );
 
-						if ( empty( $field ) ) {
-							$this->add_error( $value['error_id'], $value['error_message'] );
-						}
+					if ( empty( $field ) ) {
+						$this->add_error( $value['error_id'], $value['error_message'] );
 					}
 				}
-
 			}
 
 			/*
@@ -409,14 +402,15 @@ class Affiliate_WP_Register {
 				}
 			}
 
-			$recaptcha_invalid = affwp_is_recaptcha_enabled() && ! $this->recaptcha_response_is_valid( $data );
+			// Validate CAPTCHA using the unified manager.
+			if ( AffWP_Captcha_Manager::is_any_enabled() ) {
+				$captcha_valid = AffWP_Captcha_Manager::validate_response( $data, 'register' );
 
-			if ( $recaptcha_invalid && 'v2' === affwp_recaptcha_type() ) {
-				$this->add_error( 'recaptcha_required', __( 'Please verify that you are not a robot', 'affiliate-wp' ) );
-			}
-
-			if ( $recaptcha_invalid && 'v3' === affwp_recaptcha_type() ) {
-				$this->add_error( 'recaptcha_required', __( 'Google reCAPTCHA verification failed, please try again later.', 'affiliate-wp' ) );
+				if ( ! $captcha_valid ) {
+					$active_type   = AffWP_Captcha_Manager::get_active_type();
+					$error_message = AffWP_Captcha_Manager::get_error_message( $active_type );
+					$this->add_error( $active_type . '_required', $error_message );
+				}
 			}
 
 			if ( ! empty( $data['affwp_honeypot'] ) ) {
@@ -456,16 +450,16 @@ class Affiliate_WP_Register {
 			}
 
 			if ( $block_form instanceof \AffWP\Core\Registration\Form_Container && false !== $affiliate_id ) {
-				$custom_fields = array();
+				$custom_fields = [];
 
 				foreach ( $block_form->fields as $field ) {
 					// Ignore legacy fields.
 					if ( ! $field->is_legacy_field() && isset( $_POST[ $field->name ] ) ) {
-						$custom_fields[] = array(
+						$custom_fields[] = [
 							'meta_key' => $field->meta_field,
 							'name'     => $field->label,
-							'type'     => $field->field_type
-						);
+							'type'     => $field->field_type,
+						];
 						affwp_update_affiliate_meta( $affiliate_id, $field->meta_field, $field->sanitize( $_POST[ $field->name ] ) );
 					}
 				}
@@ -515,71 +509,9 @@ class Affiliate_WP_Register {
 				wp_redirect( $redirect );
 				exit;
 			}
-
 		}
-
 	}
 
-	/**
-	 * Verify reCAPTCHA response is valid using a POST request to the Google API
-	 *
-	 * @access private
-	 * @since  1.7
-	 * @param  array   $data
-	 * @return boolean
-	 */
-	private function recaptcha_response_is_valid( $data ) {
-		if ( ! affwp_is_recaptcha_enabled() || empty( $data['g-recaptcha-response'] ) || empty( $data['g-recaptcha-remoteip'] ) ) {
-			return false;
-		}
-
-		$request = wp_safe_remote_post(
-			'https://www.google.com/recaptcha/api/siteverify',
-			array(
-				'body' => array(
-					'secret'   => affiliate_wp()->settings->get( 'recaptcha_secret_key' ),
-					'response' => $data['g-recaptcha-response'],
-					'remoteip' => $data['g-recaptcha-remoteip']
-				)
-			)
-		);
-
-		// Request fails.
-		if ( is_wp_error( $request ) ) {
-			return false;
-		}
-
-		$response = json_decode( wp_remote_retrieve_body( $request ), true );
-
-		if ( 'v3' === affwp_recaptcha_type() ) {
-			// No score available.
-			if ( ! isset( $response['score'] ) ) {
-				return false;
-			}
-
-			// Actions do not match.
-			$action = 'affiliate_register_' . $data['affwp_post_id'];
-
-			if ( isset( $response['action'] ) && $action !== $response['action'] ) {
-				return false;
-			}
-
-			// Threshold isn't reached.
-			$threshold = affiliate_wp()->settings->get( 'recaptcha_score_threshold', '0.4' );
-
-			if ( floatval( $response['score'] ) <= floatval( $threshold ) ) {
-				return false;
-			}
-
-		} else {
-			// reCAPTCHA v2
-			if ( empty( $response['success'] ) ) {
-				return false;
-			}
-		}
-
-		return true;
-	}
 
 	/**
 	 * Register Form Required Fields
@@ -589,22 +521,22 @@ class Affiliate_WP_Register {
 	 * @return      array
 	 */
 	public function required_fields() {
-		$required_fields = array(
-			'affwp_user_name' 	=> array(
+		$required_fields = [
+			'affwp_user_name'  => [
 				'error_id'      => 'empty_name',
 				'error_message' => __( 'Please enter your name', 'affiliate-wp' ),
-				'logged_out'    => true
-			),
-			'affwp_user_login' 	=> array(
+				'logged_out'    => true,
+			],
+			'affwp_user_login' => [
 				'error_id'      => 'empty_username',
 				'error_message' => __( 'Invalid username. Must be between 1 and 60 characters.', 'affiliate-wp' ),
-				'logged_out'    => true
-			),
-			'affwp_user_url' 	=> array(
+				'logged_out'    => true,
+			],
+			'affwp_user_url'   => [
 				'error_id'      => 'invalid_url',
-				'error_message' => __( 'Please enter a website URL', 'affiliate-wp' )
-			)
-		);
+				'error_message' => __( 'Please enter a website URL', 'affiliate-wp' ),
+			],
+		];
 
 		/**
 		 * Filters the list of required registration fields and their attributes.
@@ -679,7 +611,6 @@ class Affiliate_WP_Register {
 		}
 
 		return $required_fields;
-
 	}
 
 	/**
@@ -701,7 +632,7 @@ class Affiliate_WP_Register {
 		if ( ! empty( $_POST['affwp_user_name'] ) ) {
 			$name       = explode( ' ', sanitize_text_field( $_POST['affwp_user_name'] ) );
 			$user_first = array_shift( $name );
-			$user_last = count( $name ) ? implode( ' ', $name ) : '';
+			$user_last  = count( $name ) ? implode( ' ', $name ) : '';
 		} else {
 			$user_first = '';
 			$user_last  = '';
@@ -729,12 +660,12 @@ class Affiliate_WP_Register {
 
 			$user_login = isset( $_POST['affwp_user_login'] ) ? sanitize_text_field( $_POST['affwp_user_login'] ) : $user_email;
 
-			$args = array(
-				'user_login'    => $user_login,
-				'user_email'    => $user_email,
-				'user_pass'     => $user_pass,
-				'display_name'  => trim( $user_first . ' ' . $user_last ),
-			);
+			$args = [
+				'user_login'   => $user_login,
+				'user_email'   => $user_email,
+				'user_pass'    => $user_pass,
+				'display_name' => trim( $user_first . ' ' . $user_last ),
+			];
 
 			$new_user = true;
 
@@ -748,7 +679,6 @@ class Affiliate_WP_Register {
 				// Remember that we generated the password for the user.
 				update_user_meta( $user_id, 'affwp_generated_pass', true );
 			}
-
 		} else {
 
 			$new_user = false;
@@ -759,32 +689,35 @@ class Affiliate_WP_Register {
 			if ( isset( $user['data'] ) ) {
 				$args = (array) $user['data'];
 			} else {
-				$args = array();
+				$args = [];
 			}
-
 		}
 
 		// update first and last name
-		wp_update_user( array(
-			'ID'         => $user_id,
-			'first_name' => $user_first,
-			'last_name'  => $user_last
-		) );
+		wp_update_user(
+			[
+				'ID'         => $user_id,
+				'first_name' => $user_first,
+				'last_name'  => $user_last,
+			]
+		);
 
 		// website URL
 		$website_url = isset( $_POST['affwp_user_url'] ) ? sanitize_text_field( $_POST['affwp_user_url'] ) : '';
 
 		$status = affiliate_wp()->settings->get( 'require_approval' ) ? 'pending' : 'active';
 
-		affwp_add_affiliate( array(
-			'user_id'             => $user_id,
-			'payment_email'       => ! empty( $_POST['affwp_payment_email'] ) ? sanitize_text_field( $_POST['affwp_payment_email'] ) : $user_email,
-			'status'              => $status,
-			'website_url'         => $website_url,
-			'dynamic_coupon'      => affiliate_wp()->settings->get( 'require_approval' ) ? '' : 1,
-			'registration_method' => 'affiliate_registration_form',
-			'registration_url'    => esc_url_raw( home_url( $_SERVER['REQUEST_URI'] ) )
-		) );
+		affwp_add_affiliate(
+			[
+				'user_id'             => $user_id,
+				'payment_email'       => ! empty( $_POST['affwp_payment_email'] ) ? sanitize_text_field( $_POST['affwp_payment_email'] ) : $user_email,
+				'status'              => $status,
+				'website_url'         => $website_url,
+				'dynamic_coupon'      => affiliate_wp()->settings->get( 'require_approval' ) ? '' : 1,
+				'registration_method' => 'affiliate_registration_form',
+				'registration_url'    => esc_url_raw( home_url( $_SERVER['REQUEST_URI'] ) ),
+			]
+		);
 
 		if ( $auto_login && ! is_user_logged_in() ) {
 			$this->log_user_in( $user_id, $user_login );
@@ -831,8 +764,9 @@ class Affiliate_WP_Register {
 	private function log_user_in( $user_id = 0, $user_login = '', $remember = false ) {
 
 		$user = get_userdata( $user_id );
-		if ( ! $user )
+		if ( ! $user ) {
 			return;
+		}
 
 		wp_set_auth_cookie( $user_id, $remember );
 		wp_set_current_user( $user_id, $user_login );
@@ -845,7 +779,6 @@ class Affiliate_WP_Register {
 		 * @param  stdClass $user       The user object.
 		 */
 		do_action( 'wp_login', $user_login, $user );
-
 	}
 
 	/**
@@ -871,11 +804,13 @@ class Affiliate_WP_Register {
 			return;
 		}
 
-		$affiliate_id = affwp_add_affiliate( array(
-			'user_id'             => $user_id,
-			'dynamic_coupon'      => affiliate_wp()->settings->get( 'require_approval' ) ? '' : 1,
-			'registration_method' => 'auto_register_new_users',
-		) );
+		$affiliate_id = affwp_add_affiliate(
+			[
+				'user_id'             => $user_id,
+				'dynamic_coupon'      => affiliate_wp()->settings->get( 'require_approval' ) ? '' : 1,
+				'registration_method' => 'auto_register_new_users',
+			]
+		);
 
 		if ( ! $affiliate_id ) {
 			return;
@@ -895,7 +830,6 @@ class Affiliate_WP_Register {
 		 * @param array  $args         Affiliate data.
 		 */
 		do_action( 'affwp_auto_register_user', $affiliate_id, $status, $args );
-
 	}
 
 	/**
@@ -920,14 +854,13 @@ class Affiliate_WP_Register {
 
 		echo '<div class="affwp-errors">';
 
-		foreach( $this->errors as $error_id => $error ) {
+		foreach ( $this->errors as $error_id => $error ) {
 
 			echo '<p class="affwp-error">' . esc_html( $error ) . '</p>';
 
 		}
 
 		echo '</div>';
-
 	}
 
 	/**
@@ -939,11 +872,10 @@ class Affiliate_WP_Register {
 	public function get_errors() {
 
 		if ( empty( $this->errors ) ) {
-			return array();
+			return [];
 		}
 
 		return $this->errors;
-
 	}
 
 	/**
@@ -956,11 +888,11 @@ class Affiliate_WP_Register {
 	private function get_data_attrs_depends_on_add_user_as_affiliate() {
 		return implode(
 			' ',
-			array(
+			[
 				'data-trigger-on="change"',
 				'data-trigger-id="create-affiliate-add-new-user"',
 				'data-trigger-is=":checked"',
-			)
+			]
 		);
 	}
 
@@ -980,7 +912,7 @@ class Affiliate_WP_Register {
 		?>
 		<table id="affwp-create-affiliate" class="form-table" style="margin-top:0;">
 			<tr>
-				<th scope="row"><label for="create-affiliate-<?php echo $context; ?>"><?php _e( 'Add as Affiliate',  'affiliate-wp' ); ?></label></th>
+				<th scope="row"><label for="create-affiliate-<?php echo $context; ?>"><?php _e( 'Add as Affiliate', 'affiliate-wp' ); ?></label></th>
 				<td>
 					<label for="create-affiliate-<?php echo $context; ?>"><input type="checkbox" id="create-affiliate-<?php echo $context; ?>" name="affwp_create_affiliate" value="1" /> <?php _e( 'Add the user as an affiliate.', 'affiliate-wp' ); ?></label>
 				</td>
@@ -1000,7 +932,7 @@ class Affiliate_WP_Register {
 			<?php endif; ?>
 			<?php if ( ! affiliate_wp()->emails->is_email_disabled() ) : ?>
 			<tr class="hidden disable-affiliate-email-<?php echo $context; ?>" <?php echo filter_var( $this->get_data_attrs_depends_on_add_user_as_affiliate(), FILTER_UNSAFE_RAW ); ?>>
-				<th scope="row"><label for="disable-affiliate-email-<?php echo $context; ?>"><?php _e( 'Disable Affiliate Email',  'affiliate-wp' ); ?></label></th>
+				<th scope="row"><label for="disable-affiliate-email-<?php echo $context; ?>"><?php _e( 'Disable Affiliate Email', 'affiliate-wp' ); ?></label></th>
 				<td>
 					<label for="disable-affiliate-email-<?php echo $context; ?>"><input type="checkbox" id="disable-affiliate-email-<?php echo $context; ?>" name="disable_affiliate_email" value="1" /> <?php _e( 'Disable the application accepted email sent to the affiliate.', 'affiliate-wp' ); ?></label>
 				</td>
@@ -1037,12 +969,13 @@ class Affiliate_WP_Register {
 		}
 
 		// add the affiliate
-		affwp_add_affiliate( array(
-			'user_id'             => $user_id,
-			'dynamic_coupon'      => isset( $_POST['dynamic_coupon'] ) ? $_POST['dynamic_coupon'] : '',
-			'registration_method' => 'admin_add_new_user',
-		) );
-
+		affwp_add_affiliate(
+			[
+				'user_id'             => $user_id,
+				'dynamic_coupon'      => isset( $_POST['dynamic_coupon'] ) ? $_POST['dynamic_coupon'] : '',
+				'registration_method' => 'admin_add_new_user',
+			]
+		);
 	}
 
 	/**
@@ -1062,7 +995,8 @@ class Affiliate_WP_Register {
 		/**
 		 * Javascript for the "Add New User" screen on (multisite only)
 		 */
-		if ( ( ! empty( $pagenow ) && ( 'user-new.php' === $pagenow ) && is_multisite() ) ) : ?>
+		if ( ( ! empty( $pagenow ) && ( 'user-new.php' === $pagenow ) && is_multisite() ) ) :
+			?>
 
 		<script>
 		jQuery(document).ready(function($) {
@@ -1097,14 +1031,15 @@ class Affiliate_WP_Register {
 
 		</script>
 
-		<?php endif;
-
+			<?php
+		endif;
 	}
 
 	/**
 	 * Check if "Automatically register new user accounts as affiliates" is enabled.
 	 *
 	 * Also checks the old "auto_register" setting name for versions prior to 2.18.0.
+	 *
 	 * @since 2.18.0
 	 *
 	 * @return bool
@@ -1128,5 +1063,4 @@ class Affiliate_WP_Register {
 		// If neither setting is enabled, return false.
 		return false;
 	}
-
 }

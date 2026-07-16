@@ -3,7 +3,8 @@ global $affwp_login_redirect;
 affiliate_wp()->login->print_errors();
 ?>
 
-<form id="affwp-login-form" class="affwp-form" action="" method="post">
+<?php $form_id_suffix = wp_rand( 1000, 9999 ); ?>
+<form id="affwp-login-form-<?php echo esc_attr( $form_id_suffix ); ?>" class="affwp-form affwp-login-form" action="" method="post">
 	<?php
 	/**
 	 * Fires at the top of the affiliate login form template
@@ -41,11 +42,16 @@ affiliate_wp()->login->print_errors();
 			</label>
 		</p>
 
+
 		<p>
 			<input type="hidden" name="affwp_redirect" value="<?php echo esc_url( $affwp_login_redirect ); ?>"/>
 			<input type="hidden" name="affwp_login_nonce" value="<?php echo wp_create_nonce( 'affwp-login-nonce' ); ?>" />
 			<input type="hidden" name="affwp_action" value="user_login" />
-			<input type="submit" class="button" value="<?php esc_attr_e( 'Log In', 'affiliate-wp' ); ?>" />
+
+			<?php
+			// Render CAPTCHA field and submit button.
+			echo AffWP_Captcha_Manager::render_captcha_field( 'login', $form_id_suffix, __( 'Log In', 'affiliate-wp' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			?>
 		</p>
 
 		<p class="affwp-lost-password">

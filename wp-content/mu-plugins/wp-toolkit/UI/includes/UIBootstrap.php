@@ -3,6 +3,7 @@
 
 namespace Webpros\WptkWpPlugin\WpToolkit\UI;
 
+use Webpros\WptkWpPlugin\WpToolkit\Common\CliHelper;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Services\ApiTokenParser;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Services\I18n\FallbackFormatter;
 use Webpros\WptkWpPlugin\WpToolkit\Common\Services\I18n\IntlFormatter;
@@ -12,7 +13,6 @@ use Webpros\WptkWpPlugin\WpToolkit\Common\Services\I18n\TranslatorInterface;
 use Webpros\WptkWpPlugin\WpToolkit\Common\WordPressHelper;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Controllers\AnalyticsSettingsController;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Api\Router;
-use Webpros\WptkWpPlugin\WpToolkit\Common\CliHelper;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Dto\AnalyticsParams;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Dto\PageParams;
 use Webpros\WptkWpPlugin\WpToolkit\UI\Dto\PluginInitialParams;
@@ -21,14 +21,12 @@ use Webpros\WptkWpPlugin\WpToolkit\UI\Dto\UrlsParams;
 final class UIBootstrap
 {
     const MINIMAL_SUPPORTED_WP_VERSION = '4.4';
-
     const MODULE_PATH_SLUG = '/wp-toolkit/UI';
-
     const PLUGIN_MAIN_PAGE_SLUG = 'wp-toolkit';
     const PLUGIN_SETTINGS_PAGE_SLUG = 'wp-toolkit-settings';
     const PLUGIN_AUTO_UPDATES_SETTINGS_PAGE_SLUG = 'wp-toolkit-auto-updates-settings';
     const PLUGIN_SUBSCRIPTIONS_PAGE_SLUG = 'wp-toolkit-subscriptions';
-
+    const PLUGIN_SECURITY_MEASURES_PAGE_SLUG = 'wp-toolkit-security-measures';
     const WP_OPTION_MODULE_STATUS = 'wp-toolkit_ui_status';
     const WP_OPTION_VIRTUAL_PATCHES_SUBSCRIPTION_GUID = 'virtual_patches_subscription_guid';
 
@@ -43,7 +41,7 @@ final class UIBootstrap
      */
     public static function init()
     {
-        if (CliHelper::is_cli() && \class_exists(\WP_CLI::class)) {
+        if (CliHelper::is_cli() && class_exists(\WP_CLI::class)) {
             \WP_CLI::add_command('wp-toolkit ui', UICommand::class);
             return;
         }
@@ -52,7 +50,7 @@ final class UIBootstrap
             return;
         }
 
-        if (!\get_option(UIBootstrap::WP_OPTION_MODULE_STATUS, false)) {
+        if (!get_option(UIBootstrap::WP_OPTION_MODULE_STATUS, false)) {
             return;
         }
 
@@ -71,10 +69,7 @@ final class UIBootstrap
 
         $config = Config::getInstance();
         (new AdminMenuIntegration(self::$translator))->init($config);
-        // TODO: redesign and re-enable dashboard widgets after the redesign is implemented.
-        // https://webpros.atlassian.net/browse/EXTWPTOOLK-14392
-        // https://webpros.atlassian.net/browse/EXTWPTOOLK-14393
-        // (new DashboardIntegration(self::$translator))->init($config);
+        (new DashboardIntegration(self::$translator))->init($config);
     }
 
     /**
@@ -120,6 +115,7 @@ final class UIBootstrap
     /**
      * @param string $styleHandle
      * @param string $cssBundleSlug
+     *
      * @return void
      */
     private static function registerAndEnqueueStyle($styleHandle, $cssBundleSlug)
@@ -166,6 +162,11 @@ final class UIBootstrap
                     menu_page_url(self::PLUGIN_SETTINGS_PAGE_SLUG, false),
                     AdminMenuIntegration::isPageActive(AdminMenuIntegration::PLUGIN_SETTINGS_PAGE_ID)
                 ),
+                new PageParams(
+                    'securityMeasuresPage',
+                    menu_page_url(self::PLUGIN_SECURITY_MEASURES_PAGE_SLUG, false),
+                    AdminMenuIntegration::isPageActive(AdminMenuIntegration::PLUGIN_SECURITY_MEASURES_PAGE_ID)
+                ),
             ]
         );
 
@@ -194,8 +195,8 @@ final class UIBootstrap
             error_log($e->getMessage());
         }
 
-        $subscriptionGuid = \get_option(self::WP_OPTION_VIRTUAL_PATCHES_SUBSCRIPTION_GUID) ?: null;
-        if (is_string($subscriptionGuid)) {
+        $subscriptionGuid = get_option(self::WP_OPTION_VIRTUAL_PATCHES_SUBSCRIPTION_GUID) ?: null;
+        if (\is_string($subscriptionGuid)) {
             $pluginInitialParams->setVirtualPatchesSubscriptionGuid($subscriptionGuid);
         }
 
@@ -203,9 +204,9 @@ final class UIBootstrap
     }
 
     /**
-     * @param Config $config
      * @param string $scriptHandle Script identifier
      * @param string $jsBundleSlug Relative path to the script file
+     *
      * @return void
      */
     private static function registerAndEnqueueScript(Config $config, $scriptHandle, $jsBundleSlug)
@@ -236,6 +237,7 @@ HTML;
 
     /**
      * @param ?string $analyticsId
+     *
      * @return bool
      */
     private static function getAnalyticsState($analyticsId)
@@ -248,7 +250,7 @@ HTML;
      */
     private static function getCustomAnalyticsHost()
     {
-        return defined('WP_TOOLKIT_ANALYTICS_HOST') ? \WP_TOOLKIT_ANALYTICS_HOST : null;
+        return \defined('WP_TOOLKIT_ANALYTICS_HOST') ? \WP_TOOLKIT_ANALYTICS_HOST : null;
     }
 
     /**
@@ -256,7 +258,7 @@ HTML;
      */
     private static function getCustomAnalyticsKey()
     {
-        return defined('WP_TOOLKIT_ANALYTICS_KEY') ? \WP_TOOLKIT_ANALYTICS_KEY : null;
+        return \defined('WP_TOOLKIT_ANALYTICS_KEY') ? \WP_TOOLKIT_ANALYTICS_KEY : null;
     }
 
     /**
@@ -264,6 +266,6 @@ HTML;
      */
     private static function isIntegrationPluginDebug()
     {
-        return defined('WP_TOOLKIT_DEBUG') && filter_var(\WP_TOOLKIT_DEBUG, FILTER_VALIDATE_BOOLEAN);
+        return \defined('WP_TOOLKIT_DEBUG') && filter_var(\WP_TOOLKIT_DEBUG, FILTER_VALIDATE_BOOLEAN);
     }
 }

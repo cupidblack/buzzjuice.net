@@ -6,12 +6,10 @@ namespace Webpros\WptkWpPlugin\WpToolkit\UI;
 final class Config implements \JsonSerializable
 {
     const CONFIG_CUSTOMIZATIONS_FILE_NAME = 'customizations.json';
-
     const CHAPTER_BRANDING = 'branding';
     const OPTION_BRANDING_DISPLAY_NAME = 'displayName';
     const OPTION_BRANDING_DISPLAY_NAME_DEFAULT = 'WP Toolkit';
     const OPTION_BRANDING_DISPLAY_NAME_IS_CUSTOMIZED = 'isDisplayNameCustomized';
-
     const CHAPTER_MENU = 'menu';
     const OPTION_MENU_POSITION = 'position';
     const OPTION_MENU_POSITION_DEFAULT = 3;
@@ -85,6 +83,7 @@ final class Config implements \JsonSerializable
                 self::OPTION_BRANDING_DISPLAY_NAME =>
                     /**
                      * @param mixed $value
+                     *
                      * @return string
                      */
                     function ($value) {
@@ -95,6 +94,7 @@ final class Config implements \JsonSerializable
                 self::OPTION_MENU_POSITION =>
                     /**
                      * @param mixed $value
+                     *
                      * @return int|null
                      */
                     function ($value) {
@@ -117,16 +117,16 @@ final class Config implements \JsonSerializable
             $customizations = json_decode($jsonData, true);
             if ($customizations === null && json_last_error() !== JSON_ERROR_NONE) {
                 error_log(
-                    sprintf(
+                    \sprintf(
                         '[WP Toolkit] Invalid JSON in customizations file "%s": %s',
                         $customizationsFilePath,
                         json_last_error_msg()
                     )
                 );
-            } elseif (is_array($customizations)) {
+            } elseif (\is_array($customizations)) {
                 foreach (self::$data as $chapter => $options) {
                     foreach ($options as $option => $value) {
-                        if (isset($customizations[$chapter]) && array_key_exists($option, $customizations[$chapter])) {
+                        if (isset($customizations[$chapter]) && \array_key_exists($option, $customizations[$chapter])) {
                             self::$data[$chapter][$option] = isset($dataSanitizers[$chapter][$option])
                                 ? $dataSanitizers[$chapter][$option]($customizations[$chapter][$option])
                                 : $customizations[$chapter][$option];

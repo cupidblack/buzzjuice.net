@@ -15,7 +15,6 @@ class CoreEventListener
     private $notifier;
 
     /**
-     * @param WpToolkitNotifier $notifier
      * @return void
      */
     public function __construct(WpToolkitNotifier $notifier)
@@ -25,7 +24,8 @@ class CoreEventListener
 
     /**
      * @param \Core_Upgrader $coreUpgrader
-     * @param array $options
+     * @param array          $options
+     *
      * @return void
      */
     public function upgraderProcessCompleteHook($coreUpgrader, $options)

@@ -26,10 +26,10 @@ class ApiToken
     private $notBefore;
 
     /**
-     * @param int $installationId
-     * @param string $apiUrl
+     * @param int     $installationId
+     * @param string  $apiUrl
      * @param ?string $analyticsId
-     * @param float $notBefore
+     * @param float   $notBefore
      */
     public function __construct(
         $installationId,

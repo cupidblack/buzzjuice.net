@@ -15,7 +15,9 @@ use AffWP\Admin\List_Table;
 use AffWP\Creative;
 
 // Exit if accessed directly
-if ( ! defined( 'ABSPATH' ) ) exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 #[\AllowDynamicProperties]
 
@@ -113,11 +115,14 @@ class AffWP_Creatives_Table extends List_Table {
 	 * @param array $args Optional. Arbitrary display and query arguments to pass through
 	 *                    the list table. Default empty array.
 	 */
-	public function __construct( $args = array() ) {
-		$args = wp_parse_args( $args, array(
-			'singular' => 'creative',
-			'plural'   => 'creatives',
-		) );
+	public function __construct( $args = [] ) {
+		$args = wp_parse_args(
+			$args,
+			[
+				'singular' => 'creative',
+				'plural'   => 'creatives',
+			]
+		);
 
 		parent::__construct( $args );
 
@@ -145,17 +150,17 @@ class AffWP_Creatives_Table extends List_Table {
 		$qr_code_count        = "&nbsp;<span class='count'>({$this->qr_code_type_count})</span>";
 		$active_count         = "&nbsp;<span class='count'>({$this->active_count})</span>";
 		$inactive_count       = "&nbsp;<span class='count'>({$this->inactive_count})</span>";
-		$has_schedule_count	  = "&nbsp;<span class='count'>({$this->has_schedule_count})</span>";
+		$has_schedule_count   = "&nbsp;<span class='count'>({$this->has_schedule_count})</span>";
 
-		$views = array(
-			'all'            => sprintf( '<a href="%s"%s>%s</a>', remove_query_arg( 'status', $base ), $current === 'all' || $current == '' ? ' class="current"' : '', __('All', 'affiliate-wp') . $total_count ),
+		$views = [
+			'all'            => sprintf( '<a href="%s"%s>%s</a>', remove_query_arg( 'status', $base ), $current === 'all' || $current == '' ? ' class="current"' : '', __( 'All', 'affiliate-wp' ) . $total_count ),
 			'image_type'     => sprintf( '<a href="%s"%s>%s</a>', add_query_arg( 'type', 'image', $base ), 'image' === $current ? ' class="current"' : '', __( 'Images', 'affiliate-wp' ) . $image_type_count ),
 			'text_link_type' => sprintf( '<a href="%s"%s>%s</a>', add_query_arg( 'type', 'text_link', $base ), 'text_link' === $current ? ' class="current"' : '', __( 'Text Links', 'affiliate-wp' ) . $text_link_type_count ),
 			'qr_code_type'   => sprintf( '<a href="%s"%s>%s</a>', add_query_arg( 'type', 'qr_code', $base ), 'qr_code' === $current ? ' class="current"' : '', __( 'QR Codes', 'affiliate-wp' ) . $qr_code_count ),
-			'active'	     => sprintf( '<a href="%s"%s>%s</a>', add_query_arg( 'status', 'active', $base ), $current === 'active' ? ' class="current"' : '', __('Active', 'affiliate-wp') . $active_count ),
-			'inactive'       => sprintf( '<a href="%s"%s>%s</a>', add_query_arg( 'status', 'inactive', $base ), $current === 'inactive' ? ' class="current"' : '', __('Inactive', 'affiliate-wp') . $inactive_count ),
-			'scheduled'      => sprintf( '<a href="%s"%s>%s</a>', add_query_arg( 'scheduled', 'true', $base ), $current === 'true' ? ' class="current"' : '', __('Scheduled', 'affiliate-wp') . $has_schedule_count ),
-		);
+			'active'         => sprintf( '<a href="%s"%s>%s</a>', add_query_arg( 'status', 'active', $base ), $current === 'active' ? ' class="current"' : '', __( 'Active', 'affiliate-wp' ) . $active_count ),
+			'inactive'       => sprintf( '<a href="%s"%s>%s</a>', add_query_arg( 'status', 'inactive', $base ), $current === 'inactive' ? ' class="current"' : '', __( 'Inactive', 'affiliate-wp' ) . $inactive_count ),
+			'scheduled'      => sprintf( '<a href="%s"%s>%s</a>', add_query_arg( 'scheduled', 'true', $base ), $current === 'true' ? ' class="current"' : '', __( 'Scheduled', 'affiliate-wp' ) . $has_schedule_count ),
+		];
 
 		// Don't show for non-pro users.
 		if ( affwp_is_upgrade_required( 'pro' ) ) {
@@ -179,7 +184,7 @@ class AffWP_Creatives_Table extends List_Table {
 	 * @return array $columns Array of all the list table columns.
 	 */
 	public function get_columns() {
-		$columns = array(
+		$columns = [
 			'cb'          => '<input type="checkbox" />',
 			'name'        => __( 'Name', 'affiliate-wp' ),
 			'creative_id' => __( 'ID', 'affiliate-wp' ),
@@ -187,7 +192,7 @@ class AffWP_Creatives_Table extends List_Table {
 			'url'         => __( 'URL', 'affiliate-wp' ),
 			'status'      => __( 'Status', 'affiliate-wp' ),
 			'preview'     => __( 'Preview', 'affiliate-wp' ),
-		);
+		];
 
 		/**
 		 * Filters the creatives list table columns.
@@ -210,12 +215,12 @@ class AffWP_Creatives_Table extends List_Table {
 	 * @return array Array of all the sortable columns.
 	 */
 	public function get_sortable_columns() {
-		$columns = array(
-			'creative_id' => array( 'creative_id', false ),
-			'name'        => array( 'name', false ),
-			'type'        => array( 'type', false ),
-			'status'      => array( 'status', false ),
-		);
+		$columns = [
+			'creative_id' => [ 'creative_id', false ],
+			'name'        => [ 'name', false ],
+			'type'        => [ 'type', false ],
+			'status'      => [ 'status', false ],
+		];
 
 		/**
 		 * Filters the creatives list table sortable columns.
@@ -240,7 +245,7 @@ class AffWP_Creatives_Table extends List_Table {
 	 * @return string Column Name
 	 */
 	function column_default( $creative, $column_name ) {
-		switch( $column_name ){
+		switch ( $column_name ) {
 			default:
 				$value = isset( $creative->$column_name ) ? $creative->$column_name : '';
 				break;
@@ -291,11 +296,11 @@ class AffWP_Creatives_Table extends List_Table {
 			return '';
 		}
 
-		return affwp_icon_tooltip(
-			__( 'This creative can only be seen by specific affiliates and/or affiliate groups.', 'affiliate-wp' ),
-			'locked',
-			false,
-			'privacy-status'
+		$tooltip_html = affwp_tooltip( __( 'This creative can only be seen by specific affiliates and/or affiliate groups.', 'affiliate-wp' ) );
+		
+		return sprintf(
+			'<span class="dashicons dashicons-lock cursor-help" data-tooltip-html="%s"></span>',
+			esc_attr( $tooltip_html )
 		);
 	}
 
@@ -310,23 +315,23 @@ class AffWP_Creatives_Table extends List_Table {
 	 * @return string Data shown in the Name column.
 	 */
 	public function column_name( Creative $creative ) : string {
-		$row_actions = array();
+		$row_actions = [];
 
-		$base_query_args = array(
+		$base_query_args = [
 			'page'        => 'affiliate-wp-creatives',
 			'creative_id' => $creative->ID,
-		);
+		];
 
 		$value = sprintf(
-			'<span class="name-wrap"><a href="%1$s">%2$s</a><span class="affwp-cretive-warnings">%3$s%4$s</span></span>',
+			'<span class="name-wrap"><a href="%1$s">%2$s</a><span class="affwp-creative-warnings">%3$s%4$s</span></span>',
 			esc_url(
 				add_query_arg(
 					array_merge(
 						$base_query_args,
-						array(
+						[
 							'affwp_notice' => false,
 							'action'       => 'edit_creative',
-						)
+						]
 					),
 					admin_url( 'admin.php' )
 				)
@@ -334,11 +339,14 @@ class AffWP_Creatives_Table extends List_Table {
 			$creative->get_name(),
 			$this->get_privacy_info( $creative ),
 			( 'private' === get_option( 'affwp_creative_name_privacy', '' ) && $creative->is_before_migration_time( 'date_updated' ) )
-				? affwp_icon_tooltip(
-					__( 'Edit this creative and enter a more descriptive name. The original name can be found in the Notes field.', 'affiliate-wp' ),
-					'warning',
-					false,
-					'affwp-admin-creative-name-warning'
+				? affwp_tooltip(
+					[
+						'content' => __( 'Edit this creative and enter a more descriptive name. The original name can be found in the Notes field.', 'affiliate-wp' ),
+						'trigger' => 'icon',
+						'icon'    => 'warning',
+						'echo'    => false,
+						'classes' => 'affwp-admin-creative-name-warning',
+					]
 				)
 				: '',
 		);
@@ -348,10 +356,10 @@ class AffWP_Creatives_Table extends List_Table {
 			__( 'Edit', 'affiliate-wp' ),
 			array_merge(
 				$base_query_args,
-				array(
+				[
 					'affwp_notice' => false,
-					'action'       => 'edit_creative'
-				)
+					'action'       => 'edit_creative',
+				]
 			)
 		);
 
@@ -364,12 +372,12 @@ class AffWP_Creatives_Table extends List_Table {
 				$deactivate_label,
 				array_merge(
 					$base_query_args,
-					array(
+					[
 						'affwp_notice' => 'creative_deactivated',
 						'action'       => 'deactivate',
-					)
+					]
 				),
-				array( 'nonce' => 'affwp-creative-nonce' )
+				[ 'nonce' => 'affwp-creative-nonce' ]
 			);
 
 		} else {
@@ -380,12 +388,12 @@ class AffWP_Creatives_Table extends List_Table {
 				$activate_label,
 				array_merge(
 					$base_query_args,
-					array(
+					[
 						'affwp_notice' => 'creative_activated',
 						'action'       => 'activate',
-					)
+					]
 				),
-				array( 'nonce' => 'affwp-creative-nonce' )
+				[ 'nonce' => 'affwp-creative-nonce' ]
 			);
 
 		}
@@ -396,12 +404,12 @@ class AffWP_Creatives_Table extends List_Table {
 				__( 'Edit Schedule', 'affiliate-wp' ),
 				array_merge(
 					$base_query_args,
-					array(
+					[
 						'affwp_notice' => false,
-						'action'       => 'edit_creative'
-					)
+						'action'       => 'edit_creative',
+					]
 				),
-				array( 'base_uri' => '#affwp-creative-schedule' )
+				[ 'base_uri' => '#affwp-creative-schedule' ]
 			);
 		}
 
@@ -410,12 +418,12 @@ class AffWP_Creatives_Table extends List_Table {
 			__( 'Delete', 'affiliate-wp' ),
 			array_merge(
 				$base_query_args,
-				array(
+				[
 					'affwp_notice' => false,
 					'action'       => 'delete',
-				)
+				]
 			),
-			array( 'nonce' => 'affwp-creative-nonce' )
+			[ 'nonce' => 'affwp-creative-nonce' ]
 		);
 
 		/**
@@ -481,47 +489,22 @@ class AffWP_Creatives_Table extends List_Table {
 	 * @return string Status label.
 	 */
 	public function column_status( $creative ) {
-		// Label text.
-		$label = affwp_get_creative_status_label( $creative );
-
 		// Status.
 		$status = isset( $creative->status ) ? $creative->status : '';
 
-		// If the creative is not scheduled, return the color-coded label.
+		// If the creative is not scheduled, return the badge without clock icon.
 		if ( false === affwp_has_scheduling_feature( $creative ) ) {
-			return sprintf( '<span class="affwp-status %1$s">%2$s</span>',
-				esc_attr( $status ),
-				affwp_get_creative_status_label( $creative )
-			);
+			return affwp_get_creative_status_badge( $status );
 		}
 
-		// For creatives with a schedule, it should be color-coded with a clock icon.
-		switch ( $status ) {
-			case 'active':
-				$label = sprintf( '<span class="affwp-status %1$s">%2$s<span class="dashicons dashicons-clock"></span></span>',
-					esc_attr( $status ),
-					$label
-				);
-				break;
-			case 'inactive':
-				$label = sprintf( '<span class="affwp-status %1$s">%2$s<span class="dashicons dashicons-clock"></span></span>',
-					esc_attr( $status ),
-					$label
-				);
-				break;
-			case 'scheduled':
-				$label = sprintf( '<span class="affwp-status %1$s">%2$s<span class="dashicons dashicons-clock"></span></span>',
-					esc_attr( $status ),
-					$label
-				);
-				break;
-			default:
-				// If the creative status is not recognized, return the label as-is.
-				return $label;
-		}
+		// For creatives with a schedule, add a clock icon to the badge.
+		$badge = affwp_get_creative_status_badge( $status );
+
+		// Add clock icon after the badge text with pointer-events-none to prevent double tooltips.
+		$badge = str_replace( '</span>', '<span class="dashicons dashicons-clock pointer-events-none" style="margin-left: 4px;"></span></span>', $badge );
 
 		// Add tooltips to explain the schedule.
-		return $this->affwp_add_status_tooltips( $label, $creative, $status );
+		return $this->affwp_add_status_tooltips( $badge, $creative, $status );
 	}
 
 	/**
@@ -544,95 +527,133 @@ class AffWP_Creatives_Table extends List_Table {
 		if ( false === $start_date && false === $end_date ) {
 			return $label;
 		}
+		
+		// Add cursor-help class to the badge.
+		if ( strpos( $label, 'class="' ) !== false ) {
+			// Badge already has a class attribute, append cursor-help to it.
+			$label = preg_replace( '/class="/', 'class="cursor-help ', $label, 1 );
+		} else {
+			// Badge doesn't have a class attribute, add one.
+			$label = preg_replace( '/<span/', '<span class="cursor-help"', $label, 1 );
+		}
 
 		// If creative is active and has both a start AND end date.
 		if ( 'active' === $status && false !== $start_date && false !== $end_date ) {
-			return affwp_text_tooltip(
-				$label,
-				sprintf( '<div>%1$s %2$s</div><div>%3$s %4$s</div>',
-					__( 'Started:', 'affiliate-wp' ),
-					esc_html( affwp_date_i18n( strtotime( $start_date ), 'Y-m-d' ) ),
-					__( 'Ends:', 'affiliate-wp' ),
-					esc_html( affwp_date_i18n( strtotime( $end_date ), 'Y-m-d' ) ),
-				),
-				false
-			);
+			$tooltip_html = affwp_tooltip( [
+				'items' => [
+					sprintf(
+						'%1$s %2$s',
+						__( 'Started:', 'affiliate-wp' ),
+						affwp_date_i18n( strtotime( $start_date ), 'Y-m-d' )
+					),
+					sprintf(
+						'%1$s %2$s',
+						__( 'Ends:', 'affiliate-wp' ),
+						affwp_date_i18n( strtotime( $end_date ), 'Y-m-d' )
+					),
+				],
+			] );
+			
+			// Add data-tooltip-html attribute to the badge.
+			return str_replace( '<span', sprintf( '<span data-tooltip-html="%s"', esc_attr( $tooltip_html ) ), $label );
 		}
 
 		// If a creative is active and only has a start date.
 		if ( 'active' === $status && false !== $start_date && false === $end_date ) {
-			return affwp_text_tooltip(
-				$label,
-				sprintf( '<div>%1$s %2$s</div>',
+			$tooltip_html = affwp_tooltip(
+				sprintf(
+					'%1$s %2$s',
 					__( 'Started:', 'affiliate-wp' ),
-					esc_html( affwp_date_i18n( strtotime( $start_date ), 'Y-m-d' ) ),
-				),
-				false
+					affwp_date_i18n( strtotime( $start_date ), 'Y-m-d' )
+				)
 			);
+			
+			// Add data-tooltip-html attribute to the badge.
+			return str_replace( '<span', sprintf( '<span data-tooltip-html="%s"', esc_attr( $tooltip_html ) ), $label );
 		}
 
 		// If a creative is active and only has an end date.
 		if ( 'active' === $status && false === $start_date && false !== $end_date ) {
-			return affwp_text_tooltip(
-				$label,
-				sprintf( '<div>%1$s %2$s</div>',
+			$tooltip_html = affwp_tooltip(
+				sprintf(
+					'%1$s %2$s',
 					__( 'Ends:', 'affiliate-wp' ),
-					esc_html( affwp_date_i18n( strtotime( $end_date ), 'Y-m-d' ) ),
-				),
-				false
+					affwp_date_i18n( strtotime( $end_date ), 'Y-m-d' )
+				)
 			);
+			
+			// Add data-tooltip-html attribute to the badge.
+			return str_replace( '<span', sprintf( '<span data-tooltip-html="%s"', esc_attr( $tooltip_html ) ), $label );
 		}
 
 		// If a creative is inactive and has both a start AND end date.
 		if ( 'inactive' === $status && false !== $start_date && false !== $end_date ) {
-			return affwp_text_tooltip(
-				$label,
-				sprintf( '<div>%1$s %2$s</div><div>%3$s %4$s</div>',
-					__( 'Started:', 'affiliate-wp' ),
-					esc_html( affwp_date_i18n( strtotime( $start_date ), 'Y-m-d' ) ),
-					__( 'Ended:', 'affiliate-wp' ),
-					esc_html( affwp_date_i18n( strtotime( $end_date ), 'Y-m-d' ) ),
-				),
-				false
-			);
+			$tooltip_html = affwp_tooltip( [
+				'items' => [
+					sprintf(
+						'%1$s %2$s',
+						__( 'Started:', 'affiliate-wp' ),
+						affwp_date_i18n( strtotime( $start_date ), 'Y-m-d' )
+					),
+					sprintf(
+						'%1$s %2$s',
+						__( 'Ended:', 'affiliate-wp' ),
+						affwp_date_i18n( strtotime( $end_date ), 'Y-m-d' )
+					),
+				],
+			] );
+			
+			// Add data-tooltip-html attribute to the badge.
+			return str_replace( '<span', sprintf( '<span data-tooltip-html="%s"', esc_attr( $tooltip_html ) ), $label );
 		}
 
 		// If a creative is inactive and only has an end date.
 		if ( 'inactive' === $status && false === $start_date && false !== $end_date ) {
-			return affwp_text_tooltip(
-				$label,
-				sprintf( '<div>%1$s %2$s</div>',
+			$tooltip_html = affwp_tooltip(
+				sprintf(
+					'%1$s %2$s',
 					__( 'Ended:', 'affiliate-wp' ),
-					esc_html( affwp_date_i18n( strtotime( $end_date ), 'Y-m-d' ) ),
-				),
-				false
+					affwp_date_i18n( strtotime( $end_date ), 'Y-m-d' )
+				)
 			);
+			
+			// Add data-tooltip-html attribute to the badge.
+			return str_replace( '<span', sprintf( '<span data-tooltip-html="%s"', esc_attr( $tooltip_html ) ), $label );
 		}
 
 		// If a creative is scheduled and has both a start AND end date.
 		if ( 'scheduled' === $status && false !== $start_date && false !== $end_date ) {
-			return affwp_text_tooltip(
-				$label,
-				sprintf( '<div>%1$s %2$s</div><div>%3$s %4$s</div>',
-					__( 'Starts:', 'affiliate-wp' ),
-					esc_html( affwp_date_i18n( strtotime( $start_date ), 'Y-m-d' ) ),
-					__( 'Ends:', 'affiliate-wp' ),
-					esc_html( affwp_date_i18n( strtotime( $end_date ), 'Y-m-d' ) ),
-				),
-				false
-			);
+			$tooltip_html = affwp_tooltip( [
+				'items' => [
+					sprintf(
+						'%1$s %2$s',
+						__( 'Starts:', 'affiliate-wp' ),
+						affwp_date_i18n( strtotime( $start_date ), 'Y-m-d' )
+					),
+					sprintf(
+						'%1$s %2$s',
+						__( 'Ends:', 'affiliate-wp' ),
+						affwp_date_i18n( strtotime( $end_date ), 'Y-m-d' )
+					),
+				],
+			] );
+			
+			// Add data-tooltip-html attribute to the badge.
+			return str_replace( '<span', sprintf( '<span data-tooltip-html="%s"', esc_attr( $tooltip_html ) ), $label );
 		}
 
 		// If a creative is scheduled and only has a start date.
 		if ( 'scheduled' === $status && false !== $start_date && false === $end_date ) {
-			return affwp_text_tooltip(
-				$label,
-				sprintf( '<div>%1$s %2$s</div>',
+			$tooltip_html = affwp_tooltip(
+				sprintf(
+					'%1$s %2$s',
 					__( 'Starts:', 'affiliate-wp' ),
-					esc_html( affwp_date_i18n( strtotime( $start_date ), 'Y-m-d' ) ),
-				),
-				false
+					affwp_date_i18n( strtotime( $start_date ), 'Y-m-d' )
+				)
 			);
+			
+			// Add data-tooltip-html attribute to the badge.
+			return str_replace( '<span', sprintf( '<span data-tooltip-html="%s"', esc_attr( $tooltip_html ) ), $label );
 		}
 
 		return $label;
@@ -653,12 +674,11 @@ class AffWP_Creatives_Table extends List_Table {
 		return affwp_admin_link(
 			'creatives',
 			$creative->get_preview(),
-			array(
+			[
 				'creative_id' => $creative->ID,
 				'action'      => 'edit_creative',
-			)
+			]
 		);
-
 	}
 
 	/**
@@ -680,11 +700,11 @@ class AffWP_Creatives_Table extends List_Table {
 	 */
 	public function get_bulk_actions() {
 
-		$actions = array(
+		$actions = [
 			'activate'   => __( 'Activate', 'affiliate-wp' ),
 			'deactivate' => __( 'Deactivate', 'affiliate-wp' ),
 			'delete'     => __( 'Delete', 'affiliate-wp' ),
-		);
+		];
 
 		/**
 		 * Filters the bulk actions to return in the creatives list table.
@@ -711,13 +731,13 @@ class AffWP_Creatives_Table extends List_Table {
 		}
 
 		if ( ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'bulk-creatives' ) && ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'affwp-creative-nonce' ) ) {
-		 	return;
+			return;
 		}
 
 		$ids = isset( $_GET['creative_id'] ) ? $_GET['creative_id'] : false;
 
 		if ( ! is_array( $ids ) ) {
-			$ids = array( $ids );
+			$ids = [ $ids ];
 		}
 
 		$ids = array_map( 'absint', $ids );
@@ -765,7 +785,6 @@ class AffWP_Creatives_Table extends List_Table {
 			do_action( 'affwp_creatives_do_bulk_action_' . $this->current_action(), $id );
 
 		}
-
 	}
 
 	/**
@@ -781,63 +800,63 @@ class AffWP_Creatives_Table extends List_Table {
 		$this->active_count = affiliate_wp()->creatives->count(
 			array_merge(
 				$this->query_args,
-				array(
-					'status' => 'active'
-				)
+				[
+					'status' => 'active',
+				]
 			)
 		);
 
 		$this->inactive_count = affiliate_wp()->creatives->count(
 			array_merge(
 				$this->query_args,
-				array(
-					'status' => 'inactive'
-				)
+				[
+					'status' => 'inactive',
+				]
 			)
 		);
 
 		$this->text_link_type_count = affiliate_wp()->creatives->count(
 			array_merge(
 				$this->query_args,
-				array(
-					'type' => 'text_link'
-				)
+				[
+					'type' => 'text_link',
+				]
 			)
 		);
 
 		$this->image_type_count = affiliate_wp()->creatives->count(
 			array_merge(
 				$this->query_args,
-				array(
-					'type' => 'image'
-				)
+				[
+					'type' => 'image',
+				]
 			)
 		);
 
 		$this->qr_code_type_count = affiliate_wp()->creatives->count(
 			array_merge(
 				$this->query_args,
-				array(
+				[
 					'type' => 'qr_code',
-				)
+				]
 			)
 		);
 
 		$this->scheduled_count = affiliate_wp()->creatives->count(
 			array_merge(
 				$this->query_args,
-				array(
-					'status' => 'scheduled'
-				)
+				[
+					'status' => 'scheduled',
+				]
 			)
 		);
 
 		$this->has_schedule_count = affiliate_wp()->creatives->count(
 			array_merge(
 				$this->query_args,
-				array(
-					'scheduled' => 'true'
-				)
+				[
+					'scheduled' => 'true',
+				]
 			)
 		);
 
@@ -860,25 +879,25 @@ class AffWP_Creatives_Table extends List_Table {
 
 		$args = wp_parse_args(
 			$this->query_args,
-			array(
-				'number'  => $per_page,
-				'offset'  => $per_page * ( $page - 1 ),
-				'status'  => isset( $_GET['status'] ) && is_string( $_GET['status'] ) && in_array( $_GET['status'], array( 'active', 'inactive', 'scheduled' ), true )
+			[
+				'number'    => $per_page,
+				'offset'    => $per_page * ( $page - 1 ),
+				'status'    => isset( $_GET['status'] ) && is_string( $_GET['status'] ) && in_array( $_GET['status'], [ 'active', 'inactive', 'scheduled' ], true )
 					? sanitize_text_field( $_GET['status'] )
 					: '',
-				'type'    => isset( $_GET['type'] ) && in_array( $_GET['type'], array_keys( affwp_get_creative_types() ), true )
+				'type'      => isset( $_GET['type'] ) && in_array( $_GET['type'], array_keys( affwp_get_creative_types() ), true )
 					? sanitize_text_field( $_GET['type'] )
 					: 'any',
-				'orderby' => isset( $_GET['orderby'] )
+				'orderby'   => isset( $_GET['orderby'] )
 					? sanitize_text_field( $_GET['orderby'] )
 					: 'creative_id',
-				'order'   => isset( $_GET['order'] ) && 'ASC' === strtoupper( sanitize_text_field( $_GET['order'] ) )
+				'order'     => isset( $_GET['order'] ) && 'ASC' === strtoupper( sanitize_text_field( $_GET['order'] ) )
 					? 'ASC'
 					: 'DESC',
 				'scheduled' => isset( $_GET['scheduled'] ) && is_string( $_GET['scheduled'] ) && 'true' === sanitize_text_field( $_GET['scheduled'] )
 					? true
 					: false,
-			)
+			]
 		);
 
 		/**
@@ -899,7 +918,6 @@ class AffWP_Creatives_Table extends List_Table {
 		$this->current_count = affiliate_wp()->creatives->count( $args );
 
 		return $creatives;
-
 	}
 
 	/**
@@ -966,11 +984,12 @@ class AffWP_Creatives_Table extends List_Table {
 
 		$this->items = $data;
 
-		$this->set_pagination_args( array(
-			'total_items' => $total_items,
-			'per_page'    => $per_page,
-			'total_pages' => ceil( $total_items / $per_page )
-		) );
-
+		$this->set_pagination_args(
+			[
+				'total_items' => $total_items,
+				'per_page'    => $per_page,
+				'total_pages' => ceil( $total_items / $per_page ),
+			]
+		);
 	}
 }
