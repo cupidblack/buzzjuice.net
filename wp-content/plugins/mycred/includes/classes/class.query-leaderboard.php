@@ -973,6 +973,8 @@ if ( ! class_exists( 'myCRED_Query_Leaderboard' ) ) :
 				'nothing'      => 'Leaderboard is empty',
 			), $args ) );
 
+			$wrap = mycred_sanitize_leaderboard_wrap_tag( $wrap );
+
 			$mycred = mycred( $args['type'] );
 	
 			$output = '';

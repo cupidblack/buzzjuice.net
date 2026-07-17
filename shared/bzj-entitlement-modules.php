@@ -52,7 +52,7 @@ add_filter('bzj_bre_registry', function($registry){
         ],
         'mode'=>'replace',
         'messages'=>[
-            'main'=>'Recharge to reply to discussions.',
+            'main'=>'Recharge to reply',
 //            'below'=>'Recharge your Palmier balance to continue.',
         ],
         'show_main'=>true,

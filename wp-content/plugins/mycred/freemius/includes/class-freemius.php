@@ -3038,7 +3038,9 @@
          * @return bool
          */
         function is_activation_mode( $and_on = true ) {
-            return false;
+            return fs_is_network_admin() ?
+                $this->is_network_activation_mode( $and_on ) :
+                $this->is_site_activation_mode( $and_on );
         }
 
         /**
@@ -3052,7 +3054,18 @@
          * @return bool
          */
         function is_site_activation_mode( $and_on = true ) {
-            return false;
+            return (
+                ( $this->is_on() || ! $and_on ) &&
+                (
+                    ( $this->is_premium() && true === $this->_storage->require_license_activation ) ||
+                    (
+                        ( ! $this->is_registered() ||
+                            ( $this->is_only_premium() && ! $this->has_features_enabled_license() ) ) &&
+                        ( ! $this->is_enable_anonymous() ||
+                            ( ! $this->is_anonymous() && ! $this->is_pending_activation() ) )
+                    )
+                )
+            );
         }
 
         /**
@@ -6545,10 +6558,7 @@
             $next_schedule = $this->next_sync_cron();
 
             // The event is properly scheduled, so no need to reschedule it.
-            if (
-                is_numeric( $next_schedule ) &&
-                $next_schedule > time()
-            ) {
+            if ( is_numeric( $next_schedule ) ) {
                 return;
             }
 
@@ -7085,7 +7095,6 @@
          */
         function _enqueue_connect_essentials() {
             wp_enqueue_script( 'jquery' );
-            wp_enqueue_script( 'json2' );
 
             fs_enqueue_local_script( 'postmessage', 'nojquery.ba-postmessage.js' );
             fs_enqueue_local_script( 'fs-postmessage', 'postmessage.js' );
@@ -10798,10 +10807,7 @@
          * @return FS_User
          */
         function get_user() {
-            if ( ! is_object( $this->_user ) ) {
-              $this->_ensure_mock_objects();
-            }
-			return $this->_user;
+            return $this->_user;
         }
 
         /**
@@ -10811,11 +10817,7 @@
          * @return FS_Site
          */
         function get_site() {
-            if ( ! is_object( $this->_site ) ) {
-                $this->_ensure_mock_objects();
-            }
-
-			return $this->_site;
+            return $this->_site;
         }
 
         /**
@@ -10826,69 +10828,6 @@
          */
         public function get_storage() {
             return $this->_storage;
-        }
-		
-		
-		private function _ensure_mock_objects() {
-            if ( ! is_object( $this->_user ) ) {
-                $this->_user = new FS_User();
-                $this->_user->id = 1;
-                $this->_user->email = 'noreply@gmail.com';
-                $this->_user->first = 'Premium';
-                $this->_user->last = 'User';
-                $this->_user->is_verified = true;
-                $this->_user->created = date('Y-m-d H:i:s');
-                $this->_user->public_key = 'pk_4a7c9e2f8b3d1a6e5c8f2b9d4a7c0e3f';
-                $this->_user->secret_key = 'sk_8f3d1a6e5c2b9d4a7c0e3f6b8a1d4e7c';
-            }
-
-            if ( ! is_object( $this->_site ) ) {
-                $this->_site = new FS_Site();
-                $this->_site->id = 1;
-                $this->_site->site_id = 1;
-                $this->_site->blog_id = get_current_blog_id();
-                $this->_site->plugin_id = ( is_object( $this->_plugin ) ? $this->_plugin->id : 1 );
-                $this->_site->license_id = 1;
-                $this->_site->plan_id = 1;
-                $this->_site->user_id = 1;
-                $this->_site->title = get_bloginfo('name');
-                $this->_site->url = home_url();
-                $this->_site->version = ( is_object( $this->_plugin ) ? $this->_plugin->version : '1.0.0' );
-                $this->_site->language = get_locale();
-                $this->_site->platform_version = get_bloginfo('version');
-                $this->_site->sdk_version = $this->version;
-                $this->_site->programming_language_version = phpversion();
-                $this->_site->is_premium = true;
-                $this->_site->is_active = true;
-                $this->_site->is_uninstalled = false;
-                $this->_site->public_key = 'pk_f3b8c2a7e9d1f4a6c3e8b2d5a9f1c4e7';
-                $this->_site->secret_key = 'sk_2d5a9f1c4e7b3a6c8f2e1d4a7c0e3f6b';
-                $this->_site->created = date('Y-m-d H:i:s');
-            }
-
-            if ( ! is_object( $this->_license ) ) {
-                $this->_license = new FS_Plugin_License();
-                $this->_license->id = 1;
-                $this->_license->plan_id = 1;
-                $this->_license->user_id = 1;
-                $this->_license->secret_key = 'sk_b5e0b5f8dd8689e6aca49dd6e6e1a930';
-                $this->_license->quota = null;
-                $this->_license->expiration = null;
-                $this->_license->created = date('Y-m-d H:i:s');
-            }
-
-            if ( ! is_array( $this->_plans ) || empty( $this->_plans ) ) {
-                $this->_plans = array();
-                $mock_plan = new FS_Plugin_Plan();
-                $mock_plan->id = 1;
-                $mock_plan->name = WP_FS__MOCK_PLAN_NAME;
-                $mock_plan->title = WP_FS__MOCK_PLAN_TITLE;
-                $mock_plan->plugin_id = ( is_object( $this->_plugin ) ? $this->_plugin->id : 1 );
-                $mock_plan->is_block_features = false;
-                $mock_plan->license_type = 'paid';
-                $mock_plan->created = date('Y-m-d H:i:s');
-                $this->_plans[] = $mock_plan;
-            }
         }
 
         /**
@@ -11337,12 +11276,8 @@
          * @return string
          */
         function get_plan_title() {
-            
-		    // Return mock plan object if none exists to prevent account page errors
-            if ( ! is_object( $this->_site ) ) {
-                $this->_ensure_mock_objects();
-            }
             $plan = $this->get_plan();
+
             return is_object( $plan ) ? $plan->title : 'PLAN_TITLE';
         }
 
@@ -11814,15 +11749,10 @@
          * @return FS_Plugin_Plan|false
          */
         function _get_plan_by_id( $id, $allow_sync = true ) {
-              $this->_logger->entrance();
+            $this->_logger->entrance();
 
             if ( $allow_sync && ( ! is_array( $this->_plans ) || 0 === count( $this->_plans ) ) ) {
                 $this->_sync_plans();
-            }
-
-            // Added null array check to prevent foreach errors
-            if ( ! is_array( $this->_plans ) ) {
-                $this->_ensure_mock_objects();
             }
 
             foreach ( $this->_plans as $plan ) {
@@ -11834,8 +11764,6 @@
             return false;
         }
 
-
-
         /**
          * @author Vova Feldman (@svovaf)
          * @since  1.1.8.1
@@ -11845,15 +11773,10 @@
          * @return FS_Plugin_Plan|false
          */
         private function get_plan_by_name( $name ) {
-              $this->_logger->entrance();
+            $this->_logger->entrance();
 
             if ( ! is_array( $this->_plans ) || 0 === count( $this->_plans ) ) {
                 $this->_sync_plans();
-            }
-
-            // Added null array check to prevent foreach errors
-            if ( ! is_array( $this->_plans ) ) {
-                $this->_ensure_mock_objects();
             }
 
             foreach ( $this->_plans as $plan ) {
@@ -11863,7 +11786,6 @@
             }
 
             return false;
-
         }
 
         /**
@@ -12754,13 +12676,12 @@
          * @return bool|\FS_Plugin_License
          */
         function _get_license() {
-            // Return mock license object if none exists to prevent account page errors
-            if ( ! is_object( $this->_license ) ) {
-                $this->_ensure_mock_objects();
+            if ( ! fs_is_network_admin() || is_object( $this->_license ) ) {
+                return $this->_license;
             }
-            return $this->_license;
-        }
 
+            return $this->_get_available_premium_license();
+        }
 
         /**
          * @param number $license_id
@@ -14107,6 +14028,10 @@
                 }
 
                 $result['next_page'] = $next_page;
+            }
+
+            if ( $result['success'] ) {
+                $this->do_action( 'after_license_activation' );
             }
 
             return $result;
@@ -17507,7 +17432,7 @@
                 FS_User_Lock::instance()->unlock();
             }
 
-            if ( 1 < count( $installs ) ) {
+            if ( 1 < count( $installs ) || fs_is_network_admin() ) {
                 // Only network level opt-in can have more than one install.
                 $is_network_level_opt_in = true;
             }
@@ -21742,6 +21667,8 @@
                 return;
             }
 
+            $this->do_action( 'after_license_activation' );
+
             $premium_license = new FS_Plugin_License( $license );
 
             // Updated site plan.
@@ -21821,6 +21748,8 @@
                     'error'
                 );
 
+                $this->do_action( 'after_license_deactivation', $license );
+
                 return;
             }
 
@@ -21840,6 +21769,8 @@
             $this->_update_site_license( null );
 
             $this->_store_account();
+
+            $this->do_action( 'after_license_deactivation', $license );
 
             if ( $show_notice ) {
                 $this->_admin_notices->add(
@@ -23725,18 +23656,12 @@
          * @return FS_Api
          */
         function get_api_user_scope( $flush = false ) {
-             if ( ! isset( $this->_user_api ) || $flush ) {
-                // Ensure user object exists to prevent "property on false" errors
-                if ( ! is_object( $this->_user ) ) {
-                    $this->_ensure_mock_objects();
-                }
-                
+            if ( ! isset( $this->_user_api ) || $flush ) {
                 $this->_user_api = $this->get_api_user_scope_by_user( $this->_user );
             }
 
             return $this->_user_api;
         }
-
 
         /**
          * @author Vova Feldman (@svovaf)
@@ -23801,12 +23726,7 @@
          * @return FS_Api
          */
         private function get_api_site_scope( $flush = false ) {
-             if ( ! isset( $this->_site_api ) || $flush ) {
-                // Ensure site object exists to prevent "property on false" errors
-                if ( ! is_object( $this->_site ) ) {
-                    $this->_ensure_mock_objects();
-                }
-
+            if ( ! isset( $this->_site_api ) || $flush ) {
                 $this->_site_api = FS_Api::instance(
                     $this->_module_id,
                     'install',

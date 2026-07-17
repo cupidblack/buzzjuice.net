@@ -59,7 +59,6 @@ if ( ! class_exists( 'myCRED_cashCRED_Module' ) ) :
 			add_action( 'pre_get_comments',                array( $this, 'hide_cashcred_transactions' ) );
 
 			add_action( 'wp_ajax_cashcred_pay_now',		   array( $this, 'cashcred_pay_now'), 10, 2 );
-			add_action( 'wp_ajax_nopriv_cashcred_pay_now', array( $this, 'cashcred_pay_now'), 10, 2 );
 
 			add_action( 'mycred_after_core_prefs',         array( $this, 'after_general_settings' ) );
 			add_filter( 'mycred_save_core_prefs',          array( $this, 'sanitize_extra_settings' ), 90, 3 );
@@ -143,6 +142,21 @@ if ( ! class_exists( 'myCRED_cashCRED_Module' ) ) :
 			global $cashcred_instance;
 
 			$payment_response = array();
+
+			if ( ! $auto ) {
+				
+				if ( ! is_user_logged_in() ) {
+					return $this->response( false, array( 'message' => 'Authentication required' ), $auto );
+				}
+				
+				if ( ! current_user_can( 'manage_options' ) && ! $this->core->user_is_point_admin() ) {
+					return $this->response( false, array( 'message' => 'Insufficient permissions' ), $auto );
+				}
+				
+				if ( empty( $_POST['cashcred_create_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cashcred_create_nonce'] ) ), 'cashcred_create_nonce' ) ) {
+					return $this->response( false, array( 'message' => 'Security check failed' ), $auto );
+				}
+			}
 			
 			if( empty( $post_id ) && ! empty( $_POST['post_ID'] ) ) {
 				$post_id = sanitize_text_field( wp_unslash( $_POST['post_ID'] ) );
@@ -821,6 +835,7 @@ if ( ! class_exists( 'myCRED_cashCRED_Module' ) ) :
 			$installed = $this->get();
 
 ?>
+<?php mycred_render_admin_header(); ?>
 <div class="wrap mycred-metabox" id="myCRED-wrap">
 	<h1><?php esc_html_e( 'cashCred Payment Gateways', 'mycred' ); ?></h1>
 <?php
@@ -906,51 +921,20 @@ if ( ! class_exists( 'myCRED_cashCRED_Module' ) ) :
 				}
 			}
 
-			$more_gateways_tab = array();
-
-			$more_gateways_tab[] = array(
-				'icon'				=>	'dashicons dashicons-admin-generic static',
-				'text'				=>	'Paypal',
-				'additional_text'	=>	'Paid',
-				'url'				=>	'https://mycred.me/store/cashcred-paypal/',
-				'status'			=>	'disabled',
-				'plugin'			=>	'mycred-cashcred-paypal/mycred-cashcred-paypal.php'
-			);
-
-			$more_gateways_tab[] = array(
-				'icon'				=>	'dashicons dashicons-admin-generic static',
-				'text'				=>	'Stripe',
-				'additional_text'	=>	'Paid',
-				'url'				=>	'https://mycred.me/store/cashcred-stripe/',
-				'status'			=>	'disabled',
-				'plugin'			=>	'mycred-cashcred-stripe/mycred-cashcred-stripe.php'
-			);
-
-			$more_gateways_tab[] = array(
-				'icon'				=>	'dashicons dashicons-admin-generic static',
-				'text'				=>	'More Gateways',
-				'url'				=>	'https://mycred.me/product-category/cashcred-gateways/',
-			);
-
-			$more_gateways_tab = apply_filters( 'mycred_cashcred_more_gateways_tab', $more_gateways_tab );
-
-			$counter = 0;
+			$more_gateways_tab = mycred_build_gateway_upsell_tabs( 'cashcred', $installed );
 
 			if( MYCRED_SHOW_PREMIUM_ADDONS )
 			{
-				include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-
 				foreach( $more_gateways_tab as $key => $gateway )
 				{
-					if ( isset( $gateway['plugin'] ) && is_plugin_active( $gateway['plugin'] ) )
-					{
-						$counter++;
-						continue;
+					if ( isset( $gateway['plugin'] ) && $gateway['plugin'] !== '' ) {
+						if ( ! function_exists( 'is_plugin_active' ) ) {
+							require_once ABSPATH . 'wp-admin/includes/plugin.php';
+						}
+						if ( is_plugin_active( $gateway['plugin'] ) ) {
+							continue;
+						}
 					}
-					
-					//If all gateways are active, don't show more gateways
-					if( $counter == count( $more_gateways_tab )-1 )
-						break;
 
 					$disabled_class = ( isset( $gateway['status'] ) && $gateway['status'] == 'disabled' )  ? 'disabled' : '';
 

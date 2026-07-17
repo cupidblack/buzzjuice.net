@@ -45,9 +45,9 @@ if ( ! class_exists( 'myCRED_PayPal_Standard' ) ) :
 		public function IPN_is_valid_call() {
 
 			// PayPal Host
-			$host          = 'www.paypal.com';
+			$host          = 'ipnpb.paypal.com';
 			if ( $this->sandbox_mode )
-				$host = 'www.sandbox.paypal.com';
+				$host = 'ipnpb.sandbox.paypal.com';
 
 			$data          = $this->POST_to_data();
 
@@ -79,7 +79,7 @@ if ( ! class_exists( 'myCRED_PayPal_Standard' ) ) :
 				curl_setopt( $call, CURLOPT_RETURNTRANSFER, 1 );
 				curl_setopt( $call, CURLOPT_POSTFIELDS, $request );
 				curl_setopt( $call, CURLOPT_SSL_VERIFYPEER, 1 );
-				curl_setopt( $call, CURLOPT_CAINFO, MYCRED_PURCHASE_DIR . '/cacert.pem' );
+				// curl_setopt( $call, CURLOPT_CAINFO, MYCRED_PURCHASE_DIR . '/cacert.pem' );
 				curl_setopt( $call, CURLOPT_SSL_VERIFYHOST, 2 );
 				curl_setopt( $call, CURLOPT_FRESH_CONNECT, 1 );
 				curl_setopt( $call, CURLOPT_FORBID_REUSE, 1 );
@@ -212,7 +212,7 @@ if ( ! class_exists( 'myCRED_PayPal_Standard' ) ) :
 			$item_name             = $this->core->template_tags_general( $item_name );
 
 			// This gateway redirects, so we need to populate redirect_to
-			$this->redirect_to     = ( $this->sandbox_mode ) ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr';
+			$this->redirect_to     = ( $this->sandbox_mode ) ? 'https://ipnpb.sandbox.paypal.com/cgi-bin/webscr' : 'https://ipnpb.paypal.com/cgi-bin/webscr';
 
 			// Transaction variables that needs to be submitted
 			$this->redirect_fields = array(

@@ -241,3 +241,20 @@ add_filter('gettext', function($translated, $text, $domain) {
     }
     return $translated;
 }, 20, 3);
+
+
+
+
+/**
+ * @snippet       Redirect to Checkout Upon Add to Cart - WooCommerce
+ * @how-to        businessbloomer.com/woocommerce-customization
+ * @author        Rodolfo Melogli, Business Bloomer
+ * @compatible    Woo 3.8
+ * @community     https://businessbloomer.com/club/
+ */
+  
+add_filter( 'woocommerce_add_to_cart_redirect', 'bbloomer_redirect_checkout_add_cart' );
+ 
+function bbloomer_redirect_checkout_add_cart() {
+   return wc_get_checkout_url();
+}
