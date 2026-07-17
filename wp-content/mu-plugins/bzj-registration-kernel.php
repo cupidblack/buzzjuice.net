@@ -271,7 +271,7 @@ add_action('affwp_register_user', function($id){ bzj_enforce($id, 'affiliatewp')
 /* ============================================================================
    13: CHALLENGE UI INJECTION — PLATFORMS, BUTTONS
 ============================================================================= */
-function bzj_render_ui($targetSelector, $statusText = 'Match codes to continue') { ?>
+function bzj_render_ui($targetSelector, $statusText = 'Match codes then wait to continue') { ?>
 <div class="bzj-registration-challenge" data-target="<?php echo esc_attr($targetSelector); ?>"
      style="margin-top:10px;padding:6px 8px;border:1.5px solid #e1e1e5;border-radius:7px;text-align:center;">
     <div style="display:flex;align-items:center;gap:10px;justify-content:center;">
@@ -289,19 +289,19 @@ function bzj_render_ui($targetSelector, $statusText = 'Match codes to continue')
 <?php }
 // BuddyBoss
 add_action('bp_before_registration_submit_buttons', function() {
-    bzj_render_ui('#signup-form > div.submit input[type=submit], #signup_submit, #signup-form button[type=submit], button[name=signup_submit]', 'Match codes to create account');
+    bzj_render_ui('#signup-form > div.submit input[type=submit], #signup_submit, #signup-form button[type=submit], button[name=signup_submit]', 'Match codes then wait to create account');
 }, 20);
 // Give Donation Form
 add_action('give_donation_form_before_submit', function() {
-    bzj_render_ui('#givewp-donation-form-step-0 > div > button', 'Match codes to submit donation');
+    bzj_render_ui('#givewp-donation-form-step-0 > div > button', 'Match codes then wait to submit donation');
 }, 20);
 // AffiliateWP Register
 /*add_action('affwp_register_fields_before_submit', function() {
-    bzj_render_ui('#affwp-register-form > fieldset > input.button', 'Match codes to register');
+    bzj_render_ui('#affwp-register-form > fieldset > input.button', 'Match codes then wait to register');
 }, 20); */
 // WooCommerce checkout/register
 add_action('woocommerce_after_checkout_registration_form', function() {
-    bzj_render_ui('button.wc-block-components-checkout-place-order-button', 'Match codes to place order');
+    bzj_render_ui('button.wc-block-components-checkout-place-order-button', 'Match codes then wait to place order');
 }, 20);
 
 /* ============================================================================
@@ -381,7 +381,7 @@ function initBox(box){
             btn = _btn; removeDisabledStyles(btn);
         });
     }
-    status.innerText = box.dataset.statusText || 'Match codes to continue';
+    status.innerText = box.dataset.statusText || 'Match codes then wait to continue';
     status.style.color = '#737373';
     input.value = '';
     input.disabled = true;
@@ -390,7 +390,7 @@ function initBox(box){
         codeBox.textContent = '.....';
         currentCode = '';
         disable();
-        status.innerText = box.dataset.statusText || 'Match codes to continue';
+        status.innerText = box.dataset.statusText || 'Match codes then wait to continue';
         status.style.color = '#737373';
         input.value = '';
         input.disabled = true;
@@ -416,7 +416,7 @@ function initBox(box){
     async function verify() {
         const val = input.value.trim().toUpperCase();
         if (!val || !currentCode || val.length !== currentCode.length) {
-            status.innerText = box.dataset.statusText || 'Match codes to continue';
+            status.innerText = box.dataset.statusText || 'Match codes then wait to continue';
             status.style.color = '#737373';
             disable();
             return;
@@ -445,7 +445,7 @@ function initBox(box){
     }
     refresh.addEventListener('click', function(){
         generate(); input.value = '';
-        status.innerText = box.dataset.statusText || 'Match codes to continue';
+        status.innerText = box.dataset.statusText || 'Match codes then wait to continue';
         status.style.color = '#737373';
     });
     input.addEventListener('input', verify);

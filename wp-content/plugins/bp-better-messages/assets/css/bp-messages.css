@@ -6314,7 +6314,7 @@ body.bm-messages-dark .bp-messages-wrap .bm-reply .bm-stickers,
 body.bm-messages-dark .bp-messages-wrap .bm-reply .bm-emojies {
   color: rgba(var(--main-bm-color), 1) !important;
 }
-body.bm-messages-dark .bp-messages-wrap .bm-messages-list .bm-list .bm-messages-stack .bm-content .bm-messages-listing .bm-message .message-controls > span,
+body.bm-messages-dark .bp-messages-wrap .bm-messages-list .bm-list .bm-messages-stack .bm-content .bm-messages-listing .bm-message .message-controls > span:not(.bm-status),
 body.bm-messages-dark .bp-messages-wrap .empty,
 body.bm-messages-dark .bp-messages-wrap .empty-thread span,
 body.bm-messages-dark .bp-messages-wrap .empty-thread svg,
@@ -6435,6 +6435,7 @@ body.bm-messages-light .bm-emoji-picker-container {
   outline: none !important;
   cursor: pointer !important;
   transition: filter 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease !important;
+  text-decoration: none;
 }
 .bm-button:hover:not([disabled]) {
   filter: brightness(1.1) !important;
@@ -7858,7 +7859,7 @@ body.bp-messages-mobile #better-messages-modals-container input {
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
   display: block;
   width: 100%;
-  text-decoration: none;
+  text-decoration: none !important;
   margin: 5px 0;
   outline: 0;
   color: rgba(var(--bm-text-color), 1);
@@ -10021,6 +10022,7 @@ body.bm-mobile-device-ios-old .bp-messages-wrap .bm-reply {
   text-align: center;
   margin: 30px 0 30px;
   color: rgba(var(--bm-text-color), 0.6);
+  background: none;
 }
 
 .bp-messages-wrap .threads-list .empty {
@@ -11555,11 +11557,16 @@ body.bm-mobile-device .bp-better-messages-list.bm-widget-bubble {
 }
 
 #bp-better-messages-mini-mobile-open .bp-better-messages-mini-mobile-open-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
   font-size: 28px;
-  line-height: 52px;
+  line-height: 1;
 }
 #bp-better-messages-mini-mobile-open .bp-better-messages-mini-mobile-open-icon > svg {
-  vertical-align: initial;
+  display: block;
+  margin-bottom: 4px;
 }
 
 #bp-better-messages-mini-mobile-open .count {
@@ -17590,6 +17597,63 @@ body.buddyboss-theme.bb-template-v1:not(.wcfm-dashboard-page) #buddypress .bb_mo
   cursor: pointer;
 }
 
+.bm-lc-button-styled,
+a.bm-lc-button-styled,
+a.bm-lc-button-styled:hover,
+a.bm-lc-button-styled:focus,
+button.bm-lc-button-styled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 15px;
+  background: rgba(var(--main-bm-color), 1);
+  color: #fff;
+  text-decoration: none;
+  border-radius: var(--bm-border-radius, 4px);
+  font-size: 14px;
+  line-height: 1.4;
+  border: 0;
+  cursor: pointer;
+  user-select: none;
+  transition: filter 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+.bm-lc-button-styled:hover,
+a.bm-lc-button-styled:hover,
+a.bm-lc-button-styled:hover:hover,
+a.bm-lc-button-styled:focus:hover,
+button.bm-lc-button-styled:hover {
+  color: #fff;
+  text-decoration: none;
+  filter: brightness(1.1);
+  box-shadow: 0 2px 8px rgba(var(--main-bm-color), 0.35);
+}
+.bm-lc-button-styled:active,
+a.bm-lc-button-styled:active,
+a.bm-lc-button-styled:hover:active,
+a.bm-lc-button-styled:focus:active,
+button.bm-lc-button-styled:active {
+  transform: scale(0.98);
+}
+.bm-lc-button-styled .bm-button-icon,
+a.bm-lc-button-styled .bm-button-icon,
+a.bm-lc-button-styled:hover .bm-button-icon,
+a.bm-lc-button-styled:focus .bm-button-icon,
+button.bm-lc-button-styled .bm-button-icon {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  color: inherit;
+}
+.bm-lc-button-styled .bm-button-icon svg,
+a.bm-lc-button-styled .bm-button-icon svg,
+a.bm-lc-button-styled:hover .bm-button-icon svg,
+a.bm-lc-button-styled:focus .bm-button-icon svg,
+button.bm-lc-button-styled .bm-button-icon svg {
+  width: 1.1em;
+  height: 1.1em;
+}
+
 .bm-thread-info .bm-product-info {
   display: flex;
   padding: 10px;
@@ -17758,6 +17822,7 @@ body.bm-mobile-device-pwa.bp-messages-mobile #bp-better-messages-mini-mobile-con
 }
 .bm-guest-wall .bm-guest-wall-content {
   margin-top: 50px;
+  padding: 0 20px;
 }
 
 .bp-messages-mobile .bm-guest-wall-content {

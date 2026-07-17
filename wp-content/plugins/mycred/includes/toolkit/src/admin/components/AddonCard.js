@@ -41,13 +41,13 @@ const ToggleSwitch = styled(Switch)(({ theme }) => ({
     boxShadow: "0 2px 4px 0 rgb(0 35 11 / 20%)",
     width: 16,
     height: 16,
-    borderRadius: 16 / 2,
+    borderRadius: 8,
     transition: theme.transitions.create(["width"], {
       duration: 200,
     }),
   },
   "& .MuiSwitch-track": {
-    borderRadius: 20 / 2,
+    borderRadius: 10,
     opacity: 1,
     backgroundColor: "#E0E0E0",
     boxSizing: "border-box",
@@ -57,7 +57,7 @@ const ToggleSwitch = styled(Switch)(({ theme }) => ({
 const cardStyles = {
   width: "100%",
   height: "100%",
-  minHeight: "250px", // Set a minimum height for consistency
+  minHeight: "250px",
   position: "relative",
   borderRadius: "8px",
   border: "1px solid transparent",
@@ -78,8 +78,18 @@ const AddonCard = ({
       <CardContent sx={{ flex: 1, pb: 0 }}>
         {loading ? (
           <>
-            <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-              <Skeleton variant="rectangular" width={57} height={57} sx={{ borderRadius: 8 }} />
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="flex-start"
+              mb={2}
+            >
+              <Skeleton
+                variant="rectangular"
+                width={57}
+                height={57}
+                sx={{ borderRadius: 8 }}
+              />
               <Skeleton variant="circular" width={24} height={24} />
             </Box>
             <Skeleton variant="text" width="70%" height={32} sx={{ mb: 1 }} />
@@ -88,59 +98,74 @@ const AddonCard = ({
           </>
         ) : (
           <>
-            <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-              <Box
-                sx={{
-                  width: "57px",
-                  height: "63px",
-                }}
-              >
-                {renderSVG(addOn.slug, addOn.type, window.mycredAddonsData?.pro_active)}
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="flex-start"
+              mb={2}
+            >
+              <Box sx={{ width: "57px", height: "63px" }}>
+                {renderSVG(
+                  addOn.slug,
+                  addOn.type
+                )}
               </Box>
-              <IconButton
-                size="small"
-                aria-label="settings"
-                sx={{ alignSelf: "flex-start" }}
-                disabled={!contains(Addons, addOn.slug) || addOn.status === "locked"}
-              >
-                {addOn.type === "pro" && !window.mycredAddonsData?.pro_active ? (
+
+              <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              
+                {addOn.type === "pro" && (
                   <Box
                     sx={{
+                      borderRadius: "8px",
+                      borderWidth: "1px",
                       display: "inline-flex",
                       padding: "4px 5px",
                       justifyContent: "center",
                       alignItems: "center",
-                      gap: "10px",
-                      borderRadius: "3px",
-                      background: "linear-gradient(248deg, #FFD79C 17.34%, #FFAF39 88.08%)",
+                      background:
+                        "linear-gradient(248deg, #FFD79C 17.34%, #FFAF39 88.08%)",
                       color: "#694214",
                       fontSize: "11px",
                       fontWeight: 600,
-                      fontStyle: "normal",
                       lineHeight: "normal",
                       cursor: "default",
                     }}
                   >
                     PRO
                   </Box>
-                ) : (
+                )}
+
+                {/* Settings icon - always render, but disable if not available */}
+                <IconButton
+                  size="small"
+                  aria-label="settings"
+                  sx={{ alignSelf: "flex-start" }}
+                  disabled={
+                    !contains(Addons, addOn.slug) || addOn.status === "locked"
+                  }
+                  onClick={() => {
+                    if (
+                      contains(Addons, addOn.slug) &&
+                      addOn.status !== "locked"
+                    ) {
+                      window.location.href = `${window.location.origin}/${addOn.settingUrl}`;
+                    }
+                  }}
+                >
                   <SettingsIcon
-                    onClick={() => {
-                      if (contains(Addons, addOn.slug) && addOn.status !== "locked") {
-                        window.location.href = `${window.location.origin}/${addOn.settingUrl}`;
-                      }
-                    }}
                     fontSize="small"
                     sx={{
                       cursor:
-                        contains(Addons, addOn.slug) && addOn.status !== "locked"
+                        contains(Addons, addOn.slug) &&
+                        addOn.status !== "locked"
                           ? "pointer"
                           : "not-allowed",
                     }}
                   />
-                )}
-              </IconButton>
+                </IconButton>
+              </Box>
             </Box>
+
             <Typography sx={{ color: "#2D1572" }} variant="h6" mb={1}>
               {addOn.title}
             </Typography>
@@ -153,6 +178,7 @@ const AddonCard = ({
           </>
         )}
       </CardContent>
+
       <Box
         sx={{
           backgroundColor: "#F6F9FF",
@@ -166,15 +192,21 @@ const AddonCard = ({
         {loading ? (
           <>
             <Skeleton variant="text" width={80} />
-            <Skeleton variant="rectangular" width={120} height={32} sx={{ borderRadius: 1 }} />
+            <Skeleton
+              variant="rectangular"
+              width={120}
+              height={32}
+              sx={{ borderRadius: 1 }}
+            />
           </>
         ) : (
           <>
             <Typography
               component="a"
-              onClick={() => window.open(addOn.addonUrl, "_blank", "noopener,noreferrer")}
+              onClick={() =>
+                window.open(addOn.addonUrl, "_blank", "noopener,noreferrer")
+              }
               variant="body2"
-              color="primary"
               sx={{
                 color: "#9496C1",
                 textDecoration: "none",
@@ -190,23 +222,23 @@ const AddonCard = ({
                   checked={contains(Addons, addOn.slug)}
                   onChange={() => handleToggleClick(addOn)}
                   disabled={loading}
-                  sx={{
-                    marginRight: "16px",
-                  }}
+                  sx={{ marginRight: "16px" }}
                 />
               }
               label={
                 loading
                   ? "Loading..."
                   : contains(Addons, addOn.slug)
-                  ? "Enable"
-                  : "Disable"
+                  ? "Enabled"
+                  : "Disabled"
               }
               labelPlacement="start"
               sx={{
                 marginLeft: "10px",
                 gap: "10px",
-                color: contains(Addons, addOn.slug) ? "#5F2CED" : "#9496C1",
+                color: contains(Addons, addOn.slug)
+                  ? "#5F2CED"
+                  : "#9496C1",
               }}
             />
           </>
@@ -216,4 +248,4 @@ const AddonCard = ({
   );
 };
 
-export default AddonCard; 
+export default AddonCard;

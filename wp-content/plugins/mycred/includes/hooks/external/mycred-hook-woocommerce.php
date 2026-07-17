@@ -432,7 +432,7 @@ if ( ! function_exists( 'mycred_get_woo_product_reward' ) ) :
 			$value = '';
 			if ( array_key_exists( $requested_type, $reward_setup ) )
 				$value = $reward_setup[ $requested_type ];
-
+				$value =  apply_filters( 'mycred_woocom_purchase_reward_amount', $value, $product_id, $variation_id );
 			return $value;
 
 		}

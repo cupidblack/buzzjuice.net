@@ -74,6 +74,10 @@ if ( ! class_exists( 'myCRED_Hook_Affiliate' ) ) :
 		 */
 		public function run() {
 
+			if ( class_exists('UR_User_Approval') ) {
+			  add_action( 'ur_user_status_updated', array( $this, 'grant_referral_points_on_user_approval' ), 10, 3 );
+	        }
+
 			// Insert into BuddyPress profile
 			if ( function_exists( 'bp_is_active' ) && bp_is_active( 'xprofile' ) && $this->prefs['buddypress']['profile'] )
 				add_action( 'bp_after_profile_loop_content', array( $this, 'buddypress_profile' ), $this->prefs['buddypress']['priority'] );
@@ -106,6 +110,43 @@ if ( ! class_exists( 'myCRED_Hook_Affiliate' ) ) :
 			// Points for signups
 			if ( $this->prefs['signup']['creds'] != 0 )
 				add_action( 'mycred_referred_signup', array( $this, 'site_signup' ) );
+
+		}
+
+		public function grant_referral_points_on_user_approval($status, $user_id, $alert_user) {
+
+			$form_id = ur_get_form_id_by_userid( $user_id );
+
+			$user_manager = new UR_Admin_User_Manager( $user_id );
+
+			$user_status = $user_manager->get_user_status();
+
+		    // Check if there is a referral
+			$referred_by    = mycred_get_user_meta( $user_id, 'referred_by_', $this->mycred_type, true );
+			$referred_by_IP = mycred_get_user_meta( $user_id, 'referred_by_IP_', $this->mycred_type, true );
+			$referred_type  = mycred_get_user_meta( $user_id, 'referred_by_type_', $this->mycred_type, true );
+
+			if ( $referred_by == '' || $referred_by_IP == '' || $this->mycred_type != $referred_type ) return;
+
+			if ( $this->core->has_entry( 'signup_referral', $user_id, $referred_by, $referred_by_IP, $this->mycred_type ) ) return;
+
+			// Award
+			$this->core->add_creds(
+				'signup_referral',
+				$referred_by,
+				$this->prefs['signup']['creds'],
+				$this->prefs['signup']['log'],
+				$user_id,
+				$referred_by_IP,
+				$this->mycred_type
+			);
+
+			do_action( 'mycred_signup_referral', $referred_by, $referred_by_IP, $user_id, $this );
+
+			// Clean up
+			mycred_delete_user_meta( $user_id, 'referred_by_', $this->mycred_type );
+			mycred_delete_user_meta( $user_id, 'referred_by_IP_', $this->mycred_type );
+			mycred_delete_user_meta( $user_id, 'referred_by_type_', $this->mycred_type );
 
 		}
 

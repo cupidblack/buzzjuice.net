@@ -1,10 +1,9 @@
 === Paystack WooCommerce Payment Gateway ===
-Contributors: tubiz
-Donate link: https://bosun.me/donate
+Contributors: paystack, tubiz
 Tags: paystack, woocommerce, payment gateway, mastercard, visa
 Requires at least: 6.8
-Tested up to: 6.9
-Stable tag: 5.8.3
+Tested up to: 7.0
+Stable tag: 5.8.5
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -63,13 +62,6 @@ This plugin is meant to be used by merchants in Ghana, Kenya, Nigeria and South 
 
 *	If a subscription has a free trial and no signup-fee, automatic renewal is not possible for the first payment because the initial order total will be 0, after the free trial the subscription will be put on-hold. The customer will have to login to his account to renew his subscription. If a Mastercard or Visa card is used to renew the subscription subsequent renewals will be automatic throughout the duration of the subscription, if a Verve card is used automatic renewal isn't possible.
 
-= Suggestions / Feature Request =
-
-If you have suggestions or a new feature request, feel free to get in touch with me via the contact form on my website [here](http://bosun.me/get-in-touch/)
-
-You can also follow me on Twitter! **[@tubiz](https://twitter.com/tubiz)**
-
-
 == Installation ==
 
 *   Go to __WordPress Admin__ > __Plugins__ > __Add New__ from the left-hand menu
@@ -122,6 +114,16 @@ If you do not find Paystack on the Payment method options, please go through the
 
 
 == Changelog ==
+
+= 5.8.5 - July 2, 2026 =
+*   Fix: Order amount rounding issue when initializing payment
+*   Tweak: WooCommerce 10.9 compatibility
+
+= 5.8.4 - June 16, 2026 =
+*   New: Refund support for custom gateways
+*   Fix: Payment amount verification now correctly handles decimal values
+*   Tweak: WooCommerce 10.8 compatibility
+*   Dev: Resolve all issues reported by Plugin Check (PCP)
 
 = 5.8.3 - April 30, 2026 =
 *   Misc: Pass site url in the referrer metadata

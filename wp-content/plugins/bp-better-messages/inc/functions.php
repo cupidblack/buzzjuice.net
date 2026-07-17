@@ -689,6 +689,40 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
             return apply_filters( 'bm_messages_thread_get_recipients', $recipients, $thread_id );
         }
 
+        public function maybe_sort_participants( $user_ids, $thread_type ){
+            if ( ( Better_Messages()->settings['participantsSortBy'] ?? 'join' ) !== 'display_name' ) {
+                return $user_ids;
+            }
+
+            if ( $thread_type === 'thread' && count( $user_ids ) <= 2 ) {
+                return $user_ids;
+            }
+
+            return $this->sort_user_ids_by_display_name( $user_ids );
+        }
+
+        public function sort_user_ids_by_display_name( $user_ids ){
+            $user_ids = array_values( array_map( 'intval', (array) $user_ids ) );
+
+            if ( count( $user_ids ) < 2 ) {
+                return $user_ids;
+            }
+
+            global $wpdb;
+
+            $ids_in = implode( ',', $user_ids );
+
+            $sorted = $wpdb->get_col( "SELECT `ID` FROM `" . bm_get_table('users') . "` WHERE `ID` IN ({$ids_in}) ORDER BY `display_name` ASC, `ID` ASC" );
+
+            if ( empty( $sorted ) ) {
+                return $user_ids;
+            }
+
+            $sorted  = array_map( 'intval', $sorted );
+            $missing = array_values( array_diff( $user_ids, $sorted ) );
+
+            return array_merge( $sorted, $missing );
+        }
 
         /**
          * Get all thread user ids including currently logged-in user
@@ -756,6 +790,10 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
         public function get_link( $user_id = false )
         {
             if( ! is_user_logged_in() && ! Better_Messages()->notifications->is_sending_notifications() ) {
+                $guest_chat_page_id = Better_Messages()->guests->guest_chat_page_id();
+                if( $guest_chat_page_id ) {
+                    return get_permalink( $guest_chat_page_id );
+                }
                 if( ! is_numeric( Better_Messages()->settings['chatPage'] ) || Better_Messages()->settings['chatPage'] === '0' ) {
                     return apply_filters( 'better_messages_login_url', wp_login_url( add_query_arg([]) ) );
                 }
@@ -832,6 +870,37 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                     $dashboard_url = ATBDP_Permalink::get_dashboard_page_link();
                     if ( $dashboard_url ) {
                         return trailingslashit( $dashboard_url ) . '#bm_messages';
+                    }
+                }
+
+                if ( ( defined('RTCL_VERSION') || function_exists('rtcl') ) && Better_Messages()->settings['chatPage'] === 'classified-listing-dashboard' && class_exists('\\Rtcl\\Helpers\\Link') ) {
+                    $messages_url = \Rtcl\Helpers\Link::get_account_endpoint_url( 'better-messages' );
+                    if ( $messages_url ) {
+                        return $messages_url;
+                    }
+                }
+
+                if ( defined('STM_LISTINGS_V') && Better_Messages()->settings['chatPage'] === 'motors-dashboard' && $user_id > 0 ) {
+                    $author_url = apply_filters( 'stm_get_author_link', $user_id );
+                    if ( ! $author_url ) {
+                        $author_url = get_author_posts_url( $user_id );
+                    }
+                    if ( $author_url ) {
+                        return add_query_arg( 'page', 'better-messages', $author_url );
+                    }
+                }
+
+                if ( defined('HOUZEZ_THEME_VERSION') && Better_Messages()->settings['chatPage'] === 'houzez-dashboard' && class_exists('Better_Messages_Houzez') ) {
+                    $houzez_page_id = Better_Messages_Houzez::instance()->get_live_chat_page_id();
+                    if ( $houzez_page_id ) {
+                        return get_permalink( $houzez_page_id );
+                    }
+                }
+
+                if ( defined('RH_TEXT_DOMAIN') && Better_Messages()->settings['chatPage'] === 'realhomes-dashboard' && class_exists('Better_Messages_RealHomes') ) {
+                    $realhomes_url = Better_Messages_RealHomes::instance()->get_live_chat_url();
+                    if ( $realhomes_url ) {
+                        return $realhomes_url;
                     }
                 }
             }
@@ -4210,9 +4279,14 @@ if ( !class_exists( 'Better_Messages_Functions' ) ):
                     'class'          => array(),
                     'data-livestamp' => array(),
                 ),
-                'ul' => array(),
-                'ol' => array(),
-                'li' => array(),
+                'ul'  => array(),
+                'ol'  => array(),
+                'li'  => array(),
+                'u'   => array(),
+                'sub' => array(),
+                'sup' => array(),
+                'p'   => array(),
+                'br'  => array(),
             ) );
         }
 

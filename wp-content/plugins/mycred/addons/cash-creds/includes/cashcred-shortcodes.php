@@ -85,8 +85,6 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 								}
 							}?>
 
-
-
 						<th><?php esc_html_e('Amount','mycred') ?></th>
 						<th><?php esc_html_e('Point Type','mycred') ?></th>
 						<th>
@@ -95,8 +93,6 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 							echo apply_filters('mycred_change_gateway_text','Gateway'); 
 							?>	
 						</th>
-
-						
 						<th class="date-heading">Date</th>
 					</tr>
 				</thead>
@@ -112,28 +108,35 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 							if ( $cashcred_setting['fees']['use'] == 1 ) { ?>
 							
 								<td><?php 
-															
-									$type_data = $cashcred_setting['fees']['types'][get_post_meta($post->ID,'point_type',true)];
-										
-									if ( $type_data['by'] == 'percent' ) {
-										$fee = !empty($type_data['amount']) ? ( ( $type_data['amount'] / 100 ) * (int)get_post_meta($post->ID,'points',true) ) : '';
-									}
-									else{
-										$fee = $type_data['amount'];
-									}
 
-									if( $type_data['min_cap'] != 0 )
-										$fee = $fee + $type_data['min_cap'];
+								// ✅ First try stored fee
+								$stored_fee = get_post_meta($post->ID, 'fee_points', true);
 
-									if( $type_data['max_cap'] != 0 && $fee > $type_data['max_cap'] )
-										$fee = $type_data['max_cap'];
+								if ( $stored_fee !== '' && $stored_fee !== false ) {
+									echo esc_html( $stored_fee );
+								} else {
+																
+										$type_data = $cashcred_setting['fees']['types'][get_post_meta($post->ID,'point_type',true)];
+											
+										if ( $type_data['by'] == 'percent' ) {
+											$fee = !empty($type_data['amount']) ? ( ( $type_data['amount'] / 100 ) * (int)get_post_meta($post->ID,'points',true) ) : '';
+										}
+										else{
+											$fee = $type_data['amount'];
+										}
 
-									echo esc_html( $fee ); ?>
-								</td><?php
+										if( $type_data['min_cap'] != 0 )
+											$fee = $fee + $type_data['min_cap'];
+
+										if( $type_data['max_cap'] != 0 && $fee > $type_data['max_cap'] )
+											$fee = $type_data['max_cap'];
+
+										echo esc_html( $fee ); ?>
+									</td><?php
+							        }
 							} 
 						}?>
 						<td>
-
 							<?php echo esc_html( get_post_meta($post->ID,'currency',true). " " .get_post_meta($post->ID,'points',true) * get_post_meta($post->ID,'cost',true) ); ?>
 						</td>
 						<td><?php echo esc_html( mycred_get_types()[get_post_meta($post->ID,'point_type',true)] );?></td>
@@ -293,6 +296,13 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 							if ( $cashcred_setting['fees']['use'] == 1 ) { ?>
 							
 								<td><?php 
+
+								// ✅ First try stored fee
+								$stored_fee = get_post_meta($post->ID, 'fee_points', true);
+
+								if ( $stored_fee !== '' && $stored_fee !== false ) {
+									echo esc_html( $stored_fee );
+								} else {
 															
 									$type_data = $cashcred_setting['fees']['types'][get_post_meta($post->ID,'point_type',true)];
 										
@@ -311,6 +321,7 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 
 									echo esc_html( $fee ); ?>
 								</td><?php
+							    }
 							} 
 						}?>
 						<td>
@@ -379,6 +390,13 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 							if ( $cashcred_setting['fees']['use'] == 1 ) { ?>
 							
 								<td><?php 
+
+								// ✅ First try stored fee
+								$stored_fee = get_post_meta($post->ID, 'fee_points', true);
+
+								if ( $stored_fee !== '' && $stored_fee !== false ) {
+									echo esc_html( $stored_fee );
+								} else {
 															
 									$type_data = $cashcred_setting['fees']['types'][get_post_meta($post->ID,'point_type',true)];
 										
@@ -397,6 +415,8 @@ if ( ! function_exists( 'mycred_render_cashcred' ) ) :
 
 									echo esc_html( $fee ); ?>
 								</td><?php
+								
+							}
 							} 
 						}?>
 						<td>

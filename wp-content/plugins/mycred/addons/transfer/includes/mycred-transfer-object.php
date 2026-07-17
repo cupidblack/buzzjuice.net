@@ -309,8 +309,8 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 
 			global $mycred_do_transfer;
 			
-			if ( ! $this->settings['types'] ) {
-				return;
+			if ( ! isset( $this->settings['types'] ) || empty( $this->settings['types'] ) ) {
+			    return;
 			}
 			extract( shortcode_atts( array(
 				'sender_id'   => get_current_user_id(),
@@ -922,16 +922,28 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 		                    <?php
 		                    // Prepare locked attributes - **DO NOT lock recipient_id** to allow free recipient input
 		                    $amount = isset( $this->shortcode_attr['amount'] ) ? floatval( $this->shortcode_attr['amount'] ) : 0;
-		                    $ctype  = isset( $this->shortcode_attr['ctype'] ) ? sanitize_key( $this->shortcode_attr['ctype'] ) : 'mycred_default';
+		                    
+		                    // ✅ FIX: Use all transferable types instead of just one
+		                    $allowed_types = isset( $this->transferable_types ) && is_array( $this->transferable_types ) 
+		                        ? $this->transferable_types 
+		                        : array( MYCRED_DEFAULT_TYPE_KEY );
 
 		                    $transfer_lock = base64_encode( wp_json_encode( array(
 		                        // 'recipient_id' => OMITTED so user can enter any recipient
 		                        'amount'       => $amount,
-		                        'types'        => array( $ctype ),
+		                        'types'        => $allowed_types, // ✅ Now includes ALL transferable types
 		                    ) ) );
 		                    ?>
 
 		                    <input type="hidden" name="mycred_new_transfer[transfered_attributes]" value="<?php echo esc_attr( $transfer_lock ); ?>" />
+		                    
+		                    <?php
+		                    // ✅ Generate signature for integrity validation
+		                    $secret_key = wp_salt( 'nonce' ); // Should match the key in validation
+		                    $signature = hash_hmac( 'sha256', $transfer_lock, $secret_key );
+		                    ?>
+		                    <input type="hidden" name="mycred_new_transfer[signature]" value="<?php echo esc_attr( $signature ); ?>" />
+		                    
 		                    <button class="mycred-submit-transfer<?php echo ' ' . esc_attr( $this->args['button_class'] ); ?>"><?php echo esc_attr( $this->args['button'] ); ?></button>
 		                </div>
 		            </div>
@@ -1169,36 +1181,28 @@ if ( ! class_exists( 'myCRED_Transfer' ) ) :
 		 */
 		public function get_transfer_point_type_field( $return = false ) {
 
-			$field = '<input type="hidden" name="mycred_new_transfer[ctype]" value="' . esc_attr( $this->transferable_types[0] ) . '" />';
-
-			$this->shortcode_attr['types'][] = $this->transferable_types[0];
-
-			if ( count( $this->transferable_types ) >= 1 ) {
-
-				$field  = '<div class="form-group select-point-type-wrapper">';
-
-				if ( $this->args['balance_label'] != '' ) $field .= '<label>' . esc_html( $this->args['balance_label'] ) . '</label>';
-				$field .= '<select name="mycred_new_transfer[ctype]" class="form-control">';
-
-				$this->shortcode_attr['types'] = [];
-				$field .= '<option value="0">Select Point Type</option>';	
-				foreach ( $this->balances as $type_id => $balance ){
-
-					$this->shortcode_attr['types'][] = $type_id;
-					
-					$field .= '<option value="' . esc_attr( $type_id ) . '">' . $balance->point_type->plural . '</option>';
-
-				}
-
-				$field .= '</select></div>';
-
-			}
-
-			if ( $return )
-				return $field;
-
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo $field;
+		    $field = '<input type="hidden" name="mycred_new_transfer[ctype]" value="' . esc_attr( $this->transferable_types[0] ) . '" />';
+		    $this->shortcode_attr['types'][] = $this->transferable_types[0];
+		    
+		    // Only show dropdown if there are MORE than 1 transferable types
+		    if ( count( $this->transferable_types ) > 1 ) {
+		        $field  = '<div class="form-group select-point-type-wrapper">';
+		        if ( $this->args['balance_label'] != '' ) $field .= '<label>' . esc_html( $this->args['balance_label'] ) . '</label>';
+		        $field .= '<select name="mycred_new_transfer[ctype]" class="form-control">';
+		        $this->shortcode_attr['types'] = [];
+		        $field .= '<option value="0">Select Point Type</option>';	
+		        foreach ( $this->balances as $type_id => $balance ){
+		            $this->shortcode_attr['types'][] = $type_id;
+		            
+		            $field .= '<option value="' . esc_attr( $type_id ) . '">' . $balance->point_type->plural . '</option>';
+		        }
+		        $field .= '</select></div>';
+		    }
+		    
+		    if ( $return )
+		        return $field;
+		    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		    echo $field;
 
 		}
 

@@ -3,9 +3,9 @@ Contributors: givewp, dlocc, webdevmattcrom, ravinderk, mehul0810, kevinwhoffman
 Donate link: https://go.givewp.com/home
 Tags: donation, donate, recurring donations, fundraising, crowdfunding
 Requires at least: 6.6
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 4.15.0
+Stable tag: 4.16.4
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -273,6 +273,44 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Use almost any payment gateway integration with GiveWP through our add-ons or by creating your own add-on.
 
 == Changelog ==
+= 4.16.4: July 14th, 2026 =
+* Security: Added additional validation to the core settings importer.
+* Security: Added additional escaping to donor information displayed in the admin.
+* Security: Added additional escaping to the Sequoia (Multi-Step Form) template output. (CVE-2026-14987)
+
+= 4.16.3: July 6th, 2026 =
+* Security: Added additional validation to ensure donation gateway selection respects the enabled payment gateway settings.
+* Security: Improved escaping of donation form template output.
+* Security: Improved the security of the recurring donation REST API.
+
+= 4.16.2: July 1st, 2026 =
+* Security: Added additional escaping and sanitization to the Sequoia (Multi-Step Form) template settings and donation form markup (CVE-2026-13704).
+
+= 4.16.1: June 29th, 2026 =
+* Security: Standardized email access confirmation AJAX responses to prevent distinguishable server responses.
+* Security: Added additional escaping and sanitization to the Campaign Comments block and shortcode attributes (CVE-2026-13246).
+
+= 4.16.0: June 24th, 2026 =
+* Feature: Added an optional donation ID parameter to gateway webhook event handlers, allowing gateways to locate donations when the transaction ID is only available in the webhook payload.
+* Fix: Resolved an issue where multi-step donation forms could be incorrectly rejected as spam because Akismet was checked on every form step; the spam check now runs once on final submission.
+
+= 4.15.5: June 22nd, 2026 =
+* Security: Improved the security of the Donor Dashboard login process.
+
+= 4.15.4: June 15th, 2026 =
+* Security: Added additional protection to the email notification settings.
+
+= 4.15.3: May 28th, 2026 =
+* Fix: Resolved a user role permission conflict with The Events Calendar Pro
+* Fix: Resolved an issue when using multiple Stripe accounts, recurring donations, and webhook API 2026-02-25.clover
+
+= 4.15.2: May 13th, 2026 =
+* Tweak: Update Harbor to 1.2.0, removing the Liquid Web Products page when there are no premium plugins present.
+
+= 4.15.1: May 12th, 2026 =
+* Tweak: Moved the Liquid Web menu item to Settings -> Liquid Web Products.
+* Tweak: The Settings -> Liquid Web Products page now requires a opt-in to communicate with external servers.
+
 = 4.15.0: May 11th, 2026 =
 * Feature: Integrate with Nexcess Licensing and Portal.
 * Tweak: Updated branding references from StellarWP to Nexcess.

@@ -104,6 +104,8 @@ class Better_Messages_Options
             'widgetIconUsers'             => '',
             'widgetIconCourses'           => '',
             'chatRoomsShowOnline'         => '0',
+            'participantsSortBy'          => 'join',
+            'participantsOnlineFirst'     => '1',
             'friendsMode'                 => '0',
             'singleThreadMode'            => '0',
             'newThreadMode'               => '0',
@@ -202,6 +204,8 @@ class Better_Messages_Options
             'disableNewThread'            => '0',
             'profileVideoCall'            => '0',
             'profileAudioCall'            => '0',
+            'directoryAudioCall'          => '0',
+            'directoryVideoCall'          => '0',
             'miniChatAudioCall'           => '0',
             'miniChatVideoCall'           => '0',
             'miniChatGroupAudioCall'      => '0',
@@ -364,8 +368,17 @@ class Better_Messages_Options
             'UMmobileGroupsEnable'          => '0',
 
             'peepsoHeader'                  => '1',
+            'peepsoHovercard'                => '1',
             'peepsoProfileVideoCall'        => '0',
             'peepsoProfileAudioCall'        => '0',
+
+            'bbRLStandaloneMessages'        => '0',
+            'bbRLFullScreen'                => '0',
+            'bbRLPageTitle'                 => '0',
+            'bbRLHideMiniWidget'            => '0',
+            'bbClassicStandaloneMessages'   => '0',
+            'bbClassicPageTitle'            => '0',
+            'bbClassicHideMiniWidget'       => '0',
             'PSonlyFriendsMode'             => '0',
             'PSminiFriendsEnable'           => '0',
             'PScombinedFriendsEnable'       => '0',
@@ -440,9 +453,11 @@ class Better_Messages_Options
             'enableDrafts'                  => '1',
             'bpAppPush'                     => '0',
             'guestChat'                     => '0',
+            'guestChatPage'                 => '0',
             'deleteMessagesOnUserDelete'    => '0',
             'dokanIntegration'              => '0',
             'MultiVendorXIntegration'       => '0',
+            'MultiVendorXHideTabWhenDisabled' => '0',
             'wcVendorsIntegration'          => '0',
             'wcfmIntegration'               => '0',
             'wooCommerceIntegration'                  => '0',
@@ -465,8 +480,32 @@ class Better_Messages_Options
             'directoristListingCardButton'   => '0',
             'directoristAuthorProfileButton' => '1',
             'directoristDashboardTab'        => '1',
+            'classifiedListingIntegration'         => '0',
+            'classifiedListingListingPageButton'   => '1',
+            'classifiedListingListingCardButton'   => '0',
+            'classifiedListingAuthorProfileButton' => '1',
+            'classifiedListingDashboardTab'        => '1',
+            'classifiedListingHeaderButton'        => '0',
             'geodirIntegration'              => '0',
             'geodirSingleListingButton'      => '1',
+            'motorsIntegration'              => '0',
+            'motorsSingleListingButton'      => '1',
+            'motorsListingCardButton'        => '1',
+            'motorsDealerProfileButton'      => '1',
+            'motorsDashboardTab'             => '1',
+            'houzezIntegration'              => '0',
+            'houzezPropertyButton'           => '1',
+            'houzezAgentButton'              => '1',
+            'houzezCardButton'               => '0',
+            'houzezDashboardTab'             => '1',
+            'houzezDisableNativeMessages'    => '1',
+            'realhomesIntegration'           => '0',
+            'realhomesPropertyButton'        => '1',
+            'realhomesAgentButton'           => '1',
+            'realhomesAgentCardButton'       => '1',
+            'realhomesCardButton'            => '1',
+            'realhomesDashboardTab'          => '1',
+            'realhomesDisableNativeMessages' => '1',
             'learnPressIntegration'         => '0',
             'learnPressGroupChat'           => '0',
             'learnPressProfileTab'          => '0',
@@ -797,6 +836,10 @@ class Better_Messages_Options
         $customize_url = Better_Messages()->customize->customization_link(array( 'panel' => 'better_messages' ));
 
         $has_buddypress  = class_exists('BuddyPress');
+        $has_buddyboss   = defined('BP_PLATFORM_VERSION');
+        $has_buddyboss_theme = $has_buddyboss && function_exists( 'get_template' ) && get_template() === 'buddyboss-theme';
+        $bb_rl_enabled_opt = $has_buddyboss ? get_option( 'bb_rl_enabled' ) : null;
+        $has_readylaunch   = $has_buddyboss && ( $bb_rl_enabled_opt === '1' || $bb_rl_enabled_opt === 1 || $bb_rl_enabled_opt === true );
         $has_um          = defined('ultimatemember_version');
         $has_asgaros     = class_exists('AsgarosForum');
         $has_woocommerce = class_exists('WooCommerce');
@@ -812,8 +855,12 @@ class Better_Messages_Options
             || ( defined('MULTIVENDORX_PLUGIN_VERSION') && version_compare( MULTIVENDORX_PLUGIN_VERSION, '5.0.0', '>=' ) );
         $has_hivepress   = function_exists('hivepress');
         $has_directorist = defined('ATBDP_VERSION');
+        $has_classified_listing = defined('RTCL_VERSION') || function_exists('rtcl');
         $has_geodirectory = defined('GEODIRECTORY_VERSION');
         $has_wp_job_manager = class_exists('WP_Job_Manager');
+        $has_motors = defined('STM_LISTINGS_V');
+        $has_houzez = defined('HOUZEZ_THEME_VERSION');
+        $has_realhomes = defined('RH_TEXT_DOMAIN');
         $has_bbpress     = class_exists('bbPress');
         $has_jetengine   = function_exists('jet_engine');
         $has_learnpress  = class_exists('LearnPress');
@@ -977,6 +1024,9 @@ class Better_Messages_Options
             'customizeUrl'       => $customize_url,
             'isSsl'              => is_ssl() || defined('BM_DEV'),
             'hasBuddyPress'      => $has_buddypress,
+            'hasBuddyBoss'       => $has_buddyboss,
+            'hasBuddyBossTheme'  => $has_buddyboss_theme,
+            'hasReadyLaunch'     => $has_readylaunch,
             'hasUltimateMember'  => $has_um,
             'hasAsgarosForum'    => $has_asgaros,
             'hasWooCommerce'     => $has_woocommerce,
@@ -992,8 +1042,12 @@ class Better_Messages_Options
             'hasMultiVendorX'    => $has_multivendorx,
             'hasHivePress'       => $has_hivepress,
             'hasDirectorist'     => $has_directorist,
+            'hasClassifiedListing' => $has_classified_listing,
             'hasGeoDirectory'    => $has_geodirectory,
             'hasWpJobManager'    => $has_wp_job_manager,
+            'hasMotors'          => $has_motors,
+            'hasHouzez'          => $has_houzez,
+            'hasRealHomes'       => $has_realhomes,
             'hasBbPress'         => $has_bbpress,
             'hasJetEngine'       => $has_jetengine,
             'hasLearnPress'      => $has_learnpress,
@@ -1065,6 +1119,7 @@ class Better_Messages_Options
             ),
             'emojiDatasetBaseUrl' => Better_Messages()->url . 'assets/emojies/',
             'emojiSpriteStatus'  => Better_Messages_Emojis()->getLocalStatus(),
+            'currentLocale'         => determine_locale(),
             'contactUrl'         => method_exists( bpbm_fs(), 'contact_url' ) ? bpbm_fs()->contact_url() : '',
             'emailPreviewStrings' => array(
                 'testConversation' => __( 'Test Conversation', 'bp-better-messages' ),
@@ -1894,6 +1949,12 @@ class Better_Messages_Options
         if ( !isset( $settings['profileAudioCall'] ) ) {
             $settings['profileAudioCall'] = '0';
         }
+        if ( !isset( $settings['directoryAudioCall'] ) ) {
+            $settings['directoryAudioCall'] = '0';
+        }
+        if ( !isset( $settings['directoryVideoCall'] ) ) {
+            $settings['directoryVideoCall'] = '0';
+        }
         if ( !isset( $settings['peepsoProfileVideoCall'] ) ) {
             $settings['peepsoProfileVideoCall'] = '0';
         }
@@ -2092,6 +2153,10 @@ class Better_Messages_Options
             $settings['peepsoHeader'] = '0';
         }
 
+        if ( ! isset( $settings['peepsoHovercard'] ) ) {
+            $settings['peepsoHovercard'] = '1';
+        }
+
         if( ! isset( $settings['bpForceMiniChat'] ) ) {
             $settings['bpForceMiniChat'] = '0';
         }
@@ -2160,6 +2225,10 @@ class Better_Messages_Options
             $settings['MultiVendorXIntegration'] = '0';
         }
 
+        if( ! isset( $settings['MultiVendorXHideTabWhenDisabled'] ) ) {
+            $settings['MultiVendorXHideTabWhenDisabled'] = '0';
+        }
+
         if( ! isset( $settings['wcVendorsIntegration'] ) ) {
             $settings['wcVendorsIntegration'] = '0';
         }
@@ -2216,6 +2285,30 @@ class Better_Messages_Options
             $settings['directoristAuthorProfileButton'] = '1';
         }
 
+        if( ! isset( $settings['classifiedListingIntegration'] ) ) {
+            $settings['classifiedListingIntegration'] = '0';
+        }
+
+        if( ! isset( $settings['classifiedListingListingPageButton'] ) ) {
+            $settings['classifiedListingListingPageButton'] = '1';
+        }
+
+        if( ! isset( $settings['classifiedListingListingCardButton'] ) ) {
+            $settings['classifiedListingListingCardButton'] = '0';
+        }
+
+        if( ! isset( $settings['classifiedListingAuthorProfileButton'] ) ) {
+            $settings['classifiedListingAuthorProfileButton'] = '1';
+        }
+
+        if( ! isset( $settings['classifiedListingDashboardTab'] ) ) {
+            $settings['classifiedListingDashboardTab'] = '1';
+        }
+
+        if( ! isset( $settings['classifiedListingHeaderButton'] ) ) {
+            $settings['classifiedListingHeaderButton'] = '0';
+        }
+
         if( ! isset( $settings['directoristDashboardTab'] ) ) {
             $settings['directoristDashboardTab'] = '1';
         }
@@ -2226,6 +2319,26 @@ class Better_Messages_Options
 
         if( ! isset( $settings['geodirSingleListingButton'] ) ) {
             $settings['geodirSingleListingButton'] = '1';
+        }
+
+        if( ! isset( $settings['motorsIntegration'] ) ) {
+            $settings['motorsIntegration'] = '0';
+        }
+
+        if( ! isset( $settings['motorsSingleListingButton'] ) ) {
+            $settings['motorsSingleListingButton'] = '1';
+        }
+
+        if( ! isset( $settings['motorsListingCardButton'] ) ) {
+            $settings['motorsListingCardButton'] = '1';
+        }
+
+        if( ! isset( $settings['motorsDealerProfileButton'] ) ) {
+            $settings['motorsDealerProfileButton'] = '1';
+        }
+
+        if( ! isset( $settings['motorsDashboardTab'] ) ) {
+            $settings['motorsDashboardTab'] = '1';
         }
 
         if( ! isset( $settings['learnPressIntegration'] ) ) {

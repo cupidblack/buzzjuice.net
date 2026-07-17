@@ -46,13 +46,13 @@ wp.hooks.addFilter('better_messages_navigate_url', 'bm_fluent_com', function( re
 });
 
 
-const isMobile = document.body.classList.contains('bp-messages-mobile');
-const fullSize = ( typeof settings !== 'undefined' && typeof settings.fullScreen !== 'undefined' ) ? settings.fullScreen : false;
-const containerClass = fullSize ? 'fcom_full_size_container' : 'fcom_boxed_container';
-const containerStyle = fullSize ? 'padding: 0;' : 'padding: 20px;';
-const header = ( ! isMobile && typeof settings !== 'undefined' && settings.title !== '' ) ? '<div class="fhr_content_layout_header"><h1 class="fcom_page_title">' + settings.title + '</h1></div>' : '';
-
 document.addEventListener('fluentCommunityUtilReady', function () {
+  const isMobile = document.body.classList.contains('bp-messages-mobile');
+  const fullSize = ( typeof settings !== 'undefined' && typeof settings.fullScreen !== 'undefined' ) ? settings.fullScreen : false;
+  const containerClass = fullSize ? 'fcom_full_size_container' : 'fcom_boxed_container';
+  const containerStyle = fullSize ? 'padding: 0;' : 'padding: 20px;';
+  const header = ( ! isMobile && typeof settings !== 'undefined' && settings.title !== '' ) ? '<div class="fhr_content_layout_header"><h1 class="fcom_page_title">' + settings.title + '</h1></div>' : '';
+
   updateDynamicCSS();
 
   document.addEventListener('click', function(e) {
@@ -75,12 +75,15 @@ document.addEventListener('fluentCommunityUtilReady', function () {
           '</div>',
         mounted() {
           updateDynamicCSS();
-          BetterMessages.initialize();
-          BetterMessages.parseHash();
-
+          if (window.BetterMessages && typeof window.BetterMessages.initialize === 'function') {
+            window.BetterMessages.initialize();
+          }
+          if (window.BetterMessages && typeof window.BetterMessages.parseHash === 'function') {
+            window.BetterMessages.parseHash();
+          }
         },
         beforeRouteLeave(e, n) {
-          if( BetterMessages.isInCall()){
+          if (window.BetterMessages && typeof window.BetterMessages.isInCall === 'function' && window.BetterMessages.isInCall()) {
             return false;
           }
 
@@ -92,7 +95,9 @@ document.addEventListener('fluentCommunityUtilReady', function () {
             container.remove();
           }
 
-          BetterMessages.resetMainVisibleThread();
+          if (window.BetterMessages && typeof window.BetterMessages.resetMainVisibleThread === 'function') {
+            window.BetterMessages.resetMainVisibleThread();
+          }
         }
       },
       meta: {active: "better-messages"}

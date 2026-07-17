@@ -393,6 +393,7 @@ endif;
  * @version 1.0
  */
 if ( ! class_exists( 'CashCred_Gateway_Fields' ) ) :
+	#[AllowDynamicProperties]
 	class CashCred_Gateway_Fields {
 
 		public $gateway_name;

@@ -460,113 +460,151 @@ if ( ! class_exists( 'myCRED_cashCRED_Module' ) ) :
 			mycred_update_user_meta( get_current_user_id(), 'cashcred_user_settings', '', $payment_methods );
 		}
 
-		public function process_new_withdraw_request( $gateway_id ){
 
-			global $wp;
-			
-			$requested_url 		   = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_url( wp_unslash( home_url( $wp->request ) ) ) . sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';	 
-			$point_type			   = isset( $_POST['cashcred_point_type'] ) ? sanitize_text_field( wp_unslash( $_POST['cashcred_point_type'] ) ) : '';
-			$cashcred_pay_method   = isset( $_POST['cashcred_pay_method'] ) ? sanitize_text_field( wp_unslash( $_POST['cashcred_pay_method'] ) ) : '';
-			$points 			   = isset( $_POST['points'] ) ? sanitize_text_field( wp_unslash( $_POST['points'] ) ) : "";
-			
-			$mycred_pref_cashcreds = mycred_get_option( 'mycred_pref_cashcreds' , false );
+		private function calculate_fee_from_settings( $point_type, $points ) {
 
-			$currency 			   = $mycred_pref_cashcreds['gateway_prefs'][$gateway_id]['currency'];
-			$cost 				   = 1;
+		    $settings = mycred_get_cashcred_settings();
+		    if ( empty( $settings['fees'] ) || intval( $settings['fees']['use'] ) !== 1 ) {
+		        return 0;
+		    }
 
-			if ( ! empty( $mycred_pref_cashcreds['gateway_prefs'][$gateway_id]['exchange'][$point_type] ) ) {
-				$cost 			   = $mycred_pref_cashcreds['gateway_prefs'][$gateway_id]['exchange'][$point_type];
-			}
-			
-			$user_balance = mycred_get_users_balance( get_current_user_id() , $point_type );
-			
-			//adding fees attribute in cashcred 2.4
-			$cashcred_setting = mycred_get_cashcred_settings();
-			if( ! empty( $cashcred_setting['fees'] ) ){
-			
-				$fee = 0;
-				if( $cashcred_setting['fees']['use'] == 1 ) {
-					
-					$fee_amount = $cashcred_setting['fees']['types'][$point_type]['amount'];
-					$fee = $fee_amount;
-					if( $cashcred_setting['fees']['types'][$point_type]['by'] == 'percent' && is_numeric($fee_amount) )
-						$fee = ( ( $fee_amount / 100 ) * $points );
+		    $type = $settings['fees']['types'][ $point_type ] ?? null;
+		    if ( ! $type ) {
+		        return 0;
+		    }
 
-					if( $cashcred_setting['fees']['types'][$point_type]['min_cap'] != 0 )
-						$fee = $fee + $cashcred_setting['fees']['types'][$point_type]['min_cap'];
+		    // This is where the admin changes the fee in backend. We ONLY use it at creation time.
+		    $fee_amount = isset( $type['amount'] ) ? (float) $type['amount'] : 0.0;
 
-					if( $cashcred_setting['fees']['types'][$point_type]['max_cap'] != 0 && $fee > $cashcred_setting['fees']['types'][$point_type]['max_cap'] )
-						$fee = intval($cashcred_setting['fees']['types'][$point_type]['max_cap']);
-						
-						 $cashcred_fees = !empty($fee) ? $fee : 0 ;
-						
-					     $fee_points = $points + $cashcred_fees; 
+		    $fee = $fee_amount;
+		    if ( isset( $type['by'] ) && $type['by'] === 'percent' && is_numeric( $fee_amount ) ) {
+		        $fee = ( $fee_amount / 100 ) * (float) $points;
+		    }
 
-					if( $user_balance < $fee_points ){
-				
-						$notice = __('Insufficient funds after adding fee'); 
-						$this->notification_message( $notice, $requested_url );
+		    $min_cap = isset( $type['min_cap'] ) ? (float) $type['min_cap'] : 0.0;
+		    $max_cap = isset( $type['max_cap'] ) ? (float) $type['max_cap'] : 0.0;
 
-					}
-				}
-			}
+		    if ( $min_cap > 0 ) {
+		        $fee += $min_cap;
+		    }
+		    if ( $max_cap > 0 && $fee > $max_cap ) {
+		        $fee = $max_cap;
+		    }
+
+		    return (float) $fee;
+		}
+
+		/**
+		 * Always returns the locked fee. If the withdrawal predates this patch,
+		 * we compute ONCE from current settings, store it, and never recalc again.
+		 */
+		private function get_locked_fee( $post_id, $point_type, $points ) {
+		    $stored = get_post_meta( $post_id, 'fee_points', true );
+		    if ( $stored !== '' && $stored !== false ) {
+		        return (float) $stored;
+		    }
+
+		    // Legacy post (no fee stored) – compute once, store, and return.
+		    $fee = $this->calculate_fee_from_settings( $point_type, $points );
+		    update_post_meta( $post_id, 'fee_points', $fee );
+		    update_post_meta( $post_id, 'fee_snapshot', array(
+		        'calculated' => $fee,
+		        'point_type' => $point_type,
+		        'points'     => (float) $points,
+		        'settings'   => mycred_get_cashcred_settings()['fees'] ?? array(),
+		        'timestamp'  => current_time( 'mysql' ),
+		    ) );
+
+		    return (float) $fee;
+		}
 
 
-			if( $user_balance < $points ){
-					 
-				$format = __('Insufficient funds your point is %s');  
-				$notice = sprintf($format, mycred_display_users_balance( get_current_user_id() , $point_type ));
+		public function process_new_withdraw_request( $gateway_id ) {
 
-				$this->notification_message( $notice, $requested_url );
-				
-			}
-			
-			$user_id = get_current_user_id();
-			
-			$post_id = wp_insert_post( array(
-				'post_title'     => '',
-				'post_type'      => 'cashcred_withdrawal',
-				'post_status'    => 'publish',
-				'post_author'    =>  $user_id,
-				'ping_status'    => 'closed',
-				'comment_status' => 'open'
-			) );
-			
-			if ( $post_id !== NULL && ! is_wp_error( $post_id ) ) {
-				
-				wp_update_post( array( 'ID' => $post_id, 'post_title' => $post_id ) );
-				$remote_addr = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-				//Will store post meta by checking multisite and current blog, Will store in current blog's table
-				check_site_add_post_meta( $post_id, 'point_type',   $point_type, true );
-				check_site_add_post_meta( $post_id, 'gateway', 		$cashcred_pay_method , true );
-				check_site_add_post_meta( $post_id, 'points',     	$points, true );
-				check_site_add_post_meta( $post_id, 'fee_points',   $fee, true );
-				check_site_add_post_meta( $post_id, 'cost',         $cost, true );
-				check_site_add_post_meta( $post_id, 'currency',     $currency, true );
-				check_site_add_post_meta( $post_id, 'from',         get_current_user_id(), true );
-				check_site_add_post_meta( $post_id, 'user_ip',      $remote_addr, true );
-				check_site_add_post_meta( $post_id, 'manual',       'Manual', true );
-				
-				if( isset( $mycred_pref_cashcreds['gateway_prefs'][ $cashcred_pay_method ]["allow_auto_withdrawal"] ) && 
-					$mycred_pref_cashcreds['gateway_prefs'][ $cashcred_pay_method ]["allow_auto_withdrawal"] == "yes" ) {
-					
-					$cashcred_auto_payment = $this->cashcred_pay_now( $post_id, true );
-                    
-                    if(isset( $cashcred_auto_payment['status'] ) && ! $cashcred_auto_payment['status'] ) {
-                        mycred_cashcred_update_status( $post_id, 'status', 'Pending' );
-                    }
-					
-					$this->notification_message( $cashcred_auto_payment['message'], $requested_url );
+		    global $wp;
 
-				}
-				else {
-					mycred_cashcred_update_status( $post_id, 'status', 'Pending' );
-				}
-					    
-				$this->notification_message( '', $requested_url );
+		    $requested_url       = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_url( wp_unslash( home_url( $wp->request ) ) ) . sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+		    $point_type          = isset( $_POST['cashcred_point_type'] ) ? sanitize_text_field( wp_unslash( $_POST['cashcred_point_type'] ) ) : '';
+		    $cashcred_pay_method = isset( $_POST['cashcred_pay_method'] ) ? sanitize_text_field( wp_unslash( $_POST['cashcred_pay_method'] ) ) : '';
+		    $points              = isset( $_POST['points'] ) ? sanitize_text_field( wp_unslash( $_POST['points'] ) ) : '';
 
-			}
+		    $mycred_pref_cashcreds = mycred_get_option( 'mycred_pref_cashcreds', false );
 
+		    $currency = $mycred_pref_cashcreds['gateway_prefs'][ $gateway_id ]['currency'];
+		    $cost     = 1;
+
+		    if ( ! empty( $mycred_pref_cashcreds['gateway_prefs'][ $gateway_id ]['exchange'][ $point_type ] ) ) {
+		        $cost = $mycred_pref_cashcreds['gateway_prefs'][ $gateway_id ]['exchange'][ $point_type ];
+		    }
+
+		    $user_balance = mycred_get_users_balance( get_current_user_id(), $point_type );
+
+		    // ---- Calculate the fee ONCE (at creation time) and LOCK it ----
+		    $fee = $this->calculate_fee_from_settings( $point_type, $points );
+
+		    // Balance checks with locked fee
+		    $fee_points_total = (float) $points + (float) $fee;
+		    if ( $user_balance < $fee_points_total ) {
+		        $notice = __( 'Insufficient funds after adding fee' );
+		        $this->notification_message( $notice, $requested_url );
+		    }
+		    if ( $user_balance < $points ) {
+		        $format = __( 'Insufficient funds your point is %s' );
+		        $notice = sprintf( $format, mycred_display_users_balance( get_current_user_id(), $point_type ) );
+		        $this->notification_message( $notice, $requested_url );
+		    }
+
+		    $user_id = get_current_user_id();
+
+		    $post_id = wp_insert_post( array(
+		        'post_title'     => '',
+		        'post_type'      => 'cashcred_withdrawal',
+		        'post_status'    => 'publish',
+		        'post_author'    => $user_id,
+		        'ping_status'    => 'closed',
+		        'comment_status' => 'open'
+		    ) );
+
+		    if ( $post_id !== null && ! is_wp_error( $post_id ) ) {
+		        wp_update_post( array( 'ID' => $post_id, 'post_title' => $post_id ) );
+
+		        $remote_addr = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+
+		        // Store locked values
+		        check_site_add_post_meta( $post_id, 'point_type',   $point_type, true );
+		        check_site_add_post_meta( $post_id, 'gateway',      $cashcred_pay_method, true );
+		        check_site_add_post_meta( $post_id, 'points',       $points, true );
+		        check_site_add_post_meta( $post_id, 'fee_points',   $fee, true ); // ✅ LOCKED FEE
+		        check_site_add_post_meta( $post_id, 'cost',         $cost, true );
+		        check_site_add_post_meta( $post_id, 'currency',     $currency, true );
+		        check_site_add_post_meta( $post_id, 'from',         get_current_user_id(), true );
+		        check_site_add_post_meta( $post_id, 'user_ip',      $remote_addr, true );
+		        check_site_add_post_meta( $post_id, 'manual',       'Manual', true );
+		        check_site_add_post_meta( $post_id, 'fee_snapshot', array(
+		            'calculated' => (float) $fee,
+		            'point_type' => $point_type,
+		            'points'     => (float) $points,
+		            'settings'   => mycred_get_cashcred_settings()['fees'] ?? array(),
+		            'timestamp'  => current_time( 'mysql' ),
+		        ), true );
+
+		        // Auto withdrawal
+		        if ( isset( $mycred_pref_cashcreds['gateway_prefs'][ $cashcred_pay_method ]['allow_auto_withdrawal'] )
+		             && $mycred_pref_cashcreds['gateway_prefs'][ $cashcred_pay_method ]['allow_auto_withdrawal'] === 'yes' ) {
+
+		            $cashcred_auto_payment = $this->cashcred_pay_now( $post_id, true );
+
+		            if ( isset( $cashcred_auto_payment['status'] ) && ! $cashcred_auto_payment['status'] ) {
+		                mycred_cashcred_update_status( $post_id, 'status', 'Pending' );
+		            }
+
+		            $this->notification_message( $cashcred_auto_payment['message'], $requested_url );
+		        } else {
+		            mycred_cashcred_update_status( $post_id, 'status', 'Pending' );
+		        }
+
+		        $this->notification_message( '', $requested_url );
+		    }
 		}
 
 		public function can_withdraw_request() {
@@ -621,7 +659,6 @@ if ( ! class_exists( 'myCRED_cashCRED_Module' ) ) :
 		 */
 		public function process_new_request() {
 			
-		
 			global $cashcred_instance, $cashcred_withdraw;
 
 			if ( $cashcred_instance->checkout === false && isset( $_REQUEST['mycred_buy'] ) )

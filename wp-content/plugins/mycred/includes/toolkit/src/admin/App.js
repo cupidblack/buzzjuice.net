@@ -22,12 +22,11 @@ const theme = createTheme({
 
 const categories = [
   "All",
-  "ECommerce",
-  "LMS",
-  "Community",
-  "buyCred Gateways",
-  "cashCred Gateways",
-  "Others"
+  "Buy Points",
+  "Gamifications",
+  "Enhancements",
+  "Integrations",
+  "Cash Out Points"
 ];
 
 function contains(data, value) {
@@ -196,7 +195,7 @@ const App = () => {
     setSelectedCategory(newCategory);
   };
 
-  const renderSVG = (iconSlug, addonType, isProActive) => {
+  const renderSVG = (iconSlug, addonType) => {
     try {
       const IconComponent = require(`./icons/${iconSlug}.svg`).default;
       return (
@@ -209,29 +208,6 @@ const App = () => {
             />
           ) : (
             <IconComponent width={24} height={24} />
-          )}
-          
-          {addonType === "pro" && isProActive && (
-            <Box
-              sx={{
-                position: "absolute",
-                top: "-8px",
-                right: "-20px",
-                display: "inline-flex",
-                padding: "2px 6px",
-                justifyContent: "center",
-                alignItems: "center",
-                borderRadius: "3px",
-                background: "linear-gradient(248deg, #FFD79C 17.34%, #FFAF39 88.08%)",
-                color: "#694214",
-                fontSize: "10px",
-                fontWeight: 600,
-                lineHeight: "normal",
-                height: "fit-content"
-              }}
-            >
-              PRO
-            </Box>
           )}
         </Box>
       );
@@ -274,20 +250,6 @@ const App = () => {
         }}
       >
         <Typography
-          variant="h5"
-          sx={{
-            fontWeight: "500",
-            flexGrow: 1,
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
-        >
-          {__("Popular Add-ons, New Possibilities.", "mycred-toolkit")}
-        </Typography>
-        <br />
-
-        <Typography
           variant="p"
           sx={{
             fontWeight: "400",
@@ -298,18 +260,8 @@ const App = () => {
             gap: "8px",
           }}
         >
-          {__(
-            "myCred is an easy-to-use WordPress gamification plugin. Seamlessly create a daily login rewards",
-            "mycred-toolkit"
-          )}
-          <br />
-          {__(
-            "program or gamify your website and increase the average customer value with less marketing effort.",
-            "mycred-toolkit"
-          )}
+          
         </Typography>
-
-        <br />
 
         <FilterSection
           categories={categories}

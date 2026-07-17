@@ -1,9 +1,9 @@
-=== myCred - Points Management System For Gamification, Ranks, Badges, and Loyalty Rewards Program. ===
+=== myCred – Points Management System For Gamification, Ranks, Badges, and Loyalty Program. ===
 Contributors: mycred,wpexpertsio
-Tags: badges, gamification, loyalty, points, rewards
+Tags: badges, loyalty program, loyalty, points, rewards
 Requires at least: 4.8
 Tested up to: 6.8
-Stable tag: 2.9.4.5
+Stable tag: 2.9.5.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -14,21 +14,27 @@ A WordPress gamification plugin is also a **points management system**. Award ra
 
 [myCred](https://mycred.me/) is an adaptive points management system that allows you to build and manage a broad range of digital rewards, including leaderboards, ranks, and badges on your WordPress/WooCommerce-powered website.
 
+[Addons](https://mycred.me/store/?utm_source=wp_org&utm_medium=read_me) | [Documentation](https://codex.mycred.me/?utm_source=wp_org&utm_medium=read_me) | [Demo](https://demo.mycred.me/?utm_source=wp_org&utm_medium=read_me) | [Treasures](https://mycred.me/treasure/?utm_source=wp_org&utm_medium=read_me) | [Pricing](https://mycred.me/pricing/?utm_source=wp_org&utm_medium=read_me)
+
 [youtube https://www.youtube.com/watch?v=-M19tzYo1jo]
 
-Build **brand loyalty** by rewarding your customers through store reward systems, cash back, community leaderboard, website content monetization, etc. – The possibilities are endless.
+myCred is a **points management system** that allows you to create and manage loyalty rewards, including points, ranks, and badges on your WordPress or WooCommerce website.
+
+This membership points system WordPress plugin lets you reward customers through WooCommerce points and rewards, cash back, community leaderboard, website content monetization, etc.
+
+myCred is a **WooCommerce loyalty program plugin** that offers endless possibilities. 
 
 **Increase customer engagement tenfold – Rewarding your users for community engagement will help your business grow.**
 
-AMAZING AWARD SYSTEMS TO ENGAGE AND REWARD LOYAL CUSTOMERS 
+AMAZING AWARD SYSTEMS TO ENGAGE AND REWARD LOYAL CUSTOMERS
 
-myCred allows **THREE different ways** through which you can award your users:
+As a premium WordPress points plugin, myCred allows **THREE different ways** through which you can award your users:
 
-**Points –** Set events and triggers to allow real-time tracking and automatically award your users with loyalty points and daily rewards.
+**Points –** Set events and triggers to allow real-time tracking and automatically award your users with WooCommerce points and rewards, and daily rewards.
 
-**Ranks –** Set ranks within your leaderboards and reward your users with significant perks after they reach a certain milestone.
+**Ranks –** Set ranks within your leaderboards and reward your users with WordPress or WooCommerce points and rewards after they reach a certain milestone.
 
-**Badges –** Boost your users’ participation by rewarding them for their exceptional performance.
+**Badges –** Use myCred as your WordPress loyalty plugin and boost your users’ participation by rewarding them for their exceptional performance.
 
 == myCred Toolkit ==
 All myCred addons have been gathered under [myCred Toolkit](https://wordpress.org/plugins/mycred-toolkit/). Get multiple free and pro modules under one roof, and the most exciting part is that it won't burden your website as only enabled addons will work. 
@@ -291,6 +297,12 @@ You can directly contact our [support.](https://objectsws.atlassian.net/serviced
 
 == Upgrade Notice ==
 
+= 2.9.5.1 =
+Bug fixes and improvements.
+
+= 2.9.5 =
+Bug fixes and improvements.
+
 = 2.9.4.5 =
 Bug fixes.
 
@@ -472,6 +484,18 @@ New features and Bug fixes.
 The banking module have been replaced by Central deposite module, and interest related functionality has been removed. If you are using simple interest or compound interest related functionality, you will fine the respective functionalities missing after the update.
 
 == Changelog ==
+
+= 2.9.5.1 =
+- **TWEAK** - Code improvement.
+
+= 2.9.5 =
+- **NEW** - Added filter mycred_woocom_purchase_reward_amount.
+- **FIX** - Fixed warning in adjust points screen.
+- **FIX** - CashCred withdrawal fee was being shown on all transactions, even when no fee was set.
+- **FIX** - Signup referral points not awarded after account approval with the "User Registration" plugin.
+- **FIX** - Fixed deprecated warning messages.
+- **FIX** - Transfers not working for custom point types when multiple point types were enabled.
+- **FIX** - Fixed mycred_transfer shortcode showed point type dropdown even with only one point type enabled..
 
 = 2.9.4.5 =
 - **FIX** - Total Survey icon was not showing on toolkit page.

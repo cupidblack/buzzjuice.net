@@ -227,62 +227,55 @@ if ( ! class_exists( 'myCRED_Transfer_Module' ) ) :
 		 * @version 1.8
 		 */
 		 public function ajax_call_transfer() {
-
+			
 		    if ( ! is_user_logged_in() ) {
 		        wp_send_json_error( 'not_logged_in' );
 		    }
-
+		    
 		    // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized 
 		    parse_str( $_POST['form'], $post );
-
 		    $post = mycred_sanitize_array( $post );
-
-		    // ✅ Validate amount against signed allowed values
+		    
+		    // ✅ Validate signature against transfered_attributes (to match form generation)
 		    $transfer = $post['mycred_new_transfer'];
-
-
-
-		    if ( isset( $transfer['allowed_amounts']  ) ) {
-
-		        $encoded_payload     = $transfer['allowed_amounts'];
-
+		    
+		    if ( isset( $transfer['transfered_attributes'] ) && isset( $transfer['signature'] ) ) {
+		        $encoded_payload     = $transfer['transfered_attributes'];
 		        $received_signature  = $transfer['signature'];
-
-		        $submitted_amount    = floatval( $transfer['amount'] );
-
-		        $secret_key          = 'e3dA9p!7uGv#sT6jR@zQ2LfNc0MbWx8y';
+		        $secret_key = wp_salt( 'nonce' );
 		        $expected_signature  = hash_hmac( 'sha256', $encoded_payload, $secret_key );
-
-
+		        
 		        if ( ! hash_equals( $expected_signature, $received_signature ) ) {
-
 		            wp_send_json_error( 'error_signature_mismatch' );
 		        }
-
-		        $allowed_amounts = json_decode( base64_decode( $encoded_payload ) );
-		        $allow_any_amount = false;
-				if ( empty( $allowed_amounts ) || (count($allowed_amounts) === 1 && !$allowed_amounts[0]) ) {
-				    $allow_any_amount = true;
-				}
-
-				if ( ! $allow_any_amount ) {
-				    if ( ! is_array( $allowed_amounts ) || ! in_array( $submitted_amount, array_map( 'floatval', $allowed_amounts ), true ) ) {
-				        wp_send_json_error( 'error_amount_not_allowed' );
-				    }
-				}
-		    }
-		    else {
-		    	
+		        
+		        // ✅ Optional: Additional amount validation if needed
+		        $decoded_payload = json_decode( base64_decode( $encoded_payload ), true );
+		        $submitted_amount = floatval( $transfer['amount'] );
+		        
+		        // Check if amount is specified in locked attributes
+		        if ( isset( $decoded_payload['amount'] ) && $decoded_payload['amount'] != 0 ) {
+		            $allowed_amounts = is_array( $decoded_payload['amount'] ) 
+		                ? array_map( 'floatval', $decoded_payload['amount'] )
+		                : [ floatval( $decoded_payload['amount'] ) ];
+		                
+		            if ( ! in_array( $submitted_amount, $allowed_amounts, true ) ) {
+		                wp_send_json_error( 'error_amount_not_allowed' );
+		            }
+		        }
+		        // If amount is 0 or not set in locked attributes, allow any amount
+		        
+		    } else {
 		        wp_send_json_error( 'error_missing_signature' );
 		    }
-
+		    
 		    // Continue transfer after validation
 		    $request = mycred_new_transfer( $transfer, $post );
-
+		    
 		    if ( ! is_array( $request ) ) {
 		        wp_send_json_error( $request );
 		    }
-
+		    
 		    wp_send_json_success( $request );
 		}
 

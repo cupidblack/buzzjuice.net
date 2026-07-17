@@ -50,6 +50,9 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             require_once('api/admin.php');
             Better_Messages_Rest_Api_Admin();
 
+            require_once('api/live-chat-builder.php');
+            Better_Messages_Live_Chat_Builder();
+
             require_once('api/bulk-message.php');
             Better_Messages_Rest_Api_Bulk_Message();
 
@@ -343,6 +346,12 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 'permission_callback' => array( $this, 'is_user_authorized' )
             ) );
 
+            register_rest_route( 'better-messages/v1', '/publicProfiles', array(
+                'methods' => 'POST',
+                'callback' => array( $this, 'public_profiles' ),
+                'permission_callback' => '__return_true'
+            ) );
+
             if( ! empty( trim(Better_Messages()->settings['badWordsList']) ) ) {
                 register_rest_route('better-messages/v1', '/getBlockList', array(
                     'methods' => 'GET',
@@ -460,6 +469,26 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
 
                     $return['users'][] = $item;
                 }
+            }
+
+            return $return;
+        }
+
+        public function public_profiles( WP_REST_Request $request ){
+            $return = [ 'users' => [] ];
+
+            if( ! Better_Messages()->guests->guest_access_enabled() ){
+                return $return;
+            }
+
+            $users = (array) $request->get_param('users');
+            $users = array_slice( array_values( array_unique( array_map( 'intval', $users ) ) ), 0, 100 );
+
+            foreach ( $users as $user_id ){
+                if( $user_id === 0 ) continue;
+                if( ! Better_Messages()->functions->is_user_exists( $user_id ) ) continue;
+
+                $return['users'][] = Better_Messages()->functions->rest_user_item( $user_id, false );
             }
 
             return $return;
@@ -719,6 +748,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             $user_id   = intval( $request->get_param('user_id') );
             $create    = boolval( $request->get_param('create') );
             $subject   = trim( sanitize_text_field( urldecode( $request->get_param('subject') ) ) );
+            $object_id = intval( $request->get_param('objectId') );
 
             $uniqueKeyParam = $request->get_param('uniqueKey');
             $uniqueKey = $uniqueKeyParam !== null ? trim( sanitize_text_field( urldecode( $request->get_param('uniqueKey') ) ) ) : '';
@@ -729,8 +759,15 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 $result = Better_Messages()->functions->get_unique_pm_thread_id( $uniqueKey, $user_id, Better_Messages()->functions->get_current_user_id(), $create, $subject );
             }
 
-            // Allow addons (E2E) to process newly created PM threads
             $result = apply_filters( 'better_messages_private_thread_result', $result, $user_id, Better_Messages()->functions->get_current_user_id() );
+
+            if( $result['result'] === 'thread_created' && $object_id > 0 && isset( $result['thread_id'] ) ){
+                $thread_id = (int) $result['thread_id'];
+                $existing  = Better_Messages()->functions->get_thread_meta( $thread_id, 'context_post_id' );
+                if( empty( $existing ) ){
+                    Better_Messages()->functions->update_thread_meta( $thread_id, 'context_post_id', $object_id );
+                }
+            }
 
             if( $result['result'] === 'thread_found' || $result['result'] === 'thread_created' ){
                 $thread_id = (int) $result['thread_id'];
@@ -916,6 +953,16 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             }
 
             $current_user_id = Better_Messages()->functions->get_current_user_id();
+
+            if ( $current_user_id === 0 ) {
+                do_action( 'better_messages_on_message_not_sent', $thread_id, $temp_id, [] );
+
+                return new WP_Error(
+                    'rest_anonymous_sender',
+                    _x( 'Sorry, you are not allowed to reply into this conversation', 'Rest API Error', 'bp-better-messages' ),
+                    array( 'status' => rest_authorization_required_code() )
+                );
+            }
 
             $is_pending = (int) Better_Messages()->moderation->is_moderation_enabled( $current_user_id, $thread_id, false );
 
@@ -1106,11 +1153,22 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             $results = [];
             $errors  = [];
 
+            global $bp_better_messages_restrict_send_message;
+
             foreach( $thread_ids as $thread_id ) {
                 $can_reply = Better_Messages()->functions->check_access( $thread_id, $current_user_id, 'reply' );
 
                 if( ! $can_reply ) {
                     $errors[ $thread_id ] = _x('Sorry, you are not allowed to reply into this conversation', 'Rest API Error', 'bp-better-messages');
+                    continue;
+                }
+
+                $bp_better_messages_restrict_send_message = [];
+
+                $policy_errors = $this->get_send_policy_errors( $thread_id, $current_user_id, $can_reply );
+
+                if( ! empty( $policy_errors ) ) {
+                    $errors[ $thread_id ] = implode( ' ', $policy_errors );
                     continue;
                 }
 
@@ -1135,10 +1193,19 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                     'sender_id'    => $current_user_id,
                     'content'      => $content,
                     'thread_id'    => $thread_id,
+                    'is_pending'   => (int) Better_Messages()->moderation->is_moderation_enabled( $current_user_id, $thread_id, false ),
                     'return'       => 'message_id',
                     'error_type'   => 'wp_error',
                     'meta_data'    => $meta_data,
                 );
+
+                $send_errors = [];
+                Better_Messages()->functions->before_message_send_filter( $args, $send_errors );
+
+                if( ! empty( $send_errors ) ) {
+                    $errors[ $thread_id ] = implode( ' ', $send_errors );
+                    continue;
+                }
 
                 $new_message_id = Better_Messages()->functions->new_message( $args );
 
@@ -1192,11 +1259,24 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             $raw_message = $request->get_param('message');
             $content     = Better_Messages()->functions->filter_message_content( $raw_message );
 
+            $content = apply_filters( 'better_messages_send_message_content', $content, $raw_message, $thread_id );
+
             if( trim($content) == '') {
                 return new WP_Error(
                     'rest_forbidden',
                     __( 'Message content was empty.', 'bp-better-messages' ),
                     array( 'status' => rest_authorization_required_code() )
+                );
+            }
+
+            if ( class_exists( 'Better_Messages_E2E_Encryption' )
+                && Better_Messages_E2E_Encryption::is_e2e_thread( $thread_id )
+                && ! Better_Messages_E2E_Encryption::is_valid_e2e_ciphertext( $content )
+            ) {
+                return new WP_Error(
+                    'rest_forbidden',
+                    _x( 'Messages in encrypted conversations must be encrypted. Please reload the page and try again.', 'E2E Encryption', 'bp-better-messages' ),
+                    array( 'status' => 400 )
                 );
             }
 
@@ -2104,13 +2184,16 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 }
 
                 $_all_user_ids = array_map( 'intval', array_keys($recipients) );
-                foreach ( array_slice($_all_user_ids, 0, 10) as $user_id ){ $user_ids[] = $user_id; }
 
                 if( $is_participant ){
                     $_all_user_ids[] = intval($current_user_id);
                 }
 
                 $thread_type = Better_Messages()->functions->get_thread_type( $thread->thread_id );
+
+                $_all_user_ids = Better_Messages()->functions->maybe_sort_participants( $_all_user_ids, $thread_type );
+
+                foreach ( array_slice($_all_user_ids, 0, 10) as $user_id ){ $user_ids[] = $user_id; }
 
                 $title    = Better_Messages()->functions->get_thread_title( $thread->thread_id );
                 $image    = Better_Messages()->functions->get_thread_image( $thread->thread_id );
@@ -2235,10 +2318,6 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
                 'serverTime' => $server_time
             ], $current_user_id, 0 );
 
-            if( isset( $request ) && count($excluded) === 0 ){
-                $return['emojis'] = Better_Messages_Emojis()->get_emoji_settings();
-            }
-
             return $return;
         }
 
@@ -2349,6 +2428,8 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
 
                 $thread_type = Better_Messages()->functions->get_thread_type( $thread->thread_id );
 
+                $_all_user_ids = Better_Messages()->functions->maybe_sort_participants( $_all_user_ids, $thread_type );
+
                 foreach ( array_slice($_all_user_ids, 0, 10) as $user_id ){
                     $user_ids[] = $user_id;
                 }
@@ -2397,34 +2478,7 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
             ];
         }
 
-        public function can_reply(WP_REST_Request $request) {
-
-            $authorized = $this->is_user_authorized( $request );
-            if ( $authorized !== true ) {
-                return $authorized;
-            }
-
-            $user_id    = Better_Messages()->functions->get_current_user_id();
-            $thread_id  = intval($request->get_param('id'));
-
-            $has_access = Better_Messages()->functions->check_access( $thread_id, $user_id, 'reply' );
-
-            if( ! $has_access ){
-                $temp_id = sanitize_text_field( $request->get_param('temp_id') );
-                do_action('better_messages_on_message_not_sent', $thread_id, $temp_id, [] );
-
-                $thread = $this->get_threads([$thread_id]);
-
-                return new WP_Error(
-                    'rest_forbidden',
-                    _x( 'Sorry, you are not allowed to reply into this conversation', 'Rest API Error', 'bp-better-messages' ),
-                    array(
-                        'status' => rest_authorization_required_code(),
-                        'update' => $thread
-                    )
-                );
-            }
-
+        public function get_send_policy_errors( $thread_id, $user_id, $has_access ) {
             $errors = [];
 
             $type = Better_Messages()->functions->get_thread_type( $thread_id );
@@ -2476,6 +2530,39 @@ if ( !class_exists( 'Better_Messages_Rest_Api' ) ):
 
                 }
             }
+
+            return $errors;
+        }
+
+        public function can_reply(WP_REST_Request $request) {
+
+            $authorized = $this->is_user_authorized( $request );
+            if ( $authorized !== true ) {
+                return $authorized;
+            }
+
+            $user_id    = Better_Messages()->functions->get_current_user_id();
+            $thread_id  = intval($request->get_param('id'));
+
+            $has_access = Better_Messages()->functions->check_access( $thread_id, $user_id, 'reply' );
+
+            if( ! $has_access ){
+                $temp_id = sanitize_text_field( $request->get_param('temp_id') );
+                do_action('better_messages_on_message_not_sent', $thread_id, $temp_id, [] );
+
+                $thread = $this->get_threads([$thread_id]);
+
+                return new WP_Error(
+                    'rest_forbidden',
+                    _x( 'Sorry, you are not allowed to reply into this conversation', 'Rest API Error', 'bp-better-messages' ),
+                    array(
+                        'status' => rest_authorization_required_code(),
+                        'update' => $thread
+                    )
+                );
+            }
+
+            $errors = $this->get_send_policy_errors( $thread_id, $user_id, $has_access );
 
             if( count( $errors ) === 0 ) {
                 return true;

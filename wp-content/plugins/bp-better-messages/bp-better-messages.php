@@ -4,7 +4,7 @@
     Plugin Name: Better Messages
     Plugin URI: https://www.wordplus.org
     Description: Realtime private messaging system for WordPress
-    Version: 2.15.5
+    Version: 2.15.17
     Author: WordPlus
     Author URI: https://www.wordplus.org
     Requires PHP: 7.4
@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
 if ( ! class_exists( 'Better_Messages' ) && ! function_exists( 'bpbm_fs' ) ) {
     class Better_Messages
     {
-        public  $version = '2.15.5';
+        public  $version = '2.15.17';
 
         public  $db_version = '1.0.4';
 
@@ -699,7 +699,7 @@ if ( ! class_exists( 'Better_Messages' ) && ! function_exists( 'bpbm_fs' ) ) {
             'url', 'threadUrl', 'baseUrl',
             'assets', 'sounds', 'soundLevels',
             'notificationSoundUrl', 'sentSoundUrl', 'callSoundUrl', 'dialingSoundUrl',
-            'sprite', 'emojiHash',
+            'sprite', 'emojiDataUrl', 'emojiHash',
             'loginUrl', 'registerUrl', 'adminUrl',
             'total_unread', 'enableSound',
             'realtime', 'friends', 'groups', 'courses', 'guests',
@@ -840,7 +840,6 @@ if ( ! class_exists( 'Better_Messages' ) && ! function_exists( 'bpbm_fs' ) ) {
                 'mobileSwipeBack'       => ( $this->settings['mobileSwipeBack'] == '1' ? '1' : '0' ),
                 'autoFullScreen'        => ( $this->settings['autoFullScreen'] == '1' ? '1' : '0' ),
                 'tapToOpen'             => ( $this->settings['tapToOpenMsg'] == '1' ? '1' : '0' ),
-                'emojiHash'             => get_option('bm-emoji-hash', ''),
                 'emojiSet'              => $this->settings['emojiSet'],
                 'smileToEmoji'          => ( $this->settings['smileToEmoji'] === '1' ? '1' : '0' ),
                 'emojiPicker'           => ( $this->settings['emojiPicker'] === '1' ? '1' : '0' ),
@@ -855,7 +854,7 @@ if ( ! class_exists( 'Better_Messages' ) && ! function_exists( 'bpbm_fs' ) ) {
                 'total_unread'           => (int) $unread_count,
                 'disableEnter'           => ( $this->settings['disableEnterForDesktop'] == '1' ? '1' : '0' ),
                 'miniClose'              => ( $this->settings['enableMiniCloseButton'] ? '1' : '0' ),
-                'miniChats'              => ( ( $this->realtime && $this->settings['miniChatsEnable'] ) || $this->guests->force_mini_for_guest_on_restricted_chat_page() ? '1' : '0' ),
+                'miniChats'              => ( $this->realtime && $this->settings['miniChatsEnable'] ? '1' : '0' ),
                 'miniMessages'           => ( $this->realtime && $this->settings['miniThreadsEnable'] ? '1' : '0' ),
                 'miniAIBots'             => ( $this->settings['miniAIBotsEnable'] == '1' ? '1' : '0' ),
                 'miniChatRooms'          => ( $this->settings['miniChatRoomsEnable'] == '1' ? '1' : '0' ),
@@ -891,6 +890,7 @@ if ( ! class_exists( 'Better_Messages' ) && ! function_exists( 'bpbm_fs' ) ) {
                 'widgetUsersRoleHashes'  => Better_Messages()->functions->hash_role_slugs(
                     is_array( $this->settings['widgetUsersRoles'] ?? null ) ? $this->settings['widgetUsersRoles'] : array()
                 ),
+                'participantsOnlineFirst' => ( ( $this->settings['participantsOnlineFirst'] ?? '1' ) === '1' ? '1' : '0' ),
                 'widgetFriendsShowSearch'   => ( ( $this->settings['widgetFriendsShowSearch']   ?? '1' ) === '1' ? '1' : '0' ),
                 'widgetGroupsShowSearch'    => ( ( $this->settings['widgetGroupsShowSearch']    ?? '1' ) === '1' ? '1' : '0' ),
                 'widgetAIBotsShowSearch'    => ( ( $this->settings['widgetAIBotsShowSearch']    ?? '1' ) === '1' ? '1' : '0' ),

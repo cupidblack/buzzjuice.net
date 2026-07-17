@@ -791,12 +791,17 @@ jQuery(function($){
 				<div class="col-sm-5 col-xs-12">
 					<div class="form-group">
 						<label><?php esc_html_e( 'Log Entry', 'mycred' ); ?></label>
-						<input type="text" name="mycred_manage_balance[entry]" id="mycred-editor-entry" placeholder="<?php $mycred->core['admin_log_entries'] ? esc_attr_e( 'Required', 'mycred' ) : esc_attr_e( 'optional', 'mycred' ); ?>" class="form-control regular-text" <?php echo $mycred->core['admin_log_entries'] ? 'required' : ''; ?>/>
+						<?php $is_required = isset($mycred->core['admin_log_entries']) && $mycred->core['admin_log_entries']; ?>
+						<input type="text"
+						       name="mycred_manage_balance[entry]"
+						       id="mycred-editor-entry"
+						       placeholder="<?php echo $is_required ? esc_attr__( 'Required', 'mycred' ) : esc_attr__( 'optional', 'mycred' ); ?>"
+						       class="form-control regular-text"
+						       <?php echo $is_required ? 'required' : ''; ?>/>
 						<span class="description"><?php echo wp_kses_post( $mycred->available_template_tags( array( 'general', 'amount' ) ) ); ?></span>
 					</div>
 				</div>
 			</div>
-
 			<div class="row last">
 				<div class="col-lg-10 col-md-10 col-sm-12 col-xs-12">
 					<input type="submit" id="mycred-editor-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Update', 'mycred' ); ?>" />

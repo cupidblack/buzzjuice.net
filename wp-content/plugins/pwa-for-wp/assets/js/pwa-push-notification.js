@@ -1,18 +1,15 @@
-		    var config=;                     
+		    var config={ apiKey: 'sddgdfgdgd', authDomain: 'tttrytrytry', databaseURL: 'ytutrtrur', projectId: 'rutrutrurturtutyu', storageBucket: 'dtyuytutru', messagingSenderId: 'rutrueru' };                     
                      if (!firebase.apps.length) {
 		                      firebase.initializeApp(config);	
 		                    }                    		  		  		  
                     
                     var messaging = firebase.messaging();
 
-                    // Wait for pwa-register-sw.js to call useServiceWorker() before triggering getToken().
-                    // Firebase SDK v7 requires useServiceWorker() to run exactly once, before getToken().
                     function pwaforwpStartForegroundMessaging() {
                       if (!('serviceWorker' in navigator)) {
                         console.log('Service workers are not supported in this browser.');
                         return;
                       }
-                      // pwaforwpFirebaseSwReady is set in pwa-register-sw.js and resolves after useServiceWorker().
                       var swPromise = window.pwaforwpFirebaseSwReady || navigator.serviceWorker.ready;
                       swPromise.then(function () {
                         messaging.requestPermission().then(function() {
@@ -35,7 +32,7 @@
                     pwaforwpStartForegroundMessaging();
                 
                 function pwaForWpgetRegToken(argument){
-                    // Firebase SDK v7: getToken() needs no arguments; useServiceWorker() already bound the registration.
+                    // Firebase SDK v7: useServiceWorker() already bound the registration; getToken() takes no args.
                     messaging.getToken().then(function(currentToken) {
                       if (currentToken) {                      
                        pwaForWpsaveToken(currentToken);
@@ -85,7 +82,6 @@
                         url : payload.data.url
                       },
                     };
-                    // Browsers with a SW controller require showNotification() instead of new Notification().
                     if (navigator.serviceWorker && navigator.serviceWorker.controller) {
                         navigator.serviceWorker.ready.then(function(reg) {
                             reg.showNotification(notificationTitle, notificationOptions);
