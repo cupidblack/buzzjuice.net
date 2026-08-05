@@ -245,6 +245,7 @@ add_filter('gettext', function($translated, $text, $domain) {
 
 
 
+
 /**
  * @snippet       Redirect to Checkout Upon Add to Cart - WooCommerce
  * @how-to        businessbloomer.com/woocommerce-customization
@@ -253,8 +254,9 @@ add_filter('gettext', function($translated, $text, $domain) {
  * @community     https://businessbloomer.com/club/
  */
   
-add_filter( 'woocommerce_add_to_cart_redirect', 'bbloomer_redirect_checkout_add_cart' );
+/*add_filter( 'woocommerce_add_to_cart_redirect', 'bbloomer_redirect_checkout_add_cart' );
  
 function bbloomer_redirect_checkout_add_cart() {
    return wc_get_checkout_url();
 }
+*/

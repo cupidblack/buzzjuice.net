@@ -86,5 +86,4 @@ class DailyCounter {
 	public function current() {
 		return (int) $this->storage->get( $this->key );
 	}
-
 }

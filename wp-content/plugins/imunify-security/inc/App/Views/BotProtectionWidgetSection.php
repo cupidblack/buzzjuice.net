@@ -14,6 +14,8 @@ use CloudLinux\Imunify\App\Bot\DailyCounter;
 use CloudLinux\Imunify\App\Bot\OptOutFlag;
 use CloudLinux\Imunify\App\Bot\Preset;
 use CloudLinux\Imunify\App\Bot\DbStorageFactory;
+use CloudLinux\Imunify\App\Bot\LoopbackSafetyTest;
+use CloudLinux\Imunify\App\Bot\LoopbackStatus;
 use CloudLinux\Imunify\App\DataStore;
 use CloudLinux\Imunify\App\Model\PluginConfig;
 
@@ -46,6 +48,8 @@ class BotProtectionWidgetSection {
 	const SUBMIT_SAVE_PRESET = 'save_preset';
 	const SUBMIT_DISABLE     = 'disable';
 	const SUBMIT_ENABLE      = 'enable';
+	const SUBMIT_RECHECK     = 'recheck_loopback';
+	const SUBMIT_DISMISS     = 'dismiss_loopback';
 	const PANE_ID            = 'bot-protection';
 
 	/**
@@ -115,6 +119,12 @@ class BotProtectionWidgetSection {
 		$blocked_today = self::safeBlockedCount();
 		$can_edit      = $server_on && ! $constant_off && self::currentUserCanEdit();
 
+		// Self-reachability only matters while the feature is live — that is
+		// when its wp-cron jobs (bot-data refresh, storage cleanup) are
+		// scheduled. Read the recorded status (a non-autoloaded option) only
+		// when active; && short-circuits the read otherwise.
+		$loopback_warning = ( 'active' === $status ) && ( new LoopbackStatus() )->read()['warning'];
+
 		return array(
 			'server_enabled'      => $server_on,
 			'site_enabled'        => $site_enabled,
@@ -134,6 +144,10 @@ class BotProtectionWidgetSection {
 			// no actionable control.
 			'has_pane'            => ( 'active' === $status ) || $can_edit,
 			'limits_by_preset'    => self::limitsByPreset(),
+			// Loopback self-reachability warning, surfaced as a row badge and
+			// a pane callout. False unless the feature is active and a probe
+			// recorded a non-OK, non-dismissed result.
+			'loopback_warning'    => $loopback_warning,
 		);
 	}
 
@@ -296,6 +310,13 @@ class BotProtectionWidgetSection {
 		$html  = '<a href="#" class="imunify-security__nav-link js-nav-link js-bot-protection-row" data-pane="' . esc_attr( self::PANE_ID ) . '">';
 		$html .= '<span class="imunify-security__nav-link-text">' . esc_html( $label_text ) . '</span>';
 		$html .= $status_html;
+		if ( ! empty( $state['loopback_warning'] ) ) {
+			$tooltip = self::loopbackTooltip();
+			$html   .= ' <span class="dashicons dashicons-warning imunify-security__nav-link-warning js-bot-loopback-badge js-custom-tooltip"'
+				. ' data-tooltip="' . esc_attr( $tooltip ) . '"'
+				. ' data-tooltip-nowrap="1"'
+				. ' aria-label="' . esc_attr( $tooltip ) . '"></span>';
+		}
 		$html .= '<span class="imunify-security__nav-link-arrow dashicons dashicons-arrow-right-alt2"></span>';
 		$html .= '</a>';
 		return $html;
@@ -338,6 +359,13 @@ class BotProtectionWidgetSection {
 		$html .= '</div>';
 
 		$html .= '<div class="imunify-security__bot-pane">';
+
+		// Self-reachability warning sits at the top of the pane so it reads
+		// before the status/counter rows. Shown only when active + warning
+		// (see computeState); Re-check / Dismiss appear only to editors.
+		if ( ! empty( $state['loopback_warning'] ) ) {
+			$html .= $this->renderLoopbackWarning( $can_edit );
+		}
 
 		// Status + counter — uses the same overview-row grid as the main
 		// scan summary so the two read consistently.
@@ -473,6 +501,52 @@ class BotProtectionWidgetSection {
 	}
 
 	/**
+	 * Amber self-reachability callout. Leads with the user-facing framing
+	 * ("Your site can't reach itself") and explains the consequence —
+	 * scheduled tasks, including automatic bot-data updates, may not run.
+	 * Re-check and Dismiss are rendered only for users who can manage the
+	 * feature; everyone else sees the explanation alone.
+	 *
+	 * @param bool $can_edit Whether to render the Re-check / Dismiss actions.
+	 * @return string
+	 */
+	private function renderLoopbackWarning( $can_edit ) {
+		$html  = '<div class="imunify-security__bot-callout imunify-security__bot-callout--warning js-bot-loopback-warning">';
+		$html .= '<p class="imunify-security__bot-callout-title">'
+			. esc_html__( "Your site can't reach itself", 'imunify-security' ) . '</p>';
+		$html .= '<p class="imunify-security__bot-callout-text">'
+			. esc_html__(
+				"Your site couldn't reach itself, so scheduled tasks — including automatic bot-data updates — may not run.",
+				'imunify-security'
+			) . '</p>';
+
+		if ( $can_edit ) {
+			$html .= '<div class="imunify-security__bot-callout-actions">';
+			$html .= '<form class="js-bot-protection-form">';
+			$html .= '<button type="submit" name="' . esc_attr( self::SUBMIT_FIELD ) . '" value="'
+				. esc_attr( self::SUBMIT_RECHECK ) . '" class="button js-bot-recheck">'
+				. esc_html__( 'Re-check', 'imunify-security' ) . '</button>';
+			$html .= '<button type="submit" name="' . esc_attr( self::SUBMIT_FIELD ) . '" value="'
+				. esc_attr( self::SUBMIT_DISMISS ) . '" class="button-link js-bot-dismiss">'
+				. esc_html__( 'Dismiss', 'imunify-security' ) . '</button>';
+			$html .= '</form>';
+			$html .= '</div>';
+		}
+
+		$html .= '</div>';
+		return $html;
+	}
+
+	/**
+	 * Short hover-tooltip copy for the row warning badge.
+	 *
+	 * @return string
+	 */
+	private static function loopbackTooltip() {
+		return __( "Your site can't reach itself — scheduled updates may not run.", 'imunify-security' );
+	}
+
+	/**
 	 * Status label shown on the Status row inside the pane. Unlike the
 	 * one-word badge on the main row, this returns the full explanation
 	 * so users see the reason without hovering a tooltip.
@@ -596,6 +670,39 @@ class BotProtectionWidgetSection {
 	}
 
 	/**
+	 * Re-run the self-reachability probe on demand and persist the result.
+	 *
+	 * Runs in an authenticated admin request, so cookies and Basic Auth are
+	 * forwarded to cut false negatives. A passing probe records an OK result,
+	 * which clears the warning the widget reads.
+	 *
+	 * @return void
+	 */
+	private function applyRecheck() {
+		$result = ( new LoopbackSafetyTest() )->run( $this->homeUrl(), true );
+		( new LoopbackStatus() )->record( $result );
+	}
+
+	/**
+	 * Acknowledge the current warning so the widget stops surfacing it.
+	 *
+	 * @return void
+	 */
+	private function applyDismiss() {
+		( new LoopbackStatus() )->dismiss();
+	}
+
+	/**
+	 * Resolve the site home URL for the loopback probe, or '' when WordPress
+	 * is not loaded (unit context).
+	 *
+	 * @return string
+	 */
+	private function homeUrl() {
+		return function_exists( 'home_url' ) ? (string) home_url( '/' ) : '';
+	}
+
+	/**
 	 * AJAX handler wired by Plugin::init() via wp_ajax_{AJAX_ACTION}.
 	 * Validates capability + nonce, applies the mutation, then returns
 	 * the refreshed row and pane HTML so the JS can swap both in place.
@@ -620,7 +727,13 @@ class BotProtectionWidgetSection {
 			? sanitize_text_field( wp_unslash( $_POST['preset'] ) )
 			: '';
 
-		$allowed_actions = array( self::SUBMIT_SAVE_PRESET, self::SUBMIT_DISABLE, self::SUBMIT_ENABLE );
+		$allowed_actions = array(
+			self::SUBMIT_SAVE_PRESET,
+			self::SUBMIT_DISABLE,
+			self::SUBMIT_ENABLE,
+			self::SUBMIT_RECHECK,
+			self::SUBMIT_DISMISS,
+		);
 		if ( ! in_array( $action, $allowed_actions, true ) ) {
 			wp_send_json_error(
 				array( 'message' => __( 'Invalid action.', 'imunify-security' ) ),
@@ -629,21 +742,26 @@ class BotProtectionWidgetSection {
 			return; // @phpstan-ignore deadCode.unreachable (wp_die handler may be overridden)
 		}
 
-		$written = $this->applySubmission( $action, $posted );
-
-		$fragments = $this->view();
-
-		if ( ! $written ) {
-			wp_send_json_error(
-				array(
-					'message'  => __( 'Settings could not be saved.', 'imunify-security' ),
-					'rowHtml'  => $fragments['row'],
-					'paneHtml' => $fragments['pane'],
-				)
-			);
-			return; // @phpstan-ignore deadCode.unreachable (wp_die handler may be overridden)
+		if ( self::SUBMIT_RECHECK === $action ) {
+			$this->applyRecheck();
+		} elseif ( self::SUBMIT_DISMISS === $action ) {
+			$this->applyDismiss();
+		} else {
+			$written = $this->applySubmission( $action, $posted );
+			if ( ! $written ) {
+				$fragments = $this->view();
+				wp_send_json_error(
+					array(
+						'message'  => __( 'Settings could not be saved.', 'imunify-security' ),
+						'rowHtml'  => $fragments['row'],
+						'paneHtml' => $fragments['pane'],
+					)
+				);
+				return; // @phpstan-ignore deadCode.unreachable (wp_die handler may be overridden)
+			}
 		}
 
+		$fragments = $this->view();
 		wp_send_json_success(
 			array(
 				'rowHtml'  => $fragments['row'],

@@ -48,6 +48,18 @@ class PluginConfig {
 	private $preset = null;
 
 	/**
+	 * True when this instance stands in for a plugin_config.php that
+	 * couldn't be read at all (missing / unreadable / unparseable),
+	 * rather than one that was successfully read and says the flag is
+	 * off. isAiBotProtectionEnabled() still reads false either way — the
+	 * distinction exists for callers like MuPluginSelfHealer that must
+	 * not treat "couldn't tell" the same as "hoster said no".
+	 *
+	 * @var bool
+	 */
+	private $indeterminate = false;
+
+	/**
 	 * Hydrate from the decoded contents of plugin_config.php.
 	 *
 	 * @param mixed $data Decoded file contents (expected array).
@@ -71,12 +83,37 @@ class PluginConfig {
 	}
 
 	/**
+	 * Stand-in for a plugin_config.php that couldn't be determined at
+	 * all. Reads the same as a disabled config to callers that don't
+	 * check isIndeterminate() — install decisions and the per-request
+	 * gate already default safely to "off" when unsure.
+	 *
+	 * @return self
+	 */
+	public static function indeterminate() {
+		$instance                = new self();
+		$instance->indeterminate = true;
+		return $instance;
+	}
+
+	/**
 	 * Whether the server-level AI bot protection feature gate is enabled.
 	 *
 	 * @return bool
 	 */
 	public function isAiBotProtectionEnabled() {
 		return $this->aiBotProtectionEnabled;
+	}
+
+	/**
+	 * Whether this config's real state is unknown (the source file was
+	 * missing, unreadable, or failed to parse) rather than genuinely
+	 * read as disabled.
+	 *
+	 * @return bool
+	 */
+	public function isIndeterminate() {
+		return $this->indeterminate;
 	}
 
 	/**

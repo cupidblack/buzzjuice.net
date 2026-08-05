@@ -11,6 +11,7 @@
 
 namespace CloudLinux\Imunify\App\Defender;
 
+use CloudLinux\Imunify\App\Bot\AtomicFileWriter;
 use CloudLinux\Imunify\App\Defender\Model\Rule;
 use CloudLinux\Imunify\App\Defender\Model\TargetInfo;
 use CloudLinux\Imunify\App\Helpers\IpAddress;
@@ -243,7 +244,9 @@ class IncidentRecorder {
 	 * @return array Array of POST argument names, limited to 10 kB JSON-encoded size.
 	 */
 	private function getPostNames( Request $request ) {
-		$names = array_keys( $request->getAllPost() );
+		// getPostNames() already drops the synthetic fail-closed RAW_BODY_KEY
+		// sentinel, so it is not logged as a client-supplied POST parameter.
+		$names = $request->getPostNames();
 
 		// Limit the array to 10 kB JSON-encoded size.
 		return $this->limitArraySize( $names, self::ARRAY_DATA_MAX_SIZE );
@@ -351,18 +354,7 @@ class IncidentRecorder {
 	 * @return void
 	 */
 	public function ensureDirectoryListingProtection( $directory ) {
-		$protectionFiles = array(
-			'.htaccess'  => "DirectoryIndex index.php index.html\ndeny from all\n",
-			'index.php'  => "<?php\n// This file is intentionally blank.\n",
-			'index.html' => "<!-- This file is intentionally blank. -->\n",
-		);
-
-		foreach ( $protectionFiles as $filename => $content ) {
-			$filePath = $directory . '/' . $filename;
-			if ( ! file_exists( $filePath ) ) {
-				@file_put_contents( $filePath, $content );
-			}
-		}
+		AtomicFileWriter::ensureDirectoryProtection( $directory );
 	}
 
 	/**

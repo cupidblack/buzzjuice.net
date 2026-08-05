@@ -1,18 +1,36 @@
 <?php
 /**
+ * Imunify Security plugin for WordPress.
+ *
+ * @copyright Copyright 2010-2026 CloudLinux Inc.
+ * @license   https://www.gnu.org/licenses/gpl-2.0.html GNU General Public License, version 2 or later
+ *
+ * @wordpress-plugin
  * Plugin Name: Imunify Security
  * Plugin URI: https://imunify360.com/imunify-security-wp-plugin/
  * Description: Imunify Security WordPress plugin is a comprehensive tool offering malware scanning, firewall protection, and intrusion detection for WordPress websites.
- * Version: 4.0.1
+ * Version: 4.0.2
  * Requires at least: 5.0.0
  * Requires PHP: 5.6
  * Author: CloudLinux
  * Author URI: https://www.cloudlinux.com
  * Text Domain: imunify-security
  * Domain Path: /languages
- * Licence: CloudLinux Commercial License
+ * License: GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  *
- * Copyright 2010-2026 CloudLinux
+ * Imunify Security plugin for WordPress is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software Foundation, either
+ * version 2 of the License, or any later version.
+ *
+ * Imunify Security plugin for WordPress is distributed in the hope
+ * that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this plugin. If not, see https://www.gnu.org/licenses/
  */
 
 use CloudLinux\Imunify\App\Plugin;
@@ -22,45 +40,23 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 define( 'IMUNIFY_SECURITY_SLUG', 'imunify-security' );
-define( 'IMUNIFY_SECURITY_PATH', dirname( __FILE__ ) );
-define( 'IMUNIFY_SECURITY_VERSION', '4.0.1' );
+define( 'IMUNIFY_SECURITY_PATH', __DIR__ );
+define( 'IMUNIFY_SECURITY_VERSION', '4.0.2' );
 define( 'IMUNIFY_SECURITY_FILE_PATH', __FILE__ );
 
-spl_autoload_register(
-	function ( $class ) {
-		$prefixes = array(
-			'CloudLinux\\Imunify\\Composer\\Semver\\' => IMUNIFY_SECURITY_PATH . '/lib/CloudLinux/Imunify/Composer/Semver/',
-			'CloudLinux\\Imunify\\'                   => IMUNIFY_SECURITY_PATH . '/inc/',
-		);
-
-		foreach ( $prefixes as $prefix => $base_dir ) {
-			if ( 0 === strpos( $class, $prefix ) ) {
-				$relative_class = substr( $class, strlen( $prefix ) );
-				$file           = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
-				// @phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-				if ( @file_exists( $file ) ) {
-					include_once $file;
-				}
-				break;
-			}
-		}
-	}
-);
+require_once __DIR__ . '/inc/autoload.php';
 
 register_activation_hook(
 	__FILE__,
-	array( \CloudLinux\Imunify\App\Bot\LifecycleHooks::class, 'onActivate' )
+	array( \CloudLinux\Imunify\App\Lifecycle\Lifecycle::class, 'activate' )
 );
 
 register_deactivation_hook(
 	__FILE__,
-	array( \CloudLinux\Imunify\App\Bot\LifecycleHooks::class, 'onDeactivate' )
+	array( \CloudLinux\Imunify\App\Lifecycle\Lifecycle::class, 'deactivate' )
 );
 
-register_uninstall_hook(
-	__FILE__,
-	array( \CloudLinux\Imunify\App\Bot\LifecycleHooks::class, 'onUninstall' )
-);
+// Uninstall cleanup runs from uninstall.php (the WordPress magic file), not a hook.
 
 add_action( 'plugins_loaded', array( \CloudLinux\Imunify\App\Bot\MuPluginSelfHealer::class, 'check' ) );
 

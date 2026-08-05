@@ -1697,16 +1697,29 @@ if (!function_exists('Wo_UpdateUserData')) {
 
                 // skip pro_ special case
                 if ($field == 'pro_') continue;
-
-                // NEVER propagate passwords or auth fields from WW to other platforms here
-                if (strtolower($field) === 'password' || strtolower($field) === 'user_pass') {
-                    wwqd_debug('skipping_password_field', ['user'=>$user_id, 'field'=>$field]);
-                    // still store in WoWonder DB field if desired? original code stored in WoWonder - preserve that.
+                
+                $field_l = strtolower((string)$field);
+                
+                // Password / auth fields: keep original semantics (still stored if present)
+                if ($field_l === 'password' || $field_l === 'user_pass') {
+                    wwqd_debug('skipping_password_field', ['user' => $user_id, 'field' => $field]);
+                    // ensure the hashed password (or other supplied value) is escaped, do not re-normalize
+                    $escaped_val = $sqlConnect ? $sqlConnect->real_escape_string((string)$data) : addslashes((string)$data);
+                    $update_clauses[] = '`' . $field . '` = \'' . $escaped_val . '\'';
+                    continue;
+                }
+                
+                // Special-case username: preserve exact characters supplied (do NOT run through Wo_Secure which may strip punctuation).
+                // We still must escape it for SQL to avoid injection.
+                if ($field_l === 'username') {
+                    $finalData = (string)$data;
                     $escaped_val = $sqlConnect ? $sqlConnect->real_escape_string($finalData) : addslashes($finalData);
                     $update_clauses[] = '`' . $field . '` = \'' . $escaped_val . '\'';
                     continue;
                 }
-
+                
+                // Default: follow original field-specific escaping behavior for other fields
+                $finalData = in_array($field, $filter, true) ? Wo_Secure($data, 1) : Wo_Secure($data, 0);
                 $escaped_val = $sqlConnect ? $sqlConnect->real_escape_string($finalData) : addslashes($finalData);
                 $update_clauses[] = '`' . $field . '` = \'' . $escaped_val . '\'';
             }

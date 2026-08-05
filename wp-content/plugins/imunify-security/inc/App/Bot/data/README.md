@@ -2,7 +2,7 @@
 
 All files here are **auto-generated** by `bin/update-bot-data.php`. Do not edit by hand — run the updater instead.
 
-> **Phase 1 ships bundled data only.** `SignatureRefresher`'s wp-cron-driven overlay refresh is deliberately not scheduled (see `LifecycleHooks::onActivate`). What you see in this directory is what the classifier sees — no upstream pulls happen at runtime. Phase 2 (`DEF-42173`) re-enables cron-driven refresh, but pointed at CloudLinux-owned mirrors of the upstream sources, with a change-gate that requires human review when an incoming refresh exceeds defined deltas (IP-range count, UA-token count, checksum churn).
+> **Phase 1 ships bundled data only.** `SignatureRefresher`'s wp-cron-driven overlay refresh is deliberately not scheduled (see `BotLifecycle::activate`). What you see in this directory is what the classifier sees — no upstream pulls happen at runtime. Phase 2 (`DEF-42173`) re-enables cron-driven refresh, but pointed at CloudLinux-owned mirrors of the upstream sources, with a change-gate that requires human review when an incoming refresh exceeds defined deltas (IP-range count, UA-token count, checksum churn).
 
 ## Shape
 

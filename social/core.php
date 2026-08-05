@@ -3067,10 +3067,50 @@ function logout($redirect = true){
     }
 }
 */
-function logout(){
-    $proxy = 'https://buzzjuice.net/social/logout.php?social=home';
-    header('Location: ' . $proxy);
-    exit();
+function logout($redirect = true){
+    global $db, $config;
+
+    if (file_exists(__DIR__ . '/../shared/logout-common.php')) {
+        require_once __DIR__ . '/../shared/logout-common.php';
+    }
+    bz_ensure_session_started();
+
+    // Capture session id BEFORE clearing
+    $session_id = bz_capture_session_id();
+    bz_logout_log('quickdate', $session_id ?: null, 'logout_function', 'initiated', ['redirect' => $redirect]);
+
+    // DB cleanup if possible
+    if (!empty($session_id) && isset($db)) {
+        try {
+            if (method_exists($db, 'where') && method_exists($db, 'delete')) {
+                $db->where('session_id', $session_id)->delete('sessions');
+                $db->where('web_token', $session_id)->update('users', array(
+                    'web_token' => null,
+                    'web_token_created_at' => '0',
+                    'web_device' => null
+                ));
+                bz_logout_log('quickdate', $session_id, 'db_cleanup', 'success');
+            }
+        } catch (Throwable $e) {
+            bz_logout_log('quickdate', $session_id, 'db_cleanup', 'error', ['err' => $e->getMessage()]);
+        }
+    }
+
+    // Clear cookies (app + shared)
+    $qd_cookies = ['JWT', 'quickdating', 'verify_email', 'verify_phone', 'src', 'mode'];
+    bz_clear_cookies(array_merge($qd_cookies, ['buzz_sso', 'buzz_access', 'buzz_refresh', 'bbj_sso_ready']));
+
+    // destroy php session
+    bz_destroy_php_session();
+
+    bz_logout_log('quickdate', $session_id ?: null, 'logout_function', 'complete', ['redirect' => $redirect]);
+
+    if ($redirect) {
+        // Redirect to WP SSO endpoint so WordPress completes identity invalidation
+        $home = isset($config->uri) ? $config->uri : 'https://buzzjuice.net/';
+        header('Location: https://buzzjuice.net/sso/logout?redirect_to=' . rawurlencode($home));
+        exit;
+    }
 }
 function generate_chat_messages_convirsation($user_id,$to,$offset = 0,$show_unreadline = true,$lastmsg = 0,$prev=false){
     global $db,$console_log;

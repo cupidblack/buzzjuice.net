@@ -218,6 +218,18 @@ class MemoryBlockStorage implements BlockStorageInterface {
 
 		$suppress = $this->wpdb->suppress_errors( true );
 
+		// LIMIT 0 resolves the table reference without touching rows; ob buffering
+		// stops mysqli output from reaching error handlers that throw on E_WARNING.
+		ob_start();
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$this->wpdb->query( "SELECT 1 FROM `{$blocks_tbl}` LIMIT 0" );
+		ob_end_clean();
+
+		if ( $this->isTableMissing() ) {
+			$this->wpdb->suppress_errors( $suppress );
+			return;
+		}
+
 		// Delete expired InnoDB blocks.
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		$sql = $this->wpdb->prepare(

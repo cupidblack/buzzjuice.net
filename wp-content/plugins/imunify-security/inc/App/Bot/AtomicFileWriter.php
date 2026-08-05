@@ -28,8 +28,8 @@ class AtomicFileWriter {
 	public static function write( $target, $body, $mode = null ) {
 		$tmp = $target . '.tmp-' . getmypid();
 
-		// @phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen
-		$handle = fopen( $tmp, 'w' );
+		// @phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fopen,WordPress.PHP.NoSilencedErrors.Discouraged
+		$handle = @fopen( $tmp, 'w' );
 		if ( false === $handle ) {
 			return false;
 		}
@@ -62,5 +62,31 @@ class AtomicFileWriter {
 
 		clearstatcache( true, $target );
 		return is_file( $target );
+	}
+
+	/**
+	 * Write .htaccess, index.php, and index.html into $dir to prevent direct
+	 * web access and directory listing. Skips any file that already exists.
+	 * No-op when $dir does not exist.
+	 *
+	 * @param string $dir Absolute path to the directory to protect.
+	 */
+	public static function ensureDirectoryProtection( $dir ) {
+		$dir = rtrim( (string) $dir, '/' );
+		if ( ! is_dir( $dir ) ) {
+			return;
+		}
+		$files = array(
+			'.htaccess'  => "DirectoryIndex index.php index.html\ndeny from all\n",
+			'index.php'  => "<?php\n// This file is intentionally blank.\n",
+			'index.html' => "<!-- This file is intentionally blank. -->\n",
+		);
+		foreach ( $files as $filename => $content ) {
+			$path = $dir . '/' . $filename;
+			if ( ! file_exists( $path ) ) {
+				// @phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_put_contents,WordPress.PHP.NoSilencedErrors.Discouraged
+				@file_put_contents( $path, $content );
+			}
+		}
 	}
 }

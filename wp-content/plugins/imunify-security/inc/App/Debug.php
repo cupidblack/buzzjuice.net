@@ -386,7 +386,7 @@ class Debug {
 		curl_setopt( $ch, CURLOPT_POSTFIELDS, wp_json_encode( $body ) );
 		curl_setopt( $ch, CURLOPT_TIMEOUT, 1 );
 		curl_setopt( $ch, CURLOPT_CONNECTTIMEOUT, 1 );
-		curl_setopt( $ch, CURLOPT_HEADER, 0 );
+		curl_setopt( $ch, CURLOPT_HEADER, false );
 		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
 		$response = curl_exec( $ch );
 		curl_close( $ch );
@@ -513,7 +513,7 @@ class Debug {
 		// so that version tagging can never disrupt error reporting.
 		try {
 			$versions = function_exists( 'get_option' )
-				? get_option( 'imunify_security_package_versions', array() )
+				? get_option( DataStore::PACKAGE_VERSIONS_OPTION, array() )
 				: array();
 			if ( is_array( $versions ) ) {
 				foreach ( $versions as $package => $version ) {
@@ -542,7 +542,7 @@ class Debug {
 	/**
 	 * Get extra data.
 	 *
-	 * @return array<string> Extra data.
+	 * @return array<string, int|string> Extra data.
 	 */
 	public function extra() {
 		return array(

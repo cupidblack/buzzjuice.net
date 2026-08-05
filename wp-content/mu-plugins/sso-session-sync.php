@@ -23,6 +23,11 @@ add_action('init', function () {
 // --------------------------------------
 require_once ABSPATH . '/shared/sso_bridge_helpers.php';
 
+// --- load shared logout helper (if present) ---
+if (file_exists(ABSPATH . '/shared/logout-common.php')) {
+    require_once ABSPATH . '/shared/logout-common.php';
+}
+
 // --------------------------------------
 // CONFIG
 // --------------------------------------
@@ -150,88 +155,151 @@ add_action('init', function() use ($__buzz_sso_secret) {
         exit;
     }
 });
-// ---------------------------------------------------
-// LOGOUT HANDOFF
-// ---------------------------------------------------
-/**
- * BuzzJuice SSO/Session Sync — Unified Logout Handler
- * 
- * Cleans up WordPress + SSO (JWT) cookies, destroys PHP session,
- * invalidates SSO state, triggers orchestrator Single Log Out (SLO) chain.
- */
-add_action('wp_logout', function () {
-    // ---- CONFIG ----
-    $cookie_domain = defined('BUZZ_COOKIE_DOMAIN') ? BUZZ_COOKIE_DOMAIN : '.buzzjuice.net';
-    $sso_cookie    = defined('BUZZ_SSO_COOKIE')    ? BUZZ_SSO_COOKIE    : 'buzz_sso';
-    $orchestrator_url = 'https://buzzjuice.net/shared/sso-logout.php?cabin=home';
-    $expiry = time() - 3600;
-    $secure = is_ssl();
 
-    // ---- Optional pre-logout hook for orchestration ----
-    if (function_exists('do_action')) {
-        do_action('bbj_sso_before_logout_cleanup', get_current_user_id());
+// -----------------------------
+// SSO: dedicated logout endpoint + hardened wp_logout cleanup
+// -----------------------------
+
+// Dedicated endpoint for cross-app handoff: /sso/logout or ?buzz_logout=1
+add_action('init', function () {
+    $req = $_SERVER['REQUEST_URI'] ?? '';
+    $path = parse_url($req, PHP_URL_PATH) ?: '';
+    $is_sso_path = (rtrim($path, '/') === '/sso/logout');
+
+    if (empty($_GET['buzz_logout']) && !$is_sso_path) {
+        return;
     }
 
-    // ---- Remove all WordPress authentication cookies ----
-    foreach ($_COOKIE as $key => $val) {
-        if (strpos($key, 'wordpress_logged_in_') === 0) {
-            setcookie($key, '', $expiry, '/');
-            unset($_COOKIE[$key]);
+    // Ensure helper available
+    if (file_exists(ABSPATH . '/shared/logout-common.php')) {
+        require_once ABSPATH . '/shared/logout-common.php';
+    }
+
+    // If a WP session exists, call wp_logout() which triggers the wp_logout hook below.
+    if (function_exists('is_user_logged_in') && is_user_logged_in()) {
+        if (function_exists('wp_logout')) {
+            wp_logout();
+        }
+    } else {
+        // If no WP session but SSO cookies exist, still perform final cleanup
+        if (function_exists('bz_clear_cookies')) {
+            bz_clear_cookies(['buzz_sso', 'buzz_access', 'buzz_refresh', 'bbj_sso_ready']);
+        }
+        if (function_exists('bz_destroy_php_session')) {
+            bz_destroy_php_session();
         }
     }
 
-    // ---- Remove SSO/JWT cookies (with and without domain) ----
-    $all_cookies = array_unique([
-        $sso_cookie,
-        'buzz_sso',
-        'buzz_access',
-        'buzz_refresh'
-    ]);
-    foreach ($all_cookies as $c) {
-        if (!$c) continue;
-        setcookie($c, '', $expiry, '/', $cookie_domain, $secure, true);
-        unset($_COOKIE[$c]);
-        setcookie($c, '', $expiry, '/', '', $secure, true);
+    // redirect_to parameter or fallback to home
+    $redirect_to = !empty($_REQUEST['redirect_to']) ? esc_url_raw($_REQUEST['redirect_to']) : home_url('/');
+    if (function_exists('wp_safe_redirect')) {
+        wp_safe_redirect($redirect_to);
+    } else {
+        header('Location: ' . $redirect_to);
+    }
+    exit;
+}, 1);
+
+// Hardened WP logout hook: final defense-in-depth cleanup by WordPress.
+add_action('wp_logout', function () {
+    // Ensure helper loaded
+    if (file_exists(ABSPATH . '/shared/logout-common.php')) {
+        require_once ABSPATH . '/shared/logout-common.php';
     }
 
-    // ---- Destroy PHP session robustly ----
-    if (session_status() === PHP_SESSION_ACTIVE || (function_exists('session_id') && session_id())) {
-        $_SESSION = [];
-        @session_unset();
-        @session_destroy();
+    $user_id = function_exists('get_current_user_id') ? get_current_user_id() : 0;
+    if (function_exists('bz_logout_log')) {
+        bz_logout_log('wordpress', $user_id, 'wp_logout_hook', 'initiated');
     }
 
-    // ---- Invalidate user SSO state (transients) ----
-    if (function_exists('is_user_logged_in') && is_user_logged_in()) {
-        $user_id = get_current_user_id();
-        // Remove SSO readiness/verification flags—important for orchestrator & integrations
+    // 1) Destroy every WordPress session token for the user (global logout)
+    if ($user_id > 0 && class_exists('WP_Session_Tokens')) {
+        try {
+            WP_Session_Tokens::get_instance($user_id)->destroy_all();
+            if (function_exists('bz_logout_log')) bz_logout_log('wordpress', $user_id, 'wp_session_tokens', 'success');
+        } catch (Throwable $e) {
+            if (function_exists('bz_logout_log')) bz_logout_log('wordpress', $user_id, 'wp_session_tokens', 'error', ['err' => $e->getMessage()]);
+        }
+    }
+
+    // 1.5) Update logout epoch on user meta (helps invalidate prior tokens by issued_at)
+    if ($user_id > 0 && function_exists('update_user_meta')) {
+        try {
+            update_user_meta($user_id, 'bbj_logout_epoch', time());
+            if (function_exists('bz_logout_log')) bz_logout_log('wordpress', $user_id, 'logout_epoch', 'updated');
+        } catch (Throwable $e) {
+            if (function_exists('bz_logout_log')) bz_logout_log('wordpress', $user_id, 'logout_epoch', 'error', ['err' => $e->getMessage()]);
+        }
+    }
+
+    // 2) Destroy current session and clear auth cookies via WP APIs if available
+    if (function_exists('wp_destroy_current_session')) {
+        try {
+            wp_destroy_current_session();
+            if (function_exists('bz_logout_log')) bz_logout_log('wordpress', $user_id, 'wp_destroy_current_session', 'success');
+        } catch (Throwable $e) {
+            if (function_exists('bz_logout_log')) bz_logout_log('wordpress', $user_id, 'wp_destroy_current_session', 'error', ['err' => $e->getMessage()]);
+        }
+    }
+    if (function_exists('wp_clear_auth_cookie')) {
+        try {
+            wp_clear_auth_cookie();
+            if (function_exists('bz_logout_log')) bz_logout_log('wordpress', $user_id, 'wp_clear_auth_cookie', 'success');
+        } catch (Throwable $e) {
+            if (function_exists('bz_logout_log')) bz_logout_log('wordpress', $user_id, 'wp_clear_auth_cookie', 'error', ['err' => $e->getMessage()]);
+        }
+    }
+
+    // 3) Clear shared SSO cookies idempotently
+    $shared = ['buzz_sso', 'buzz_access', 'buzz_refresh', 'bbj_sso_ready', 'JWT'];
+    if (function_exists('bz_clear_cookies')) {
+        bz_clear_cookies($shared);
+        bz_logout_log('wordpress', $user_id, 'sso_cookies', 'cleared', ['cookies' => $shared]);
+    }
+
+    // 4) Destroy PHP session (idempotent)
+    if (function_exists('bz_destroy_php_session')) {
+        bz_destroy_php_session();
+        bz_logout_log('wordpress', $user_id, 'php_session', 'destroyed');
+    }
+
+    // 5) Remove SSO transients
+    if ($user_id > 0 && function_exists('delete_transient')) {
         delete_transient('bbj_sso_ready_' . $user_id);
         delete_transient('bbj_sso_verified_' . $user_id);
+        bz_logout_log('wordpress', $user_id, 'sso_transients', 'deleted');
     }
 
-    // ---- Debug logging (optional) ----
-    if (function_exists('bz_debug_log')) {
-        bz_debug_log('wp_logout: unified SSO/session cleanup & SLO orchestrator redirect');
+    if (function_exists('bz_logout_log')) {
+        bz_logout_log('wordpress', $user_id, 'wp_logout_hook', 'complete');
     }
-
-    // ---- Redirect to orchestrator for chained logout ----
-    wp_safe_redirect($orchestrator_url);
-    exit;
 }, 10);
 
-// Optional: forced SLO if WP cookie missing but SSO cookie present
+// Forced SLO protection: if WP not logged-in but shared SSO cookie exists, clear SSO cookies and session and redirect to home.
 add_action('init', function() {
-    if (!is_user_logged_in() && isset($_COOKIE['buzz_sso'])) {
-        $domain = defined('BUZZ_COOKIE_DOMAIN') ? BUZZ_COOKIE_DOMAIN : '.buzzjuice.net';
-        foreach (['buzz_sso','buzz_access','buzz_refresh'] as $c) {
-            setcookie($c, '', time() - 3600, '/', $domain, true, true);
-            unset($_COOKIE[$c]);
-            setcookie($c, '', time() - 3600, '/');
+    if (function_exists('is_user_logged_in') && !is_user_logged_in() && !empty($_COOKIE['buzz_sso'])) {
+        if (file_exists(ABSPATH . '/shared/logout-common.php')) {
+            require_once ABSPATH . '/shared/logout-common.php';
         }
-        header('Location: https://buzzjuice.net');
+        if (function_exists('bz_logout_log')) {
+            bz_logout_log('wordpress', 'unknown', 'forced_slo', 'initiated', ['cookie' => 'buzz_sso']);
+        }
+        if (function_exists('bz_clear_cookies')) {
+            bz_clear_cookies(['buzz_sso', 'buzz_access', 'buzz_refresh', 'bbj_sso_ready']);
+        }
+        if (function_exists('bz_destroy_php_session')) {
+            bz_destroy_php_session();
+        }
+
+        $home = function_exists('home_url') ? home_url('/') : 'https://buzzjuice.net/';
+        if (function_exists('wp_safe_redirect')) {
+            wp_safe_redirect($home);
+        } else {
+            header('Location: ' . $home);
+        }
         exit();
     }
-});
+}, 5);
 
 // --- logout without confirm ---
 add_action('check_admin_referer', function($action, $result){

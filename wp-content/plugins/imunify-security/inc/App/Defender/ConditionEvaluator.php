@@ -23,6 +23,11 @@ use CloudLinux\Imunify\App\Defender\Probe\StorageAvailabilityProbe;
 class ConditionEvaluator {
 
 	/**
+	 * Transient key prefix for probe firing throttles.
+	 */
+	const PROBE_TRANSIENT_PREFIX = 'imunify_probe_';
+
+	/**
 	 * Value resolver instance.
 	 *
 	 * @var ValueResolver
@@ -266,7 +271,10 @@ class ConditionEvaluator {
 			case ConditionSource::REQUEST_URI:
 				return ! empty( $request->getUri() );
 			case ConditionSource::ARGS_NAMES:
-				return $request->hasAnyArgs();
+				// Mirror getArgNames() (not hasAnyArgs()) so &ARGS_NAMES existence
+				// agrees with the values: the hidden RAW_BODY_KEY sentinel must not
+				// count as a name.
+				return ! empty( $request->getArgNames() );
 			default:
 				return false;
 		}
@@ -288,11 +296,19 @@ class ConditionEvaluator {
 
 		$name = $condition->getName();
 		if ( ! empty( $name ) ) {
-			$user_id = $this->getUserIdFromRequest( $name, $request );
-			if ( null === $user_id ) {
+			$user_ids = $this->getCandidateUserIds( $name, $request );
+			if ( empty( $user_ids ) ) {
+				// Field absent: request acts on the current user, rule out of scope.
 				return false;
 			}
-			return ! user_can( $user_id, $capability );
+			// Fire if ANY candidate the backend might resolve lacks the capability
+			// (closes the source/parser gaps; see getCandidateUserIds).
+			foreach ( $user_ids as $user_id ) {
+				if ( ! user_can( $user_id, $capability ) ) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		return ! current_user_can( $capability );
@@ -312,35 +328,84 @@ class ConditionEvaluator {
 	 * @return bool True if request user ID differs from current user (condition matches).
 	 */
 	private function evaluateNotCurrentUser( Condition $condition, Request $request ) {
-		$requestUserId = $this->getUserIdFromRequest( $condition->getName(), $request );
-		if ( null === $requestUserId ) {
+		$user_ids = $this->getCandidateUserIds( $condition->getName(), $request );
+		if ( empty( $user_ids ) ) {
+			// No identifier in any source: acts on the current user, not an IDOR.
 			return false;
 		}
 
-		return get_current_user_id() !== $requestUserId;
+		$current_user_id = get_current_user_id();
+		foreach ( $user_ids as $user_id ) {
+			if ( $current_user_id !== $user_id ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
-	 * Get user ID from request using condition name (e.g., ARGS:user_id).
+	 * Resolve every user ID the WordPress backend could read for an
+	 * identity-keyed condition name (e.g. ARGS:user_id).
+	 *
+	 * Values go through absint() to match get_user_by('id', ...), and a plain
+	 * ARGS field is read from both GET and POST (WordPress reads $_REQUEST),
+	 * closing the parser/HPP gaps an attacker could use to point firewall and
+	 * backend at different users. Duplicates are collapsed.
 	 *
 	 * @param string  $name    Condition name with source and field.
 	 * @param Request $request Request object.
 	 *
-	 * @return int|null User ID or null if not found.
+	 * @return int[] Backend-equivalent user IDs (empty when the field is absent).
 	 */
-	private function getUserIdFromRequest( $name, Request $request ) {
+	private function getCandidateUserIds( $name, Request $request ) {
 		$parsed = Condition::parseNameString( $name );
-
 		if ( null === $parsed['field'] ) {
-			return null;
+			return array();
 		}
 
-		$value = $this->valueResolver->getFieldValue( $request, $parsed );
-		if ( null === $value || empty( $value ) || ! is_numeric( $value ) ) {
-			return null;
+		$ids = array();
+		foreach ( $this->collectRawFieldValues( $request, $parsed ) as $value ) {
+			$ids[] = absint( $value );
 		}
 
-		return (int) $value;
+		return array_values( array_unique( $ids ) );
+	}
+
+	/**
+	 * Collect every present raw value for an identity-keyed field across the
+	 * sources the WordPress backend could read.
+	 *
+	 * Plain ARGS is read from BOTH the query string and the body (see
+	 * getCandidateUserIds). Other sources, and bracketed/nested names, use the
+	 * single-value resolver. Absent values are omitted.
+	 *
+	 * @param Request $request Request object.
+	 * @param array   $parsed  Parsed condition name.
+	 *
+	 * @return array Present raw values (string/array), in GET-then-POST order.
+	 */
+	private function collectRawFieldValues( Request $request, $parsed ) {
+		// bracket_path is always set: null for a literal field, an array otherwise.
+		$is_plain_args = ConditionSource::ARGS === $parsed['source']
+			&& ! isset( $parsed['bracket_path'] );
+
+		if ( ! $is_plain_args ) {
+			$value = $this->valueResolver->getFieldValue( $request, $parsed );
+			return null === $value ? array() : array( $value );
+		}
+
+		$values = array();
+		$get    = $request->get( $parsed['field'] );
+		if ( null !== $get ) {
+			$values[] = $get;
+		}
+		$post = $request->post( $parsed['field'] );
+		if ( null !== $post ) {
+			$values[] = $post;
+		}
+
+		return $values;
 	}
 
 	/**
@@ -432,7 +497,7 @@ class ConditionEvaluator {
 			return false;
 		}
 
-		$transientKey = 'imunify_probe_' . $name . '_sent';
+		$transientKey = self::PROBE_TRANSIENT_PREFIX . $name . '_sent';
 		if ( get_transient( $transientKey ) ) {
 			return false;
 		}

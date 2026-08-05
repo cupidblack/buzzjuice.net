@@ -135,5 +135,4 @@ class OptOutFlag {
 	public function hasExplicitPreset() {
 		return $this->hasExplicitPreset;
 	}
-
 }

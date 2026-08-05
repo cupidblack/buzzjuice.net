@@ -25,6 +25,11 @@ class DataStore {
 	const DIRECTORY = 'imunify-security';
 
 	/**
+	 * Autoloaded option storing Imunify package versions.
+	 */
+	const PACKAGE_VERSIONS_OPTION = 'imunify_security_package_versions';
+
+	/**
 	 * Scan data file name.
 	 */
 	const SCAN_DATA_FILE = 'scan_data.php';
@@ -178,12 +183,12 @@ class DataStore {
 			// option-storage problem.
 			try {
 				$versions = $this->scanData->getVersions();
-				$stored   = get_option( 'imunify_security_package_versions', array() );
+				$stored   = get_option( self::PACKAGE_VERSIONS_OPTION, array() );
 				if ( $versions !== $stored ) {
 					if ( ! empty( $versions ) ) {
-						update_option( 'imunify_security_package_versions', $versions, true );
+						update_option( self::PACKAGE_VERSIONS_OPTION, $versions, true );
 					} else {
-						delete_option( 'imunify_security_package_versions' );
+						delete_option( self::PACKAGE_VERSIONS_OPTION );
 					}
 				}
 			} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- version persistence is non-critical.

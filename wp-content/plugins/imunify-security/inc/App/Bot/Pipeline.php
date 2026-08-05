@@ -136,8 +136,9 @@ class Pipeline {
 		$remote_addr = isset( $server['REMOTE_ADDR'] ) ? (string) $server['REMOTE_ADDR'] : '';
 		$protocol    = isset( $server['SERVER_PROTOCOL'] ) ? (string) $server['SERVER_PROTOCOL'] : '';
 		$ua          = isset( $server['HTTP_USER_AGENT'] ) ? (string) $server['HTTP_USER_AGENT'] : '';
+		$script_name = isset( $server['SCRIPT_NAME'] ) ? (string) $server['SCRIPT_NAME'] : '';
 		$headers     = self::extractHeaders( $server );
-		$honeypot    = Honeypot::isTriggered( $uri );
+		$honeypot    = Honeypot::isTriggered( $uri, Honeypot::basePathFromScriptName( $script_name ) );
 
 		// Resolve the real client IP once, up front. All downstream
 		// consumers — allowlist, rate limiter — must see the same

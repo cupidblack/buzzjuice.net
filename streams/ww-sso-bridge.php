@@ -504,34 +504,140 @@ if (
             )
         ) {
             $wo_user_id = (int)$user_id_by_email;
-            $desired_username = bz_generate_unique_username($wp_username, $sqlConn, $tbl);
-
+        
+            // Preserve WP username exactly (trim only).
+            $desired_username = trim((string) $wp_username);
+        
+            // Prepare normalized reserved/page lists (case-insensitive, mb-safe)
             $reserved_usernames = $wo['reserved_usernames'] ?? [];
-            $is_reserved = in_array($desired_username, $wo['site_pages'] ?? []) ||
-                           in_array($desired_username, $reserved_usernames) ||
-                           (function_exists('Wo_IsNameExist') && Wo_IsNameExist($desired_username));
-
-            if ($is_reserved) {
-                $fatal_error = 'Your desired username is reserved or already taken. Please contact support@buzzjuice.net or edit your name in WordPress.';
+            $site_pages         = $wo['site_pages'] ?? [];
+            $lower_reserved = array_map(function($v){ return function_exists('mb_strtolower') ? mb_strtolower($v,'UTF-8') : strtolower($v); }, (array)$reserved_usernames);
+            $lower_pages    = array_map(function($v){ return function_exists('mb_strtolower') ? mb_strtolower($v,'UTF-8') : strtolower($v); }, (array)$site_pages);
+            $low_desired    = function_exists('mb_strtolower') ? mb_strtolower($desired_username,'UTF-8') : strtolower($desired_username);
+        
+            bz_bridge_log('SSO: Username sync starting (email match)', [
+                'wp_user_id'  => $wp_user_id,
+                'wo_user_id'  => $wo_user_id,
+                'wp_username' => $wp_username,
+                'desired'     => $desired_username
+            ]);
+        
+            // 1) Platform-level reserved names are fatal (user must change in WP)
+            if ($desired_username === '' || in_array($low_desired, $lower_pages, true) || in_array($low_desired, $lower_reserved, true)) {
+                bz_bridge_log('SSO: desired username is reserved (platform)', [
+                    'wp_user_id' => $wp_user_id,
+                    'wo_user_id' => $wo_user_id,
+                    'desired'    => $desired_username
+                ]);
+                $fatal_error = 'Your username is reserved by Streams. Please choose another username in WordPress or contact support@buzzjuice.net.';
                 break;
             }
-            if (strlen($desired_username) < 5) {
+        
+            // 2) Who owns this username in WoWonder? (direct DB check; avoid Wo_IsNameExist here)
+            $username_owner = 0;
+            if ($desired_username !== '') {
+                if ($stmt = mysqli_prepare($sqlConn, "SELECT user_id FROM {$tbl} WHERE username = ? LIMIT 1")) {
+                    mysqli_stmt_bind_param($stmt, "s", $desired_username);
+                    mysqli_stmt_execute($stmt);
+                    mysqli_stmt_bind_result($stmt, $tmp_owner);
+                    mysqli_stmt_fetch($stmt);
+                    mysqli_stmt_close($stmt);
+                    $username_owner = (int)($tmp_owner ?? 0);
+                } else {
+                    bz_bridge_log('SSO: mysqli_prepare failed for owner lookup', ['mysqli_error' => mysqli_error($sqlConn)]);
+                }
+            }
+        
+            bz_bridge_log('SSO: username ownership lookup', [
+                'desired'        => $desired_username,
+                'username_owner' => $username_owner,
+                'wo_user_id'     => $wo_user_id,
+                'wp_user_id'     => $wp_user_id
+            ]);
+        
+            // 3) If username belongs to another account -> fatal (cannot steal handle)
+            if ($username_owner > 0 && $username_owner !== $wo_user_id) {
+                bz_bridge_log('SSO: desired username taken by other user', [
+                    'wp_user_id'     => $wp_user_id,
+                    'wo_user_id'     => $wo_user_id,
+                    'desired'        => $desired_username,
+                    'username_owner' => $username_owner
+                ]);
+                $fatal_error = 'This username already belongs to another Streams account. Please change your username in WordPress or contact support@buzzjuice.net.';
+                break;
+            }
+        
+            // 4) If username already belongs to this Wo account, persist mapping and continue.
+            if ($username_owner === $wo_user_id) {
+                bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
+                $access_payload['wo_user_id'] = $wo_user_id;
+                bz_bridge_log('SSO: username already owned by this Wo account; mapping saved', [
+                    'wp_user_id' => $wp_user_id,
+                    'wo_user_id' => $wo_user_id,
+                    'username'   => $desired_username
+                ]);
+                break;
+            }
+        
+            // 5) Enforce minimum length (multibyte-safe)
+            $len = function_exists('mb_strlen') ? mb_strlen($desired_username, 'UTF-8') : strlen($desired_username);
+            if ($len < 5) {
+                bz_bridge_log('SSO: desired username too short', [
+                    'wp_user_id' => $wp_user_id,
+                    'wo_user_id' => $wo_user_id,
+                    'desired'    => $desired_username,
+                    'length'     => $len
+                ]);
                 $fatal_error = 'Your username is too short for Streams. Please update your name in WordPress.';
                 break;
             }
+        
+            // 6) Attempt to set the exact WP username on the Wo account (preserve identity)
             $update_success = false;
             if (function_exists('Wo_UpdateUserData')) {
-                $update_success = Wo_UpdateUserData($wo_user_id, ['username' => $desired_username]);
+                try {
+                    $update_success = (bool) Wo_UpdateUserData($wo_user_id, ['username' => $desired_username]);
+                } catch (Throwable $e) {
+                    bz_bridge_log('SSO: Wo_UpdateUserData threw exception', [
+                        'ex'         => $e->getMessage(),
+                        'wo_user_id' => $wo_user_id,
+                        'desired'    => $desired_username
+                    ]);
+                    $update_success = false;
+                }
+            } else {
+                bz_bridge_log('SSO: Wo_UpdateUserData not available', [
+                    'wo_user_id' => $wo_user_id,
+                    'desired'    => $desired_username
+                ]);
             }
-            bz_bridge_log('SSO: Username sync (email match)', [
-                'wo_user_id'=>$wo_user_id, 'desired'=>$desired_username, 'result'=>$update_success
+        
+            // 7) Diagnostic: fetch MySQL error and current username after attempt
+            $mysql_err = mysqli_error($sqlConn);
+            $current_username_after = null;
+            if ($stmt = mysqli_prepare($sqlConn, "SELECT username FROM {$tbl} WHERE user_id = ? LIMIT 1")) {
+                mysqli_stmt_bind_param($stmt, "i", $wo_user_id);
+                mysqli_stmt_execute($stmt);
+                mysqli_stmt_bind_result($stmt, $current_username_after);
+                mysqli_stmt_fetch($stmt);
+                mysqli_stmt_close($stmt);
+            }
+        
+            bz_bridge_log('SSO: Username sync (email match) result', [
+                'wo_user_id'            => $wo_user_id,
+                'desired'               => $desired_username,
+                'update_success'        => $update_success,
+                'mysql_error'           => $mysql_err,
+                'current_username_after'=> $current_username_after
             ]);
+        
             if ($update_success) {
                 bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
                 $access_payload['wo_user_id'] = $wo_user_id;
                 break;
             } else {
-                $fatal_error = 'A server error occurred during username sync. Please contact support@buzzjuice.net.';
+                // If WoWonder refuses the exact WP username, surface a helpful server error (admin can inspect logs).
+                $fatal_error = 'Streams rejected your WordPress username during synchronization. Please contact support@buzzjuice.net.';
                 break;
             }
         }
@@ -563,13 +669,45 @@ if (
         }
 
         // ---- 3: Register new WoWonder user ----
-        $final_username = bz_generate_unique_username($wp_username, $sqlConn, $tbl);
+        // Preserve WordPress username exactly for authoritative SSO
+        $final_username = trim((string)$wp_username);
+        
+        bz_bridge_log('SSO: Registering new WoWonder account', [
+            'wp_user_id' => $wp_user_id,
+            'username'   => $final_username,
+            'email'      => $wp_email
+        ]);
+        
         $registration = Wo_RegisterUser([
             'username' => $final_username,
             'email'    => $wp_email,
             'password' => bin2hex(random_bytes(16)),
             'active'   => 1
         ]);
+        
+        bz_bridge_log('SSO: Registration returned', [
+            'registration' => $registration,
+            'username'     => $final_username,
+            'wp_user_id'   => $wp_user_id
+        ]);
+        
+        // Verify if a user row now exists for this email (or username) and log it.
+        $created_user_id = 0;
+        $created_username = null;
+        if ($stmt = mysqli_prepare($sqlConn, "SELECT user_id, username FROM {$tbl} WHERE email = ? LIMIT 1")) {
+            mysqli_stmt_bind_param($stmt, "s", $wp_email);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_bind_result($stmt, $created_user_id, $created_username);
+            mysqli_stmt_fetch($stmt);
+            mysqli_stmt_close($stmt);
+        }
+        
+        bz_bridge_log('SSO: Registration verification', [
+            'created_user_id' => $created_user_id,
+            'created_username'=> $created_username,
+            'mysql_error'     => mysqli_error($sqlConn)
+        ]);
+        
         if ($registration && !empty($registration['user_id'])) {
             $wo_user_id = (int)$registration['user_id'];
             bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
@@ -579,11 +717,24 @@ if (
                 'wo_user_id' => $wo_user_id, 'username' => $final_username, 'email' => $wp_email
             ]);
             break;
+        } else {
+            // If DB row exists despite registration function returning falsy, accept it and map
+            if ($created_user_id > 0) {
+                $wo_user_id = (int)$created_user_id;
+                bz_update_wp_wo_user_id($wp_user_id, $wo_user_id);
+                $access_payload['wo_user_id'] = $wo_user_id;
+                $_SESSION['wo_auto_registered'] = true;
+                bz_bridge_log('SSO: Registration returned no payload but DB shows created row; mapping saved', [
+                    'wo_user_id' => $wo_user_id, 'created_username' => $created_username
+                ]);
+                break;
+            }
+        
+            // Registration failed; let loop retry (outer loop will handle attempts/failure after max_attempts)
+            usleep(100000);
+            $attempt++;
+            continue;
         }
-
-        // Registration failed, retry up to max_attempts, then error out
-        usleep(100000);
-        $attempt++;
     } // while
 
     // -------------- If all reconciliation fails --------------

@@ -194,5 +194,4 @@ class IpRangeLookup {
 			'broad'    => $broad,
 		);
 	}
-
 }

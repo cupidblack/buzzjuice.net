@@ -89,7 +89,7 @@ class ScanData {
 			// Leave only malicious malware.
 			$result->malware = array_filter(
 				$result->malware,
-				function( $item ) {
+				function ( $item ) {
 					return $item->isMalicious();
 				}
 			);
@@ -97,7 +97,7 @@ class ScanData {
 			// Sort malware items by detection timestamp in descending order.
 			usort(
 				$result->malware,
-				function( $a, $b ) {
+				function ( $a, $b ) {
 					return $b->getDetectedAt() - $a->getDetectedAt();
 				}
 			);

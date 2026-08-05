@@ -55,7 +55,7 @@ class MuLoader {
 	 * @return array
 	 */
 	private static function searchEngineProviders() {
-		return array( 'google', 'bing', 'apple', 'duckduckgo' );
+		return array( 'google', 'bing', 'apple', 'duckduckgo', 'meta' );
 	}
 
 	/**
@@ -67,7 +67,39 @@ class MuLoader {
 	 * @return array
 	 */
 	private static function aiCrawlerProviders() {
-		return array( 'anthropic', 'openai', 'meta', 'perplexity' );
+		return array( 'anthropic', 'openai', 'meta', 'perplexity', 'google' );
+	}
+
+	/**
+	 * Split the bundled bot-ip-range providers into the search-engine and
+	 * AI-crawler lookups the Classifier consumes.
+	 *
+	 * The two membership tests are independent rather than mutually
+	 * exclusive: a provider that serves both roles must land in both lookups.
+	 * Google ships Googlebot from the same ranges it uses for GoogleOther /
+	 * Gemini, so 'google' belongs to both sets; the disjoint UA token lists
+	 * (ua-search-engines vs ua-ai-crawlers) keep any single request on
+	 * exactly one Classifier branch.
+	 *
+	 * @param array $providers Map of provider name => data-file path.
+	 * @return array Two entries: 'search_engines' and 'ai_crawlers', each a
+	 *               provider-name => file map.
+	 */
+	private static function partitionBotIpRanges( $providers ) {
+		$search_engines = array();
+		$ai_crawlers    = array();
+		foreach ( $providers as $name => $file ) {
+			if ( in_array( $name, self::searchEngineProviders(), true ) ) {
+				$search_engines[ $name ] = $file;
+			}
+			if ( in_array( $name, self::aiCrawlerProviders(), true ) ) {
+				$ai_crawlers[ $name ] = $file;
+			}
+		}
+		return array(
+			'search_engines' => $search_engines,
+			'ai_crawlers'    => $ai_crawlers,
+		);
 	}
 
 	/**
@@ -86,7 +118,10 @@ class MuLoader {
 		// the pipeline doesn't silently fail-open through the shim's
 		// Throwable catch.
 		self::registerAutoloader();
-		LifecycleHooks::registerCleanupHooks();
+		BotLifecycle::registerCleanupHooks();
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return;
+		}
 		self::runWith( (string) WP_CONTENT_DIR, $_SERVER, new Responder( false ) );
 	}
 
@@ -185,6 +220,12 @@ class MuLoader {
 	 * resulting PluginConfig. Threaded through the gate check and
 	 * preset resolution so the file isn't re-included on the hot path.
 	 *
+	 * Returns an indeterminate PluginConfig — rather than one that reads
+	 * as cleanly disabled — when the file is missing, unreadable, or
+	 * fails to parse, so MuPluginSelfHealer can tell "couldn't confirm
+	 * the gate" apart from "hoster turned it off" instead of tearing
+	 * down an already-installed shim on a transient read failure.
+	 *
 	 * @param string $wp_content_dir Absolute path to wp-content.
 	 * @return PluginConfig
 	 */
@@ -192,10 +233,37 @@ class MuLoader {
 		$path = rtrim( $wp_content_dir, '/' ) . '/imunify-security/plugin_config.php';
 		clearstatcache( true );
 		if ( ! is_readable( $path ) ) {
-			return PluginConfig::fromArray( array() );
+			return PluginConfig::indeterminate();
 		}
 		$raw = SafeInclude::load( $path );
-		return PluginConfig::fromArray( is_array( $raw ) ? $raw : array() );
+		if ( ! is_array( $raw ) ) {
+			return PluginConfig::indeterminate();
+		}
+		return PluginConfig::fromArray( $raw );
+	}
+
+	/**
+	 * Optional override for the FCrDNS verifier's PTR / forward resolvers,
+	 * supplied through the `imunify_security_bot_rdns_resolvers` filter.
+	 *
+	 * With no hook the filter returns the empty default, so production keeps
+	 * RdnsVerifier's real dns_get_record resolvers. Hooking the filter
+	 * requires code already running inside WordPress, which is the trust
+	 * boundary the rest of the plugin assumes; it does not widen the
+	 * attacker's reach.
+	 *
+	 * Malformed returns degrade safely: a non-array result yields no
+	 * override, and a non-callable 'reverse'/'forward' is ignored by
+	 * RdnsVerifier, which falls back to its dns_get_record default.
+	 *
+	 * @return array Map with optional 'reverse' / 'forward' callables.
+	 */
+	private static function rdnsResolverOverrides() {
+		if ( ! function_exists( 'apply_filters' ) ) {
+			return array();
+		}
+		$overrides = apply_filters( 'imunify_security_bot_rdns_resolvers', array() );
+		return is_array( $overrides ) ? $overrides : array();
 	}
 
 	/**
@@ -211,17 +279,9 @@ class MuLoader {
 		$overlay_dir = self::overlayDir( $wp_content_dir );
 		$bundled     = new BundledData( $bundled_dir, $overlay_dir );
 
-		// Partition bot-ip-ranges into search engines vs AI crawlers
-		// using the same provider sets the integration test uses.
-		$search_engines = array();
-		$ai_crawlers    = array();
-		foreach ( $bundled->providersIn( 'bot-ip-ranges' ) as $name => $file ) {
-			if ( in_array( $name, self::searchEngineProviders(), true ) ) {
-				$search_engines[ $name ] = $file;
-			} elseif ( in_array( $name, self::aiCrawlerProviders(), true ) ) {
-				$ai_crawlers[ $name ] = $file;
-			}
-		}
+		$partition      = self::partitionBotIpRanges( $bundled->providersIn( 'bot-ip-ranges' ) );
+		$search_engines = $partition['search_engines'];
+		$ai_crawlers    = $partition['ai_crawlers'];
 
 		$cdn = new CdnDetector(
 			new IpRangeLookup( $bundled->providersIn( 'cdn-ip-ranges' ) )
@@ -254,13 +314,17 @@ class MuLoader {
 			self::resolveWindowSeconds()
 		);
 
+		$rdns_overrides = self::rdnsResolverOverrides();
+		$rdns_reverse   = isset( $rdns_overrides['reverse'] ) ? $rdns_overrides['reverse'] : null;
+		$rdns_forward   = isset( $rdns_overrides['forward'] ) ? $rdns_overrides['forward'] : null;
+
 		$rdns_verifier = new RdnsVerifier(
 			$db_storage['counter'],
 			RdnsVerifier::loadProvidersFromFile(
 				$bundled->pathFor( 'signatures/ua-rdns-suffixes.php' )
 			),
-			null,
-			null,
+			$rdns_reverse,
+			$rdns_forward,
 			'rdns:se:'
 		);
 
@@ -269,8 +333,8 @@ class MuLoader {
 			RdnsVerifier::loadProvidersFromFile(
 				$bundled->pathFor( 'signatures/ua-ai-rdns-suffixes.php' )
 			),
-			null,
-			null,
+			$rdns_reverse,
+			$rdns_forward,
 			'rdns:ai:'
 		);
 
@@ -332,7 +396,6 @@ class MuLoader {
 	 * @return string
 	 */
 	private static function overlayDir( $wp_content_dir ) {
-		return rtrim( $wp_content_dir, '/' ) . '/uploads/imunify-security/bot-data';
+		return rtrim( $wp_content_dir, '/' ) . '/imunify-security/bot-data';
 	}
-
 }

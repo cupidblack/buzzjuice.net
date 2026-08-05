@@ -427,4 +427,3 @@ class Widget extends View {
 			: 'shield-check.svg';
 	}
 }
-

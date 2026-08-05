@@ -113,4 +113,3 @@ class RuleDisplay {
 		return $display;
 	}
 }
-

@@ -15,7 +15,7 @@ namespace CloudLinux\Imunify\App\Bot;
  * signatures under inc/App/Bot/data/. In a future phase,
  * SignatureRefresher will refresh the volatile sources and write updated
  * copies to an overlay directory (typically
- * wp-content/uploads/imunify-security/bot-data/) on a daily wp-cron.
+ * wp-content/imunify-security/bot-data/) on a daily wp-cron.
  * Phase 1 ships bundled data only — cron is deliberately not scheduled,
  * so no overlay is ever produced and this loader falls through to the
  * bundled path on every read. The two-layer infrastructure stays in
@@ -266,18 +266,23 @@ class BundledData {
 	 * call sites (classifier data loading, refresh spec iteration) never
 	 * propagate a hook's own failure past the boundary they guard.
 	 *
-	 * @param string $context Short label identifying the call site.
-	 * @param string $message Detailed message body.
+	 * @param string     $context     Short label identifying the call site.
+	 * @param string     $message     Detailed message body.
+	 * @param array|null $fingerprint Optional Sentry fingerprint for cross-site grouping.
 	 */
-	public static function reportFailOpenError( $context, $message ) {
+	public static function reportFailOpenError( $context, $message, $fingerprint = null ) {
 		if ( ! function_exists( 'do_action' ) ) {
 			return;
 		}
+		$extra = is_array( $fingerprint ) ? array( 'fingerprint' => $fingerprint ) : array();
 		try {
 			do_action(
 				'imunify_security_set_error',
 				E_NOTICE,
-				'Bot ' . $context . ': ' . $message
+				'Bot ' . $context . ': ' . $message,
+				'',
+				0,
+				$extra
 			);
 		} catch ( \Throwable $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
 			// Intentionally swallowed — a hook-callback throw must never

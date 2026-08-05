@@ -186,4 +186,3 @@ class RuleHitTracker {
 		return $cleaned;
 	}
 }
-

@@ -7,10 +7,12 @@
  *
  * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_read_fopen
  * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_read_fwrite
+ * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_read_fread
  * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_read_fclose
  * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_flock
  * phpcs:disable WordPress.WP.AlternativeFunctions.rename_rename
  * phpcs:disable WordPress.WP.AlternativeFunctions.unlink_unlink
+ * phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
  * phpcs:disable WordPress.PHP.DevelopmentFunctions.error_log_var_export
  * phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged
  */
@@ -18,49 +20,33 @@
 namespace CloudLinux\Imunify\App\Bot;
 
 /**
- * Wp-cron-driven refresher for bundled bot-protection data.
+ * Wp-cron-driven refresher for bot-protection data.
  *
- * NOTE — Phase 1 ships *bundled* data only. The class is preserved
- * intact (specs, parsers, atomic writes, lock, sanitization) but
- * scheduleHooks() is deliberately not called from plugin bootstrap,
- * so the wp-cron events never fire and no overlay is ever produced.
- * BundledData therefore reads the snapshot shipped under
- * inc/App/Bot/data/ and nothing else. LifecycleHooks::onActivate()
- * additionally calls wp_clear_scheduled_hook() for both CRON_HOOK_*
- * names so any zombie events left by an earlier dev install get
- * dropped on activation. A future phase will turn this back on,
- * pointed at CloudLinux-owned mirrors of the
- * upstream sources rather than the upstreams themselves, with a
- * change-gate that requires human review when an incoming refresh
- * exceeds defined deltas (e.g. IP-range count, UA-token count,
- * checksum churn).
- *
- * Given a list of fetch specs (URL(s) + parser + output relpath + payload
- * type) the refresher downloads each source, parses it into a normalised
- * CIDR or signature list, and writes an OPcache-friendly PHP return-array
- * file into the overlay directory. BundledData picks up the overlay on
- * subsequent classification calls, transparently superseding the shipped
- * snapshot.
+ * Polls the CloudLinux mirror (`MIRROR_BASE_URL`) on a 6-hour schedule
+ * wired via `scheduleHooks()` / `BotLifecycle::activate()`. Fetches
+ * `description.json` first (cheap MD5 check); only downloads `all.json`
+ * when its MD5 differs from the locally-cached value. Delegates JSON→PHP
+ * bundle conversion to `BotDataConverter`, which writes files atomically
+ * into the overlay directory (`wp-content/imunify-security/bot-data/`).
+ * `BundledData` picks up overlay files on the next classification call,
+ * transparently superseding the snapshot shipped under
+ * `inc/App/Bot/data/`.
  *
  * Safety invariants:
- *   - Network failures and empty parse results keep the existing overlay
- *     file untouched (never block on transient failure).
- *   - Writes are atomic — each file is written to .tmp and rename'd into
- *     place so readers never observe a half-written overlay.
- *   - A POSIX advisory lock on <overlay>/.refresh.lock prevents two
+ *   - Network failures and MD5 mismatches leave existing overlay files
+ *     untouched (fail-open: never degrade on transient network error).
+ *   - A POSIX advisory lock on `<overlay>/.refresh.lock` prevents two
  *     concurrently-firing wp-cron workers from racing each other.
  *
  * @since 4.0.0
  */
 class SignatureRefresher {
 
-	const CRON_HOOK_IP_RANGES  = 'imunify_security_bot_refresh_ip_ranges';
-	const CRON_HOOK_SIGNATURES = 'imunify_security_bot_refresh_signatures';
+	const CRON_HOOK_REFRESH    = 'imunify_security_bot_refresh';
 	const LOCK_FILENAME        = '.refresh.lock';
-	const TYPE_RANGES          = 'ranges';
-	const TYPE_SIGNATURES      = 'signatures';
+	const MIRROR_BASE_URL      = 'https://files.imunify360.com/static/crawler-intel/v1';
+	const MIRROR_MD5_OPTION    = 'imunify_security_bot_mirror_md5sum';
 	const MIN_SIGNATURE_LENGTH = 4;
-	const MAX_ITEMS_PER_SOURCE = 10000;
 	const SIGNATURE_DENYLIST   = array(
 		'mozilla',
 		'chrome',
@@ -101,116 +87,6 @@ class SignatureRefresher {
 	}
 
 	/**
-	 * Run a refresh pass over the given fetch specs.
-	 *
-	 * Each spec is an associative array with:
-	 *   - 'relpath'  (string) output path under the overlay root
-	 *   - 'urls'     (string[]) URL(s) to fetch; results are merged + deduped
-	 *   - 'parser'   (callable) takes raw body string, returns array of items
-	 *   - 'type'     (string) TYPE_RANGES or TYPE_SIGNATURES
-	 *
-	 * @param array $specs List of fetch specs.
-	 */
-	public function refresh( $specs ) {
-		if ( ! is_array( $specs ) || empty( $specs ) ) {
-			return;
-		}
-
-		$lock = $this->acquireLock();
-		if ( null === $lock ) {
-			return;
-		}
-
-		try {
-			foreach ( $specs as $spec ) {
-				// Isolate each spec so a single bad fetcher (e.g. a parser
-				// callable that raises) cannot wipe out the rest of the
-				// batch. The outer try/finally still guarantees the lock
-				// is released on any exit path. reportFailOpenError
-				// internally guards the do_action dispatch so a throwing
-				// hook callback cannot propagate past this catch either.
-				try {
-					$this->refreshOne( $spec );
-				} catch ( \Throwable $e ) {
-					BundledData::reportFailOpenError( 'SignatureRefresher spec failed', $e->getMessage() );
-				}
-			}
-		} finally {
-			$this->releaseLock( $lock );
-		}
-	}
-
-	/**
-	 * Execute a single fetch spec.
-	 *
-	 * @param array $spec Fetch spec as documented on refresh().
-	 */
-	private function refreshOne( $spec ) {
-		if ( ! is_array( $spec ) ) {
-			return;
-		}
-		$relpath = isset( $spec['relpath'] ) ? (string) $spec['relpath'] : '';
-		$urls    = isset( $spec['urls'] ) && is_array( $spec['urls'] ) ? $spec['urls'] : array();
-		$parser  = isset( $spec['parser'] ) ? $spec['parser'] : null;
-		$type    = isset( $spec['type'] ) ? $spec['type'] : self::TYPE_RANGES;
-
-		if ( '' === $relpath || empty( $urls ) || ! is_callable( $parser ) ) {
-			return;
-		}
-
-		$items = array();
-		foreach ( $urls as $url ) {
-			$body = $this->http->get( $url );
-			if ( null === $body || '' === $body ) {
-				return; // Any URL failure aborts the whole spec to avoid partial overlays.
-			}
-			$parsed = call_user_func( $parser, $body );
-			if ( ! is_array( $parsed ) ) {
-				return;
-			}
-			foreach ( $parsed as $item ) {
-				if ( is_string( $item ) && '' !== $item ) {
-					$items[] = $item;
-				}
-			}
-		}
-
-		$items = array_values( array_unique( $items ) );
-		if ( empty( $items ) ) {
-			return; // Parsed empty list → keep existing overlay as safer fallback.
-		}
-
-		if ( self::TYPE_SIGNATURES === $type ) {
-			$items = self::sanitizeSignatures( $items );
-			if ( empty( $items ) ) {
-				BundledData::reportFailOpenError( 'SignatureRefresher', 'all fetched signatures rejected by sanitization' );
-				return;
-			}
-		}
-
-		if ( count( $items ) > self::MAX_ITEMS_PER_SOURCE ) {
-			BundledData::reportFailOpenError(
-				'SignatureRefresher',
-				'source returned ' . count( $items ) . ' items, capped at ' . self::MAX_ITEMS_PER_SOURCE
-			);
-			$items = array_slice( $items, 0, self::MAX_ITEMS_PER_SOURCE );
-		}
-
-		$payload = array(
-			'source_url' => implode( ', ', $urls ),
-			'fetched_at' => gmdate( 'c' ),
-			'checksum'   => 'sha256:' . hash( 'sha256', implode( "\n", $items ) ),
-		);
-		if ( self::TYPE_SIGNATURES === $type ) {
-			$payload['signatures'] = $items;
-		} else {
-			$payload['ranges'] = $items;
-		}
-
-		$this->atomicWrite( $relpath, $payload );
-	}
-
-	/**
 	 * Reject signature tokens that are too short or match common browser substrings.
 	 *
 	 * Public so `bin/update-bot-data.php` can apply the same rule when
@@ -232,55 +108,80 @@ class SignatureRefresher {
 			}
 			$out[] = $token;
 		}
-		return array_values( $out );
+		return $out;
 	}
 
 	/**
-	 * Atomically write a PHP return-array file to the overlay.
+	 * Bucket a sorted list of CIDRs into the shape CidrMatcher::matchesAnyBucketed() expects.
 	 *
-	 * @param string $relpath Relative path under the overlay root.
-	 * @param array  $payload Payload array to serialise.
+	 * Public so bin/update-bot-data.php can produce the same bucketed structure,
+	 * keeping dev-bundled and cron-refreshed overlays byte-identical.
+	 *
+	 * @param array $sorted_ranges Sorted CIDR strings.
+	 * @return array { 'ranges_by_octet' => int[] => string[], 'ranges_broad' => string[] }
 	 */
-	private function atomicWrite( $relpath, $payload ) {
-		if ( BundledData::isUnsafePath( $relpath ) ) {
-			return;
-		}
-		$abs = $this->overlay_dir . '/' . ltrim( $relpath, '/' );
-		$dir = dirname( $abs );
-		if ( ! is_dir( $dir ) && ! mkdir( $dir, 0755, true ) && ! is_dir( $dir ) ) {
-			BundledData::reportFailOpenError( 'atomicWrite', 'mkdir failed for ' . $dir );
-			return;
-		}
-
-		$tmp = $abs . '.tmp';
-		$h   = fopen( $tmp, 'w' );
-		if ( false === $h ) {
-			BundledData::reportFailOpenError( 'atomicWrite', 'fopen failed for ' . $tmp );
-			return;
-		}
-
-		$contents = "<?php\n"
-			. "// Auto-generated by SignatureRefresher. Do not edit by hand.\n\n"
-			. 'return ' . var_export( $payload, true ) . ";\n";
-
-		$bytes    = fwrite( $h, $contents );
-		$expected = strlen( $contents );
-		if ( false === $bytes || $bytes !== $expected ) {
-			fclose( $h );
-			@unlink( $tmp );
-			BundledData::reportFailOpenError( 'atomicWrite', 'fwrite failed for ' . $tmp );
-			return;
-		}
-		fclose( $h );
-
-		if ( rename( $tmp, $abs ) ) {
-			if ( function_exists( 'opcache_invalidate' ) ) {
-				@opcache_invalidate( $abs, true );
+	public static function bucketRanges( $sorted_ranges ) {
+		$by_octet = array();
+		$broad    = array();
+		foreach ( $sorted_ranges as $cidr ) {
+			$slash = strpos( $cidr, '/' );
+			if ( false === $slash ) {
+				continue;
 			}
-		} else {
-			@unlink( $tmp );
-			BundledData::reportFailOpenError( 'atomicWrite', 'rename failed for ' . $abs );
+			$network    = substr( $cidr, 0, $slash );
+			$prefix_str = substr( $cidr, $slash + 1 );
+			if ( '' === $prefix_str || ! ctype_digit( $prefix_str ) ) {
+				continue;
+			}
+			$prefix = (int) $prefix_str;
+			$bin    = @inet_pton( $network );
+			if ( false === $bin ) {
+				continue;
+			}
+			if ( 16 === strlen( $bin ) && "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff" === substr( $bin, 0, 12 ) ) {
+				$bin     = substr( $bin, 12 );
+				$prefix -= 96;
+			}
+			if ( $prefix < 8 ) {
+				$broad[] = $cidr;
+			} else {
+				$octet                = ord( $bin[0] );
+				$by_octet[ $octet ][] = $cidr;
+			}
 		}
+		ksort( $by_octet );
+		return array(
+			'ranges_by_octet' => $by_octet,
+			'ranges_broad'    => $broad,
+		);
+	}
+
+	/**
+	 * Extract IPv4/IPv6 prefixes from a Google-shape JSON payload.
+	 *
+	 * Shared between bin/update-bot-data.php fetchers and cron-spec parsers so
+	 * both paths apply identical parsing.
+	 *
+	 * @param array $data Decoded JSON array.
+	 * @return array List of CIDR strings.
+	 * @throws \RuntimeException When the payload does not match the expected shape.
+	 */
+	public static function parseGoogleShape( $data ) {
+		if ( ! isset( $data['prefixes'] ) || ! is_array( $data['prefixes'] ) ) {
+			throw new \RuntimeException( 'unexpected JSON shape: missing prefixes[]' );
+		}
+		$out = array();
+		foreach ( $data['prefixes'] as $p ) {
+			if ( isset( $p['ipv4Prefix'] ) ) {
+				$out[] = $p['ipv4Prefix'];
+			} elseif ( isset( $p['ipv6Prefix'] ) ) {
+				$out[] = $p['ipv6Prefix'];
+			}
+		}
+		if ( empty( $out ) ) {
+			throw new \RuntimeException( 'no prefixes found in payload' );
+		}
+		return $out;
 	}
 
 	/**
@@ -315,22 +216,153 @@ class SignatureRefresher {
 	}
 
 	/**
-	 * Register the daily wp-cron events driving this refresher.
+	 * Download all.json from the mirror if its md5 has changed, verify integrity,
+	 * and convert to PHP bundle files via BotDataConverter.
 	 *
-	 * Phase 1 deliberately does NOT call this from plugin bootstrap —
-	 * the plugin ships bundled data only. A future phase will turn
-	 * cron-driven refresh back on, pointed at owned mirrors
-	 * with a change-gate. Until then the events stay unscheduled.
+	 * Fetches description.json first (small, cheap); only downloads the full
+	 * all.json when its md5 entry differs from the locally-cached value.
 	 *
-	 * The unit test for this method still exercises the wiring so the
-	 * Phase-2 re-enable lands cleanly.
+	 * @param string $mirror_base_url Base URL of the mirror (no trailing slash).
+	 */
+	public function refreshFromMirror( $mirror_base_url = self::MIRROR_BASE_URL ) {
+		$lock = $this->acquireLock();
+		if ( null === $lock ) {
+			return; // Another worker holds the refresh lock — skip this run.
+		}
+		try {
+			$this->doMirrorRefresh( $mirror_base_url );
+		} finally {
+			$this->releaseLock( $lock );
+		}
+	}
+
+	/**
+	 * Mirror-refresh body. Always invoked under the refresh lock by
+	 * refreshFromMirror(); that caller's finally guarantees the lock is
+	 * released on every exit path, including thrown errors.
+	 *
+	 * @param string $mirror_base_url Base URL of the mirror (no trailing slash).
+	 */
+	private function doMirrorRefresh( $mirror_base_url ) {
+		$description_body = $this->http->get( rtrim( $mirror_base_url, '/' ) . '/description.json' );
+		if ( null === $description_body || '' === $description_body ) {
+			BundledData::reportFailOpenError( 'refreshFromMirror', 'failed to fetch description.json', array( 'bot-refresh', 'description-fetch-failed' ) );
+			return;
+		}
+
+		$manifest = json_decode( $description_body, true );
+		if ( ! is_array( $manifest ) || ! isset( $manifest['items'] ) || ! is_array( $manifest['items'] ) ) {
+			BundledData::reportFailOpenError( 'refreshFromMirror', 'description.json: unexpected shape', array( 'bot-refresh', 'description-shape-invalid' ) );
+			return;
+		}
+
+		$entry = null;
+		foreach ( $manifest['items'] as $item ) {
+			if ( isset( $item['name'] ) && 'all.json' === $item['name'] ) {
+				$entry = $item;
+				break;
+			}
+		}
+		if ( null === $entry || ! isset( $entry['url'] ) ) {
+			BundledData::reportFailOpenError( 'refreshFromMirror', 'all.json not found in description.json', array( 'bot-refresh', 'all-json-not-in-manifest' ) );
+			return;
+		}
+
+		$remote_md5 = isset( $entry['md5sum'] )
+			? (string) $entry['md5sum']
+			: ( isset( $entry['md5'] ) ? (string) $entry['md5'] : '' );
+		if ( '' === $remote_md5 ) {
+			BundledData::reportFailOpenError( 'refreshFromMirror', 'all.json entry has no md5sum in description.json', array( 'bot-refresh', 'all-json-no-md5sum' ) );
+			return;
+		}
+
+		$base           = rtrim( $mirror_base_url, '/' );
+		$allowed_scheme = wp_parse_url( $base, PHP_URL_SCHEME );
+		$allowed_host   = wp_parse_url( $base, PHP_URL_HOST );
+		$entry_url      = (string) $entry['url'];
+		$entry_scheme   = wp_parse_url( $entry_url, PHP_URL_SCHEME );
+		$entry_host     = wp_parse_url( $entry_url, PHP_URL_HOST );
+		if ( null === $allowed_host || $entry_scheme !== $allowed_scheme || $entry_host !== $allowed_host ) {
+			BundledData::reportFailOpenError( 'refreshFromMirror', 'all.json URL does not match expected mirror origin — discarding', array( 'bot-refresh', 'all-json-url-origin-mismatch' ) );
+			return;
+		}
+
+		if ( $remote_md5 === $this->readMirrorMd5() && $this->overlayHasData() ) {
+			return;
+		}
+
+		$body = $this->http->get( (string) $entry['url'] );
+		if ( null === $body || '' === $body ) {
+			BundledData::reportFailOpenError( 'refreshFromMirror', 'failed to fetch all.json', array( 'bot-refresh', 'all-json-fetch-failed' ) );
+			return;
+		}
+
+		if ( md5( $body ) !== $remote_md5 ) { // nosemgrep: php.lang.security.weak-crypto.weak-crypto -- integrity check against server-published checksum, not cryptography.
+			BundledData::reportFailOpenError( 'refreshFromMirror', 'all.json MD5 mismatch — discarding', array( 'bot-refresh', 'all-json-md5-mismatch' ) );
+			return;
+		}
+
+		try {
+			$written = ( new BotDataConverter( $this->overlay_dir ) )->convert( $body );
+			if ( $written > 0 ) {
+				$this->saveMirrorMd5( $remote_md5 );
+			}
+		} catch ( \Exception $e ) {
+			BundledData::reportFailOpenError( 'refreshFromMirror', 'convert failed: ' . $e->getMessage(), array( 'bot-refresh', 'convert-failed' ) );
+		}
+	}
+
+	/**
+	 * Read the md5sum stored from the last successfully applied all.json.
+	 *
+	 * @return string Stored md5sum, or '' when none has been applied yet.
+	 */
+	private function readMirrorMd5() {
+		return (string) get_option( self::MIRROR_MD5_OPTION, '' );
+	}
+
+	/**
+	 * Persist the md5sum of the last successfully applied all.json.
+	 *
+	 * @param string $md5 md5sum the mirror reported for the applied all.json.
+	 */
+	private function saveMirrorMd5( $md5 ) {
+		update_option( self::MIRROR_MD5_OPTION, $md5, false );
+	}
+
+	/**
+	 * Whether the overlay holds at least one converted bundle file.
+	 *
+	 * Guards the md5sum short-circuit: a matching stored md5sum must not skip the
+	 * download when the overlay data has been wiped, otherwise the site would run
+	 * indefinitely on bundled data with no way to repopulate until the mirror changes.
+	 *
+	 * @return bool
+	 */
+	private function overlayHasData() {
+		$files = glob( $this->overlay_dir . '/*/*.php' );
+		return is_array( $files ) && count( $files ) > 0;
+	}
+
+	/**
+	 * Register the daily wp-cron events driving the mirror refresh.
+	 *
+	 * Called from BotLifecycle::activate() so events are scheduled
+	 * on plugin activation and survive across site requests.
 	 */
 	public static function scheduleHooks() {
-		if ( ! wp_next_scheduled( self::CRON_HOOK_IP_RANGES ) ) {
-			wp_schedule_event( time(), 'daily', self::CRON_HOOK_IP_RANGES );
+		$current = \wp_get_schedule( self::CRON_HOOK_REFRESH );
+		if ( false !== $current && 'imunify_six_hours' !== $current ) {
+			\wp_clear_scheduled_hook( self::CRON_HOOK_REFRESH );
+			$current = false;
 		}
-		if ( ! wp_next_scheduled( self::CRON_HOOK_SIGNATURES ) ) {
-			wp_schedule_event( time(), 'daily', self::CRON_HOOK_SIGNATURES );
+		if ( false === $current ) {
+			\wp_schedule_event(
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.rand_mt_rand -- cron jitter offset, not security
+				\time() + \mt_rand( 0, 21599 ),
+				'imunify_six_hours',
+				self::CRON_HOOK_REFRESH
+			);
 		}
 	}
 }

@@ -22,6 +22,17 @@ class Request {
 	const MAX_KEY_COUNT = 200;
 
 	/**
+	 * Maximum bytes of php://input read when parsing a JSON body.
+	 */
+	const MAX_JSON_BODY_BYTES = 1048576;
+
+	/** Cap on the raw body exposed under RAW_BODY_KEY; bounds scan-all regex cost/ReDoS on the hot path (matches getFileContent()'s 8 KB default). */
+	const RAW_BODY_INSPECT_BYTES = 8192;
+
+	/** Synthetic ARGS key holding the (capped) raw body of a fail-closed JSON request so scan-all rules can still inspect it; hidden from getArgNames() when injected. */
+	const RAW_BODY_KEY = '__waf_raw_body__';
+
+	/**
 	 * Request method.
 	 *
 	 * @var string
@@ -64,6 +75,22 @@ class Request {
 	private $files;
 
 	/**
+	 * Whether the RAW_BODY_KEY entry in $this->post is a synthetic sentinel we
+	 * injected (only synthetic entries are hidden from getArgNames()).
+	 *
+	 * @var bool
+	 */
+	private $raw_body_fail_closed = false;
+
+	/**
+	 * Throttled-error payload captured when a JSON body fails closed, for the
+	 * owner (Plugin) to emit via Debug::sendThrottledError(); null until then.
+	 *
+	 * @var array|null
+	 */
+	private $fail_closed_report = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param array $server  Server variables (defaults to $_SERVER).
@@ -101,9 +128,9 @@ class Request {
 	 *
 	 * Guards:
 	 * - Only runs when $_POST is empty (avoids double-parsing form submissions).
-	 * - Only for application/json content type.
+	 * - Only for application/json and +json suffix content types.
 	 * - Caps raw input at 1 MB.
-	 * - Rejects non-array decoded results.
+	 * - Fails closed when the body cannot be decoded into usable parameters.
 	 *
 	 * @since 3.0.2
 	 */
@@ -114,23 +141,113 @@ class Request {
 
 		$parts     = explode( ';', $content_type, 2 );
 		$mime_type = strtolower( trim( $parts[0] ) );
-		if ( 'application/json' !== $mime_type ) {
+		if ( ! $this->isJsonContentType( $mime_type ) ) {
 			return;
 		}
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reading php://input stream, not a filesystem file.
-		$raw = $this->readInput( 1048576 );
-		if ( empty( $raw ) ) {
+		$raw = $this->readInput( self::MAX_JSON_BODY_BYTES );
+		// Use a strict check rather than empty(): a legitimately empty or
+		// unreadable body must return, but the single-character body "0" is a
+		// valid bare JSON number that must proceed to the fail-closed branch
+		// below (empty("0") === true would otherwise let it slip past).
+		if ( false === $raw || '' === $raw ) {
 			return;
 		}
 
 		// Note: on PHP 5.6, json_decode() may return null without setting
 		// json_last_error() when the depth limit is exceeded. The is_array()
 		// guard below handles this correctly — null fails the check.
-		$decoded = json_decode( $raw, true, 64 );
-		if ( is_array( $decoded ) && ! empty( $decoded ) ) {
-			$this->post = $decoded;
+		$decoded    = json_decode( $raw, true, 64 );
+		$json_error = json_last_error();
+		if ( is_array( $decoded ) ) {
+			if ( ! empty( $decoded ) ) {
+				$this->post = $decoded;
+			}
+			// An empty JSON object {} or array [] decodes to an empty array:
+			// there are no key/value parameters to inspect, so $this->post
+			// stays empty. This is the single fail-open case we accept -- the
+			// body carries no content for ARGS rules to act on.
+			return;
 		}
+
+		// Fail closed: Content-Type claims JSON but the body did not decode into
+		// usable parameters (truncated/oversized, malformed, too deep, the `null`
+		// literal, or a bare scalar). Leaving $this->post empty would fail open,
+		// so expose a capped slice of the raw body under the synthetic sentinel
+		// key for scan-all rules; the flag marks it synthetic so getArgNames()
+		// can hide it (see RAW_BODY_KEY / RAW_BODY_INSPECT_BYTES).
+		$body_bytes                 = strlen( $raw );
+		$this->post                 = array( self::RAW_BODY_KEY => substr( $raw, 0, self::RAW_BODY_INSPECT_BYTES ) );
+		$this->raw_body_fail_closed = true;
+
+		$this->reportFailClosed( $mime_type, $body_bytes, $json_error );
+	}
+
+	/**
+	 * Capture the throttled-error payload for a fail-closed JSON body.
+	 *
+	 * Records (does not emit) the diagnostic metadata so the owner that holds a
+	 * Debug handle can throttle and send it after construction -- see
+	 * isRawBodyFailClosed() and failClosed*(). The raw body is never reported:
+	 * it is attacker-controlled and may carry payloads or PII.
+	 *
+	 * @since 4.0.2
+	 *
+	 * @param string $mime_type  Lowercased JSON content type that was detected.
+	 * @param int    $body_bytes Length of the raw body that was read.
+	 * @param int    $json_error json_last_error() value from the failed decode.
+	 *
+	 * @return void
+	 */
+	private function reportFailClosed( $mime_type, $body_bytes, $json_error ) {
+		$truncated = $body_bytes >= self::MAX_JSON_BODY_BYTES;
+
+		if ( $truncated ) {
+			$reason = 'oversize';
+		} elseif ( JSON_ERROR_DEPTH === $json_error ) {
+			$reason = 'depth';
+		} elseif ( JSON_ERROR_NONE === $json_error ) {
+			// Valid JSON that is not an object/array (null literal or bare scalar).
+			// On PHP 5.6 a depth overflow also lands here, reported as non_array.
+			$reason = 'non_array';
+		} else {
+			$reason = 'malformed';
+		}
+
+		// Error code embeds the reason so each reason throttles/groups on its own.
+		$this->fail_closed_report = array(
+			'code'    => 'waf_json_body_fail_closed_' . $reason,
+			'message' => 'WAF: JSON request body failed closed (reason: ' . $reason . '); raw body exposed to ARGS rules',
+			'context' => array(
+				'reason'       => $reason,
+				'content_type' => $mime_type,
+				'body_bytes'   => $body_bytes,
+				'truncated'    => $truncated,
+				'json_error'   => $json_error,
+			),
+		);
+	}
+
+	/**
+	 * Determine whether a MIME type denotes a JSON request body.
+	 *
+	 * Matches the exact application/json type plus any structured-syntax
+	 * suffix per RFC 6839 (e.g. application/ld+json, application/vnd.api+json),
+	 * mirroring how framework body parsers detect JSON.
+	 *
+	 * @since 4.0.2
+	 *
+	 * @param string $mime_type Lowercased MIME type with parameters stripped.
+	 *
+	 * @return bool True if the type denotes JSON.
+	 */
+	private function isJsonContentType( $mime_type ) {
+		if ( 'application/json' === $mime_type ) {
+			return true;
+		}
+
+		return '+json' === substr( $mime_type, -5 );
 	}
 
 	/**
@@ -251,10 +368,64 @@ class Request {
 	/**
 	 * Get all POST parameters.
 	 *
+	 * Note: for a fail-closed JSON body this includes the synthetic RAW_BODY_KEY
+	 * sentinel. Callers enumerating real parameter names (e.g. incident logging)
+	 * should consult isRawBodyFailClosed() and skip RAW_BODY_KEY so the synthetic
+	 * key is not recorded as a real POST parameter.
+	 *
 	 * @return array All POST parameters.
 	 */
 	public function getAllPost() {
 		return $this->post;
+	}
+
+	/**
+	 * Whether the request body failed closed and RAW_BODY_KEY is synthetic.
+	 *
+	 * True only when maybeParseJsonBody() injected the sentinel because the JSON
+	 * body could not be decoded; false when RAW_BODY_KEY (if present) is a real
+	 * decoded parameter. Lets name-enumerating callers hide the synthetic key the
+	 * same way getArgNames() does.
+	 *
+	 * @since 4.0.2
+	 *
+	 * @return bool
+	 */
+	public function isRawBodyFailClosed() {
+		return $this->raw_body_fail_closed;
+	}
+
+	/**
+	 * Throttled-error message for a fail-closed JSON body (empty if none).
+	 *
+	 * @since 4.0.2
+	 *
+	 * @return string
+	 */
+	public function failClosedMessage() {
+		return null === $this->fail_closed_report ? '' : $this->fail_closed_report['message'];
+	}
+
+	/**
+	 * Throttled-error code for a fail-closed JSON body (empty if none).
+	 *
+	 * @since 4.0.2
+	 *
+	 * @return string
+	 */
+	public function failClosedCode() {
+		return null === $this->fail_closed_report ? '' : $this->fail_closed_report['code'];
+	}
+
+	/**
+	 * Throttled-error context (reason/size metadata) for a fail-closed JSON body.
+	 *
+	 * @since 4.0.2
+	 *
+	 * @return array
+	 */
+	public function failClosedContext() {
+		return null === $this->fail_closed_report ? array() : $this->fail_closed_report['context'];
 	}
 
 	/**
@@ -711,7 +882,48 @@ class Request {
 		$keys = array();
 		$this->collectKeys( $this->get, '', $keys );
 		$this->collectKeys( $this->post, '', $keys );
-		return array_values( array_unique( $keys ) );
+		return array_values( array_unique( $this->withoutInjectedRawBodyKey( $keys ) ) );
+	}
+
+	/**
+	 * Get the POST parameter names, excluding the synthetic fail-closed sentinel.
+	 *
+	 * For callers that enumerate or log POST parameter names (e.g. incident
+	 * records): the injected RAW_BODY_KEY is not a client-supplied parameter and
+	 * must not be recorded as one. Mirrors getArgNames()'s handling.
+	 *
+	 * @since 4.0.2
+	 *
+	 * @return string[] POST parameter names with the injected sentinel removed.
+	 */
+	public function getPostNames() {
+		return $this->withoutInjectedRawBodyKey( array_keys( $this->post ) );
+	}
+
+	/**
+	 * Remove the synthetic fail-closed sentinel (RAW_BODY_KEY) from a name list.
+	 *
+	 * Stripped only when we injected it, so a real GET parameter that happens to
+	 * share the name survives (the synthetic key only ever lives in $this->post).
+	 *
+	 * @since 4.0.2
+	 *
+	 * @param string[] $names Parameter names.
+	 *
+	 * @return string[] Names with the injected sentinel removed.
+	 */
+	private function withoutInjectedRawBodyKey( array $names ) {
+		if ( ! $this->raw_body_fail_closed || isset( $this->get[ self::RAW_BODY_KEY ] ) ) {
+			return $names;
+		}
+		return array_values(
+			array_filter(
+				$names,
+				function ( $k ) {
+					return self::RAW_BODY_KEY !== $k;
+				}
+			)
+		);
 	}
 
 	/**

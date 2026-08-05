@@ -18,6 +18,7 @@ use CloudLinux\Imunify\App\Defender\RateLimiter;
 use CloudLinux\Imunify\App\Defender\Request;
 use CloudLinux\Imunify\App\Defender\RuleHitTracker;
 use CloudLinux\Imunify\App\Defender\RuleProvider;
+use CloudLinux\Imunify\App\Integration\WpDefenderScanExclusions;
 use CloudLinux\Imunify\App\Views\AdminPage;
 use CloudLinux\Imunify\App\Views\BotProtectionWidgetSection;
 use CloudLinux\Imunify\App\Views\Widget;
@@ -116,7 +117,19 @@ class Plugin {
 		$rules                                    = $ruleProvider->loadRules();
 
 		if ( ! empty( $rules ) ) {
-			$request          = new Request();
+			$request = new Request();
+
+			// A JSON body that fails closed records a throttled-error payload but
+			// cannot emit it (no Debug handle in the Request constructor); send it
+			// from here, the same way DataStore::handleError() reports errors.
+			if ( $request->isRawBodyFailClosed() ) {
+				$this->container[ Debug::class ]->sendThrottledError(
+					$request->failClosedMessage(),
+					$request->failClosedCode(),
+					$request->failClosedContext()
+				);
+			}
+
 			$rateLimiter      = new RateLimiter();
 			$incidentRecorder = new IncidentRecorder( $rateLimiter );
 			$defender         = new Defender( $ruleProvider, $incidentRecorder, $this->container[ RuleHitTracker::class ], $disabledRulesManager );
@@ -126,6 +139,14 @@ class Plugin {
 			$this->container[ IncidentRecorder::class ] = $incidentRecorder;
 			$this->container[ Defender::class ]         = $defender;
 		}
+
+		$muPluginDirectory = defined( 'WPMU_PLUGIN_DIR' ) ? (string) WPMU_PLUGIN_DIR : '';
+
+		$this->container[ WpDefenderScanExclusions::class ] = new WpDefenderScanExclusions(
+			$dataDirectory,
+			IMUNIFY_SECURITY_PATH,
+			$muPluginDirectory
+		);
 
 		add_action( 'init', array( $this, 'load_translations' ) );
 	}
@@ -250,8 +271,8 @@ class Plugin {
 	 * @return void
 	 */
 	public function printHoneypotFooterLink() {
-		// @phpcs:ignore WordPress.Security.EscapeOutput -- static literal HTML, no user input.
-		echo \CloudLinux\Imunify\App\Bot\Honeypot::footerLinkHtml();
+		// @phpcs:ignore WordPress.Security.EscapeOutput -- href is escaped in footerLinkHtml(); home_url() is trusted site config.
+		echo \CloudLinux\Imunify\App\Bot\Honeypot::footerLinkHtml( $this->honeypotBasePath() );
 	}
 
 	/**
@@ -264,7 +285,31 @@ class Plugin {
 	 * @return string
 	 */
 	public function filterRobotsTxt( $output, $is_public ) {
-		return $output . "\n" . \CloudLinux\Imunify\App\Bot\Honeypot::robotsTxtFragment();
+		return $output . "\n" . \CloudLinux\Imunify\App\Bot\Honeypot::robotsTxtFragment( $this->honeypotBasePath() );
+	}
+
+	/**
+	 * Resolve the honeypot base path from the site's home URL.
+	 *
+	 * On a subdirectory install (home_url() = "https://example.com/blog/")
+	 * the footer link and robots.txt Disallow must point at
+	 * "/blog/imunify-bot-check", not the parent-root "/imunify-bot-check".
+	 * Protected so the wiring is exercisable with a stubbed base in tests
+	 * (home_url() is defined too early for the function mocker to redefine).
+	 *
+	 * Detection matches only when this base equals what the pre-WordPress
+	 * matcher derives from dirname($_SERVER['SCRIPT_NAME']). Any layout where
+	 * the two differ is NOT detected: subdirectory multisite (subsites served by
+	 * the network-root index.php), a path-rewriting reverse proxy or Apache
+	 * alias, or "giving WordPress its own directory". All such cases fail open —
+	 * the honeypot simply does not fire and nothing is wrongly blocked.
+	 *
+	 * @since 4.0.3
+	 *
+	 * @return string Path component of home_url(); '' on root installs.
+	 */
+	protected function honeypotBasePath() {
+		return \CloudLinux\Imunify\App\Bot\Honeypot::basePathFromUrl( home_url( '/' ) );
 	}
 
 	/**
