@@ -24,10 +24,10 @@ header('Retry-After: 600');
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <link rel="icon" href="https://buzzjuice.net/wp-content/uploads/2026/04/cropped-Buzzjuice-Bee-Logo-500x512px-2.02-32x32.png">
-    <link rel="stylesheet" href="https://buzzjuice.net/wp-content/maintenance/assets/styles.css?1783654389">
-    <script src="https://buzzjuice.net/wp-content/maintenance/assets/timer.js?1783654389"></script>
+    <link rel="stylesheet" href="https://buzzjuice.net/wp-content/maintenance/assets/styles.css?1786073732">
+    <script src="https://buzzjuice.net/wp-content/maintenance/assets/timer.js?1786073732"></script>
     <title>Scheduled Maintenance</title>
-    <style>body {background-image: url("https://buzzjuice.net/wp-content/maintenance/assets/images/bg.jpg?1783654389");}</style>
+    <style>body {background-image: url("https://buzzjuice.net/wp-content/maintenance/assets/images/bg.jpg?1786073732");}</style>
 </head>
 
 <body>
@@ -45,13 +45,13 @@ header('Retry-After: 600');
     <!--START_SOCIAL_LINKS_BLOCK-->
     <section class="social-links">
                     <a class="social-links__link" href="https://www.facebook.com/cPanel" target="_blank" title="Facebook">
-                <span class="icon"><img src="https://buzzjuice.net/wp-content/maintenance/assets/images/facebook.svg?1783654389" alt="Facebook"></span>
+                <span class="icon"><img src="https://buzzjuice.net/wp-content/maintenance/assets/images/facebook.svg?1786073732" alt="Facebook"></span>
             </a>
                     <a class="social-links__link" href="https://x.com/cPanel" target="_blank" title="Twitter">
-                <span class="icon"><img src="https://buzzjuice.net/wp-content/maintenance/assets/images/twitter.svg?1783654389" alt="Twitter"></span>
+                <span class="icon"><img src="https://buzzjuice.net/wp-content/maintenance/assets/images/twitter.svg?1786073732" alt="Twitter"></span>
             </a>
                     <a class="social-links__link" href="https://instagram.com/cPanel" target="_blank" title="Instagram">
-                <span class="icon"><img src="https://buzzjuice.net/wp-content/maintenance/assets/images/instagram.svg?1783654389" alt="Instagram"></span>
+                <span class="icon"><img src="https://buzzjuice.net/wp-content/maintenance/assets/images/instagram.svg?1786073732" alt="Instagram"></span>
             </a>
             </section>
     <!--END_SOCIAL_LINKS_BLOCK-->
