@@ -4,8 +4,8 @@ defined( 'ABSPATH' ) || exit;
 
 return array(
     'source_url' => 'https://ip-ranges.amazonaws.com/ip-ranges.json#CLOUDFRONT',
-    'fetched_at' => '2026-06-11T08:45:54+00:00',
-    'checksum' => 'sha256:fae53022416e46bf859cffa1162cd0c614ffbaaf46921906155ba20ef70b2265',
+    'fetched_at' => '2026-07-28T04:05:06+00:00',
+    'checksum' => 'sha256:77480311a91061f5708cc8760621b080ab472aec381e2756fcb7965afa423c9e',
     'ranges_by_octet' => array(
         3 => array(
             '3.10.17.128/25',
@@ -96,6 +96,8 @@ return array(
             '23.228.222.0/24',
             '23.228.223.0/24',
             '23.228.244.0/24',
+            '23.228.246.0/24',
+            '23.228.247.0/24',
             '23.228.248.0/24',
             '23.228.249.0/24',
             '23.228.250.0/24',

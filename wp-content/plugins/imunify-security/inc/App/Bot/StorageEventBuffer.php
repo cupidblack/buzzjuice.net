@@ -16,6 +16,8 @@ namespace CloudLinux\Imunify\App\Bot;
  * storage events (table full, null fallback) during the mu-plugin
  * phase and replays them at plugins_loaded (priority 99), when
  * Debug is guaranteed to be listening on 'imunify_security_set_error'.
+ * Events recorded once plugins_loaded has fired — the daily export cron,
+ * for one — are reported immediately, since that hook will not fire again.
  *
  * Throttling: each event type is deduplicated within a request (by
  * error code) and across requests (via WP transients, once per hour).
@@ -57,6 +59,14 @@ class StorageEventBuffer {
 			'fingerprint' => $fingerprint,
 			'context'     => $context,
 		);
+		// Callers that run after plugins_loaded — WP-Cron jobs, for one — would
+		// never see the deferred hook fire, and Debug is registered by then
+		// anyway, so report straight away instead of buffering forever.
+		if ( function_exists( 'did_action' ) && did_action( 'plugins_loaded' ) ) {
+			self::flush();
+			return;
+		}
+
 		if ( ! self::$flush_hooked && function_exists( 'add_action' ) ) {
 			// The pipeline runs from the mu-plugin (muplugins_loaded),
 			// so plugins_loaded has not fired yet during normal requests.

@@ -11,15 +11,19 @@ namespace CloudLinux\Imunify\App\Bot;
 /**
  * HttpClient implementation that wraps wp_remote_get.
  *
- * Returns the raw body on a 2xx response; any WP_Error, non-2xx status,
- * or empty body is surfaced to the caller as null so the refresher's
- * "never overwrite on failure" contract holds without additional logic.
+ * Reports whatever came back — status, headers, body — without judging it, so
+ * MirrorDownloader can tell a truncated body apart from a 404 and report the
+ * mirror's own `x-req-id`. A WP_Error becomes a transport error.
  *
  * @since 4.0.0
  */
 class WpHttpClient implements HttpClient {
 
-	const DEFAULT_TIMEOUT_SECONDS = 25;
+	/**
+	 * Timeout for a single request. Short on purpose: these requests run from
+	 * wp-cron, which often piggybacks on a visitor's page load.
+	 */
+	const DEFAULT_TIMEOUT_SECONDS = 5;
 
 	/**
 	 * Upper bound on response body size (bytes) — protects against memory
@@ -57,33 +61,65 @@ class WpHttpClient implements HttpClient {
 	}
 
 	/**
-	 * Fetch $url via wp_remote_get, returning the body or null on failure.
+	 * Fetch $url via wp_remote_get.
 	 *
-	 * @param string $url Absolute URL.
-	 * @return string|null
+	 * @param string               $url     Absolute URL.
+	 * @param array<string,string> $headers Extra request headers.
+	 * @param int|null             $timeout Timeout for this request; the client's own
+	 *                                      when null, and never longer than it.
+	 * @return HttpResponse
 	 */
-	public function get( $url ) {
+	public function get( $url, $headers = array(), $timeout = null ) {
 		$version  = defined( 'IMUNIFY_SECURITY_VERSION' ) ? IMUNIFY_SECURITY_VERSION : '0.0.0';
 		$response = wp_remote_get(
 			$url,
 			array(
-				'timeout'             => $this->timeout,
+				'timeout'             => $this->timeoutFor( $timeout ),
 				'sslverify'           => true,
 				'user-agent'          => 'ImunifySecurity-BotData/' . $version . ' (+https://imunify360.com)',
 				'limit_response_size' => $this->max_body_bytes,
+				'headers'             => is_array( $headers ) ? $headers : array(),
 			)
 		);
 		if ( is_wp_error( $response ) ) {
-			return null;
-		}
-		$code = wp_remote_retrieve_response_code( $response );
-		if ( $code < 200 || $code >= 300 ) {
-			return null;
+			return HttpResponse::transportError( $response->get_error_message() );
 		}
 		$body = wp_remote_retrieve_body( $response );
-		if ( ! is_string( $body ) || '' === $body ) {
-			return null;
+		return HttpResponse::received(
+			(int) wp_remote_retrieve_response_code( $response ),
+			is_string( $body ) ? $body : '',
+			$this->responseHeaders( $response )
+		);
+	}
+
+	/**
+	 * Timeout to use for one request: the caller may shorten the client's
+	 * timeout (to stay inside a retry budget) but never extend it, and the
+	 * 1-second floor keeps a 0 from being read as "no timeout".
+	 *
+	 * @param int|null $requested Timeout the caller asked for, or null.
+	 * @return int
+	 */
+	private function timeoutFor( $requested ) {
+		if ( null === $requested ) {
+			return $this->timeout;
 		}
-		return $body;
+		return max( 1, min( $this->timeout, (int) $requested ) );
+	}
+
+	/**
+	 * Response headers as a plain array. wp_remote_retrieve_headers() returns a
+	 * case-insensitive dictionary object on modern WordPress and a plain array
+	 * on older releases, so both shapes are accepted.
+	 *
+	 * @param array|\WP_Error $response Raw wp_remote_get return value.
+	 * @return array<string,mixed>
+	 */
+	private function responseHeaders( $response ) {
+		$headers = wp_remote_retrieve_headers( $response );
+		if ( is_object( $headers ) && method_exists( $headers, 'getAll' ) ) {
+			$headers = $headers->getAll();
+		}
+		return is_array( $headers ) ? $headers : array();
 	}
 }

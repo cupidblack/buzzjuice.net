@@ -8,6 +8,8 @@
 
 namespace CloudLinux\Imunify\App;
 
+use CloudLinux\Imunify\App\Model\Edition;
+
 /**
  * Access manager.
  */
@@ -86,5 +88,35 @@ class AccessManager {
 		}
 
 		return isset( $license['license_type'] ) && strtolower( $license['license_type'] ) === $productType;
+	}
+
+	/**
+	 * Whether the licensed edition belongs to the ImunifyAV family
+	 * (ImunifyAV or ImunifyAV+). Unlike {@see isProductType()} with an exact
+	 * 'imunifyav', this also matches the agent's 'imunifyAVPlus' edition, so an
+	 * AV+ customer — who likewise has no WAF or bot blocking — is treated like
+	 * AV rather than mistaken for Imunify360. The edition string is matched by
+	 * {@see Edition::isImunifyAvFamily()}, shared with the bot hot path.
+	 *
+	 * @param DataStore $dataStore Data store instance containing scan data.
+	 *
+	 * @return bool
+	 */
+	public static function isImunifyAvFamily( $dataStore ) {
+		if ( ! $dataStore->isDataAvailable() ) {
+			return false;
+		}
+
+		$scanData = $dataStore->getScanData();
+		if ( ! $scanData ) {
+			return false;
+		}
+
+		$license = $scanData->getLicense();
+		if ( ! $license || ! isset( $license['license_type'] ) ) {
+			return false;
+		}
+
+		return Edition::isImunifyAvFamily( $license['license_type'] );
 	}
 }

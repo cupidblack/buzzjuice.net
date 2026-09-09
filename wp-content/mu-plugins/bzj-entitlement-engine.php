@@ -138,8 +138,8 @@ add_action('wp_enqueue_scripts', function () {
 // ---------------------------------------------------
 
 function bzj_bre_runtime_css() { return <<<CSS
-.bzj-gate-placeholder{background:#fff8ef;border:2px dashed #ff9800;border-radius:14px;padding:10px;text-align:center;margin:14px 0;font-weight:600;color:black;font-size:17px;}
-.bzj-gate-btn{background:#2d5bff;color:#fff;border:none;border-radius:8px;padding:5px;cursor:pointer;margin-top:10px;}
+.bzj-gate-placeholder{background:#fff8ef;border:2px dashed #ff9800;border-radius:14px;padding: 0 0 3px;text-align:center;margin:5px 0;font-weight:600;color:black;font-size:15px;line-height:1.5;}
+.bzj-gate-btn{background:#2d5bff;color:#fff;border:none;border-radius:8px;padding:4px;cursor:pointer;margin-top:0px;font-size: 14px;}
 .bzj-blur-wrap{position:relative;}
 .bzj-blur-content{filter:blur(5px);pointer-events:none;user-select:none;opacity:.65;}
 .bzj-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:999;}
@@ -254,7 +254,7 @@ function buildPlaceholder(policy){
     let btnLabel = (policy.actions && policy.actions.primary && labels[policy.actions.primary]) || labels.buyPoints || 'Unlock';
     return '<div class="bzj-gate-placeholder" data-mode="' + (policy.mode||'') + '">' +
         (m.above||'') +
-        (showMain&&m.main?'<div style="margin:8px 0;">'+m.main+'</div>':'') +
+        (showMain&&m.main?'<div style="margin:0px;">'+m.main+'</div>':'') +
         (m.below||'') +
         '<button type="button" class="bzj-gate-btn">'+btnLabel+'</button></div>';
 }

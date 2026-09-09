@@ -4,8 +4,8 @@ defined( 'ABSPATH' ) || exit;
 
 return array(
     'source_url' => 'MANUAL (provider docs)',
-    'fetched_at' => '2026-06-18T22:03:48+00:00',
-    'checksum' => 'sha256:7e3cfa2ddd8cc1680a0b00214475ff1be11a4ede86216d571d205fb69f2d9f6d',
+    'fetched_at' => '2026-07-28T10:06:38+00:00',
+    'checksum' => 'sha256:660be2882a50e6ca66d51d304426e53a56620a920dc47a467974458b26e680e8',
     'signatures' => array(
         'Googlebot',
         'Googlebot-Image',
@@ -20,6 +20,7 @@ return array(
         'BingPreview',
         'MicrosoftPreview',
         'DuckDuckBot',
+        'DuckAssistBot',
         'Applebot',
         'Applebot-Extended',
         'YandexBot',
@@ -37,10 +38,5 @@ return array(
         'meta-externalads',
         'meta-webindexer',
         'PetalBot',
-        'AhrefsBot',
-        'SemrushBot',
-        'MJ12bot',
-        'DotBot',
-        'Barkrowler',
     ),
 );

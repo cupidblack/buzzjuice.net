@@ -127,4 +127,28 @@ class RateLimitDecision {
 	public function isAllowed() {
 		return self::ACTION_ALLOW === $this->action;
 	}
+
+	/**
+	 * Pick the action that best characterises a per-verdict count map: the one
+	 * with the most requests, breaking ties toward the most severe
+	 * (block > rate_limit > allow). An empty / all-zero map resolves to ALLOW.
+	 * Single source of truth for the dashboard's "dominant verdict" logic.
+	 *
+	 * @param array $counts Map of ACTION_* => request count.
+	 * @return string One of the ACTION_* constants.
+	 */
+	public static function dominantAction( $counts ) {
+		// Severity order, strongest first — also the tie-break preference.
+		$order      = array( self::ACTION_BLOCK, self::ACTION_RATE_LIMIT, self::ACTION_ALLOW );
+		$best       = self::ACTION_ALLOW;
+		$best_count = 0;
+		foreach ( $order as $action ) {
+			$count = ( is_array( $counts ) && isset( $counts[ $action ] ) ) ? (int) $counts[ $action ] : 0;
+			if ( $count > $best_count ) {
+				$best_count = $count;
+				$best       = $action;
+			}
+		}
+		return $best;
+	}
 }

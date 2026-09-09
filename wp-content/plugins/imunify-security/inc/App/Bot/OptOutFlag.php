@@ -19,9 +19,13 @@ namespace CloudLinux\Imunify\App\Bot;
  * File layout (wp-content/imunify-security/bot-settings.php):
  *
  *     return array(
- *         'enabled' => true,     // bool, defaults to true
- *         'preset'  => 'balanced' // one of Preset::BALANCED/STRICT/MONITOR
+ *         'enabled'       => true,      // bool, defaults to true
+ *         'preset'        => 'balanced' // one of Preset::BALANCED/STRICT/MONITOR
+ *         'stats_enabled' => true,      // bool, defaults to true
  *     );
+ *
+ * `stats_enabled` is independent of `enabled`: turning off detailed
+ * bot-traffic stats never turns off protection, and vice versa.
  *
  * Fail-open semantics: a missing, malformed, or syntactically broken
  * file is treated as "feature enabled, Balanced preset" so that a
@@ -52,6 +56,13 @@ class OptOutFlag {
 	private $preset;
 
 	/**
+	 * Whether the site owner keeps detailed bot-traffic stats capture on.
+	 *
+	 * @var bool
+	 */
+	private $statsEnabled;
+
+	/**
 	 * Whether the settings file was present and parsed as an array.
 	 *
 	 * Distinguishes "no site-owner preference expressed yet" (defaults)
@@ -69,11 +80,13 @@ class OptOutFlag {
 	 * @param bool   $enabled              Whether the feature is on.
 	 * @param string $preset               Canonical preset identifier.
 	 * @param bool   $has_explicit_preset  Whether $preset came from the file.
+	 * @param bool   $stats_enabled        Whether detailed stats capture is on.
 	 */
-	private function __construct( $enabled, $preset, $has_explicit_preset ) {
+	private function __construct( $enabled, $preset, $has_explicit_preset, $stats_enabled = true ) {
 		$this->enabled           = (bool) $enabled;
 		$this->preset            = Preset::isValid( $preset ) ? $preset : Preset::BALANCED;
 		$this->hasExplicitPreset = (bool) $has_explicit_preset;
+		$this->statsEnabled      = (bool) $stats_enabled;
 	}
 
 	/**
@@ -83,7 +96,7 @@ class OptOutFlag {
 	 * @return self
 	 */
 	public static function load( $wp_content_dir ) {
-		$default = new self( true, Preset::BALANCED, false );
+		$default = new self( true, Preset::BALANCED, false, true );
 
 		$path = rtrim( (string) $wp_content_dir, '/' )
 			. '/' . self::SETTINGS_DIR . '/' . self::SETTINGS_FILE;
@@ -106,7 +119,9 @@ class OptOutFlag {
 			$has_explicit_preset = true;
 		}
 
-		return new self( $enabled, $preset, $has_explicit_preset );
+		$stats_enabled = isset( $raw['stats_enabled'] ) ? (bool) $raw['stats_enabled'] : true;
+
+		return new self( $enabled, $preset, $has_explicit_preset, $stats_enabled );
 	}
 
 	/**
@@ -116,6 +131,16 @@ class OptOutFlag {
 	 */
 	public function isEnabled() {
 		return $this->enabled;
+	}
+
+	/**
+	 * Whether detailed bot-traffic stats capture should run for this request.
+	 * Independent of {@see isEnabled()} — protection can be on with stats off.
+	 *
+	 * @return bool
+	 */
+	public function isStatsEnabled() {
+		return $this->statsEnabled;
 	}
 
 	/**

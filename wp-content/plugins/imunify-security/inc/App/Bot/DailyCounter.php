@@ -65,21 +65,28 @@ class DailyCounter {
 	}
 
 	/**
-	 * Increment the counter. No-op if the decision represents an
-	 * allowed request.
+	 * Increment the counter. Only hard ACTION_BLOCK decisions count —
+	 * rate-limited and allowed requests are not "blocked".
+	 *
+	 * This is the always-on source for the widget's "%d blocked in 24h"
+	 * line, so it must count the same thing as the block-only "Blocked"
+	 * figures in the bot pane's verdict tiles and on the Bot Traffic
+	 * screen (both driven by ACTION_BLOCK). Counting rate-limits here too
+	 * would inflate the widget line into a block + rate-limit sum that
+	 * disagrees with every other surface.
 	 *
 	 * @param RateLimitDecision $decision Decision returned by RateLimiter::check().
 	 * @return void
 	 */
 	public function recordDecision( $decision ) {
-		if ( $decision->isAllowed() ) {
+		if ( RateLimitDecision::ACTION_BLOCK !== $decision->getAction() ) {
 			return;
 		}
 		$this->storage->increment( $this->key, self::WINDOW_SECONDS );
 	}
 
 	/**
-	 * Current blocked-or-rate-limited count over the 24h window.
+	 * Current blocked (403) count over the 24h window.
 	 *
 	 * @return int
 	 */

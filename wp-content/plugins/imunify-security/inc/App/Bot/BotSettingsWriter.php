@@ -46,17 +46,22 @@ class BotSettingsWriter {
 	}
 
 	/**
-	 * Persist the site-owner's enabled flag and, optionally, preset.
+	 * Persist the site-owner's enabled flag, optional preset, and stats flag.
 	 *
-	 * @param bool        $enabled Whether bot protection is enabled on this site.
-	 * @param string|null $preset  A Preset::* constant, or null to omit the
-	 *                             preset key (lets plugin_config.php remain
-	 *                             authoritative). Invalid non-null values are
-	 *                             coerced to Preset::BALANCED.
+	 * Because the whole file is rewritten on every call, callers must pass the
+	 * complete desired state — a preset change must carry the current
+	 * $stats_enabled value through, or it will be reset to the default.
+	 *
+	 * @param bool        $enabled       Whether bot protection is enabled on this site.
+	 * @param string|null $preset        A Preset::* constant, or null to omit the
+	 *                                   preset key (lets plugin_config.php remain
+	 *                                   authoritative). Invalid non-null values are
+	 *                                   coerced to Preset::BALANCED.
+	 * @param bool        $stats_enabled Whether detailed bot-traffic stats capture is on.
 	 * @return bool True iff the file exists at the target path after
 	 *              the call.
 	 */
-	public function write( $enabled, $preset = null ) {
+	public function write( $enabled, $preset = null, $stats_enabled = true ) {
 		if ( '' === $this->wpContentDir ) {
 			return false;
 		}
@@ -72,7 +77,8 @@ class BotSettingsWriter {
 		}
 
 		$payload = array(
-			'enabled' => (bool) $enabled,
+			'enabled'       => (bool) $enabled,
+			'stats_enabled' => (bool) $stats_enabled,
 		);
 		if ( null !== $preset ) {
 			$payload['preset'] = Preset::isValid( $preset ) ? $preset : Preset::BALANCED;

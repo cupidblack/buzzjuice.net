@@ -4,8 +4,8 @@ defined( 'ABSPATH' ) || exit;
 
 return array(
     'source_url' => 'https://developers.google.com/static/crawling/ipranges/common-crawlers.json, https://developers.google.com/static/crawling/ipranges/special-crawlers.json, https://developers.google.com/static/crawling/ipranges/user-triggered-fetchers.json',
-    'fetched_at' => '2026-07-16T16:31:34+00:00',
-    'checksum' => 'sha256:ea5370e85887ab77dbbf6bbf38cf62a2d7aacdad2f605751bd93e885bebb40cc',
+    'fetched_at' => '2026-08-07T16:04:08+00:00',
+    'checksum' => 'sha256:1858862df1473c343985b5f8c07bc0f54d635e6f9dccdd77fa473267e06218c9',
     'ranges_by_octet' => array(
         32 => array(
             '2001:4860:4801:10::/64',
@@ -656,6 +656,7 @@ return array(
             '35.187.136.160/27',
             '35.187.136.192/27',
             '35.187.136.224/27',
+            '35.187.136.32/27',
             '35.187.138.0/27',
             '35.187.138.128/27',
             '35.187.138.160/27',
@@ -896,6 +897,7 @@ return array(
             '2600:1900:0:1c6::/64',
             '2600:1900:0:1c::/64',
             '2600:1900:0:1d0::/64',
+            '2600:1900:0:1d1::/64',
             '2600:1900:0:1e0::/64',
             '2600:1900:0:1e1::/64',
             '2600:1900:0:1e2::/64',

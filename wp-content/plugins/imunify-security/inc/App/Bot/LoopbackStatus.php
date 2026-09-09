@@ -16,7 +16,7 @@ namespace CloudLinux\Imunify\App\Bot;
  * reads the derived `warning` flag (a non-OK, non-dismissed state). The
  * option is deleted on plugin uninstall by {@see BotLifecycle}.
  *
- * @since 4.0.3
+ * @since 4.1.0
  */
 class LoopbackStatus {
 

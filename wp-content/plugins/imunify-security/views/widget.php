@@ -65,6 +65,7 @@ if ( ! empty( $rules ) ) {
 }
 
 use CloudLinux\Imunify\App\Helpers\DateTimeFormatter;
+use CloudLinux\Imunify\App\Helpers\Documentation;
 use CloudLinux\Imunify\App\Helpers\PathFormatter;
 ?>
 <div class="imunify-security__widget">
@@ -186,6 +187,11 @@ use CloudLinux\Imunify\App\Helpers\PathFormatter;
 
 		<!-- Widget Actions -->
 		<div class="imunify-security__widget-actions">
+			<?php
+			// Documentation::link() returns a pre-escaped anchor.
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- pre-escaped in Documentation::link().
+			echo Documentation::link( Documentation::home() );
+			?>
 			<a href="#" class="imunify-security__action-link js-hide-notifications"><?php esc_html_e( 'Hide notifications', 'imunify-security' ); ?></a>
 		</div>
 	</div>
@@ -289,7 +295,12 @@ use CloudLinux\Imunify\App\Helpers\PathFormatter;
 				</tbody>
 			</table>
 		</div>
-		<div class="imunify-security__pane-footer">
+		<div class="imunify-security__pane-footer imunify-security__pane-footer--split">
+			<?php
+			// Documentation::link() returns a pre-escaped anchor.
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- pre-escaped in Documentation::link().
+			echo Documentation::link( Documentation::waf() );
+			?>
 			<a href="<?php echo esc_url( $wafUrl ); ?>" class="imunify-security__more-link"><?php esc_html_e( 'Show more results', 'imunify-security' ); ?></a>
 		</div>
 	</div>

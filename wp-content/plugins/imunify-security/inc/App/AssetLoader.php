@@ -8,6 +8,8 @@
 
 namespace CloudLinux\Imunify\App;
 
+use CloudLinux\Imunify\App\Views\BotProtectionWidgetSection;
+use CloudLinux\Imunify\App\Views\BotTrafficPage;
 use CloudLinux\Imunify\App\Views\Widget;
 
 /**
@@ -21,6 +23,11 @@ class AssetLoader {
 	const WIDGET_HANDLE = 'imunify-security-widget';
 
 	/**
+	 * Asset handle for the Bot Traffic page styles and scripts.
+	 */
+	const BOT_TRAFFIC_HANDLE = 'imunify-security-bot-traffic';
+
+	/**
 	 * The widget instance.
 	 *
 	 * @var Widget
@@ -28,12 +35,22 @@ class AssetLoader {
 	private $widget;
 
 	/**
+	 * The Bot Traffic page, or null when WP_CONTENT_DIR was unavailable at
+	 * setup. Used to enqueue that page's bundle only on its own admin hook.
+	 *
+	 * @var BotTrafficPage|null
+	 */
+	private $botTrafficPage;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Widget $widget The widget instance.
+	 * @param Widget              $widget           The widget instance.
+	 * @param BotTrafficPage|null $bot_traffic_page The Bot Traffic page, if available.
 	 */
-	public function __construct( Widget $widget ) {
-		$this->widget = $widget;
+	public function __construct( Widget $widget, $bot_traffic_page = null ) {
+		$this->widget         = $widget;
+		$this->botTrafficPage = $bot_traffic_page;
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueueAssets' ) );
 	}
@@ -80,5 +97,43 @@ class AssetLoader {
 				)
 			);
 		}
+
+		// Bot Traffic page assets — only on that page's own admin hook.
+		if ( null !== $this->botTrafficPage && $hook === $this->botTrafficPage->hookSuffix() ) {
+			$this->enqueueBotTrafficAssets();
+		}
+	}
+
+	/**
+	 * Enqueue the self-contained Bot Traffic bundle (Vanilla JS + its own CSS)
+	 * and localize the nonce for the stats opt-out toggle.
+	 *
+	 * @return void
+	 */
+	private function enqueueBotTrafficAssets() {
+		$plugin_url = plugin_dir_url( IMUNIFY_SECURITY_FILE_PATH );
+		wp_enqueue_style(
+			self::BOT_TRAFFIC_HANDLE,
+			"{$plugin_url}assets/css/bot-traffic.min.css",
+			array(),
+			IMUNIFY_SECURITY_VERSION
+		);
+		wp_enqueue_script(
+			self::BOT_TRAFFIC_HANDLE,
+			"{$plugin_url}assets/js/bot-traffic.min.js",
+			array(),
+			IMUNIFY_SECURITY_VERSION,
+			true
+		);
+		wp_localize_script(
+			self::BOT_TRAFFIC_HANDLE,
+			'imunifyBotTraffic',
+			array(
+				'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+				'action'       => BotProtectionWidgetSection::AJAX_ACTION,
+				'nonce'        => wp_create_nonce( BotProtectionWidgetSection::NONCE_ACTION ),
+				'errorMessage' => __( 'Could not update statistics settings. Please try again.', 'imunify-security' ),
+			)
+		);
 	}
 }

@@ -12,14 +12,11 @@ namespace CloudLinux\Imunify\App\Bot;
  * File path selector that prefers a runtime overlay over the shipped bundle.
  *
  * The plugin ships with a snapshot of bot/CDN/datacenter ranges and UA
- * signatures under inc/App/Bot/data/. In a future phase,
- * SignatureRefresher will refresh the volatile sources and write updated
- * copies to an overlay directory (typically
- * wp-content/imunify-security/bot-data/) on a daily wp-cron.
- * Phase 1 ships bundled data only — cron is deliberately not scheduled,
- * so no overlay is ever produced and this loader falls through to the
- * bundled path on every read. The two-layer infrastructure stays in
- * place so Phase 2 can flip the cron back on without code churn here.
+ * signatures under inc/App/Bot/data/. SignatureRefresher refreshes the
+ * volatile sources on a WP-Cron schedule and writes updated copies to an
+ * overlay directory (typically wp-content/imunify-security/bot-data/);
+ * this loader prefers an overlay file when present and falls through to
+ * the bundled snapshot otherwise.
  *
  * Overlay presence is tested by readability — a missing overlay file
  * transparently falls back to the bundled snapshot. Failed overlay
@@ -241,16 +238,13 @@ class BundledData {
 
 		$by_octet = array();
 		foreach ( $data['ranges_by_octet'] as $octet => $cidrs ) {
-			if ( ! is_array( $cidrs ) ) {
+			if ( ! is_array( $cidrs ) || empty( $cidrs ) ) {
 				continue;
 			}
-			$filtered = self::filterNonEmptyStrings( $cidrs );
-			if ( ! empty( $filtered ) ) {
-				$by_octet[ (int) $octet ] = $filtered;
-			}
+			$by_octet[ (int) $octet ] = $cidrs;
 		}
 		$broad = isset( $data['ranges_broad'] ) && is_array( $data['ranges_broad'] )
-			? self::filterNonEmptyStrings( $data['ranges_broad'] )
+			? $data['ranges_broad']
 			: array();
 		return array(
 			'by_octet' => $by_octet,
@@ -269,12 +263,16 @@ class BundledData {
 	 * @param string     $context     Short label identifying the call site.
 	 * @param string     $message     Detailed message body.
 	 * @param array|null $fingerprint Optional Sentry fingerprint for cross-site grouping.
+	 * @param array      $details     Optional extra values to attach to the event.
 	 */
-	public static function reportFailOpenError( $context, $message, $fingerprint = null ) {
+	public static function reportFailOpenError( $context, $message, $fingerprint = null, $details = array() ) {
 		if ( ! function_exists( 'do_action' ) ) {
 			return;
 		}
-		$extra = is_array( $fingerprint ) ? array( 'fingerprint' => $fingerprint ) : array();
+		$extra = is_array( $details ) ? $details : array();
+		if ( is_array( $fingerprint ) ) {
+			$extra['fingerprint'] = $fingerprint;
+		}
 		try {
 			do_action(
 				'imunify_security_set_error',

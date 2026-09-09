@@ -9,7 +9,7 @@
  * Plugin Name: Imunify Security
  * Plugin URI: https://imunify360.com/imunify-security-wp-plugin/
  * Description: Imunify Security WordPress plugin is a comprehensive tool offering malware scanning, firewall protection, and intrusion detection for WordPress websites.
- * Version: 4.0.2
+ * Version: 4.1.0
  * Requires at least: 5.0.0
  * Requires PHP: 5.6
  * Author: CloudLinux
@@ -41,7 +41,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 define( 'IMUNIFY_SECURITY_SLUG', 'imunify-security' );
 define( 'IMUNIFY_SECURITY_PATH', __DIR__ );
-define( 'IMUNIFY_SECURITY_VERSION', '4.0.2' );
+define( 'IMUNIFY_SECURITY_VERSION', '4.1.0' );
 define( 'IMUNIFY_SECURITY_FILE_PATH', __FILE__ );
 
 require_once __DIR__ . '/inc/autoload.php';

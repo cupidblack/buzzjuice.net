@@ -22,19 +22,19 @@ class Lifecycle {
 	/**
 	 * Activate the plugin.
 	 *
-	 * @return bool
+	 * @return void
 	 */
 	public static function activate() {
-		return BotLifecycle::activate();
+		BotLifecycle::activate();
 	}
 
 	/**
 	 * Deactivate the plugin.
 	 *
-	 * @return bool
+	 * @return void
 	 */
 	public static function deactivate() {
-		return BotLifecycle::deactivate();
+		BotLifecycle::deactivate();
 	}
 
 	/**

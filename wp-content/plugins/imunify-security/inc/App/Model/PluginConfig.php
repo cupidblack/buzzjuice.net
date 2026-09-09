@@ -48,6 +48,16 @@ class PluginConfig {
 	private $preset = null;
 
 	/**
+	 * License edition string as written by the agent (e.g. imunify360,
+	 * imunifyAV, imunifyAVPlus), or null when the agent didn't write one
+	 * (older agent, missing / malformed value). Kept verbatim (trimmed);
+	 * edition matching normalises case at read time.
+	 *
+	 * @var string|null
+	 */
+	private $licenseType = null;
+
+	/**
 	 * True when this instance stands in for a plugin_config.php that
 	 * couldn't be read at all (missing / unreadable / unparseable),
 	 * rather than one that was successfully read and says the flag is
@@ -77,6 +87,12 @@ class PluginConfig {
 			$normalized = strtolower( trim( $data['preset'] ) );
 			if ( Preset::isValid( $normalized ) ) {
 				$instance->preset = $normalized;
+			}
+		}
+		if ( isset( $data['license_type'] ) && is_string( $data['license_type'] ) ) {
+			$edition = trim( $data['license_type'] );
+			if ( '' !== $edition ) {
+				$instance->licenseType = $edition;
 			}
 		}
 		return $instance;
@@ -123,5 +139,35 @@ class PluginConfig {
 	 */
 	public function getPreset() {
 		return $this->preset;
+	}
+
+	/**
+	 * License edition string as written by the agent, or null when unset /
+	 * malformed. Returned verbatim (trimmed); callers that gate on the
+	 * edition should use {@see isImunifyAvEdition()} rather than comparing
+	 * this raw value, so case and future variants are handled in one place.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @return string|null
+	 */
+	public function getLicenseType() {
+		return $this->licenseType;
+	}
+
+	/**
+	 * Whether the license edition belongs to the ImunifyAV family
+	 * (ImunifyAV or ImunifyAV+), for which AI bot management is forced to
+	 * monitor-only. Delegates to {@see Edition::isImunifyAvFamily()} — the
+	 * single source of truth for the AV-family rule — so an absent / unknown
+	 * edition never locks and an Imunify360 customer is never wrongly
+	 * downgraded.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @return bool
+	 */
+	public function isImunifyAvEdition() {
+		return Edition::isImunifyAvFamily( $this->licenseType );
 	}
 }

@@ -60,17 +60,17 @@ class Feature {
 	/**
 	 * Create a feature from a type.
 	 *
-	 * @param string $type   Feature type.
-	 *
-	 * @param array  $config Configuration data.
+	 * @param string      $type        Feature type.
+	 * @param array       $config      Configuration data.
+	 * @param string|null $licenseType License edition (license_type).
 	 *
 	 * @return \CloudLinux\Imunify\App\Model\Feature
 	 */
-	public static function fromType( $type, array $config = array() ) {
+	public static function fromType( $type, array $config = array(), $licenseType = null ) {
 		$feature         = new self();
 		$feature->name   = FeatureType::getDisplayName( $type );
 		$feature->url    = FeatureType::getUrl( $type );
-		$feature->status = FeatureType::getStatus( $type, $config );
+		$feature->status = FeatureType::getStatus( $type, $config, $licenseType );
 		$feature->type   = $type;
 
 		return $feature;

@@ -36,7 +36,7 @@ class Honeypot {
 	/**
 	 * Honeypot URI, optionally prefixed with the site's subdirectory base.
 	 *
-	 * @since 4.0.3 Added $base_path for subdirectory WordPress installs.
+	 * @since 4.1.0 Added $base_path for subdirectory WordPress installs.
 	 *
 	 * @param string $base_path Path component of home_url(); '' on root installs.
 	 * @return string
@@ -59,7 +59,7 @@ class Honeypot {
 	 * comparison, so the trap fires whether the request carries the
 	 * subdirectory prefix or hits the bare root token directly.
 	 *
-	 * @since 4.0.3 Added $base_path for subdirectory WordPress installs.
+	 * @since 4.1.0 Added $base_path for subdirectory WordPress installs.
 	 *
 	 * @param string $uri       Request URI (from $_SERVER['REQUEST_URI']).
 	 * @param string $base_path Subdirectory base to strip; '' on root installs.
@@ -87,7 +87,7 @@ class Honeypot {
 	 * Returns the normalised path component — '' for a root install,
 	 * '/blog' for a site whose home is "https://example.com/blog/".
 	 *
-	 * @since 4.0.3
+	 * @since 4.1.0
 	 *
 	 * @param string $url Absolute site URL or a bare path.
 	 * @return string
@@ -114,7 +114,7 @@ class Honeypot {
 	 * "WordPress in its own directory" — are not detected and fail open (the
 	 * honeypot does not fire; nothing is wrongly blocked).
 	 *
-	 * @since 4.0.3
+	 * @since 4.1.0
 	 *
 	 * @param string $script_name Value of $_SERVER['SCRIPT_NAME'].
 	 * @return string
@@ -134,7 +134,7 @@ class Honeypot {
 	 * keyboard users away from it, so only a bot crawling the DOM and
 	 * following every href will reach it.
 	 *
-	 * @since 4.0.3 Added $base_path for subdirectory WordPress installs.
+	 * @since 4.1.0 Added $base_path for subdirectory WordPress installs.
 	 *
 	 * @param string $base_path Path component of home_url(); '' on root installs.
 	 * @return string HTML snippet suitable for echoing inside wp_footer.
@@ -154,7 +154,7 @@ class Honeypot {
 	 * bot that claims to honour robots.txt but requests this path is
 	 * definitively lying.
 	 *
-	 * @since 4.0.3 Added $base_path for subdirectory WordPress installs.
+	 * @since 4.1.0 Added $base_path for subdirectory WordPress installs.
 	 *
 	 * @param string $base_path Path component of home_url(); '' on root installs.
 	 * @return string

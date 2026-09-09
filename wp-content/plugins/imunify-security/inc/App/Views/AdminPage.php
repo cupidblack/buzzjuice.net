@@ -29,6 +29,11 @@ class AdminPage extends View {
 	const IFRAME_ACTION = 'render_imunify_iframe';
 
 	/**
+	 * Fragment of the embedded SPA route that opens the upgrade page.
+	 */
+	const UPGRADE_URI_FRAGMENT = '/AV/client/upgrade';
+
+	/**
 	 * Data store instance.
 	 *
 	 * @var DataStore
@@ -57,6 +62,35 @@ class AdminPage extends View {
 	}
 
 	/**
+	 * Absolute URL of the plugin's admin page. Shared by every view that
+	 * links into the embedded Imunify UI (widget upgrade CTA, malware / WAF
+	 * deep links, bot-protection upsell) so the base URL lives in one place.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @return string
+	 */
+	public static function pageUrl() {
+		return add_query_arg(
+			'page',
+			self::PAGE_SLUG,
+			admin_url( 'admin.php' )
+		);
+	}
+
+	/**
+	 * Deep link into the embedded UI's upgrade page. Shared upsell CTA
+	 * target for the widget and the bot-protection monitoring tooltip.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @return string
+	 */
+	public static function upgradeUrl() {
+		return self::pageUrl() . '#' . self::UPGRADE_URI_FRAGMENT;
+	}
+
+	/**
 	 * Add admin menu item for Imunify Security.
 	 *
 	 * @return void
@@ -74,6 +108,17 @@ class AdminPage extends View {
 			array( $this, 'renderPage' ),
 			'dashicons-shield-alt',
 			80 // Position after "Settings".
+		);
+
+		// WordPress auto-adds a first submenu item that duplicates the top-level
+		// title; a same-slug add_submenu_page relabels it to "Dashboard".
+		add_submenu_page(
+			self::PAGE_SLUG,
+			esc_html__( 'Imunify Security', 'imunify-security' ),
+			esc_html__( 'Dashboard', 'imunify-security' ),
+			'manage_options',
+			self::PAGE_SLUG,
+			array( $this, 'renderPage' )
 		);
 	}
 

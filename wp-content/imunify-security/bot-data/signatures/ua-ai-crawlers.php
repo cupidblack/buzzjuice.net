@@ -4,8 +4,8 @@ defined( 'ABSPATH' ) || exit;
 
 return array(
     'source_url' => 'https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/main/robots.json',
-    'fetched_at' => '2026-07-31T16:03:47+00:00',
-    'checksum' => 'sha256:79d4939e8652f503a6b217b8c701f97d888529f5a96b668db99ae3ac13113fa4',
+    'fetched_at' => '2026-08-22T10:03:42+00:00',
+    'checksum' => 'sha256:66ab74ad7ffa8b6b7d5ee00be5da38ce35a7be516093ee73ef11e3f004fe6ce7',
     'signatures' => array(
         'AI2Bot',
         'AI2Bot-DeepResearchEval',
@@ -54,6 +54,7 @@ return array(
         'Echobot Bot',
         'EchoboxBot',
         'ExaBot',
+        'ExaSearchBot',
         'FacebookBot',
         'Factset_spyderbot',
         'FirecrawlAgent',
@@ -81,6 +82,7 @@ return array(
         'KlaviyoAIBot',
         'KunatoCrawler',
         'LAIONDownloader',
+        'Lightpanda',
         'LinerBot',
         'Linguee Bot',
         'LinkupBot',
@@ -108,6 +110,7 @@ return array(
         'Querit-SearchBot',
         'QueritBot',
         'QuillBot',
+        'Reflectionbot',
         'SBIntuitionsBot',
         'Scrapy',
         'SemrushBot-OCOB',

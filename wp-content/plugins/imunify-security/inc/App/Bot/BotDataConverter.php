@@ -34,37 +34,56 @@ class BotDataConverter {
 	private $output_dir;
 
 	/**
+	 * Longest `generated_at` accepted from all.json. The value is republished in
+	 * every daily bot-stats export, so an oversized one would bloat each file.
+	 */
+	const MAX_GENERATED_AT_LENGTH = 64;
+
+	/**
+	 * `generated_at` of the last all.json passed to convert(), '' before the
+	 * first call or when the payload omitted it.
+	 *
+	 * @var string
+	 */
+	private $generated_at = '';
+
+	/**
 	 * Source name → relative PHP path under the output directory.
 	 *
 	 * @var array<string,string>
 	 */
 	private static $source_relpath_map = array(
-		'cloudflare'          => 'cdn-ip-ranges/cloudflare.php',
-		'fastly'              => 'cdn-ip-ranges/fastly.php',
-		'cloudfront'          => 'cdn-ip-ranges/cloudfront.php',
-		'akamai'              => 'cdn-ip-ranges/akamai.php',
-		'sucuri'              => 'cdn-ip-ranges/sucuri.php',
-		'imperva'             => 'cdn-ip-ranges/imperva.php',
-		'quic-cloud'          => 'cdn-ip-ranges/quic-cloud.php',
-		'aws'                 => 'datacenter-ip-ranges/aws.php',
-		'gcp'                 => 'datacenter-ip-ranges/gcp.php',
-		'azure'               => 'datacenter-ip-ranges/azure.php',
-		'ovh'                 => 'datacenter-ip-ranges/ovh.php',
-		'hetzner'             => 'datacenter-ip-ranges/hetzner.php',
-		'digitalocean'        => 'datacenter-ip-ranges/digitalocean.php',
-		'anthropic'           => 'bot-ip-ranges/anthropic.php',
-		'openai'              => 'bot-ip-ranges/openai.php',
-		'google'              => 'bot-ip-ranges/google.php',
-		'bing'                => 'bot-ip-ranges/bing.php',
-		'apple'               => 'bot-ip-ranges/apple.php',
-		'meta'                => 'bot-ip-ranges/meta.php',
-		'duckduckgo'          => 'bot-ip-ranges/duckduckgo.php',
-		'perplexity'          => 'bot-ip-ranges/perplexity.php',
-		'ua-ai-crawlers'      => 'signatures/ua-ai-crawlers.php',
-		'ua-search-engines'   => 'signatures/ua-search-engines.php',
-		'ua-malicious'        => 'signatures/ua-malicious.php',
-		'ua-rdns-suffixes'    => 'signatures/ua-rdns-suffixes.php',
-		'ua-ai-rdns-suffixes' => 'signatures/ua-ai-rdns-suffixes.php',
+		'cloudflare'           => 'cdn-ip-ranges/cloudflare.php',
+		'fastly'               => 'cdn-ip-ranges/fastly.php',
+		'cloudfront'           => 'cdn-ip-ranges/cloudfront.php',
+		'akamai'               => 'cdn-ip-ranges/akamai.php',
+		'sucuri'               => 'cdn-ip-ranges/sucuri.php',
+		'imperva'              => 'cdn-ip-ranges/imperva.php',
+		'quic-cloud'           => 'cdn-ip-ranges/quic-cloud.php',
+		'aws'                  => 'datacenter-ip-ranges/aws.php',
+		'gcp'                  => 'datacenter-ip-ranges/gcp.php',
+		'azure'                => 'datacenter-ip-ranges/azure.php',
+		'ovh'                  => 'datacenter-ip-ranges/ovh.php',
+		'hetzner'              => 'datacenter-ip-ranges/hetzner.php',
+		'digitalocean'         => 'datacenter-ip-ranges/digitalocean.php',
+		'anthropic'            => 'bot-ip-ranges/anthropic.php',
+		'openai'               => 'bot-ip-ranges/openai.php',
+		'google'               => 'bot-ip-ranges/google.php',
+		'bing'                 => 'bot-ip-ranges/bing.php',
+		'apple'                => 'bot-ip-ranges/apple.php',
+		'meta'                 => 'bot-ip-ranges/meta.php',
+		'duckduckgo'           => 'bot-ip-ranges/duckduckgo.php',
+		'duckassistbot'        => 'bot-ip-ranges/duckassistbot.php',
+		'perplexity'           => 'bot-ip-ranges/perplexity.php',
+		'ahrefs'               => 'bot-ip-ranges/ahrefs.php',
+		'barkrowler'           => 'bot-ip-ranges/barkrowler.php',
+		'ua-ai-crawlers'       => 'signatures/ua-ai-crawlers.php',
+		'ua-search-engines'    => 'signatures/ua-search-engines.php',
+		'ua-seo-crawlers'      => 'signatures/ua-seo-crawlers.php',
+		'ua-malicious'         => 'signatures/ua-malicious.php',
+		'ua-rdns-suffixes'     => 'signatures/ua-rdns-suffixes.php',
+		'ua-ai-rdns-suffixes'  => 'signatures/ua-ai-rdns-suffixes.php',
+		'ua-seo-rdns-suffixes' => 'signatures/ua-seo-rdns-suffixes.php',
 	);
 
 	/**
@@ -99,6 +118,12 @@ class BotDataConverter {
 		if ( ! isset( $data['sources'] ) || ! is_array( $data['sources'] ) ) {
 			throw new \RuntimeException( 'BotDataConverter: missing sources object in all.json' );
 		}
+
+		$this->generated_at = isset( $data['generated_at'] )
+			&& is_string( $data['generated_at'] )
+			&& strlen( $data['generated_at'] ) <= self::MAX_GENERATED_AT_LENGTH
+				? $data['generated_at']
+				: '';
 
 		$planned = array();
 		foreach ( $data['sources'] as $name => $source ) {
@@ -153,6 +178,17 @@ class BotDataConverter {
 		}
 
 		return $written;
+	}
+
+	/**
+	 * The `generated_at` of the all.json the last convert() call parsed — the
+	 * only version identifier the dataset carries, and one the per-source bundle
+	 * files do not keep.
+	 *
+	 * @return string ISO-8601 timestamp, or '' when absent or over-long.
+	 */
+	public function generatedAt() {
+		return $this->generated_at;
 	}
 
 	/**

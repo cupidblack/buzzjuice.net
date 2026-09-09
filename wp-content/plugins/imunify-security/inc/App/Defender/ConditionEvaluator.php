@@ -120,6 +120,8 @@ class ConditionEvaluator {
 		switch ( $condition->getType() ) {
 			case ConditionType::EXISTS:
 				return $this->evaluateFieldExists( $condition, $request );
+			case ConditionType::NOT_EXISTS:
+				return $this->evaluateFieldNotExists( $condition, $request );
 			case ConditionType::MISSING_CAPABILITY:
 				return $this->evaluateMissingCapability( $condition, $request );
 			case ConditionType::NOT_CURRENT_USER:
@@ -159,6 +161,10 @@ class ConditionEvaluator {
 
 		if ( null === $matcher ) {
 			return false;
+		}
+
+		if ( empty( $values ) && $condition->matchesAbsent() && self::absenceMatchesEmptyValue( $condition ) ) {
+			$values = array( '' );
 		}
 
 		foreach ( $values as $value ) {
@@ -203,6 +209,33 @@ class ConditionEvaluator {
 			default:
 				return null;
 		}
+	}
+
+	/**
+	 * Check whether a condition's absent field may be matched as an empty value.
+	 *
+	 * Limited to a single named header or cookie: those are the only fields
+	 * whose absence is equivalent to an empty value for the WordPress backend
+	 * that reads them. A regex or bracket-path name has no single field that
+	 * could be absent, and the other sources carry their own absence semantics.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @param Condition $condition The condition object.
+	 *
+	 * @return bool True if an absent field resolves to an empty value.
+	 */
+	private static function absenceMatchesEmptyValue( Condition $condition ) {
+		$parsed = $condition->parseName();
+
+		$sources = array( ConditionSource::REQUEST_HEADERS, ConditionSource::REQUEST_COOKIES );
+		if ( ! in_array( $parsed['source'], $sources, true ) ) {
+			return false;
+		}
+
+		return null !== $parsed['field']
+			&& null === $parsed['field_regex']
+			&& null === $parsed['bracket_path'];
 	}
 
 	/**
@@ -278,6 +311,160 @@ class ConditionEvaluator {
 			default:
 				return false;
 		}
+	}
+
+	/**
+	 * Evaluate not_exists condition.
+	 *
+	 * Only negates an existence check that the request can actually decide;
+	 * every other shape returns false. Negating an existence check that is
+	 * false for every request would turn the rule into a match-everything
+	 * rule.
+	 *
+	 * FILES is decided by presence instead, because evaluateFieldExists()
+	 * reads the sub-value: negating it would report a sent upload with an
+	 * empty name, type or body as absent. exists() keeps its value-based
+	 * behaviour, so for a present-but-empty sub-value both checks are false.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @param Condition $condition The condition object.
+	 * @param Request   $request   Request object.
+	 *
+	 * @return bool True if the field is absent from the request.
+	 */
+	private function evaluateFieldNotExists( Condition $condition, Request $request ) {
+		if ( ! $condition->hasRequiredFields() ) {
+			return false;
+		}
+
+		$parsed = $condition->parseName();
+		if ( ! $this->existenceDependsOnRequest( $parsed ) ) {
+			return false;
+		}
+
+		if ( ConditionSource::FILES === $parsed['source'] ) {
+			return $this->fileFieldIsAbsent( $request, $parsed['field'] );
+		}
+
+		return ! $this->evaluateFieldExists( $condition, $request );
+	}
+
+	/**
+	 * Check whether a request carries no upload for a FILES field.
+	 *
+	 * A UPLOAD_ERR_NO_FILE entry counts as absent: the browser sent the part
+	 * for a file input the user left empty, which is what a rule author means
+	 * by "no file was uploaded". Every other error, including a rejected or
+	 * truncated upload, is a present upload. A multi-file field carries one
+	 * code per part, nested for a nested input name, and is absent only when
+	 * every part is UPLOAD_ERR_NO_FILE, so an empty multiple-file input reads
+	 * the same as an empty single one.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @param Request $request Request object.
+	 * @param string  $field   FILES field, sub-selector included.
+	 *
+	 * @return bool True if the request carries no upload for the field.
+	 */
+	private function fileFieldIsAbsent( Request $request, $field ) {
+		$filesParsed = ValueResolver::parseFilesField( $field );
+		$file        = $request->getFile( $filesParsed['field'] );
+
+		if ( null === $file ) {
+			return true;
+		}
+
+		if ( ! isset( $file['error'] ) ) {
+			// No error code to read: the entry itself is the presence signal.
+			return false;
+		}
+
+		if ( is_array( $file['error'] ) ) {
+			return $this->everyPartIsEmpty( $file['error'] );
+		}
+
+		return UPLOAD_ERR_NO_FILE === (int) $file['error'];
+	}
+
+	/**
+	 * Check whether every part of a multi-file upload status reports no file.
+	 *
+	 * Recurses because a nested input name such as portfolio[images][] puts the
+	 * per-part codes one level deeper than a flat doc[] does.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @param array $errors Upload status of each part, possibly nested.
+	 *
+	 * @return bool True if no part carries an upload.
+	 */
+	private function everyPartIsEmpty( array $errors ) {
+		foreach ( $errors as $error ) {
+			$partIsEmpty = is_array( $error )
+				? $this->everyPartIsEmpty( $error )
+				: UPLOAD_ERR_NO_FILE === (int) $error;
+
+			if ( ! $partIsEmpty ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check whether an existence check reads the given name from the request.
+	 *
+	 * Restricted to a named field of a field-addressable source. REQUEST_URI and
+	 * ARGS_NAMES ignore the field entirely, and a bare source name only asks
+	 * whether the whole source is empty — which is either never true
+	 * (REQUEST_URI, REQUEST_HEADERS) or true of ordinary traffic (ARGS,
+	 * ARGS_NAMES, REQUEST_COOKIES), so neither is a usable absence signal.
+	 * Beyond that this mirrors the dispatch in evaluateFieldExists(): regex
+	 * field names and regex bracket paths resolve through ValueResolver, which
+	 * only scans the collection sources, and FILES resolves only a field with
+	 * no sub-selector or a known one. Keep in step with evaluateFieldExists()
+	 * when a source gains or loses resolution support.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @param array $parsed Parsed condition name.
+	 *
+	 * @return bool True if existence is decided by the request.
+	 */
+	private function existenceDependsOnRequest( array $parsed ) {
+		$source            = $parsed['source'];
+		$collectionSources = array(
+			ConditionSource::ARGS,
+			ConditionSource::REQUEST_COOKIES,
+			ConditionSource::REQUEST_HEADERS,
+		);
+
+		if ( ! in_array( $source, array_merge( $collectionSources, array( ConditionSource::FILES ) ), true ) ) {
+			return false;
+		}
+
+		$resolvesByRegex = null !== $parsed['field_regex']
+			|| ( null !== $parsed['bracket_path'] && $this->bracketPathHasRegex( $parsed['bracket_path'] ) );
+
+		if ( $resolvesByRegex ) {
+			return in_array( $source, $collectionSources, true );
+		}
+
+		if ( null === $parsed['field'] ) {
+			return false;
+		}
+
+		if ( ConditionSource::FILES !== $source ) {
+			return true;
+		}
+
+		$filesParsed = ValueResolver::parseFilesField( $parsed['field'] );
+
+		return null === $filesParsed['sub']
+			|| in_array( $filesParsed['sub'], ValueResolver::FILES_SUB_SELECTORS, true );
 	}
 
 	/**

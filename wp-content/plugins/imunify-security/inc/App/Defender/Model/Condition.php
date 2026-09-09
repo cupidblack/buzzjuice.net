@@ -43,6 +43,15 @@ class Condition {
 	private $value;
 
 	/**
+	 * Whether an absent field should be matched as an empty value.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @var bool
+	 */
+	private $matchAbsent = false;
+
+	/**
 	 * Create a condition from an array.
 	 *
 	 * @param array $data Condition data.
@@ -50,10 +59,11 @@ class Condition {
 	 * @return Condition
 	 */
 	public static function fromArray( $data ) {
-		$condition        = new self();
-		$condition->name  = isset( $data['name'] ) ? $data['name'] : '';
-		$condition->type  = isset( $data['type'] ) ? $data['type'] : '';
-		$condition->value = isset( $data['value'] ) ? $data['value'] : null;
+		$condition              = new self();
+		$condition->name        = isset( $data['name'] ) ? $data['name'] : '';
+		$condition->type        = isset( $data['type'] ) ? $data['type'] : '';
+		$condition->value       = isset( $data['value'] ) ? $data['value'] : null;
+		$condition->matchAbsent = ! empty( $data['match_absent'] );
 
 		return $condition;
 	}
@@ -71,6 +81,10 @@ class Condition {
 
 		if ( null !== $this->value ) {
 			$data['value'] = $this->value;
+		}
+
+		if ( $this->matchAbsent ) {
+			$data['match_absent'] = true;
 		}
 
 		return $data;
@@ -101,6 +115,17 @@ class Condition {
 	 */
 	public function getValue() {
 		return $this->value;
+	}
+
+	/**
+	 * Whether an absent field should be matched as an empty value.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @return bool
+	 */
+	public function matchesAbsent() {
+		return $this->matchAbsent;
 	}
 
 	/**

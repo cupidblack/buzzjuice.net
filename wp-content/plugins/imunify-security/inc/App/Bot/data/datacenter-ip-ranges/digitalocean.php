@@ -4,8 +4,8 @@ defined( 'ABSPATH' ) || exit;
 
 return array(
     'source_url' => 'https://digitalocean.com/geo/google.csv',
-    'fetched_at' => '2026-06-29T16:03:46+00:00',
-    'checksum' => 'sha256:5aec43a538ff3839babcc6225b880197f952cc65e3bfec4a5adabb6831aae6e7',
+    'fetched_at' => '2026-07-24T22:06:30+00:00',
+    'checksum' => 'sha256:550c796bb77e6dcd74b2e01145544492714c906cb5ce55bcf2173df5f9d9aedb',
     'ranges_by_octet' => array(
         5 => array(
             '5.101.104.0/22',
@@ -1051,6 +1051,7 @@ return array(
             '168.144.176.0/20',
             '168.144.192.0/22',
             '168.144.208.0/20',
+            '168.144.240.0/20',
             '168.144.32.0/20',
             '168.144.4.0/22',
             '168.144.48.0/22',
@@ -1271,6 +1272,9 @@ return array(
             '198.211.97.0/24',
             '198.211.98.0/24',
             '198.211.99.0/24',
+        ),
+        201 => array(
+            '201.79.0.0/20',
         ),
         204 => array(
             '204.48.16.0/20',

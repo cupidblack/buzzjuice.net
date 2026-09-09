@@ -22,6 +22,15 @@ class Request {
 	const MAX_KEY_COUNT = 200;
 
 	/**
+	 * Request headers PHP exposes in $_SERVER without the HTTP_ prefix.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @var string[]
+	 */
+	const CGI_HEADERS = array( 'CONTENT_TYPE', 'CONTENT_LENGTH' );
+
+	/**
 	 * Maximum bytes of php://input read when parsing a JSON body.
 	 */
 	const MAX_JSON_BODY_BYTES = 1048576;
@@ -790,8 +799,30 @@ class Request {
 	 * @return string|null The header value or null if not found.
 	 */
 	public function getHeader( $key ) {
-		$header_key = 'HTTP_' . strtoupper( str_replace( '-', '_', $key ) );
-		return isset( $this->server[ $header_key ] ) ? $this->server[ $header_key ] : null;
+		$normalized = strtoupper( str_replace( '-', '_', $key ) );
+
+		if ( isset( $this->server[ 'HTTP_' . $normalized ] ) ) {
+			return $this->server[ 'HTTP_' . $normalized ];
+		}
+
+		if ( in_array( $normalized, self::CGI_HEADERS, true ) && isset( $this->server[ $normalized ] ) ) {
+			return $this->server[ $normalized ];
+		}
+
+		return null;
+	}
+
+	/**
+	 * Convert a $_SERVER header key to its Title-Case header name.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @param string $key Server key with any HTTP_ prefix already removed.
+	 *
+	 * @return string Header name (e.g. USER_AGENT => User-Agent).
+	 */
+	private static function headerNameFromKey( $key ) {
+		return str_replace( ' ', '-', ucwords( strtolower( str_replace( '_', ' ', $key ) ) ) );
 	}
 
 	/**
@@ -831,11 +862,7 @@ class Request {
 
 		$results = array();
 
-		foreach ( $this->server as $key => $value ) {
-			if ( 0 !== strpos( $key, 'HTTP_' ) || ! is_string( $value ) ) {
-				continue;
-			}
-			$headerName = str_replace( ' ', '-', ucwords( strtolower( str_replace( '_', ' ', substr( $key, 5 ) ) ) ) );
+		foreach ( $this->getAllHeaders() as $headerName => $value ) {
 			if ( preg_match( $regex, $headerName ) ) {
 				$results[ $headerName ] = $value;
 			}
@@ -861,8 +888,15 @@ class Request {
 			if ( 0 !== strpos( $key, 'HTTP_' ) || ! is_string( $value ) ) {
 				continue;
 			}
-			$headerName             = str_replace( ' ', '-', ucwords( strtolower( str_replace( '_', ' ', substr( $key, 5 ) ) ) ) );
-			$headers[ $headerName ] = $value;
+			$headers[ self::headerNameFromKey( substr( $key, 5 ) ) ] = $value;
+		}
+
+		// An HTTP_-prefixed spelling wins, matching getHeader().
+		foreach ( self::CGI_HEADERS as $key ) {
+			$headerName = self::headerNameFromKey( $key );
+			if ( ! isset( $headers[ $headerName ] ) && isset( $this->server[ $key ] ) && is_string( $this->server[ $key ] ) ) {
+				$headers[ $headerName ] = $this->server[ $key ];
+			}
 		}
 
 		return $headers;

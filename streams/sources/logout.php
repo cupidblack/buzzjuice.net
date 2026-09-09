@@ -1,41 +1,140 @@
 <?php
-// WoWonder SSO Logout — no buzz_sso_secret required, requests WP logout URL with nonce
+/*
+ * WoWonder /streams logout
+ *
+ * Responsibilities:
+ * 1. Destroy WoWonder application session.
+ * 2. Clear WoWonder-owned cookies.
+ * 3. Destroy PHP session.
+ * 4. Preserve shared buzz_sso.
+ * 5. Redirect to canonical WordPress /sso/logout.
+ */
 
 require_once __DIR__ . '/../assets/init.php';
+
 require_once __DIR__ . '/../../shared/db_helpers.php';
 
-// --- Deterministic cleanup + redirect to WP SSO endpoint ---
-if (file_exists(__DIR__ . '/../../shared/logout-common.php')) {
-    require_once __DIR__ . '/../../shared/logout-common.php';
+$logout_common =
+    __DIR__ . '/../../shared/logout-common.php';
+
+if (file_exists($logout_common)) {
+    require_once $logout_common;
 }
 
+/**
+ * Start an existing PHP session.
+ */
 bz_ensure_session_started();
-$ww_session_id = bz_capture_session_id();
-bz_logout_log('wowonder', $ww_session_id ?: null, 'logout_start', 'initiated', ['method' => $_SERVER['REQUEST_METHOD'] ?? 'GET']);
 
-// If present, delete app session row (app owns its DB)
-if (!empty($ww_session_id) && !empty($sqlConnect) && defined('T_APP_SESSIONS')) {
-    $sid = $ww_session_id;
-    if (function_exists('mysqli_real_escape_string')) {
-        $sid = mysqli_real_escape_string($sqlConnect, $sid);
+$php_session_id =
+    function_exists('bz_capture_php_session_id')
+        ? bz_capture_php_session_id()
+        : '';
+
+$app_session_token =
+    function_exists('bz_capture_app_session_token')
+        ? bz_capture_app_session_token()
+        : bz_capture_session_id();
+
+bz_logout_log(
+    'wowonder',
+    null,
+    'logout_start',
+    'initiated',
+    [
+        'php_session_id' =>
+            $php_session_id ?: null,
+
+        'app_session_token' =>
+            $app_session_token ?: null,
+
+        'method' =>
+            $_SERVER['REQUEST_METHOD']
+            ?? 'GET',
+    ]
+);
+
+/**
+ * -------------------------------------------------------------------------
+ * WOWONDER APPLICATION SESSION CLEANUP
+ * -------------------------------------------------------------------------
+ */
+if (
+    !empty($app_session_token) &&
+    !empty($sqlConnect) &&
+    defined('T_APP_SESSIONS')
+) {
+
+    $sid =
+        (string) $app_session_token;
+
+    if (
+        function_exists(
+            'mysqli_real_escape_string'
+        )
+    ) {
+        $sid =
+            mysqli_real_escape_string(
+                $sqlConnect,
+                $sid
+            );
     } else {
-        $sid = addslashes($sid);
+        $sid =
+            addslashes($sid);
     }
-    @mysqli_query($sqlConnect, "DELETE FROM " . T_APP_SESSIONS . " WHERE `session_id` = '{$sid}'");
-    bz_logout_log('wowonder', $ww_session_id, 'db_session_delete', 'attempted');
+
+    $table =
+        T_APP_SESSIONS;
+
+    @mysqli_query(
+        $sqlConnect,
+        "DELETE FROM `{$table}`
+         WHERE `session_id` = '{$sid}'"
+    );
+
+    bz_logout_log(
+        'wowonder',
+        null,
+        'db_session_delete',
+        'attempted'
+    );
 }
 
-// Application-specific cookie names to clear (WoWonder)
-$wowonder_cookies = ['user_id', 'switched_accounts'];
+/**
+ * -------------------------------------------------------------------------
+ * WOWONDER-OWNED COOKIES ONLY
+ * -------------------------------------------------------------------------
+ *
+ * DO NOT clear buzz_sso here.
+ */
+bz_clear_cookies([
+    'user_id',
+    'switched_accounts',
+]);
 
-// Clear app + shared cookies
-bz_clear_cookies(array_merge($wowonder_cookies, ['buzz_sso', 'buzz_access', 'buzz_refresh', 'bbj_sso_ready']));
-
-// Destroy PHP session
+/**
+ * -------------------------------------------------------------------------
+ * DESTROY PHP SESSION
+ * -------------------------------------------------------------------------
+ */
 bz_destroy_php_session();
 
-bz_logout_log('wowonder', $ww_session_id ?: null, 'logout_complete', 'redirecting_to_wp');
+bz_logout_log(
+    'wowonder',
+    null,
+    'logout_complete',
+    'redirecting_to_wp'
+);
 
-// Redirect to WordPress SSO endpoint (absolute redirect)
-header('Location: https://buzzjuice.net/sso/logout');
-exit();
+/**
+ * -------------------------------------------------------------------------
+ * CANONICAL GLOBAL LOGOUT
+ * -------------------------------------------------------------------------
+ */
+header(
+    'Location: https://buzzjuice.net/sso/logout',
+    true,
+    302
+);
+
+exit;

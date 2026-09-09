@@ -3738,6 +3738,9 @@ height: 69px;    margin-right: 15px;
 .dt_premium .dt_p_head {padding: 50px 40px 40px;position: relative;overflow: hidden;margin: -10px -10px 40px;background: linear-gradient(180deg, rgb(228 152 42 / 25%) 0%, rgba(255,255,255,0) 100%);border-radius: 15px;}
 .dt_premium .dt_p_head > svg:not(.checkmark) {width: 80px;height: 80px;opacity: 0.8;margin: 0 0 20px;}
 .dt_premium .dt_p_head.pro_success {border: 0;}
+
+.dt_p_head.center.pro_success h2 {font-size:2.3rem;}
+
 .dt_premium .dt_p_head h2{margin: 0;color: #e4982a;font-size: 32px;line-height: 33px;font-weight: 400;}
 .dt_pro_features {padding: 0 30px;}
 .dt_pro_features+.border_hr {margin-bottom: 30px;}

@@ -11,7 +11,6 @@ namespace CloudLinux\Imunify\App\Bot;
 /**
  * Bot classification categories and their default rate-limit contract.
  *
- * The six categories defined here match the Phase 1 engineering definition.
  * Values are kept as plain strings so they round-trip cleanly through log
  * lines, configuration files, and the agent RPC layer.
  *
@@ -27,6 +26,7 @@ class Category {
 
 	const VERIFIED_SEARCH_ENGINE = 'verified_search_engine';
 	const VERIFIED_AI_CRAWLER    = 'verified_ai_crawler';
+	const VERIFIED_SEO_CRAWLER   = 'verified_seo_crawler';
 	const UNVERIFIED_BOT         = 'unverified_bot';
 	const UNKNOWN_AUTOMATED      = 'unknown_automated';
 	const MALICIOUS_BOT          = 'malicious_bot';
@@ -39,6 +39,27 @@ class Category {
 	 */
 	public static function all() {
 		return array_keys( self::defaultLimits() );
+	}
+
+	/**
+	 * Human-readable label for a category. Single source of truth for the
+	 * category names shown in the widget limits table and the Bot Traffic
+	 * dashboard. Unknown values fall back to the raw identifier.
+	 *
+	 * @param string $category Category value.
+	 * @return string
+	 */
+	public static function label( $category ) {
+		$map = array(
+			self::VERIFIED_SEARCH_ENGINE => __( 'Verified search engines', 'imunify-security' ),
+			self::VERIFIED_AI_CRAWLER    => __( 'Verified AI crawlers', 'imunify-security' ),
+			self::VERIFIED_SEO_CRAWLER   => __( 'Verified SEO crawlers', 'imunify-security' ),
+			self::UNKNOWN_AUTOMATED      => __( 'Unknown automated', 'imunify-security' ),
+			self::UNVERIFIED_BOT         => __( 'Unverified bots', 'imunify-security' ),
+			self::MALICIOUS_BOT          => __( 'Malicious bots', 'imunify-security' ),
+			self::HUMAN                  => __( 'Humans', 'imunify-security' ),
+		);
+		return isset( $map[ $category ] ) ? $map[ $category ] : (string) $category;
 	}
 
 	/**
@@ -56,8 +77,8 @@ class Category {
 	}
 
 	/**
-	 * Single source of truth for the six categories and their Phase-1 req/min
-	 * defaults. Backs both all() and defaultLimit().
+	 * Single source of truth for the classification categories and their
+	 * req/min defaults. Backs both all() and defaultLimit().
 	 *
 	 * @return array
 	 */
@@ -65,6 +86,7 @@ class Category {
 		return array(
 			self::VERIFIED_SEARCH_ENGINE => 300,
 			self::VERIFIED_AI_CRAWLER    => 10,
+			self::VERIFIED_SEO_CRAWLER   => 60,
 			self::UNVERIFIED_BOT         => 2,
 			self::UNKNOWN_AUTOMATED      => 5,
 			self::MALICIOUS_BOT          => 0,
@@ -93,7 +115,7 @@ class Category {
 	}
 
 	/**
-	 * Whether $category is one of the six canonical values.
+	 * Whether $category is one of the canonical values.
 	 *
 	 * @param mixed $category Category value to test.
 	 * @return bool

@@ -129,7 +129,7 @@ class MuPluginSelfHealer {
 	 * install-transition guard as the heal itself, so it fires at most once per
 	 * check window and only when a shim was actually written.
 	 *
-	 * @since 4.0.3
+	 * @since 4.1.0
 	 * @return void
 	 */
 	public static function scheduleLoopbackProbe() {
@@ -146,7 +146,7 @@ class MuPluginSelfHealer {
 	 * Unauthenticated, mirroring activation — this may run on an anonymous
 	 * request, and forwarding a visitor's credentials would be wrong.
 	 *
-	 * @since 4.0.3
+	 * @since 4.1.0
 	 * @return void
 	 */
 	public static function runLoopbackProbe() {
@@ -158,7 +158,7 @@ class MuPluginSelfHealer {
 	 * Run the probe and record its result. Collaborators are injected so the
 	 * record step is unit-testable without the WordPress HTTP stack.
 	 *
-	 * @since 4.0.3
+	 * @since 4.1.0
 	 * @param LoopbackSafetyTest $probe    Self-reachability probe.
 	 * @param LoopbackStatus     $status   Result persistence.
 	 * @param string             $home_url Site home URL to probe.

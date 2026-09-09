@@ -58,6 +58,29 @@ class Preset {
 	}
 
 	/**
+	 * Human-readable rate-limit label for a preset/category pair — the display
+	 * form ("Block", "Monitor only", "No limit", "N / min") shared by the widget
+	 * and the Bot Traffic page so the wording lives in one place.
+	 *
+	 * @param string $preset   Preset identifier.
+	 * @param string $category Category constant.
+	 * @return string
+	 */
+	public static function limitLabel( $preset, $category ) {
+		if ( Category::isBlocking( $category ) ) {
+			return self::isMonitorOnly( $preset )
+				? __( 'Monitor only', 'imunify-security' )
+				: __( 'Block', 'imunify-security' );
+		}
+		$limit = self::limitFor( $preset, $category );
+		if ( $limit <= 0 ) {
+			return __( 'No limit', 'imunify-security' );
+		}
+		/* translators: %d: requests per minute. */
+		return sprintf( __( '%d / min', 'imunify-security' ), $limit );
+	}
+
+	/**
 	 * Rate-limit violations within the escalation window that trigger an
 	 * extended block. 0 means "escalation disabled" for this preset.
 	 *
@@ -106,9 +129,32 @@ class Preset {
 	}
 
 	/**
+	 * Human-readable label for a preset. Single source of truth for the three
+	 * preset names shown across the widget and the Bot Traffic page.
+	 *
+	 * @param string $preset Preset identifier.
+	 * @return string
+	 */
+	public static function label( $preset ) {
+		if ( self::STRICT === $preset ) {
+			return __( 'Strict', 'imunify-security' );
+		}
+		if ( self::MONITOR === $preset ) {
+			return __( 'Monitor only', 'imunify-security' );
+		}
+		return __( 'Balanced', 'imunify-security' );
+	}
+
+	/**
 	 * Resolve the active preset from the configuration chain.
 	 *
-	 * Priority (first match wins):
+	 * Edition clamp (authoritative): on an ImunifyAV / ImunifyAV+ license,
+	 * active bot blocking is an Imunify360-only capability, so resolution
+	 * short-circuits to MONITOR and ignores every other input. An absent /
+	 * unknown edition never clamps, so an Imunify360 customer is never
+	 * wrongly downgraded when the edition can't be determined.
+	 *
+	 * Priority (first match wins) once past the clamp:
 	 *   1. IMUNIFY_AI_BOT_PROTECTION_PRESET wp-config constant.
 	 *   2. bot-settings.php explicit preset (site owner via widget).
 	 *   3. plugin_config.php hoster default (agent-written).
@@ -121,6 +167,9 @@ class Preset {
 	 * @return string One of self::BALANCED/STRICT/MONITOR.
 	 */
 	public static function resolve( OptOutFlag $opt_out, PluginConfig $cfg ) {
+		if ( $cfg->isImunifyAvEdition() ) {
+			return self::MONITOR;
+		}
 		if ( defined( 'IMUNIFY_AI_BOT_PROTECTION_PRESET' ) ) {
 			$candidate = (string) constant( 'IMUNIFY_AI_BOT_PROTECTION_PRESET' );
 			if ( self::isValid( $candidate ) ) {
@@ -148,6 +197,7 @@ class Preset {
 			self::BALANCED => array(
 				Category::VERIFIED_SEARCH_ENGINE => 300,
 				Category::VERIFIED_AI_CRAWLER    => 10,
+				Category::VERIFIED_SEO_CRAWLER   => 60,
 				Category::UNKNOWN_AUTOMATED      => 5,
 				Category::UNVERIFIED_BOT         => 2,
 				Category::MALICIOUS_BOT          => 0,
@@ -156,6 +206,7 @@ class Preset {
 			self::STRICT   => array(
 				Category::VERIFIED_SEARCH_ENGINE => 300,
 				Category::VERIFIED_AI_CRAWLER    => 3,
+				Category::VERIFIED_SEO_CRAWLER   => 20,
 				Category::UNKNOWN_AUTOMATED      => 2,
 				Category::UNVERIFIED_BOT         => 1,
 				Category::MALICIOUS_BOT          => 0,
@@ -164,6 +215,7 @@ class Preset {
 			self::MONITOR  => array(
 				Category::VERIFIED_SEARCH_ENGINE => 0,
 				Category::VERIFIED_AI_CRAWLER    => 0,
+				Category::VERIFIED_SEO_CRAWLER   => 0,
 				Category::UNKNOWN_AUTOMATED      => 0,
 				Category::UNVERIFIED_BOT         => 0,
 				Category::MALICIOUS_BOT          => 0,

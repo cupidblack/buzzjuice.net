@@ -23,7 +23,7 @@ namespace CloudLinux\Imunify\App\Bot;
  * The reason string carries a short diagnostic (an error message or the
  * observed HTTP code) for persistence and support, never user-facing copy.
  *
- * @since 4.0.3
+ * @since 4.1.0
  */
 class LoopbackResult {
 

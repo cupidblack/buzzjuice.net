@@ -22,6 +22,18 @@ use CloudLinux\Imunify\App\Defender\Model\ConditionSource;
 class ValueResolver {
 
 	/**
+	 * FILES sub-selectors that resolve to a value.
+	 *
+	 * Mirrors the cases handled by getFilesSubValue(); any other sub-selector
+	 * resolves to null for every request.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @var string[]
+	 */
+	const FILES_SUB_SELECTORS = array( 'name', 'filename', 'type', 'content' );
+
+	/**
 	 * Resolve candidate values for a condition from the request.
 	 *
 	 * Returns a mixed[] of values (strings or arrays) that should each be

@@ -21,6 +21,7 @@ use CloudLinux\Imunify\App\Defender\RuleProvider;
 use CloudLinux\Imunify\App\Integration\WpDefenderScanExclusions;
 use CloudLinux\Imunify\App\Views\AdminPage;
 use CloudLinux\Imunify\App\Views\BotProtectionWidgetSection;
+use CloudLinux\Imunify\App\Views\BotTrafficPage;
 use CloudLinux\Imunify\App\Views\Widget;
 
 /**
@@ -161,17 +162,28 @@ class Plugin {
 		// the AJAX handler that writes bot-settings.php when the site owner
 		// changes preset or toggles the opt-out. No admin-post.php fallback
 		// — the detail pane is JS-only.
-		$botProtection = null;
+		$botProtection  = null;
+		$botTrafficPage = null;
 		if ( defined( 'WP_CONTENT_DIR' ) ) {
 			$botProtection                                        = new BotProtectionWidgetSection(
 				$this->container[ DataStore::class ],
-				(string) WP_CONTENT_DIR
+				(string) WP_CONTENT_DIR,
+				$this->container[ AccessManager::class ]
 			);
 			$this->container[ BotProtectionWidgetSection::class ] = $botProtection;
 			add_action(
 				'wp_ajax_' . BotProtectionWidgetSection::AJAX_ACTION,
 				array( $botProtection, 'handleAjaxSubmission' )
 			);
+
+			// Bot Traffic dashboard page. Self-registers its submenu on
+			// admin_menu; reuses the AJAX action above for the stats opt-out.
+			$botTrafficPage                           = new BotTrafficPage(
+				$this->container[ DataStore::class ],
+				(string) WP_CONTENT_DIR,
+				$this->container[ AccessManager::class ]
+			);
+			$this->container[ BotTrafficPage::class ] = $botTrafficPage;
 		}
 
 		// Create widget first.
@@ -189,9 +201,11 @@ class Plugin {
 			$this->container[ DataStore::class ]
 		);
 
-		// Create asset loader with widget dependency.
+		// Create asset loader with widget + bot-traffic page dependencies so it
+		// can enqueue each screen's bundle only on that screen's hook.
 		$this->container[ AssetLoader::class ] = new AssetLoader(
-			$this->container[ Widget::class ]
+			$this->container[ Widget::class ],
+			$botTrafficPage
 		);
 
 		$this->container[ PluginUpdateManager::class ] = new PluginUpdateManager();
@@ -304,7 +318,7 @@ class Plugin {
 	 * alias, or "giving WordPress its own directory". All such cases fail open —
 	 * the honeypot simply does not fire and nothing is wrongly blocked.
 	 *
-	 * @since 4.0.3
+	 * @since 4.1.0
 	 *
 	 * @return string Path component of home_url(); '' on root installs.
 	 */

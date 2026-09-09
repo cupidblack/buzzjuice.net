@@ -102,15 +102,18 @@ class FeatureType {
 	/**
 	 * Get the status for a feature type.
 	 *
-	 * @param string $type Feature type.
-	 *
-	 * @param array  $config Configuration data.
+	 * @param string      $type        Feature type.
+	 * @param array       $config      Configuration data.
+	 * @param string|null $licenseType License edition (license_type). Base
+	 *                                 ImunifyAV forces Malware Cleanup off.
 	 *
 	 * @return string Status for the feature type.
 	 */
-	public static function getStatus( $type, $config = array() ) {
-		// Always return DISABLED for malware cleanup if product is IMUNIFYAV.
-		if ( self::MALWARE_CLEANUP === $type && isset( $config['license']['id'] ) && strtolower( $config['license']['id'] ) === 'imunifyav' ) {
+	public static function getStatus( $type, $config = array(), $licenseType = null ) {
+		// Malware Cleanup is unavailable on ImunifyAV (base) but present on
+		// ImunifyAV+ and Imunify360, so match base AV exactly (not the AV
+		// family) to avoid disabling cleanup for ImunifyAV+.
+		if ( self::MALWARE_CLEANUP === $type && is_string( $licenseType ) && strtolower( $licenseType ) === 'imunifyav' ) {
 			return FeatureStatus::DISABLED;
 		}
 

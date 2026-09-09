@@ -227,21 +227,26 @@ class DataStore {
 	 */
 	public function getFeatures() {
 
-		$scanData = $this->getScanData();
-		$config   = $scanData ? $scanData->getConfig() : array();
+		$scanData    = $this->getScanData();
+		$config      = $scanData ? $scanData->getConfig() : array();
+		$license     = $scanData ? $scanData->getLicense() : array();
+		$licenseType = isset( $license['license_type'] ) ? $license['license_type'] : null;
 
 		return array(
 			Feature::fromType(
 				FeatureType::MALWARE_SCANNING,
-				$config
+				$config,
+				$licenseType
 			),
 			Feature::fromType(
 				FeatureType::MALWARE_CLEANUP,
-				$config
+				$config,
+				$licenseType
 			),
 			Feature::fromType(
 				FeatureType::PROACTIVE_DEFENCE,
-				$config
+				$config,
+				$licenseType
 			),
 		);
 	}

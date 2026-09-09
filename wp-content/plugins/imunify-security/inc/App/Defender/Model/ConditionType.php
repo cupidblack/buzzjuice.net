@@ -23,6 +23,15 @@ class ConditionType {
 	const EXISTS = 'exists';
 
 	/**
+	 * Field does not exist condition type.
+	 *
+	 * @var string
+	 *
+	 * @since 4.1.0
+	 */
+	const NOT_EXISTS = 'not_exists';
+
+	/**
 	 * Field equals condition type.
 	 *
 	 * @var string
@@ -97,6 +106,7 @@ class ConditionType {
 	public static function getValidTypes() {
 		return array(
 			self::EXISTS,
+			self::NOT_EXISTS,
 			self::EQUALS,
 			self::CONTAINS,
 			self::REGEX,
@@ -131,6 +141,8 @@ class ConditionType {
 		switch ( $type ) {
 			case self::EXISTS:
 				return esc_html__( 'Field Exists', 'imunify-security' );
+			case self::NOT_EXISTS:
+				return esc_html__( 'Field Does Not Exist', 'imunify-security' );
 			case self::EQUALS:
 				return esc_html__( 'Field Equals', 'imunify-security' );
 			case self::CONTAINS:
@@ -165,6 +177,8 @@ class ConditionType {
 		switch ( $type ) {
 			case self::EXISTS:
 				return esc_html__( 'Checks if a field exists in GET or POST data.', 'imunify-security' );
+			case self::NOT_EXISTS:
+				return esc_html__( 'Checks that a field is absent from the request.', 'imunify-security' );
 			case self::EQUALS:
 				return esc_html__( 'Checks if a field equals a specific value after sanitization.', 'imunify-security' );
 			case self::CONTAINS:
@@ -200,6 +214,7 @@ class ConditionType {
 			case self::DETECT_XSS:
 			case self::DETECT_SQLI:
 			case self::EXISTS:
+			case self::NOT_EXISTS:
 				return array( 'name' );
 			case self::CONTAINS:
 			case self::REGEX:

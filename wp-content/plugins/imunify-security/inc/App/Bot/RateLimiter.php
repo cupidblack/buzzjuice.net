@@ -12,7 +12,7 @@ namespace CloudLinux\Imunify\App\Bot;
  * Per-IP, per-category rate limiter driving the Layer B block decision.
  *
  * Collaborators:
- *   - Category              — six-way classification constants and defaults.
+ *   - Category              — classification constants and defaults.
  *   - Preset                — per-preset req/min limits and escalation thresholds.
  *   - IpNormalizer          — collapses IPv6 to /64, de-maps IPv6-mapped IPv4.
  *   - CounterStorageInterface — ephemeral MEMORY engine for rolling-window counters.
@@ -33,8 +33,9 @@ namespace CloudLinux\Imunify\App\Bot;
  * the semgrep weak-crypto rule is suppressed on the one call site.
  *
  * Decision pipeline:
- *   1. Malicious category                   → BLOCK (403)
- *   2. Monitor-only preset                  → ALLOW
+ *   1. Monitor-only preset                  → ALLOW (observe-only: nothing
+ *                                             is blocked, not even malicious)
+ *   2. Malicious category                   → BLOCK (403)
  *   3. IP fails to normalise                → ALLOW (fail-open)
  *   4. Extended block marker present        → RATE_LIMIT with ESCALATION_BLOCK_TTL
  *   5. Limit is 0 for (preset, category)    → ALLOW
@@ -146,11 +147,15 @@ class RateLimiter {
 	 * @return RateLimitDecision
 	 */
 	public function check( $category, $ip ) {
-		if ( Category::isBlocking( $category ) ) {
-			return RateLimitDecision::block();
-		}
+		// Monitor-only is observe-only: nothing is blocked, not even a
+		// malicious/honeypot hit. This short-circuit is deliberately ahead
+		// of the malicious block so "Monitor" means exactly what the widget
+		// shows — malicious bots are logged, not blocked.
 		if ( Preset::isMonitorOnly( $this->preset ) ) {
 			return RateLimitDecision::allow();
+		}
+		if ( Category::isBlocking( $category ) ) {
+			return RateLimitDecision::block();
 		}
 
 		$ip_key = IpNormalizer::forRateLimit( $ip );

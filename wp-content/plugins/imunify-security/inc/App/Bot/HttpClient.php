@@ -9,23 +9,28 @@
 namespace CloudLinux\Imunify\App\Bot;
 
 /**
- * Minimal HTTP GET abstraction used by SignatureRefresher.
+ * Minimal HTTP GET abstraction used by MirrorDownloader.
  *
  * Production code wires this to wp_remote_get via WpHttpClient; tests
- * inject a fake that returns pre-set payloads. Implementations return
- * the response body as a string on success or null on any failure
- * (network error, non-2xx response, timeout), giving the refresher a
- * deterministic "keep existing data" path.
+ * inject a fake that returns pre-set responses. Implementations never throw
+ * and never return null: a request that failed at the transport level comes
+ * back as `HttpResponse::transportError()`, so judging a response — status,
+ * declared size against real size, whether a retry is worth it — is the
+ * caller's decision rather than a detail buried in the client.
  *
  * @since 4.0.0
  */
 interface HttpClient {
 
 	/**
-	 * Perform a GET request and return the response body, or null on failure.
+	 * Perform a GET request.
 	 *
-	 * @param string $url Absolute URL to fetch.
-	 * @return string|null Response body on success, null on any failure.
+	 * @param string               $url     Absolute URL to fetch.
+	 * @param array<string,string> $headers Extra request headers.
+	 * @param int|null             $timeout Timeout in seconds for this request; the
+	 *                                      implementation's own timeout when null,
+	 *                                      and never longer than it.
+	 * @return HttpResponse Always a response object, never null.
 	 */
-	public function get( $url );
+	public function get( $url, $headers = array(), $timeout = null );
 }

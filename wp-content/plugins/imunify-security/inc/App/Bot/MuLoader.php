@@ -55,7 +55,7 @@ class MuLoader {
 	 * @return array
 	 */
 	private static function searchEngineProviders() {
-		return array( 'google', 'bing', 'apple', 'duckduckgo', 'meta' );
+		return array( 'google', 'bing', 'apple', 'duckduckgo', 'duckassistbot', 'meta' );
 	}
 
 	/**
@@ -71,6 +71,18 @@ class MuLoader {
 	}
 
 	/**
+	 * Names of bot-ip-range providers treated as verified SEO crawlers.
+	 *
+	 * See searchEngineProviders() for the reason this is a method
+	 * rather than a class constant.
+	 *
+	 * @return array
+	 */
+	private static function seoCrawlerProviders() {
+		return array( 'ahrefs', 'barkrowler' );
+	}
+
+	/**
 	 * Split the bundled bot-ip-range providers into the search-engine and
 	 * AI-crawler lookups the Classifier consumes.
 	 *
@@ -82,12 +94,13 @@ class MuLoader {
 	 * exactly one Classifier branch.
 	 *
 	 * @param array $providers Map of provider name => data-file path.
-	 * @return array Two entries: 'search_engines' and 'ai_crawlers', each a
-	 *               provider-name => file map.
+	 * @return array Three entries: 'search_engines', 'ai_crawlers' and
+	 *               'seo_crawlers', each a provider-name => file map.
 	 */
 	private static function partitionBotIpRanges( $providers ) {
 		$search_engines = array();
 		$ai_crawlers    = array();
+		$seo_crawlers   = array();
 		foreach ( $providers as $name => $file ) {
 			if ( in_array( $name, self::searchEngineProviders(), true ) ) {
 				$search_engines[ $name ] = $file;
@@ -95,10 +108,14 @@ class MuLoader {
 			if ( in_array( $name, self::aiCrawlerProviders(), true ) ) {
 				$ai_crawlers[ $name ] = $file;
 			}
+			if ( in_array( $name, self::seoCrawlerProviders(), true ) ) {
+				$seo_crawlers[ $name ] = $file;
+			}
 		}
 		return array(
 			'search_engines' => $search_engines,
 			'ai_crawlers'    => $ai_crawlers,
+			'seo_crawlers'   => $seo_crawlers,
 		);
 	}
 
@@ -108,7 +125,7 @@ class MuLoader {
 	 * @return void
 	 */
 	public static function run() {
-		if ( ! defined( 'WP_CONTENT_DIR' ) || ! is_array( $_SERVER ) ) {
+		if ( ! defined( 'WP_CONTENT_DIR' ) ) {
 			return;
 		}
 		// The main plugin's autoloader isn't registered yet — we run at
@@ -176,7 +193,12 @@ class MuLoader {
 			return;
 		}
 
-		$pipeline = self::buildPipeline( $wp_content_dir, self::resolvePreset( $opt_out, $cfg ), $responder );
+		$pipeline = self::buildPipeline(
+			$wp_content_dir,
+			self::resolvePreset( $opt_out, $cfg ),
+			$responder,
+			$opt_out->isStatsEnabled()
+		);
 		$pipeline->run( $server );
 	}
 
@@ -188,6 +210,19 @@ class MuLoader {
 	private static function siteDisabledByConstant() {
 		return defined( 'IMUNIFY_AI_BOT_PROTECTION' )
 			&& false === (bool) constant( 'IMUNIFY_AI_BOT_PROTECTION' );
+	}
+
+	/**
+	 * Whether the current request is a WP-Cron run.
+	 *
+	 * WordPress's wp_doing_cron() layers the `wp_doing_cron` filter over the
+	 * DOING_CRON constant; guarded with function_exists so the shim degrades to
+	 * "not a cron run" when WP core's helper isn't loaded yet.
+	 *
+	 * @return bool
+	 */
+	private static function isDoingCron() {
+		return function_exists( 'wp_doing_cron' ) && wp_doing_cron();
 	}
 
 	/**
@@ -272,9 +307,10 @@ class MuLoader {
 	 * @param string    $wp_content_dir Absolute path to wp-content.
 	 * @param string    $preset         Preset identifier.
 	 * @param Responder $responder      Response emitter.
+	 * @param bool      $stats_enabled  Whether to attach the hourly stats recorder.
 	 * @return Pipeline
 	 */
-	private static function buildPipeline( $wp_content_dir, $preset, $responder ) {
+	private static function buildPipeline( $wp_content_dir, $preset, $responder, $stats_enabled ) {
 		$bundled_dir = self::pluginDir() . '/inc/App/Bot/data';
 		$overlay_dir = self::overlayDir( $wp_content_dir );
 		$bundled     = new BundledData( $bundled_dir, $overlay_dir );
@@ -282,6 +318,7 @@ class MuLoader {
 		$partition      = self::partitionBotIpRanges( $bundled->providersIn( 'bot-ip-ranges' ) );
 		$search_engines = $partition['search_engines'];
 		$ai_crawlers    = $partition['ai_crawlers'];
+		$seo_crawlers   = $partition['seo_crawlers'];
 
 		$cdn = new CdnDetector(
 			new IpRangeLookup( $bundled->providersIn( 'cdn-ip-ranges' ) )
@@ -289,9 +326,10 @@ class MuLoader {
 
 		$signatures = new UserAgentSignatures(
 			array(
-				UserAgentSignatures::CATEGORY_MALICIOUS  => $bundled->pathFor( 'signatures/ua-malicious.php' ),
+				UserAgentSignatures::CATEGORY_MALICIOUS   => $bundled->pathFor( 'signatures/ua-malicious.php' ),
 				UserAgentSignatures::CATEGORY_SEARCH_ENGINE => $bundled->pathFor( 'signatures/ua-search-engines.php' ),
-				UserAgentSignatures::CATEGORY_AI_CRAWLER => $bundled->pathFor( 'signatures/ua-ai-crawlers.php' ),
+				UserAgentSignatures::CATEGORY_SEO_CRAWLER => $bundled->pathFor( 'signatures/ua-seo-crawlers.php' ),
+				UserAgentSignatures::CATEGORY_AI_CRAWLER  => $bundled->pathFor( 'signatures/ua-ai-crawlers.php' ),
 			)
 		);
 
@@ -318,43 +356,45 @@ class MuLoader {
 		$rdns_reverse   = isset( $rdns_overrides['reverse'] ) ? $rdns_overrides['reverse'] : null;
 		$rdns_forward   = isset( $rdns_overrides['forward'] ) ? $rdns_overrides['forward'] : null;
 
-		$rdns_verifier = new RdnsVerifier(
-			$db_storage['counter'],
-			RdnsVerifier::loadProvidersFromFile(
-				$bundled->pathFor( 'signatures/ua-rdns-suffixes.php' )
-			),
-			$rdns_reverse,
-			$rdns_forward,
-			'rdns:se:'
-		);
+		$make_rdns_verifier = function ( $suffix_file, $key_prefix ) use ( $db_storage, $bundled, $rdns_reverse, $rdns_forward ) {
+			return new RdnsVerifier(
+				$db_storage['counter'],
+				RdnsVerifier::loadProvidersFromFile( $bundled->pathFor( $suffix_file ) ),
+				$rdns_reverse,
+				$rdns_forward,
+				$key_prefix
+			);
+		};
 
-		$ai_rdns_verifier = new RdnsVerifier(
-			$db_storage['counter'],
-			RdnsVerifier::loadProvidersFromFile(
-				$bundled->pathFor( 'signatures/ua-ai-rdns-suffixes.php' )
-			),
-			$rdns_reverse,
-			$rdns_forward,
-			'rdns:ai:'
-		);
+		$rdns_verifier     = $make_rdns_verifier( 'signatures/ua-rdns-suffixes.php', 'rdns:se:' );
+		$ai_rdns_verifier  = $make_rdns_verifier( 'signatures/ua-ai-rdns-suffixes.php', 'rdns:ai:' );
+		$seo_rdns_verifier = $make_rdns_verifier( 'signatures/ua-seo-rdns-suffixes.php', 'rdns:seo:' );
 
 		$classifier = new Classifier(
 			$signatures,
 			$real_ip_resolver,
 			new IpRangeLookup( $search_engines ),
 			new IpRangeLookup( $ai_crawlers ),
+			new IpRangeLookup( $seo_crawlers ),
 			$datacenter,
 			$rdns_verifier,
-			$ai_rdns_verifier
+			$ai_rdns_verifier,
+			$seo_rdns_verifier
 		);
 
 		// Share the storage between rate limiter and daily counter so
 		// the widget reads the same keyspace the pipeline writes.
 		$daily_counter = new DailyCounter( $db_storage['counter'] );
 
+		// Durable hourly rollup + per-IP detail for the dashboard. Attached
+		// only when the site owner has stats capture on and a DB handle is
+		// available; otherwise the pipeline records no detailed stats (fail-open).
+		$stats_storage    = $stats_enabled ? HourlyStatsStorage::forGlobalWpdb() : null;
+		$ip_stats_storage = $stats_enabled ? HourlyIpStatsStorage::forGlobalWpdb() : null;
+
 		$allowlist = new RequestAllowlist(
 			array(
-				new WordPressInternalsMatcher( defined( 'DOING_CRON' ) && DOING_CRON ),
+				new WordPressInternalsMatcher( self::isDoingCron() ),
 				new WooCommerceMatcher(),
 				new MonitoringUaMatcher(),
 			)
@@ -366,7 +406,9 @@ class MuLoader {
 			$allowlist,
 			$responder,
 			$real_ip_resolver,
-			$daily_counter
+			$daily_counter,
+			$stats_storage,
+			$ip_stats_storage
 		);
 	}
 

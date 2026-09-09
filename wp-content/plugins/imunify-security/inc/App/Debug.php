@@ -110,13 +110,18 @@ class Debug {
 	}
 
 	/**
-	 * Get constant home.
+	 * Get the site home URL via the WordPress API.
+	 *
+	 * The home_url() function reads the `home` option — which reflects the
+	 * WP_HOME constant through the `option_home` filter — and applies the
+	 * `home_url` filter. Guarded so the accessor degrades to '' before
+	 * WordPress is loaded.
 	 *
 	 * @return string
 	 */
-	protected function wpHomeConstant() {
-		if ( defined( 'WP_HOME' ) && WP_HOME ) {
-			return (string) WP_HOME;
+	protected function wpHome() {
+		if ( function_exists( 'home_url' ) ) {
+			return (string) home_url();
 		}
 
 		return '';
@@ -165,14 +170,14 @@ class Debug {
 			return $this->website;
 		}
 
-		$wp_home_constant = $this->wpHomeConstant();
-		$wp_home_option   = $this->wpHomeOption();
+		$wp_home        = $this->wpHome();
+		$wp_home_option = $this->wpHomeOption();
 
-		if ( ! empty( $wp_home_constant ) ) {
-			$this->website = $wp_home_constant;
+		if ( ! empty( $wp_home ) ) {
+			$this->website = $wp_home;
 		} elseif ( ! empty( $wp_home_option ) ) {
 			$this->website = $wp_home_option;
-		} elseif ( is_array( $_SERVER ) && array_key_exists( 'SERVER_NAME', $_SERVER ) ) {
+		} elseif ( array_key_exists( 'SERVER_NAME', $_SERVER ) ) {
 			$this->website = esc_url_raw( wp_unslash( $_SERVER['SERVER_NAME'] ) );
 		}
 
@@ -207,7 +212,7 @@ class Debug {
 			return $this->request_uri;
 		}
 
-		if ( is_array( $_SERVER ) && array_key_exists( 'REQUEST_URI', $_SERVER ) ) {
+		if ( array_key_exists( 'REQUEST_URI', $_SERVER ) ) {
 			$this->request_uri = esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) );
 		}
 

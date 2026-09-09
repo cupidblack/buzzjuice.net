@@ -25,27 +25,43 @@ namespace CloudLinux\Imunify\App\Bot;
  * Polls the CloudLinux mirror (`MIRROR_BASE_URL`) on a 6-hour schedule
  * wired via `scheduleHooks()` / `BotLifecycle::activate()`. Fetches
  * `description.json` first (cheap MD5 check); only downloads `all.json`
- * when its MD5 differs from the locally-cached value. Delegates JSON→PHP
- * bundle conversion to `BotDataConverter`, which writes files atomically
- * into the overlay directory (`wp-content/imunify-security/bot-data/`).
- * `BundledData` picks up overlay files on the next classification call,
- * transparently superseding the snapshot shipped under
- * `inc/App/Bot/data/`.
+ * when its MD5 differs from the locally-cached value. Both downloads go
+ * through `MirrorDownloader`, which verifies and retries them, so nothing
+ * here parses or caches a body the mirror did not fully deliver. Delegates
+ * JSON→PHP bundle conversion to `BotDataConverter`, which writes files
+ * atomically into the overlay directory
+ * (`wp-content/imunify-security/bot-data/`). `BundledData` picks up overlay
+ * files on the next classification call, transparently superseding the
+ * snapshot shipped under `inc/App/Bot/data/`.
  *
  * Safety invariants:
  *   - Network failures and MD5 mismatches leave existing overlay files
  *     untouched (fail-open: never degrade on transient network error).
  *   - A POSIX advisory lock on `<overlay>/.refresh.lock` prevents two
  *     concurrently-firing wp-cron workers from racing each other.
+ *   - Every run books its next attempt before touching the network, so a
+ *     failing mirror costs one attempt per schedule tick even if wp-cron
+ *     fires the hook on every page load.
  *
  * @since 4.0.0
  */
 class SignatureRefresher {
 
-	const CRON_HOOK_REFRESH    = 'imunify_security_bot_refresh';
-	const LOCK_FILENAME        = '.refresh.lock';
-	const MIRROR_BASE_URL      = 'https://files.imunify360.com/static/crawler-intel/v1';
-	const MIRROR_MD5_OPTION    = 'imunify_security_bot_mirror_md5sum';
+	const CRON_HOOK_REFRESH          = 'imunify_security_bot_refresh';
+	const LOCK_FILENAME              = '.refresh.lock';
+	const MIRROR_BASE_URL            = 'https://files.imunify360.com/static/crawler-intel/v1';
+	const MIRROR_MD5_OPTION          = 'imunify_security_bot_mirror_md5sum';
+	const MIRROR_GENERATED_AT_OPTION = 'imunify_security_bot_mirror_generated_at';
+	const MIRROR_NEXT_ATTEMPT_OPTION = 'imunify_security_bot_mirror_next_attempt';
+
+	/**
+	 * Shortest gap between two refresh attempts: the 6-hour schedule minus a
+	 * 15-minute allowance, so a tick that fires slightly early still runs while
+	 * a wp-cron that keeps re-firing the hook cannot turn every page load into
+	 * a mirror request.
+	 */
+	const MIN_REFRESH_INTERVAL_SECONDS = 6 * 3600 - 900;
+
 	const MIN_SIGNATURE_LENGTH = 4;
 	const SIGNATURE_DENYLIST   = array(
 		'mozilla',
@@ -69,21 +85,30 @@ class SignatureRefresher {
 	private $overlay_dir;
 
 	/**
-	 * Injected HTTP client used to fetch source URLs.
+	 * Injected HTTP client, handed to a MirrorDownloader on each refresh.
 	 *
 	 * @var HttpClient
 	 */
 	private $http;
 
 	/**
+	 * Downloader used for both mirror objects; built from $http when not given.
+	 *
+	 * @var MirrorDownloader|null
+	 */
+	private $downloader;
+
+	/**
 	 * Build a refresher bound to an overlay directory.
 	 *
-	 * @param string     $overlay_dir Absolute path to the overlay root.
-	 * @param HttpClient $http        HTTP client (WpHttpClient in production, fake in tests).
+	 * @param string                $overlay_dir Absolute path to the overlay root.
+	 * @param HttpClient            $http        HTTP client (WpHttpClient in production, fake in tests).
+	 * @param MirrorDownloader|null $downloader  Downloader to use; built from $http when null.
 	 */
-	public function __construct( $overlay_dir, $http ) {
+	public function __construct( $overlay_dir, $http, $downloader = null ) {
 		$this->overlay_dir = rtrim( (string) $overlay_dir, '/' );
 		$this->http        = $http;
+		$this->downloader  = $downloader;
 	}
 
 	/**
@@ -124,6 +149,9 @@ class SignatureRefresher {
 		$by_octet = array();
 		$broad    = array();
 		foreach ( $sorted_ranges as $cidr ) {
+			if ( ! is_string( $cidr ) ) {
+				continue;
+			}
 			$slash = strpos( $cidr, '/' );
 			if ( false === $slash ) {
 				continue;
@@ -244,13 +272,23 @@ class SignatureRefresher {
 	 * @param string $mirror_base_url Base URL of the mirror (no trailing slash).
 	 */
 	private function doMirrorRefresh( $mirror_base_url ) {
-		$description_body = $this->http->get( rtrim( $mirror_base_url, '/' ) . '/description.json' );
-		if ( null === $description_body || '' === $description_body ) {
-			BundledData::reportFailOpenError( 'refreshFromMirror', 'failed to fetch description.json', array( 'bot-refresh', 'description-fetch-failed' ) );
+		$now = time();
+		if ( $now < (int) get_option( self::MIRROR_NEXT_ATTEMPT_OPTION, 0 ) ) {
+			return;
+		}
+		// Booked before the first request, so a failed — or fatally interrupted —
+		// refresh still costs one attempt per schedule tick instead of one per
+		// wp-cron tick.
+		update_option( self::MIRROR_NEXT_ATTEMPT_OPTION, $now + self::MIN_REFRESH_INTERVAL_SECONDS, false );
+
+		$downloader  = null === $this->downloader ? new MirrorDownloader( $this->http ) : $this->downloader;
+		$description = $downloader->download( rtrim( $mirror_base_url, '/' ) . '/description.json' );
+		if ( ! $description->isSuccess() ) {
+			$this->reportDownloadFailure( 'description.json', 'description-fetch-failed', $description );
 			return;
 		}
 
-		$manifest = json_decode( $description_body, true );
+		$manifest = json_decode( $description->body(), true );
 		if ( ! is_array( $manifest ) || ! isset( $manifest['items'] ) || ! is_array( $manifest['items'] ) ) {
 			BundledData::reportFailOpenError( 'refreshFromMirror', 'description.json: unexpected shape', array( 'bot-refresh', 'description-shape-invalid' ) );
 			return;
@@ -291,25 +329,64 @@ class SignatureRefresher {
 			return;
 		}
 
-		$body = $this->http->get( (string) $entry['url'] );
-		if ( null === $body || '' === $body ) {
-			BundledData::reportFailOpenError( 'refreshFromMirror', 'failed to fetch all.json', array( 'bot-refresh', 'all-json-fetch-failed' ) );
-			return;
-		}
-
-		if ( md5( $body ) !== $remote_md5 ) { // nosemgrep: php.lang.security.weak-crypto.weak-crypto -- integrity check against server-published checksum, not cryptography.
-			BundledData::reportFailOpenError( 'refreshFromMirror', 'all.json MD5 mismatch — discarding', array( 'bot-refresh', 'all-json-md5-mismatch' ) );
+		$download = $downloader->download( $entry_url, $remote_md5 );
+		if ( ! $download->isSuccess() ) {
+			$this->reportDownloadFailure( 'all.json', 'all-json-fetch-failed', $download );
 			return;
 		}
 
 		try {
-			$written = ( new BotDataConverter( $this->overlay_dir ) )->convert( $body );
+			$converter = new BotDataConverter( $this->overlay_dir );
+			$written   = $converter->convert( $download->body() );
 			if ( $written > 0 ) {
+				// The md5 is the short-circuit sentinel for the next run, so it is
+				// written after the value it vouches for. Losing the second write
+				// then costs one redundant download instead of pinning the intel
+				// version empty until the mirror content changes.
+				$this->saveIntelGeneratedAt( $converter->generatedAt() );
 				$this->saveMirrorMd5( $remote_md5 );
 			}
 		} catch ( \Exception $e ) {
 			BundledData::reportFailOpenError( 'refreshFromMirror', 'convert failed: ' . $e->getMessage(), array( 'bot-refresh', 'convert-failed' ) );
 		}
+	}
+
+	/**
+	 * Report a download that could not be verified, once per refresh cycle.
+	 *
+	 * Deliberately not routed through Debug::sendThrottledError(): the 6-hour
+	 * schedule already caps this at four events per site per day, and throttling
+	 * would drop the `x-req-id` values the Server team needs to find the request
+	 * in the mirror logs.
+	 *
+	 * @param string               $object_name    Mirror object that failed, for the message.
+	 * @param string               $fingerprint_id Fingerprint segment identifying the call site.
+	 * @param MirrorDownloadResult $result         Failed download.
+	 */
+	private function reportDownloadFailure( $object_name, $fingerprint_id, $result ) {
+		BundledData::reportFailOpenError(
+			'refreshFromMirror',
+			$object_name . ' download failed (' . $result->reason() . ') after ' . $result->attempts() . ' attempt(s)',
+			array( 'bot-refresh', $fingerprint_id, $result->reason() ),
+			$result->context()
+		);
+	}
+
+	/**
+	 * Version of the crawler-intel dataset this site is running on: the
+	 * `generated_at` of the last successfully applied all.json. The mirror
+	 * always publishes it in UTC, so the offset is stripped and the bare
+	 * timestamp is what downstream consumers store and compare.
+	 *
+	 * A site that has never applied a mirror refresh runs on the snapshot
+	 * bundled with the plugin, which carries no dataset version of its own —
+	 * that case is reported as unknown.
+	 *
+	 * @return string Offset-free ISO-8601 timestamp, or '' when unknown.
+	 */
+	public static function intelVersion() {
+		$generated_at = (string) get_option( self::MIRROR_GENERATED_AT_OPTION, '' );
+		return (string) preg_replace( '/(?:Z|[+-]\d{2}:?\d{2})$/', '', $generated_at );
 	}
 
 	/**
@@ -328,6 +405,15 @@ class SignatureRefresher {
 	 */
 	private function saveMirrorMd5( $md5 ) {
 		update_option( self::MIRROR_MD5_OPTION, $md5, false );
+	}
+
+	/**
+	 * Persist the `generated_at` of the last successfully applied all.json.
+	 *
+	 * @param string $generated_at Timestamp the mirror stamped on the dataset.
+	 */
+	private function saveIntelGeneratedAt( $generated_at ) {
+		update_option( self::MIRROR_GENERATED_AT_OPTION, $generated_at, false );
 	}
 
 	/**

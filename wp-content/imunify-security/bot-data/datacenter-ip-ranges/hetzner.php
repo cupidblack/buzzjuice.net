@@ -4,8 +4,8 @@ defined( 'ABSPATH' ) || exit;
 
 return array(
     'source_url' => 'https://stat.ripe.net/data/announced-prefixes/data.json?resource=AS24940, https://stat.ripe.net/data/announced-prefixes/data.json?resource=AS213230',
-    'fetched_at' => '2026-06-18T22:03:48+00:00',
-    'checksum' => 'sha256:3f326f8efa157507cbb6706167af86e1e6b9f5011892a917f2a311a72684a514',
+    'fetched_at' => '2026-08-29T04:05:10+00:00',
+    'checksum' => 'sha256:428d4a783a15437022cb2d32110eaa04e662bc86e8febdcc44fd68c636502bb1',
     'ranges_by_octet' => array(
         2 => array(
             '2.28.0.0/16',
@@ -290,6 +290,7 @@ return array(
         ),
         85 => array(
             '85.10.192.0/18',
+            '85.93.20.0/24',
         ),
         87 => array(
             '87.99.128.0/17',
@@ -381,6 +382,7 @@ return array(
         ),
         162 => array(
             '162.55.0.0/16',
+            '162.55.80.0/24',
         ),
         167 => array(
             '167.233.0.0/16',

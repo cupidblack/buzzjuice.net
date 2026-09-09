@@ -45,13 +45,6 @@ class Widget extends View {
 	const WIDGET_SNOOZE_NONCE_NAME = 'imunify_widget_snooze_nonce';
 
 	/**
-	 * URI fragment for the upgrade page in the admin interface.
-	 *
-	 * @var string
-	 */
-	const UPGRADE_URI_FRAGMENT = '/AV/client/upgrade';
-
-	/**
 	 * URI path for the malware page in the admin interface.
 	 *
 	 * @var string
@@ -290,11 +283,7 @@ class Widget extends View {
 	 * @since 2.0.0
 	 */
 	public function getAdminPageUrl() {
-		return add_query_arg(
-			'page',
-			AdminPage::PAGE_SLUG,
-			admin_url( 'admin.php' )
-		);
+		return AdminPage::pageUrl();
 	}
 	/**
 	 * Gets the upgrade URL for the button.
@@ -304,7 +293,7 @@ class Widget extends View {
 	 * @since 2.0.0
 	 */
 	public function getUpgradeUrl() {
-		return $this->getAdminPageUrl() . '#' . self::UPGRADE_URI_FRAGMENT;
+		return AdminPage::upgradeUrl();
 	}
 
 	/**
@@ -397,12 +386,12 @@ class Widget extends View {
 	}
 
 	/**
-	 * Checks if the product is ImunifyAV.
+	 * Checks if the product is in the ImunifyAV family (ImunifyAV or ImunifyAV+).
 	 *
 	 * @return bool
 	 */
 	private function isImunifyAV() {
-		return AccessManager::isProductType( $this->dataStore, 'imunifyav' );
+		return AccessManager::isImunifyAvFamily( $this->dataStore );
 	}
 
 	/**

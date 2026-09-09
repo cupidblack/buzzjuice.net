@@ -83,22 +83,43 @@ class Pipeline {
 	private $dailyCounter;
 
 	/**
+	 * Hourly bot-traffic rollup feeding the dashboard. Optional — null means
+	 * detailed stats capture is off (feature gate or site-owner opt-out), and
+	 * the pipeline behaves exactly as it did before stats shipped.
+	 *
+	 * @var HourlyStatsStorage|null
+	 */
+	private $statsStorage;
+
+	/**
+	 * Per-IP hourly detail feeding the dashboard drill-down. Optional — null
+	 * when detailed stats capture is off, exactly like {@see $statsStorage}.
+	 *
+	 * @var HourlyIpStatsStorage|null
+	 */
+	private $ipStatsStorage;
+
+	/**
 	 * Wire up the pipeline over its collaborators.
 	 *
-	 * @param Classifier        $classifier        Bot classifier.
-	 * @param RateLimiter       $rate_limiter      Category-aware rate limiter.
-	 * @param RequestAllowlist  $allowlist         Composite of AllowlistMatcher instances.
-	 * @param Responder         $responder         HTTP response emitter.
-	 * @param RealIpResolver    $real_ip_resolver  Anti-spoofing client-IP resolver.
-	 * @param DailyCounter|null $daily_counter     Optional 24h blocked-request counter.
+	 * @param Classifier                $classifier       Bot classifier.
+	 * @param RateLimiter               $rate_limiter     Category-aware rate limiter.
+	 * @param RequestAllowlist          $allowlist        Composite of AllowlistMatcher instances.
+	 * @param Responder                 $responder        HTTP response emitter.
+	 * @param RealIpResolver            $real_ip_resolver Anti-spoofing client-IP resolver.
+	 * @param DailyCounter|null         $daily_counter    Optional 24h blocked-request counter.
+	 * @param HourlyStatsStorage|null   $stats_storage    Optional hourly rollup recorder.
+	 * @param HourlyIpStatsStorage|null $ip_stats_storage Optional per-IP detail recorder.
 	 */
-	public function __construct( $classifier, $rate_limiter, $allowlist, $responder, $real_ip_resolver, $daily_counter = null ) {
+	public function __construct( $classifier, $rate_limiter, $allowlist, $responder, $real_ip_resolver, $daily_counter = null, $stats_storage = null, $ip_stats_storage = null ) {
 		$this->classifier     = $classifier;
 		$this->rateLimiter    = $rate_limiter;
 		$this->allowlist      = $allowlist;
 		$this->responder      = $responder;
 		$this->realIpResolver = $real_ip_resolver;
 		$this->dailyCounter   = $daily_counter;
+		$this->statsStorage   = $stats_storage;
+		$this->ipStatsStorage = $ip_stats_storage;
 	}
 
 	/**
@@ -168,17 +189,19 @@ class Pipeline {
 		// fail-open. Phpcs ignores below: fail-open by design.
 		if ( interface_exists( 'Throwable' ) ) {
 			try {
-				$category = $this->classifier->classify( $headers, $remote_addr, $protocol, $honeypot );
+				$classification = $this->classifier->classify( $headers, $remote_addr, $protocol, $honeypot );
 			} catch ( \Throwable $t ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- fail-open: classifier throw passes through to WordPress.
 				return;
 			}
 		} else {
 			try {
-				$category = $this->classifier->classify( $headers, $remote_addr, $protocol, $honeypot );
+				$classification = $this->classifier->classify( $headers, $remote_addr, $protocol, $honeypot );
 			} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- fail-open: classifier throw passes through to WordPress.
 				return;
 			}
 		}
+
+		$category = $classification->getCategory();
 
 		if ( interface_exists( 'Throwable' ) ) {
 			try {
@@ -210,7 +233,63 @@ class Pipeline {
 			}
 		}
 
+		// Hourly rollup: every classified request, humans included — their one
+		// aggregate row per hour powers the dashboard's "Human visitors" figure
+		// (allowlisted requests already returned earlier). ALLOW verdicts are
+		// recorded too, unlike the blocked-only DailyCounter. Per-IP detail
+		// feeds the drill-down and is bot-only (humans get no per-IP row).
+		// Both are fail-open; guardTelemetry additionally swallows a PHP 7+
+		// Error and isolates the two writes so one failing never skips the other.
+		// Recorded inline rather than deferred to shutdown: each is a single
+		// indexed upsert (sub-millisecond), and running before respond() keeps
+		// the write inside the request's normal error handling instead of the
+		// shutdown phase, where a fatal cannot be reported and object-cache
+		// backends may already be torn down.
+		$bot     = $classification->getBot();
+		$verdict = $decision->getAction();
+		if ( null !== $this->statsStorage ) {
+			$stats = $this->statsStorage;
+			$this->guardTelemetry(
+				function () use ( $stats, $category, $bot, $verdict ) {
+					$stats->record( $category, $bot, $verdict );
+				}
+			);
+		}
+		if ( null !== $this->ipStatsStorage && Category::HUMAN !== $category ) {
+			$ip_stats = $this->ipStatsStorage;
+			$this->guardTelemetry(
+				function () use ( $ip_stats, $category, $bot, $client_ip, $verdict ) {
+					$ip_stats->record( $category, $bot, $client_ip, $verdict );
+				}
+			);
+		}
+
 		$this->responder->respond( $decision );
+	}
+
+	/**
+	 * Run best-effort telemetry under a fail-open guard: any throw (including
+	 * a PHP 7+ Error from the storage layer) is swallowed so capture can never
+	 * defeat the visitor's response. Called once per storage so a failure in
+	 * one write does not skip the other.
+	 *
+	 * @param callable $fn Telemetry write to attempt.
+	 * @return void
+	 */
+	private function guardTelemetry( $fn ) {
+		if ( interface_exists( 'Throwable' ) ) {
+			try {
+				call_user_func( $fn );
+			} catch ( \Throwable $t ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- telemetry failure is non-fatal.
+				unset( $t );
+			}
+		} else {
+			try {
+				call_user_func( $fn );
+			} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- telemetry failure is non-fatal.
+				unset( $e );
+			}
+		}
 	}
 
 	/**

@@ -387,13 +387,34 @@ class RuleProvider extends CachedFileProvider {
 	 * @return array
 	 */
 	private function loadPlugins() {
-		// Check if get_plugins() function exists. This is required on the front end of the
-		// site, since it is in a file that is normally only loaded in the admin.
-		if ( ! function_exists( 'get_plugins' ) ) {
+		// Only active plugins can match a rule target, so read just those instead
+		// of scanning and header-parsing every installed plugin with get_plugins().
+		if ( ! function_exists( 'get_plugin_data' ) ) {
 			require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		}
 
-		return get_plugins();
+		// Per-site active plugins are the option values; network-activated
+		// (multisite) plugins are the keys of the active_sitewide_plugins site
+		// option. Must-use plugins are intentionally excluded: get_plugins() never
+		// returned them and is_plugin_active() rejects them, so including them
+		// would change which rules match.
+		$active   = (array) get_option( 'active_plugins', array() );
+		$sitewide = array_keys( (array) get_site_option( 'active_sitewide_plugins', array() ) );
+
+		$plugins = array();
+		foreach ( array_unique( array_merge( $active, $sitewide ) ) as $pluginFile ) {
+			if ( ! is_string( $pluginFile ) || '' === $pluginFile ) {
+				continue;
+			}
+			$path = WP_PLUGIN_DIR . '/' . $pluginFile;
+			if ( is_readable( $path ) ) {
+				// $markup = false, $translate = false skips the header markup/i18n
+				// pass; only the raw Version string is needed.
+				$plugins[ $pluginFile ] = get_plugin_data( $path, false, false );
+			}
+		}
+
+		return $plugins;
 	}
 
 	/**
@@ -404,13 +425,9 @@ class RuleProvider extends CachedFileProvider {
 	 * @return array|null Plugin data or null if not found.
 	 */
 	private function getPluginData( $pluginSlug ) {
-		foreach ( $this->plugins as $pluginFile => $pluginData ) {
-			if ( false !== stripos( $pluginFile, $pluginSlug ) ) {
-				return $pluginData;
-			}
-		}
+		$pluginFile = $this->getPluginFile( $pluginSlug );
 
-		return null;
+		return null === $pluginFile ? null : $this->plugins[ $pluginFile ];
 	}
 
 	/**
@@ -422,12 +439,37 @@ class RuleProvider extends CachedFileProvider {
 	 */
 	private function getPluginFile( $pluginSlug ) {
 		foreach ( $this->plugins as $pluginFile => $pluginData ) {
-			if ( false !== stripos( $pluginFile, $pluginSlug ) ) {
+			if ( 0 === strcasecmp( $this->getPluginSlugFromFile( $pluginFile ), $pluginSlug ) ) {
 				return $pluginFile;
 			}
 		}
 
 		return null;
+	}
+
+	/**
+	 * Derive the plugin slug from a plugin file path.
+	 *
+	 * WordPress plugin files are either "slug/main-file.php" for directory-based
+	 * plugins or "main-file.php" for single-file plugins. For directory-based
+	 * plugins the slug is the directory segment before the first slash. For
+	 * single-file plugins the slug is the file name without the ".php" extension.
+	 *
+	 * Matching on the exact segment (instead of a loose substring test) avoids
+	 * matching an unintended plugin, e.g. slug "woo" matching "woocommerce" or a
+	 * slug that is a substring of another plugin's folder.
+	 *
+	 * @param string $pluginFile Plugin file path relative to the plugins directory.
+	 *
+	 * @return string Plugin slug.
+	 */
+	private function getPluginSlugFromFile( $pluginFile ) {
+		$slashPos = strpos( $pluginFile, '/' );
+		if ( false !== $slashPos ) {
+			return substr( $pluginFile, 0, $slashPos );
+		}
+
+		return preg_replace( '/\.php$/i', '', $pluginFile );
 	}
 
 	/**
