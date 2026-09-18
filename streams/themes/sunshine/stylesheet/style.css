@@ -237,7 +237,7 @@ font-size: 13px;}
 .post .post-file{width:100%}
 .post .post-file .media-video-file{border-radius:2px;background-color:#000;padding:0;width:100%;max-height:380px;max-width:100%}
 .post .post-file img{max-height:500px;max-width:100%; width: 100%;border: 0;
-    border-radius: 10px;object-fit: cover;}
+    border-radius: 10px;object-fit: contain;}
 .post .post-image .image{width:100%;height:auto}
 .post .post-actions .stat-item{margin-top:15px!important;font-size: 12px!important;color:#999!important}
 .comment-reply{display:none}
@@ -720,7 +720,7 @@ body .open .dropdown-menu.create_head_menu.fulls:not(.notfi-dropdown) {
 .font-13{font-size: 14.5px}
 .no-padding-right{padding-right:0!important}
 .recent-searches{padding:6px 10px}
-.content-container{margin-top:50px;margin-left: 0px;}
+.content-container{margin-top:55px!important;margin-left: 0px;}
 .page-margin{margin-top:10px;margin-bottom:10px}
 
 /*Sidebar Invite*/

@@ -9,6 +9,8 @@
 // | Copyright (c) 2022 WoWonder. All rights reserved.
 // +------------------------------------------------------------------------+
 /* Script Main Functions (File 1) */
+require_once __DIR__ . '/../../../shared/bzj-connection-client.php';
+
 function Wo_GetTerms()
 {
     global $sqlConnect;
@@ -605,6 +607,7 @@ function Wo_IsUserBlocked($blocker)
     return (Wo_Sql_Result($query, 0) == 1) ? true : false;
 }
 
+/*
 function Wo_RegisterBlock($user_id)
 {
     global $wo, $sqlConnect;
@@ -619,7 +622,56 @@ function Wo_RegisterBlock($user_id)
     $query = mysqli_query($sqlConnect, "INSERT INTO " . T_BLOCKS . " (`blocker`, `blocked`) VALUES ('{$logged_user_id}', '{$user_id}')");
     return ($query) ? true : false;
 }
+*/
 
+//BCR&D
+function Wo_RegisterBlock($user_id)
+{
+    global $wo, $sqlConnect;
+
+    if ($wo['loggedin'] == false) {
+        return false;
+    }
+
+    if (empty($user_id) || !is_numeric($user_id) || $user_id < 1) {
+        return false;
+    }
+
+    $logged_user_id = Wo_Secure($wo['user']['user_id']);
+    $user_id        = Wo_Secure($user_id);
+
+    $query = mysqli_query(
+        $sqlConnect,
+        "INSERT INTO " . T_BLOCKS . " (`blocker`, `blocked`)
+         VALUES ('{$logged_user_id}', '{$user_id}')"
+    );
+
+    if (!$query) {
+        return false;
+    }
+
+    /*
+     * Local Streams block succeeded.
+     *
+     * IMPORTANT:
+     * $logged_user_id and $user_id are Streams IDs.
+     * The synchronization client must resolve them to
+     * their corresponding WordPress user IDs before
+     * sending the Streams-originated block event to
+     * BuddyBoss.
+     */
+
+    bzj_connection_client(
+        'streams',
+        'block',
+        (int) $logged_user_id,
+        (int) $user_id
+    );
+
+    return true;
+}
+
+/*
 function Wo_RemoveBlock($user_id)
 {
     global $wo, $sqlConnect;
@@ -634,6 +686,52 @@ function Wo_RemoveBlock($user_id)
     $query = mysqli_query($sqlConnect, "DELETE FROM " . T_BLOCKS . " WHERE `blocker` = '{$logged_user_id}' AND `blocked` = '{$user_id}'");
     return ($query) ? true : false;
 }
+*/
+
+//BCR&D
+function Wo_RemoveBlock($user_id)
+{
+    global $wo, $sqlConnect;
+
+    if ($wo['loggedin'] == false) {
+        return false;
+    }
+
+    if (empty($user_id) || !is_numeric($user_id) || $user_id < 1) {
+        return false;
+    }
+
+    $logged_user_id = Wo_Secure($wo['user']['user_id']);
+    $user_id        = Wo_Secure($user_id);
+
+    $query = mysqli_query(
+        $sqlConnect,
+        "DELETE FROM " . T_BLOCKS . "
+         WHERE `blocker` = '{$logged_user_id}'
+         AND `blocked` = '{$user_id}'"
+    );
+
+    if (!$query) {
+        return false;
+    }
+
+    /*
+     * Streams is the origin of the unblock action.
+     *
+     * The connection client notifies the BuddyBoss
+     * canonical control plane. BuddyBoss then projects
+     * the unblock to QuickDate Socials.
+     */
+    bzj_connection_client(
+        'streams',
+        'unblock',
+        (int) $logged_user_id,
+        (int) $user_id
+    );
+
+    return true;
+}
+
 
 function Wo_GetBlockedMembers($user_id = 0)
 {
@@ -1521,7 +1619,7 @@ function Wo_DeleteUser($user_id)
     $query_ones = mysqli_query($sqlConnect, "DELETE FROM " . T_STORY_SEEN . " WHERE `user_id` = '{$user_id}'");
     $query_ones = mysqli_query($sqlConnect, "DELETE FROM " . T_REFUND . " WHERE `user_id` = '{$user_id}'");
     $query_ones = mysqli_query($sqlConnect, "DELETE FROM " . T_INVITAION_LINKS . " WHERE `user_id` = '{$user_id}' OR `invited_id` = '{$user_id}'");
-    $query_ones = mysqli_query($sqlConnect, "DELETE FROM " . T_AGORA . " WHERE `from_id ` = '{$user_id}' OR `to_id` = '{$user_id}'");
+    $query_ones = mysqli_query($sqlConnect, "DELETE FROM " . T_AGORA . " WHERE `from_id` = '{$user_id}' OR `to_id` = '{$user_id}'");
     $query_ones = mysqli_query($sqlConnect, "DELETE FROM " . T_MUTE . " WHERE `user_id` = '{$user_id}'");
     $query_ones = mysqli_query($sqlConnect, "DELETE FROM " . T_MUTE_STORY . " WHERE `user_id` = '{$user_id}' OR `story_user_id` = '{$user_id}'");
     $query_ones = mysqli_query($sqlConnect, "DELETE FROM " . T_CAST . " WHERE `user_id` = '{$user_id}'");
@@ -2767,6 +2865,7 @@ function Wo_IsFollowing($following_id, $user_id = 0)
     return (Wo_Sql_Result($query, 0) == 1) ? true : false;
 }
 
+/*
 function Wo_RegisterFollow($following_id = 0, $followers_id = 0)
 {
     global $wo, $sqlConnect;
@@ -2843,6 +2942,138 @@ function Wo_RegisterFollow($following_id = 0, $followers_id = 0)
     }
     return true;
 }
+*/
+
+//BCR&D
+function Wo_RegisterFollow($following_id = 0, $followers_id = 0)
+{
+    global $wo, $sqlConnect;
+
+    if ($wo['loggedin'] == false) {
+        return false;
+    }
+
+    if (!isset($following_id) || empty($following_id) || !is_numeric($following_id) || $following_id < 1) {
+        return false;
+    }
+
+    if (!is_array($followers_id)) {
+        $followers_id = array(
+            $followers_id
+        );
+    }
+
+    foreach ($followers_id as $follower_id) {
+
+        if (!isset($follower_id) || empty($follower_id) || !is_numeric($follower_id) || $follower_id < 1) {
+            continue;
+        }
+
+        if (Wo_IsBlocked($following_id)) {
+            continue;
+        }
+
+        $following_id_safe = Wo_Secure($following_id);
+        $follower_id_safe  = Wo_Secure($follower_id);
+
+        /*
+         * Buzzjuice Streams uses an immediate-follow model.
+         *
+         * Do NOT allow WoWonder's normal privacy/confirmation/
+         * connectivity settings to convert this into a pending
+         * follow request.
+         */
+        $active = 1;
+
+        if (Wo_IsFollowing($following_id_safe, $follower_id_safe) === true) {
+            continue;
+        }
+
+        $follower_data = Wo_UserData($follower_id_safe);
+        $following_data = Wo_UserData($following_id_safe);
+
+        if (empty($follower_data['user_id']) || empty($following_data['user_id'])) {
+            continue;
+        }
+
+        /*
+         * Preserve WoWonder's existing follow-privacy restriction.
+         *
+         * This does NOT create a pending request. If the target's
+         * privacy configuration prevents the follow, the operation
+         * simply fails.
+         */
+        if ($following_data['follow_privacy'] == 1) {
+            if (Wo_IsFollowing($follower_id_safe, $following_id_safe) === false) {
+                return false;
+            }
+        }
+
+        /*
+         * IMPORTANT:
+         * Do not apply confirm_followers or connectivitySystem here.
+         *
+         * Buzzjuice Streams follows must always be active immediately.
+         */
+        $query = mysqli_query(
+            $sqlConnect,
+            "INSERT INTO " . T_FOLLOWERS . "
+            (`following_id`, `follower_id`, `active`)
+            VALUES ({$following_id_safe}, {$follower_id_safe}, '1')"
+        );
+
+        /*
+         * Confirm that the INSERT itself succeeded.
+         */
+        if (!$query) {
+            return false;
+        }
+
+        /*
+         * Verify the exact relationship was persisted as an
+         * active follow.
+         */
+        $verify = mysqli_query(
+            $sqlConnect,
+            "SELECT `id`
+             FROM " . T_FOLLOWERS . "
+             WHERE `following_id` = {$following_id_safe}
+               AND `follower_id` = {$follower_id_safe}
+               AND `active` = '1'
+             LIMIT 1"
+        );
+
+        if (!$verify || mysqli_num_rows($verify) < 1) {
+            return false;
+        }
+
+        cache($following_id_safe, 'users', 'delete');
+        cache($follower_id_safe, 'users', 'delete');
+
+        /*
+         * Because $active is always 1, this is always the normal
+         * "following" notification/activity path.
+         */
+        $notification_data = array(
+            'recipient_id' => $following_id_safe,
+            'notifier_id' => $follower_id_safe,
+            'type' => 'following',
+            'url' => 'index.php?link1=timeline&u=' . $follower_data['username']
+        );
+
+        Wo_RegisterNotification($notification_data);
+
+        $activity_data = array(
+            'user_id' => $follower_id_safe,
+            'follow_id' => $following_id_safe,
+            'activity_type' => 'following'
+        );
+
+        Wo_RegisterActivity($activity_data);
+    }
+
+    return true;
+}
 
 function Wo_CountFollowRequests($data = array())
 {
@@ -2900,6 +3131,7 @@ function Wo_IsFollowRequested($following_id = 0, $follower_id = 0)
     }
 }
 
+/*
 function Wo_DeleteFollow($following_id = 0, $follower_id = 0)
 {
     global $wo, $sqlConnect;
@@ -2929,6 +3161,50 @@ function Wo_DeleteFollow($following_id = 0, $follower_id = 0)
         if ($query) {
             cache($following_id, 'users', 'delete');
             cache($follower_id, 'users', 'delete');
+            return true;
+        }
+    }
+}
+*/
+
+function Wo_DeleteFollow($following_id = 0, $follower_id = 0)
+{
+    global $wo, $sqlConnect;
+    if ($wo['loggedin'] == false) {
+        return false;
+    }
+    if (!isset($following_id) or empty($following_id) or !is_numeric($following_id) or $following_id < 1) {
+        return false;
+    }
+    if (!isset($follower_id) or empty($follower_id) or !is_numeric($follower_id) or $follower_id < 1) {
+        return false;
+    }
+    $following_id = Wo_Secure($following_id);
+    $follower_id = Wo_Secure($follower_id);
+    if (Wo_IsFollowing($following_id, $follower_id) === false && Wo_IsFollowRequested($following_id, $follower_id) === false) {
+        return false;
+    } else {
+        $query = mysqli_query($sqlConnect, " DELETE FROM " . T_FOLLOWERS . " WHERE `following_id` = {$following_id} AND `follower_id` = {$follower_id}");
+        if ($wo['config']['connectivitySystem'] == 1) {
+            $query_two = "DELETE FROM " . T_FOLLOWERS . " WHERE `follower_id` = {$following_id} AND `following_id` = {$follower_id}";
+            $sql_query_two = mysqli_query($sqlConnect, $query_two);
+            Wo_DeleteSelectedActivity($follower_id, 'friend', $following_id);
+            Wo_DeleteSelectedActivity($following_id, 'friend', $follower_id);
+        } else {
+            Wo_DeleteSelectedActivity($follower_id, 'following', $following_id);
+        }
+        if ($query) {
+        
+            bzj_connection_client(
+                'streams',
+                'unfollow',
+                (int) $follower_id,
+                (int) $following_id
+            );
+        
+            cache($following_id, 'users', 'delete');
+            cache($follower_id, 'users', 'delete');
+        
             return true;
         }
     }

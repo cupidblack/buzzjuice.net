@@ -2,55 +2,62 @@
 /**
  * Plugin Name: Buzzjuice Profile Prompter
  * Description: MU-plugin that progressively prompts logged-in users to complete approved BuddyBoss/BuddyPress xProfile and selected public WordPress profile fields. Widget, shortcode, REST API, popup, per-user suppression, admin control. Single-file MU-plugin.
- * Version: 4.0.0
- * Author: Buzzjuice (generated)
+ * Version: 5.1.0
+ * Author: Buzzjuice (refactor)
  * License: GPL-2.0-or-later
  * Text Domain: bzj-profile-prompter
  *
- * Install: place this file in wp-content/mu-plugins/bzj-profile-prompter.php
+ * INSTALL:
+ * Place this file in wp-content/mu-plugins/bzj-profile-prompter.php
  *
- * Notes:
- * - BuddyBoss/BuddyPress xProfile is primary source.
- * - shared/buzz_metadata.json is treated as a registry; public metadata must be explicitly approved by admin; private metadata never promptable.
- * - Default discovery interval 12,345 seconds (admin configurable).
- * - REST API (bzj/v1/profile-prompter) available; legacy AJAX endpoint retained.
- * - All logic kept in a single file for initial deployment.
+ * PRIMARY SOURCES:
+ * - BuddyBoss/BuddyPress xProfile
+ * - shared/buzz_metadata.json public_open_fields (admin-approved)
+ *
+ * NOTES:
+ * - Metadata registry fields must be approved by an admin before promptable.
+ * - The plugin does NOT itself synchronize with WoWonder/QuickDate; use existing sync hooks.
  */
 
 defined( 'ABSPATH' ) || exit;
 
-/* -------------------------
-   Constants & Defaults
-   ------------------------- */
-if ( ! defined( 'BZJ_PP_VERSION' ) ) define( 'BZJ_PP_VERSION', '4.0.0' );
+/* ============================================================
+ * CONSTANTS & DEFAULTS
+ * ========================================================== */
+if ( ! defined( 'BZJ_PP_VERSION' ) ) define( 'BZJ_PP_VERSION', '5.1.0' );
 if ( ! defined( 'BZJ_PP_OPTION' ) ) define( 'BZJ_PP_OPTION', 'bzj_pp_settings' );
+if ( ! defined( 'BZJ_PP_NONCE_ACTION' ) ) define( 'BZJ_PP_NONCE_ACTION', 'bzj_pp_profile_action' );
 if ( ! defined( 'BZJ_PP_REST_NAMESPACE' ) ) define( 'BZJ_PP_REST_NAMESPACE', 'bzj/v1' );
 if ( ! defined( 'BZJ_PP_REST_ROUTE' ) ) define( 'BZJ_PP_REST_ROUTE', '/profile-prompter' );
-if ( ! defined( 'BZJ_PP_NONCE_ACTION' ) ) define( 'BZJ_PP_NONCE_ACTION', 'bzj_pp_profile_action' );
 if ( ! defined( 'BZJ_PP_DEFAULT_CHECK_INTERVAL' ) ) define( 'BZJ_PP_DEFAULT_CHECK_INTERVAL', 12345 );
 if ( ! defined( 'BZJ_PP_DEFAULT_SKIP_DAYS' ) ) define( 'BZJ_PP_DEFAULT_SKIP_DAYS', 3 );
 if ( ! defined( 'BZJ_PP_DISCOVERY_CACHE_TTL' ) ) define( 'BZJ_PP_DISCOVERY_CACHE_TTL', 900 );
 if ( ! defined( 'BZJ_PP_HISTORY_LIMIT' ) ) define( 'BZJ_PP_HISTORY_LIMIT', 100 );
 if ( ! defined( 'BZJ_PP_STATE_PREFIX' ) ) define( 'BZJ_PP_STATE_PREFIX', 'bzj_pp_' );
 
-/* -------------------------
-   Settings Helpers
-   ------------------------- */
+/* ============================================================
+ * DEFAULT SETTINGS & HELPERS
+ * ========================================================== */
 function bzj_pp_default_settings() {
 	return array(
-		'check_interval'      => BZJ_PP_DEFAULT_CHECK_INTERVAL,
-		'metadata_enabled'    => 1,
-		'default_title'       => 'Complete your profile',
-		'popup_enabled'       => 1,
-		'popup_on_login'      => 1,
-		'popup_after_return'  => 1,
-		'return_after_days'   => 7,
-		'popup_interval'      => DAY_IN_SECONDS,
-		'popup_probability'   => 0.20,
-		'max_popups_per_week' => 3,
-		'default_skip_days'   => BZJ_PP_DEFAULT_SKIP_DAYS,
-		'weighted_selection'  => 1,
-		'fields'              => array(),
+		'check_interval'       => BZJ_PP_DEFAULT_CHECK_INTERVAL,
+		'default_title'        => 'Complete your profile',
+		'metadata_enabled'     => 1,
+		'metadata_require_approval' => 1,
+		'hidden_groups'        => array( 'Profile Sync' ),
+		'group_overrides'      => array(),
+		'popup_enabled'        => 1,
+		'popup_on_login'       => 1,
+		'popup_after_return'   => 1,
+		'return_after_days'    => 7,
+		'popup_interval'       => DAY_IN_SECONDS,
+		'popup_probability'    => 0.20,
+		'max_popups_per_week'  => 3,
+		'default_skip_days'    => BZJ_PP_DEFAULT_SKIP_DAYS,
+		'weighted_selection'   => 1,
+		'progress_include_temporarily_skipped' => 1,
+		'never_ask_counts_as_complete' => 0,
+		'fields'               => array(),
 	);
 }
 function bzj_pp_get_settings() {
@@ -58,7 +65,9 @@ function bzj_pp_get_settings() {
 	$settings = get_option( BZJ_PP_OPTION, array() );
 	if ( ! is_array( $settings ) ) $settings = array();
 	$settings = wp_parse_args( $settings, $defaults );
-	if ( ! is_array( $settings['fields'] ) ) $settings['fields'] = array();
+	foreach ( array( 'fields', 'hidden_groups', 'group_overrides' ) as $k ) {
+		if ( ! isset( $settings[ $k ] ) || ! is_array( $settings[ $k ] ) ) $settings[ $k ] = $defaults[ $k ];
+	}
 	return $settings;
 }
 function bzj_pp_init_options() {
@@ -68,9 +77,9 @@ function bzj_pp_init_options() {
 }
 add_action( 'plugins_loaded', 'bzj_pp_init_options', 5 );
 
-/* -------------------------
-   Metadata registry helpers
-   ------------------------- */
+/* ============================================================
+ * METADATA REGISTRY (shared/buzz_metadata.json)
+ * ========================================================== */
 function bzj_pp_metadata_paths() {
 	return array(
 		ABSPATH . 'shared/buzz_metadata.json',
@@ -103,8 +112,7 @@ function bzj_pp_registry_private_fields() {
 function bzj_pp_is_private_registry_key( $meta_key ) {
 	$meta_key = sanitize_key( $meta_key );
 	if ( '' === $meta_key ) return true;
-	$private = bzj_pp_registry_private_fields();
-	foreach ( $private as $k => $v ) {
+	foreach ( bzj_pp_registry_private_fields() as $k => $v ) {
 		if ( is_string( $k ) && sanitize_key( $k ) === $meta_key ) return true;
 		if ( is_string( $v ) && sanitize_key( $v ) === $meta_key ) return true;
 	}
@@ -114,25 +122,25 @@ function bzj_pp_is_forbidden_meta_key( $meta_key ) {
 	$meta_key = sanitize_key( $meta_key );
 	if ( '' === $meta_key ) return true;
 	if ( bzj_pp_is_private_registry_key( $meta_key ) ) return true;
-	$hard_block = array(
+	$blocked = array(
 		'user_id','qd_user_id','wo_user_id','user_pass','user_activation_key','session_tokens',
 		'email_code','sms_code','code_sent','time_code_sent','authy_id','google_secret',
 		'two_factor','two_factor_hash','two_factor_verified','two_factor_method',
 		'ip_address','lat','lng','last_location_update','permission','admin','banned','banned_reason',
-		'status','active','balance','points','credits','wallet','paypal_email'
+		'status','active','balance','points','credits','wallet','paypal_email',
+		'referrer','ref_user_id','ref_level',
+		'web_device_id','android_m_device_id','android_n_device_id','ios_m_device_id','ios_n_device_id',
 	);
-	return in_array( $meta_key, $hard_block, true );
+	return in_array( $meta_key, $blocked, true );
 }
 
-/* -------------------------
-   Field key helpers
-   ------------------------- */
+/* ============================================================
+ * FIELD IDENTIFIERS & DISCOVERY
+ * ========================================================== */
 function bzj_pp_xprofile_key( $id ) { return 'xprofile:' . absint( $id ); }
 function bzj_pp_meta_key( $meta_key ) { return 'meta:' . sanitize_key( $meta_key ); }
 
-/* -------------------------
-   xProfile discovery
-   ------------------------- */
+/* xProfile discovery */
 function bzj_pp_discover_xprofile_fields() {
 	$fields = array();
 	if ( ! function_exists( 'bp_xprofile_get_groups' ) || ! function_exists( 'xprofile_get_field' ) ) return $fields;
@@ -168,14 +176,12 @@ function bzj_pp_discover_xprofile_fields() {
 	return $fields;
 }
 
-/* -------------------------
-   metadata discovery
-   ------------------------- */
+/* metadata discovery */
 function bzj_pp_metadata_type( $meta_key ) {
 	$map = array(
 		'username'=>'textbox','email'=>'email','website'=>'url','working_link'=>'url',
 		'birthday'=>'date','phone_number'=>'telephone','new_phone'=>'telephone',
-		'about'=>'textarea','details'=>'textarea',
+		'about'=>'textarea','details'=>'textarea','address'=>'textarea',
 	);
 	return isset( $map[ $meta_key ] ) ? $map[ $meta_key ] : 'textbox';
 }
@@ -208,11 +214,9 @@ function bzj_pp_discover_metadata_fields() {
 	return $fields;
 }
 
-/* -------------------------
-   discovery cache
-   ------------------------- */
+/* discovery cache */
 function bzj_pp_get_discovered_fields( $force = false ) {
-	$cache_key = 'bzj_pp_discovered_v4';
+	$cache_key = 'bzj_pp_discovered_v5';
 	if ( ! $force ) {
 		$cached = get_transient( $cache_key );
 		if ( is_array( $cached ) ) return $cached;
@@ -227,22 +231,32 @@ function bzj_pp_get_discovered_fields( $force = false ) {
 	set_transient( $cache_key, $fields, BZJ_PP_DISCOVERY_CACHE_TTL );
 	return $fields;
 }
-function bzj_pp_flush_discovery_cache() { delete_transient( 'bzj_pp_discovered_v4' ); }
+function bzj_pp_flush_discovery_cache() { delete_transient( 'bzj_pp_discovered_v5' ); }
 add_action( 'xprofile_fields_saved_field', 'bzj_pp_flush_discovery_cache', 20 );
 add_action( 'xprofile_deleted_field', 'bzj_pp_flush_discovery_cache', 20 );
 
-/* -------------------------
-   supported types
-   ------------------------- */
-function bzj_pp_supported_types() {
-	return array('textbox','textarea','number','url','email','telephone','datebox','date','selectbox','radio','multiselectbox','checkbox','gender');
-}
+/* ============================================================
+ * FIELD TYPES, GROUP VISIBILITY, CONFIG
+ * ========================================================== */
+function bzj_pp_supported_types() { return array('textbox','textarea','number','url','email','telephone','datebox','date','selectbox','radio','multiselectbox','checkbox','gender'); }
 function bzj_pp_choice_types() { return array('selectbox','radio','multiselectbox','checkbox','gender'); }
 function bzj_pp_multiple_types() { return array('multiselectbox','checkbox'); }
 
-/* -------------------------
-   field config
-   ------------------------- */
+function bzj_pp_group_is_hidden( $field ) {
+	if ( empty( $field['group_name'] ) ) return false;
+	$settings = bzj_pp_get_settings();
+	$group_name = trim( wp_strip_all_tags( $field['group_name'] ) );
+	$hidden = isset( $settings['hidden_groups'] ) ? $settings['hidden_groups'] : array();
+	$overrides = isset( $settings['group_overrides'] ) ? $settings['group_overrides'] : array();
+	if ( isset( $overrides[ $group_name ] ) ) {
+		return empty( $overrides[ $group_name ] );
+	}
+	foreach ( $hidden as $hidden_group ) {
+		if ( 0 === strcasecmp( $group_name, trim( (string) $hidden_group ) ) ) return true;
+	}
+	return false;
+}
+
 function bzj_pp_default_field_config( $field ) {
 	return array(
 		'enabled' => 'xprofile' === $field['source'] ? 1 : 0,
@@ -266,12 +280,12 @@ function bzj_pp_get_field_config( $key, $field ) {
 	$config['weight'] = max(0, min(10000, absint( $config['weight'] )));
 	$config['skip_days'] = max(0, min(365, absint( $config['skip_days'] )));
 	if ( 'meta' === $field['source'] && empty( $config['approved'] ) ) $config['enabled'] = 0;
+	if ( bzj_pp_group_is_hidden( $field ) ) $config['enabled'] = 0;
+	if ( ! empty( $field['required'] ) ) $config['priority'] = max(1000, absint( $config['priority'] ));
 	return $config;
 }
 
-/* -------------------------
-   managed fields
-   ------------------------- */
+/* managed fields */
 function bzj_pp_get_managed_fields( $force = false ) {
 	$discovered = bzj_pp_get_discovered_fields( $force );
 	$managed = array();
@@ -282,12 +296,9 @@ function bzj_pp_get_managed_fields( $force = false ) {
 		$ar = ! empty( $a['required'] ) ? 1 : 0;
 		$br = ! empty( $b['required'] ) ? 1 : 0;
 		if ( $ar !== $br ) return $br - $ar;
-		$ap = absint( $a['priority'] ); $bp = absint( $b['priority'] );
-		if ( $ap !== $bp ) return $bp - $ap;
-		$aw = absint( $a['weight'] ); $bw = absint( $b['weight'] );
-		if ( $aw !== $bw ) return $bw - $aw;
-		$ao = absint( $a['field_order'] ); $bo = absint( $b['field_order'] );
-		if ( $ao !== $bo ) return $ao - $bo;
+		$ap = absint( $a['priority'] ); $bp = absint( $b['priority'] ); if ( $ap !== $bp ) return $bp - $ap;
+		$aw = absint( $a['weight'] ); $bw = absint( $b['weight'] ); if ( $aw !== $bw ) return $bw - $aw;
+		$ao = absint( $a['field_order'] ); $bo = absint( $b['field_order'] ); if ( $ao !== $bo ) return $ao - $bo;
 		return strcasecmp( (string) $a['label'], (string) $b['label'] );
 	} );
 	return $managed;
@@ -298,9 +309,9 @@ function bzj_pp_get_field_by_key( $key ) {
 	return isset( $fields[ $key ] ) ? $fields[ $key ] : null;
 }
 
-/* -------------------------
-   promptable check
-   ------------------------- */
+/* ============================================================
+ * PROMPTABLE CHECKS & VALUE NORMALIZATION
+ * ========================================================== */
 function bzj_pp_is_promptable( $field ) {
 	if ( empty( $field ) ) return false;
 	if ( empty( $field['enabled'] ) ) return false;
@@ -312,9 +323,6 @@ function bzj_pp_is_promptable( $field ) {
 	return true;
 }
 
-/* -------------------------
-   value normalization & read
-   ------------------------- */
 function bzj_pp_normalize_value( $value ) {
 	if ( is_array( $value ) ) {
 		$result = array();
@@ -333,6 +341,29 @@ function bzj_pp_value_is_empty( $value ) {
 	$value = bzj_pp_normalize_value( $value );
 	return is_array( $value ) ? empty( $value ) : '' === $value;
 }
+
+/* completed-by-never storage (if enabled in settings) */
+function bzj_pp_get_completed_by_never( $user_id ) {
+	$state = get_user_meta( absint( $user_id ), bzj_pp_state_key( 'completed_by_never' ), true );
+	return is_array( $state ) ? $state : array();
+}
+function bzj_pp_set_completed_by_never( $user_id, $state ) {
+	update_user_meta( absint( $user_id ), bzj_pp_state_key( 'completed_by_never' ), is_array( $state ) ? $state : array() );
+}
+function bzj_pp_mark_completed_by_never( $user_id, $key ) {
+	if ( '' === (string) $key ) return;
+	$state = bzj_pp_get_completed_by_never( $user_id );
+	$state[ $key ] = time();
+	bzj_pp_set_completed_by_never( $user_id, $state );
+}
+function bzj_pp_clear_completed_by_never( $user_id, $key = '' ) {
+	$state = bzj_pp_get_completed_by_never( $user_id );
+	if ( '' === $key ) $state = array();
+	elseif ( isset( $state[ $key ] ) ) unset( $state[ $key ] );
+	bzj_pp_set_completed_by_never( $user_id, $state );
+}
+
+/* read field value */
 function bzj_pp_get_field_value( $user_id, $field ) {
 	$user_id = absint( $user_id );
 	if ( ! $user_id || empty( $field ) ) return '';
@@ -353,13 +384,22 @@ function bzj_pp_get_field_value( $user_id, $field ) {
 	}
 	return '';
 }
+
+/* user has value respects "never ask counts as complete" */
 function bzj_pp_user_has_value( $user_id, $field ) {
-	return ! bzj_pp_value_is_empty( bzj_pp_get_field_value( $user_id, $field ) );
+	$has = ! bzj_pp_value_is_empty( bzj_pp_get_field_value( $user_id, $field ) );
+	if ( $has ) return true;
+	$settings = bzj_pp_get_settings();
+	if ( ! empty( $settings['never_ask_counts_as_complete'] ) ) {
+		$completed = bzj_pp_get_completed_by_never( $user_id );
+		if ( is_array( $completed ) && ! empty( $field['key'] ) && isset( $completed[ $field['key'] ] ) ) return true;
+	}
+	return false;
 }
 
-/* -------------------------
-   xProfile options
-   ------------------------- */
+/* ============================================================
+ * XPROFILE OPTIONS
+ * ========================================================== */
 function bzj_pp_get_xprofile_options( $field_id ) {
 	$options = array();
 	if ( ! function_exists( 'xprofile_get_field' ) ) return $options;
@@ -388,15 +428,15 @@ function bzj_pp_get_xprofile_options( $field_id ) {
 	return array_values( $unique );
 }
 
-/* -------------------------
-   validation & save
-   ------------------------- */
+/* ============================================================
+ * VALIDATION & SAVE
+ * ========================================================== */
 function bzj_pp_validate_submitted_value( $field, $raw_value ) {
 	$type = isset( $field['field_type'] ) ? sanitize_key( $field['field_type'] ) : 'textbox';
 	if ( ! in_array( $type, bzj_pp_supported_types(), true ) ) return new WP_Error( 'bzj_unsupported_field_type', 'This profile field type is not supported.' );
 	if ( in_array( $type, bzj_pp_choice_types(), true ) ) {
 		$options = bzj_pp_get_xprofile_options( absint( $field['field_id'] ) );
-		if ( empty( $options ) ) return new WP_Error( 'bzj_no_options', 'No valid options available.' );
+		if ( empty( $options ) ) return new WP_Error( 'bzj_pp_no_options', 'No valid options are available for this field.' );
 		$allowed = wp_list_pluck( $options, 'name' ); $allowed = array_map( 'strval', $allowed );
 		if ( in_array( $type, bzj_pp_multiple_types(), true ) ) {
 			if ( ! is_array( $raw_value ) ) $raw_value = array( $raw_value );
@@ -420,11 +460,10 @@ function bzj_pp_validate_submitted_value( $field, $raw_value ) {
 		case 'textarea': return sanitize_textarea_field( $value );
 		case 'number': if ( '' !== $value && ! is_numeric( $value ) ) return new WP_Error( 'bzj_invalid_number', 'Please enter a valid number.' ); return sanitize_text_field( $value );
 		case 'url': if ( '' === $value ) return ''; $url = esc_url_raw( $value ); if ( '' === $url || ! wp_http_validate_url( $url ) ) return new WP_Error( 'bzj_invalid_url', 'Please enter a valid URL.' ); return $url;
-		case 'email': $email = sanitize_email( $value ); if ( '' !== $email && ! is_email( $email ) ) return new WP_Error( 'bzj_invalid_email', 'Please enter a valid email.' ); return $email;
+		case 'email': $email = sanitize_email( $value ); if ( '' !== $email && ! is_email( $email ) ) return new WP_Error( 'bzj_invalid_email', 'Please enter a valid email address.' ); return $email;
 		case 'datebox':
 		case 'date': if ( '' === $value ) return ''; $date = DateTime::createFromFormat( 'Y-m-d', $value ); if ( ! $date || $date->format( 'Y-m-d' ) !== $value ) return new WP_Error( 'bzj_invalid_date', 'Please enter a valid date.' ); return $value;
 		case 'telephone': return preg_replace( '/[^0-9+\-\(\)\s]/', '', $value );
-		case 'textbox':
 		default: return sanitize_text_field( $value );
 	}
 }
@@ -441,6 +480,7 @@ function bzj_pp_save_field_value( $user_id, $field, $value ) {
 		if ( false === $result ) return new WP_Error( 'bzj_save_failed', 'Unable to save the profile field.' );
 		do_action( 'bzj_profile_prompter_xprofile_saved', $user_id, $field, $value );
 		do_action( 'bzj_profile_prompter_field_saved', $field, $value, $user_id );
+		bzj_pp_clear_completed_by_never( $user_id, $field['key'] );
 		return true;
 	}
 	if ( 'meta' === $field['source'] ) {
@@ -456,66 +496,52 @@ function bzj_pp_save_field_value( $user_id, $field, $value ) {
 		}
 		do_action( 'bzj_profile_prompter_meta_saved', $user_id, $field, $value );
 		do_action( 'bzj_profile_prompter_field_saved', $field, $value, $user_id );
+		bzj_pp_clear_completed_by_never( $user_id, $field['key'] );
 		return true;
 	}
 	return new WP_Error( 'bzj_invalid_source', 'Invalid profile field source.' );
 }
 
-/* -------------------------
-   user state helpers
-   ------------------------- */
+/* ============================================================
+ * USER STATE (pending, history, skipped, never, completed_by_never)
+ * ========================================================== */
 function bzj_pp_state_key( $name ) { return BZJ_PP_STATE_PREFIX . sanitize_key( $name ); }
 function bzj_pp_get_pending_key( $user_id ) { return (string) get_user_meta( absint( $user_id ), bzj_pp_state_key( 'pending_field' ), true ); }
-function bzj_pp_set_pending_key( $user_id, $key ) {
-	if ( '' === (string) $key ) { delete_user_meta( absint( $user_id ), bzj_pp_state_key( 'pending_field' ) ); return; }
-	update_user_meta( absint( $user_id ), bzj_pp_state_key( 'pending_field' ), sanitize_text_field( $key ) );
-}
-function bzj_pp_get_history( $user_id ) {
-	$history = get_user_meta( absint( $user_id ), bzj_pp_state_key( 'history' ), true );
-	if ( ! is_array( $history ) ) return array();
-	return array_values( array_filter( array_map( 'sanitize_text_field', $history ), function( $k ){ return '' !== $k; } ) );
-}
-function bzj_pp_set_history( $user_id, $history ) {
-	$history = is_array( $history ) ? $history : array();
-	$clean = array();
-	foreach ( $history as $key ) if ( is_string( $key ) && '' !== $key ) $clean[] = sanitize_text_field( $key );
-	$clean = array_values( array_unique( $clean ) );
-	if ( count( $clean ) > BZJ_PP_HISTORY_LIMIT ) $clean = array_slice( $clean, -BZJ_PP_HISTORY_LIMIT );
-	update_user_meta( absint( $user_id ), bzj_pp_state_key( 'history' ), $clean );
-}
-function bzj_pp_push_history( $user_id, $key ) {
-	if ( '' === (string) $key ) return;
-	$history = bzj_pp_get_history( $user_id );
-	$history = array_values( array_filter( $history, function( $item ) use ( $key ) { return $item !== $key; } ) );
-	$history[] = $key;
-	bzj_pp_set_history( $user_id, $history );
-}
+function bzj_pp_set_pending_key( $user_id, $key ) { if ( '' === (string) $key ) { delete_user_meta( absint( $user_id ), bzj_pp_state_key( 'pending_field' ) ); return; } update_user_meta( absint( $user_id ), bzj_pp_state_key( 'pending_field' ), sanitize_text_field( $key ) ); }
+function bzj_pp_get_history( $user_id ) { $history = get_user_meta( absint( $user_id ), bzj_pp_state_key( 'history' ), true ); if ( ! is_array( $history ) ) return array(); return array_values( array_filter( array_map( 'sanitize_text_field', $history ), function( $k ){ return '' !== $k; } ) ); }
+function bzj_pp_set_history( $user_id, $history ) { $history = is_array( $history ) ? $history : array(); $clean = array(); foreach ( $history as $key ) if ( is_string( $key ) && '' !== $key ) $clean[] = sanitize_text_field( $key ); $clean = array_values( array_unique( $clean ) ); if ( count( $clean ) > BZJ_PP_HISTORY_LIMIT ) $clean = array_slice( $clean, -BZJ_PP_HISTORY_LIMIT ); update_user_meta( absint( $user_id ), bzj_pp_state_key( 'history' ), $clean ); }
+function bzj_pp_push_history( $user_id, $key ) { if ( '' === (string) $key ) return; $history = bzj_pp_get_history( $user_id ); $history = array_values( array_filter( $history, function( $item ) use ( $key ) { return $item !== $key; } ) ); $history[] = $key; bzj_pp_set_history( $user_id, $history ); }
 
-/* -------------------------
-   suppression / skip
-   ------------------------- */
+/* skipped (temporary) */
 function bzj_pp_get_skipped( $user_id ) { $skipped = get_user_meta( absint( $user_id ), bzj_pp_state_key( 'skipped' ), true ); return is_array( $skipped ) ? $skipped : array(); }
 function bzj_pp_set_skipped( $user_id, $skipped ) { update_user_meta( absint( $user_id ), bzj_pp_state_key( 'skipped' ), is_array( $skipped ) ? $skipped : array() ); }
 function bzj_pp_mark_skipped( $user_id, $key, $days ) { $days = max(1, absint( $days )); $skipped = bzj_pp_get_skipped( $user_id ); $skipped[ $key ] = time() + ( $days * DAY_IN_SECONDS ); bzj_pp_set_skipped( $user_id, $skipped ); }
 function bzj_pp_is_skipped( $user_id, $key ) { $skipped = bzj_pp_get_skipped( $user_id ); if ( empty( $skipped[ $key ] ) ) return false; if ( absint( $skipped[ $key ] ) <= time() ) { unset( $skipped[ $key ] ); bzj_pp_set_skipped( $user_id, $skipped ); return false; } return true; }
-function bzj_pp_clear_skipped( $user_id, $key ) { $skipped = bzj_pp_get_skipped( $user_id ); if ( isset( $skipped[ $key ] ) ) { unset( $skipped[ $key ] ); bzj_pp_set_skipped( $user_id, $skipped ); } }
+function bzj_pp_clear_skipped( $user_id, $key = '' ) { $skipped = bzj_pp_get_skipped( $user_id ); if ( '' === $key ) $skipped = array(); elseif ( isset( $skipped[ $key ] ) ) unset( $skipped[ $key ] ); bzj_pp_set_skipped( $user_id, $skipped ); }
 
+/* never ask (permanent suppression) */
 function bzj_pp_get_never_ask( $user_id ) { $state = get_user_meta( absint( $user_id ), bzj_pp_state_key( 'never_ask' ), true ); return is_array( $state ) ? $state : array(); }
 function bzj_pp_set_never_ask( $user_id, $state ) { update_user_meta( absint( $user_id ), bzj_pp_state_key( 'never_ask' ), is_array( $state ) ? $state : array() ); }
 function bzj_pp_mark_never_ask( $user_id, $key ) { $state = bzj_pp_get_never_ask( $user_id ); $state[ $key ] = time(); bzj_pp_set_never_ask( $user_id, $state ); }
 function bzj_pp_is_never_ask( $user_id, $key ) { $state = bzj_pp_get_never_ask( $user_id ); return ! empty( $state[ $key ] ); }
 function bzj_pp_clear_never_ask( $user_id, $key = '' ) { $state = bzj_pp_get_never_ask( $user_id ); if ( '' === $key ) $state = array(); elseif ( isset( $state[ $key ] ) ) unset( $state[ $key ] ); bzj_pp_set_never_ask( $user_id, $state ); }
-function bzj_pp_reset_user_suppression( $user_id ) { delete_user_meta( absint( $user_id ), bzj_pp_state_key( 'never_ask' ) ); delete_user_meta( absint( $user_id ), bzj_pp_state_key( 'skipped' ) ); bzj_pp_set_pending_key( $user_id, '' ); }
 
-/* -------------------------
-   discovery rate limiting
-   ------------------------- */
+/* reset suppression & completed-by-never */
+function bzj_pp_reset_user_suppression( $user_id ) {
+	delete_user_meta( absint( $user_id ), bzj_pp_state_key( 'never_ask' ) );
+	delete_user_meta( absint( $user_id ), bzj_pp_state_key( 'skipped' ) );
+	delete_user_meta( absint( $user_id ), bzj_pp_state_key( 'pending_field' ) );
+	delete_user_meta( absint( $user_id ), bzj_pp_state_key( 'history' ) );
+	delete_user_meta( absint( $user_id ), bzj_pp_state_key( 'completed_by_never' ) );
+}
+
+/* discovery rate limiting */
 function bzj_pp_get_last_check( $user_id ) { return absint( get_user_meta( absint( $user_id ), bzj_pp_state_key( 'last_check' ), true ) ); }
 function bzj_pp_set_last_check( $user_id ) { update_user_meta( absint( $user_id ), bzj_pp_state_key( 'last_check' ), time() ); }
 
-/* -------------------------
-   queue selection
-   ------------------------- */
+/* ============================================================
+ * QUEUE SELECTION (weighted & deterministic)
+ * ========================================================== */
 function bzj_pp_get_incomplete_fields( $user_id, $include_skipped = false, $include_never = false ) {
 	$result = array();
 	foreach ( bzj_pp_get_managed_fields() as $key => $field ) {
@@ -590,19 +616,21 @@ function bzj_pp_previous_field( $user_id, $current_key ) {
 	}
 	return null;
 }
-function bzj_pp_count_remaining( $user_id ) {
-	$count = 0; foreach ( bzj_pp_get_managed_fields() as $key => $field ) {
+function bzj_pp_get_progress( $user_id ) {
+	$total = 0; $completed = 0;
+	foreach ( bzj_pp_get_managed_fields() as $key => $field ) {
 		if ( ! bzj_pp_is_promptable( $field ) ) continue;
-		if ( bzj_pp_is_never_ask( $user_id, $key ) ) continue;
-		if ( bzj_pp_is_skipped( $user_id, $key ) ) continue;
-		if ( ! bzj_pp_user_has_value( $user_id, $field ) ) $count++;
+		$total++;
+		if ( bzj_pp_user_has_value( $user_id, $field ) ) $completed++;
 	}
-	return $count;
+	$percentage = $total > 0 ? round( ( $completed / $total ) * 100 ) : 100;
+	return array( 'total' => $total, 'completed' => $completed, 'remaining' => max(0, $total - $completed), 'percentage' => $percentage );
 }
+function bzj_pp_count_remaining( $user_id ) { $progress = bzj_pp_get_progress( $user_id ); return absint( $progress['remaining'] ); }
 
-/* -------------------------
-   HTML building + rendering
-   ------------------------- */
+/* ============================================================
+ * HTML BUILDING, RENDER, ASSETS, WIDGET, SHORTCODE
+ * ========================================================== */
 function bzj_pp_build_input_html( $user_id, $field ) {
 	$type = sanitize_key( $field['field_type'] );
 	$current = bzj_pp_get_field_value( $user_id, $field );
@@ -663,21 +691,32 @@ function bzj_pp_build_input_html( $user_id, $field ) {
 function bzj_pp_render_widget_markup( $user_id, $field, $context = 'widget', $history_mode = false ) {
 	if ( empty( $field ) || ! bzj_pp_is_promptable( $field ) ) return '';
 	$settings = bzj_pp_get_settings();
+	$progress = bzj_pp_get_progress( $user_id );
 	$nonce = wp_create_nonce( BZJ_PP_NONCE_ACTION );
-	$remaining = bzj_pp_count_remaining( $user_id );
 	$title = ! empty( $settings['default_title'] ) ? $settings['default_title'] : 'Complete your profile';
 	$classes = array( 'bzj-pp-widget', 'bzj-pp-context-' . sanitize_html_class( $context ) );
 	if ( $history_mode ) $classes[] = 'bzj-pp-history-mode';
 	$current = bzj_pp_get_field_value( $user_id, $field );
 	$is_completed = ! bzj_pp_value_is_empty( $current );
+	$percentage = absint( $progress['percentage'] );
 	ob_start();
 	?>
 	<div class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>" data-bzj-pp-key="<?php echo esc_attr( $field['key'] ); ?>" data-bzj-pp-nonce="<?php echo esc_attr( $nonce ); ?>" data-bzj-pp-history="<?php echo $history_mode ? '1' : '0'; ?>">
+
 		<div class="bzj-pp-header">
 			<div class="bzj-pp-title"><?php echo esc_html( $title ); ?></div>
 			<?php if ( $history_mode ) : ?><div class="bzj-pp-history-label"><?php esc_html_e( 'Previously viewed profile field', 'bzj-profile-prompter' ); ?></div><?php endif; ?>
-			<?php if ( ! empty( $field['group_name'] ) ) : ?><div class="bzj-pp-section"><?php echo esc_html( $field['group_name'] ); ?></div><?php endif; ?>
+			
+    		<div class="bzj-pp-footer">
+    
+                <?php if ( ! empty( $field['group_name'] ) ) : ?><div class="bzj-pp-section"><?php echo esc_html( $field['group_name'] ); ?></div><?php endif; ?>
+    
+    		</div>
+			
 		</div>
+		
+
+
 		<div class="bzj-pp-question">
 			<label class="bzj-pp-label"><span><?php echo esc_html( $field['label'] ); ?></span><?php if ( ! empty( $field['required'] ) ) : ?><span class="bzj-pp-required" title="<?php esc_attr_e( 'Required', 'bzj-profile-prompter' ); ?>">*</span><?php endif; ?></label>
 			<?php if ( ! empty( $field['description'] ) ) : ?><div class="bzj-pp-description"><?php echo esc_html( $field['description'] ); ?></div><?php endif; ?>
@@ -686,90 +725,121 @@ function bzj_pp_render_widget_markup( $user_id, $field, $context = 'widget', $hi
 		</div>
 		<div class="bzj-pp-never-wrap" <?php if ( empty( $field['allow_never'] ) ) echo 'style="display:none"'; ?>>
 			<label class="bzj-pp-never-label"><input type="checkbox" class="bzj-pp-never" name="bzj_pp_never" value="1"> <span><?php esc_html_e( "Don't ask this again", 'bzj-profile-prompter' ); ?></span></label>
-			<button type="button" class="bzj-pp-reset" data-bzj-pp-action="reset"><?php esc_html_e( 'Reset skipped', 'bzj-profile-prompter' ); ?></button>
+			
+			<div class="bzj-pp-reset-row">
+    			<button type="button" class="bzj-pp-reset" data-bzj-pp-action="reset">Reset</button>
+    		</div>
+			
 		</div>
 		<div class="bzj-pp-status" aria-live="polite"></div>
 		<div class="bzj-pp-controls">
-			
-			<button type="button" class="bzj-pp-button bzj-pp-previous" data-bzj-pp-action="previous"><?php esc_html_e( '🡸', 'bzj-profile-prompter' ); ?></button>
-			
-<!--			<button type="button" class="bzj-pp-button bzj-pp-next" data-bzj-pp-action="next"><?php esc_html_e( 'Next', 'bzj-profile-prompter' ); ?></button> -->
-			<button type="button" class="bzj-pp-button bzj-pp-skip" data-bzj-pp-action="skip"><?php esc_html_e( '↻', 'bzj-profile-prompter' ); ?></button>
-			
-			<button type="button" class="bzj-pp-button bzj-pp-save" data-bzj-pp-action="save"><?php esc_html_e( '🡺', 'bzj-profile-prompter' ); ?></button>
-			
+			<button type="button" class="bzj-pp-button bzj-pp-previous" data-bzj-pp-action="previous" aria-label="Previous">Back</button>
+			<button type="button" class="bzj-pp-button bzj-pp-skip" data-bzj-pp-action="skip" aria-label="Skip">Skip</button>
+			<button type="button" class="bzj-pp-button bzj-pp-save" data-bzj-pp-action="save">Next</button>
 		</div>
-		<div class="bzj-pp-footer">
-			<?php if ( $remaining > 0 ) : ?><span class="bzj-pp-remaining"><?php printf( esc_html( _n( '%d profile field remaining', '%d remaining', $remaining, 'bzj-profile-prompter' ) ), absint( $remaining ) ); ?></span><?php endif; ?>
+
+        <div class="bzj-pp-progress">
+			<div class="bzj-pp-progress-label">
+				<span><?php echo esc_html( sprintf( '%d%% complete', $percentage ) ); ?></span>
+				<span><?php echo esc_html( sprintf( '%d of %d', $progress['completed'], $progress['total'] ) ); ?></span>
+			</div>
+			<div class="bzj-pp-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?php echo esc_attr( $percentage ); ?>">
+				<div class="bzj-pp-progress-fill" style="width:<?php echo esc_attr( $percentage ); ?>%"></div>
+			</div>
 			
-			<?php $profile_url = function_exists( 'bp_loggedin_user_domain' ) ? bp_loggedin_user_domain() : get_edit_profile_url( $user_id ); ?>
+			<span class="bzj-pp-remaining">
+				<?php if ( $progress['remaining'] > 0 ) printf( esc_html( _n( '%d profile field remaining', '%d profile fields remaining', $progress['remaining'], 'bzj-profile-prompter' ) ), absint( $progress['remaining'] ) ); else echo esc_html( 'Your profile is complete.' ); ?>
+			
+			   <?php $profile_url = function_exists( 'bp_loggedin_user_domain' ) ? bp_loggedin_user_domain() : get_edit_profile_url( $user_id ); ?>
 			<a class="bzj-pp-profile-link" href="<?php echo esc_url( $profile_url ); ?>"><?php esc_html_e( 'Edit profile', 'bzj-profile-prompter' ); ?></a>
+			
+			
+			</span>
+			
 		</div>
+
 	</div>
 	<?php
 	return ob_get_clean();
 }
 
-/* -------------------------
-   assets (inline CSS + JS)
-   ------------------------- */
+/* ASSETS (inline CSS + JS) */
 function bzj_pp_enqueue_assets() {
 	if ( ! is_user_logged_in() ) return;
 	wp_register_style( 'bzj-profile-prompter', false, array(), BZJ_PP_VERSION );
 	wp_enqueue_style( 'bzj-profile-prompter' );
 	$css = <<<'CSS'
-.bzj-pp-widget{box-sizing:border-box;padding:18px;border:1px solid rgba(0,0,0,.12);background:#fff;border-radius:10px}
-
-.bzj-pp-footer {
-    display: flex;
-    justify-content: space-between;
-}
-
-button.bzj-pp-reset {
-    padding: 3px 1%;
-    font-size: 12px !important;
-    border-radius: 10px !important;
-}
-
-span.bzj-pp-remaining {
-    font-size: 12px;
-}
-
-a.bzj-pp-profile-link {
-    font-size: 12px;
-}
-
-label.bzj-pp-never-label {
-    font-size: 12px !important;
-    display: flex;
-    margin-bottom: 0px !important;
-}
-
-input.bzj-pp-never {
-    margin-right: 2px;
-}
-
-.bzj-pp-never-wrap {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 5px;
-}
-
+	
+	label.bzj-pp-never-label {
+        font-size: 14px !important;
+        margin-bottom: 0px !important;
+    }
+    
+    .bzj-pp-never-wrap {
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    button.bzj-pp-reset {
+        font-size: 12px !important;
+        line-height: 1.0;
+        width: min-content;
+        padding: 3px 8px !important;
+        border-radius: 10px !important;
+        color: black !important;
+    }
+    
+    button.bzj-pp-button {
+        color: black !important;
+        padding: 2px 12px !important;
+    }
+	
+	.bzj-pp-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+	
+.bzj-pp-widget{box-sizing:border-box;padding:14px 10px;border:1px solid rgba(0,0,0,.12);background:#fff;border-radius:12px}
+.bzj-pp-progress{margin-bottom:0px}
+.bzj-pp-progress-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;opacity:.75}
+.bzj-pp-progress-track{height:6px;border-radius:99px;background:#e6e6e6;overflow:hidden}
+.bzj-pp-progress-fill{height:100%;border-radius:99px;background:#0066cc;transition:width .25s ease}
 .bzj-pp-title{font-weight:700;font-size:18px}
 .bzj-pp-section{font-size:12px;opacity:.7;margin-top:3px}
 .bzj-pp-label{display:block;margin:12px 0 6px;font-weight:600}
+
+label.bzj-pp-label {
+    font-size: 17px !important;
+    margin: 10px 0px 5px !important;
+}
+
+span.bzj-pp-remaining {
+    display: flex;
+    justify-content: space-between;
+}
+
 .bzj-pp-input{box-sizing:border-box;width:100%;padding:9px;border:1px solid #ccd0d4;border-radius:6px;background:#fff}
 .bzj-pp-choice-list{display:flex;flex-direction:column;gap:7px}
-.bzj-pp-controls{margin-top:5px;display:flex;gap:7px;flex-wrap:wrap;justify-content:center;}
-.bzj-pp-button{padding:0px 11px;border-radius:6px;border:1px solid rgba(0,0,0,.14);background:#b1adad;cursor:pointer}
+.bzj-pp-controls{margin:5px 0px 10px;display:flex;gap:7px;justify-content: space-evenly;font-size:12px;}
+.bzj-pp-button{padding:2px 12px;border-radius:6px;border:1px solid rgba(0,0,0,.14);background:#75ef68;cursor:pointer}
+.bzj-pp-save{font-weight:600}
 .bzj-pp-status{display:none;margin-top:10px;padding:8px;border-radius:6px;font-size:13px}
 .bzj-pp-status.is-visible{display:block}
 .bzj-pp-status.is-error{border:1px solid #d63638}
 .bzj-pp-status.is-success{border:1px solid #46b450}
+.bzj-pp-footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px;gap:10px}
+.bzj-pp-remaining,.bzj-pp-profile-link{font-size:12px}
+.bzj-pp-reset-row{margin-top:3px;text-align:right}
+.bzj-pp-reset{border:0;background:none;padding:0;font-size:11px;cursor:pointer;opacity:.65}
 .bzj-pp-modal-backdrop{position:fixed;z-index:999999;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px}
 .bzj-pp-modal{position:relative;width:min(560px,100%);max-height:90vh;overflow:auto}
 .bzj-pp-modal-close{position:absolute;right:8px;top:8px;width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.08);font-size:24px;cursor:pointer}
+
+button#bzj-pp-modal-close {
+    padding: 0px;
+}
+
 @media(max-width:480px){.bzj-pp-widget{padding:14px}.bzj-pp-controls{gap:5px}.bzj-pp-button{flex:1}}
 CSS;
 	wp_add_inline_style( 'bzj-profile-prompter', $css );
@@ -822,8 +892,7 @@ CSS;
 	function replaceWidget(widget,html){ if(!html){ widget.style.display='none'; return; } var holder=document.createElement('div'); holder.innerHTML=html; var replacement=holder.firstElementChild; if(replacement) widget.replaceWith(replacement); }
 	function request(widget,action){
 		var key=widget.getAttribute('data-bzj-pp-key');
-		var nonce=widget.getAttribute('data-bzj-pp-nonce');
-		if(!key||!nonce){ status(widget,cfg.messages.error,'error'); return; }
+		if(!key){ status(widget,cfg.messages.error,'error'); return; }
 		var body={ action:action, key:key };
 		if(action==='save'){ body.value=getValue(widget); body.never_ask=neverAsk(widget); status(widget,cfg.messages.saving); }
 		loading(widget,true);
@@ -851,9 +920,9 @@ JS;
 }
 add_action( 'wp_enqueue_scripts', 'bzj_pp_enqueue_assets' );
 
-/* -------------------------
-   Widget & Shortcode
-   ------------------------- */
+/* ============================================================
+ * WIDGET & SHORTCODE REGISTRATION
+ * ========================================================== */
 class BZJ_Profile_Prompter_Widget extends WP_Widget {
 	public function __construct() { parent::__construct( 'bzj_profile_prompter', __( 'Buzzjuice Profile Prompter', 'bzj-profile-prompter' ), array( 'description' => __( 'Shows one approved incomplete profile field at a time.', 'bzj-profile-prompter' ) ) ); }
 	public function widget( $args, $instance ) {
@@ -886,12 +955,13 @@ function bzj_pp_shortcode( $atts ) {
 }
 add_shortcode( 'bzj_profile_prompter', 'bzj_pp_shortcode' );
 
-/* -------------------------
-   REST API
-   ------------------------- */
+/* ============================================================
+ * REST API & Legacy AJAX (REST-first; AJAX retained)
+ * ========================================================== */
 function bzj_pp_rest_permission() { return is_user_logged_in(); }
 function bzj_pp_rest_get_response( $user_id, $field ) {
-	return array( 'success'=>true, 'key'=> $field ? $field['key'] : '', 'remaining'=> bzj_pp_count_remaining( $user_id ), 'html'=> $field ? bzj_pp_render_widget_markup( $user_id, $field, 'api' ) : '' );
+	$progress = bzj_pp_get_progress( $user_id );
+	return array( 'success'=>true, 'key'=> $field ? $field['key'] : '', 'progress'=>$progress, 'remaining'=> $progress['remaining'], 'html'=> $field ? bzj_pp_render_widget_markup( $user_id, $field, 'api' ) : '' );
 }
 function bzj_pp_rest_callback( $request ) {
 	$user_id = get_current_user_id();
@@ -925,7 +995,13 @@ function bzj_pp_rest_callback( $request ) {
 			if ( ! bzj_pp_user_has_value( $user_id, $field ) ) return new WP_Error( 'bzj_save_verification_failed', 'The profile field could not be verified after saving.', array( 'status'=>500 ) );
 			bzj_pp_clear_skipped( $user_id, $key );
 			$never_ask = ! empty( $params['never_ask'] );
-			if ( $never_ask && ! empty( $field['allow_never'] ) ) bzj_pp_mark_never_ask( $user_id, $key );
+			if ( $never_ask && ! empty( $field['allow_never'] ) ) {
+				bzj_pp_mark_never_ask( $user_id, $key );
+				$settings = bzj_pp_get_settings();
+				if ( ! empty( $settings['never_ask_counts_as_complete'] ) ) {
+					bzj_pp_mark_completed_by_never( $user_id, $key );
+				}
+			}
 			bzj_pp_set_pending_key( $user_id, '' );
 			bzj_pp_set_last_check( $user_id );
 			$next = bzj_pp_next_field( $user_id, $key );
@@ -941,6 +1017,10 @@ function bzj_pp_rest_callback( $request ) {
 		case 'never':
 			if ( empty( $field['allow_never'] ) ) return new WP_Error( 'bzj_never_not_allowed', 'This field cannot be permanently suppressed.', array( 'status'=>400 ) );
 			bzj_pp_mark_never_ask( $user_id, $key );
+			$settings = bzj_pp_get_settings();
+			if ( ! empty( $settings['never_ask_counts_as_complete'] ) ) {
+				bzj_pp_mark_completed_by_never( $user_id, $key );
+			}
 			bzj_pp_set_pending_key( $user_id, '' );
 			do_action( 'bzj_profile_prompter_field_never_asked', $field, $user_id );
 			$next = bzj_pp_next_field( $user_id, $key );
@@ -953,7 +1033,7 @@ function bzj_pp_rest_callback( $request ) {
 			$previous = bzj_pp_previous_field( $user_id, $key );
 			if ( ! $previous ) return rest_ensure_response( bzj_pp_rest_get_response( $user_id, $field ) );
 			bzj_pp_set_pending_key( $user_id, $previous['key'] );
-			return rest_ensure_response( array( 'success'=>true, 'key'=>$previous['key'], 'remaining'=>bzj_pp_count_remaining($user_id), 'html'=>bzj_pp_render_widget_markup( $user_id, $previous, 'api', true ) ) );
+			return rest_ensure_response( array( 'success'=>true, 'key'=>$previous['key'], 'progress'=>bzj_pp_get_progress($user_id), 'html'=>bzj_pp_render_widget_markup( $user_id, $previous, 'api', true ) ) );
 		default:
 			return new WP_Error( 'bzj_unknown_action', 'Unknown profile action.', array( 'status'=>400 ) );
 	}
@@ -963,9 +1043,7 @@ function bzj_pp_register_rest_routes() {
 }
 add_action( 'rest_api_init', 'bzj_pp_register_rest_routes' );
 
-/* -------------------------
-   legacy AJAX compatibility
-   ------------------------- */
+/* Legacy AJAX */
 function bzj_pp_ajax_handler() {
 	if ( ! is_user_logged_in() ) wp_send_json_error( array( 'message'=>'You must be logged in.' ), 403 );
 	$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
@@ -988,7 +1066,13 @@ function bzj_pp_ajax_handler() {
 		$saved = bzj_pp_save_field_value( $user_id, $field, $value );
 		if ( is_wp_error( $saved ) ) wp_send_json_error( array( 'message'=>$saved->get_error_message() ), 400 );
 		if ( ! bzj_pp_user_has_value( $user_id, $field ) ) wp_send_json_error( array( 'message'=>'The profile field could not be verified after saving.' ), 500 );
-		if ( ! empty( $_POST['never_ask'] ) && ! empty( $field['allow_never'] ) ) bzj_pp_mark_never_ask( $user_id, $key );
+		if ( ! empty( $_POST['never_ask'] ) && ! empty( $field['allow_never'] ) ) {
+			bzj_pp_mark_never_ask( $user_id, $key );
+			$settings = bzj_pp_get_settings();
+			if ( ! empty( $settings['never_ask_counts_as_complete'] ) ) {
+				bzj_pp_mark_completed_by_never( $user_id, $key );
+			}
+		}
 		bzj_pp_clear_skipped( $user_id, $key );
 		bzj_pp_set_pending_key( $user_id, '' );
 		$next = bzj_pp_next_field( $user_id, $key );
@@ -1004,6 +1088,10 @@ function bzj_pp_ajax_handler() {
 	}
 	if ( 'never' === $action ) {
 		bzj_pp_mark_never_ask( $user_id, $key );
+		$settings = bzj_pp_get_settings();
+		if ( ! empty( $settings['never_ask_counts_as_complete'] ) ) {
+			bzj_pp_mark_completed_by_never( $user_id, $key );
+		}
 		bzj_pp_set_pending_key( $user_id, '' );
 		$next = bzj_pp_next_field( $user_id, $key );
 		wp_send_json_success( array( 'html'=> $next ? bzj_pp_render_widget_markup( $user_id, $next, 'ajax' ) : '' ) );
@@ -1023,9 +1111,9 @@ function bzj_pp_ajax_handler() {
 }
 add_action( 'wp_ajax_bzj_pp_ajax', 'bzj_pp_ajax_handler' );
 
-/* -------------------------
-   popup scheduling & render
-   ------------------------- */
+/* ============================================================
+ * POPUP scheduling & render
+ * ========================================================== */
 function bzj_pp_last_popup( $user_id ) { return absint( get_user_meta( absint( $user_id ), bzj_pp_state_key( 'last_popup' ), true ) ); }
 function bzj_pp_set_last_popup( $user_id ) { update_user_meta( absint( $user_id ), bzj_pp_state_key( 'last_popup' ), time() ); }
 function bzj_pp_popup_week_state( $user_id ) { $state = get_user_meta( absint( $user_id ), bzj_pp_state_key( 'popup_week' ), true ); return is_array( $state ) ? $state : array(); }
@@ -1090,19 +1178,17 @@ function bzj_pp_render_popup() {
 }
 add_action( 'wp_footer', 'bzj_pp_render_popup', 40 );
 
-/* -------------------------
-   Admin UI (Settings page)
-   ------------------------- */
+/* ============================================================
+ * ADMIN UI: Settings, Registry & Reset tools
+ * ========================================================== */
 function bzj_pp_admin_menu() { add_options_page( 'Buzzjuice Profile Prompter', 'Profile Prompter', 'manage_options', 'bzj-profile-prompter', 'bzj_pp_admin_page' ); }
 add_action( 'admin_menu', 'bzj_pp_admin_menu' );
-
 function bzj_pp_admin_field_status( $field ) {
 	if ( 'meta' === $field['source'] && empty( $field['approved'] ) ) return array( 'label'=>'Awaiting admin approval', 'class'=>'bzj-status-warning' );
 	if ( empty( $field['enabled'] ) ) return array( 'label'=>'Disabled', 'class'=>'bzj-status-disabled' );
 	if ( ! in_array( sanitize_key( $field['field_type'] ), bzj_pp_supported_types(), true ) ) return array( 'label'=>'Unsupported type', 'class'=>'bzj-status-error' );
 	return array( 'label'=>'Active', 'class'=>'bzj-status-active' );
 }
-
 function bzj_pp_process_admin_save() {
 	if ( ! isset( $_POST['bzj_pp_save_settings'] ) ) return '';
 	if ( ! current_user_can( 'manage_options' ) ) return '';
@@ -1119,6 +1205,17 @@ function bzj_pp_process_admin_save() {
 	$settings['popup_probability'] = max(0, min(1, (float) ( $_POST['popup_probability'] ?? 0.20 ) ));
 	$settings['max_popups_per_week'] = max(1, absint( $_POST['max_popups_per_week'] ?? 3 ) );
 	$settings['default_skip_days'] = max(1, absint( $_POST['default_skip_days'] ?? BZJ_PP_DEFAULT_SKIP_DAYS ) );
+	$settings['never_ask_counts_as_complete'] = isset( $_POST['never_ask_counts_as_complete'] ) ? 1 : 0;
+	// Hidden groups
+	$hidden_groups = isset( $_POST['hidden_groups'] ) && is_array( $_POST['hidden_groups'] ) ? $_POST['hidden_groups'] : array();
+	$clean_hidden_groups = array();
+	foreach ( $hidden_groups as $group ) { $group = sanitize_text_field( wp_unslash( $group ) ); if ( '' !== $group ) $clean_hidden_groups[] = $group; }
+	$settings['hidden_groups'] = array_values( array_unique( $clean_hidden_groups ) );
+	// group overrides
+	$group_overrides = isset( $_POST['group_overrides'] ) && is_array( $_POST['group_overrides'] ) ? $_POST['group_overrides'] : array();
+	$clean_overrides = array();
+	foreach ( $group_overrides as $group => $enabled ) { $group = sanitize_text_field( wp_unslash( $group ) ); if ( '' !== $group ) $clean_overrides[ $group ] = empty( $enabled ) ? 0 : 1; }
+	$settings['group_overrides'] = $clean_overrides;
 	$managed = bzj_pp_get_managed_fields( true );
 	$posted = isset( $_POST['fields'] ) && is_array( $_POST['fields'] ) ? wp_unslash( $_POST['fields'] ) : array();
 	$field_settings = array();
@@ -1127,6 +1224,12 @@ function bzj_pp_process_admin_save() {
 		$approved = isset( $data['approved'] ) ? 1 : 0;
 		$enabled = isset( $data['enabled'] ) ? 1 : 0;
 		if ( 'meta' === $field['source'] && ! $approved ) $enabled = 0;
+		// hidden groups cannot be enabled unless overridden
+		if ( bzj_pp_group_is_hidden( $field ) ) {
+			$group_name = $field['group_name'];
+			$override = isset( $settings['group_overrides'][ $group_name ] ) ? absint( $settings['group_overrides'][ $group_name ] ) : 0;
+			if ( ! $override ) $enabled = 0;
+		}
 		$field_settings[ $key ] = array(
 			'enabled' => $enabled,
 			'approved' => $approved,
@@ -1161,9 +1264,11 @@ function bzj_pp_admin_page() {
 				<tr><th scope="row"><?php esc_html_e( 'Default title', 'bzj-profile-prompter' ); ?></th>
 					<td><input type="text" class="regular-text" name="default_title" value="<?php echo esc_attr( $settings['default_title'] ); ?>"></td></tr>
 				<tr><th scope="row"><?php esc_html_e( 'Metadata registry fields', 'bzj-profile-prompter' ); ?></th>
-					<td><label><input type="checkbox" name="metadata_enabled" <?php checked( 1, $settings['metadata_enabled'] ); ?>> <?php esc_html_e( 'Discover fields listed in shared/buzz_metadata.json public_open_fields.', 'bzj-profile-prompter' ); ?></label></td></tr>
+					<td><label><input type="checkbox" name="metadata_enabled" <?php checked( 1, $settings['metadata_enabled'] ); ?>> <?php esc_html_e( 'Discover fields listed in shared/buzz_metadata.json.', 'bzj-profile-prompter' ); ?></label></td></tr>
 				<tr><th scope="row"><?php esc_html_e( 'Default skip days', 'bzj-profile-prompter' ); ?></th>
 					<td><input type="number" min="1" name="default_skip_days" value="<?php echo esc_attr( $settings['default_skip_days'] ); ?>"> <?php esc_html_e( 'days', 'bzj-profile-prompter' ); ?></td></tr>
+				<tr><th scope="row"><?php esc_html_e( '"Don\'t ask" counts as completed', 'bzj-profile-prompter' ); ?></th>
+					<td><label><input type="checkbox" name="never_ask_counts_as_complete" <?php checked( 1, $settings['never_ask_counts_as_complete'] ); ?>> <?php esc_html_e( 'When checked, "Don\'t ask this again" will mark the item as completed for progress metrics (admin can reset).', 'bzj-profile-prompter' ); ?></label></td></tr>
 			</table>
 
 			<h2><?php esc_html_e( 'Popup Behaviour', 'bzj-profile-prompter' ); ?></h2>
@@ -1180,6 +1285,18 @@ function bzj_pp_admin_page() {
 					<td><input type="number" step="0.01" min="0" max="1" name="popup_probability" value="<?php echo esc_attr( $settings['popup_probability'] ); ?>"><p class="description"><?php esc_html_e( '0 = never by random chance; 1 = always when interval permits.', 'bzj-profile-prompter' ); ?></p></td></tr>
 				<tr><th><?php esc_html_e( 'Max popups per week', 'bzj-profile-prompter' ); ?></th>
 					<td><input type="number" min="1" name="max_popups_per_week" value="<?php echo esc_attr( $settings['max_popups_per_week'] ); ?>"></td></tr>
+			</table>
+
+			<h2><?php esc_html_e( 'Profile Group Controls', 'bzj-profile-prompter' ); ?></h2>
+			<p>Hide groups globally (e.g. "Profile Sync"): these groups will be disabled unless explicitly overridden below.</p>
+			<table class="form-table">
+				<tr><th>Hidden groups</th>
+					<td>
+						<?php $known_groups = array(); foreach ( bzj_pp_get_managed_fields() as $f ) $known_groups[ $f['group_name'] ] = true; $known_groups = array_keys( $known_groups ); sort( $known_groups ); ?>
+						<?php foreach ( $known_groups as $g ) : ?>
+							<label style="display:inline-block;margin-right:10px;"><input type="checkbox" name="hidden_groups[]" value="<?php echo esc_attr( $g ); ?>" <?php checked( in_array( $g, $settings['hidden_groups'], true ) ); ?>> <?php echo esc_html( $g ); ?></label>
+						<?php endforeach; ?>
+					</td></tr>
 			</table>
 
 			<h2><?php esc_html_e( 'Profile Field Registry', 'bzj-profile-prompter' ); ?></h2>
@@ -1207,14 +1324,61 @@ function bzj_pp_admin_page() {
 	<?php
 }
 
-/* -------------------------
-   Admin notice if metadata missing
-   ------------------------- */
+/* Admin reset tools */
+function bzj_pp_admin_reset_menu() {
+	add_management_page( 'Profile Prompter Reset', 'Profile Prompter Reset', 'manage_options', 'bzj-profile-prompter-reset', 'bzj_pp_admin_reset_page' );
+}
+add_action( 'admin_menu', 'bzj_pp_admin_reset_menu' );
+function bzj_pp_admin_reset_page() {
+	if ( ! current_user_can( 'manage_options' ) ) return;
+	$message = '';
+	if ( isset( $_POST['bzj_pp_reset_user'] ) ) {
+		check_admin_referer( 'bzj_pp_reset_user' );
+		$user_id = absint( $_POST['user_id'] ?? 0 );
+		if ( $user_id && get_userdata( $user_id ) ) {
+			bzj_pp_reset_user_suppression( $user_id );
+			$message = 'Profile Prompter suppression state reset for the selected user.';
+		} else {
+			$message = 'Invalid user ID.';
+		}
+	}
+	if ( isset( $_POST['bzj_pp_reset_all'] ) ) {
+		check_admin_referer( 'bzj_pp_reset_all' );
+		if ( isset( $_POST['confirm_all'] ) && 'RESET ALL' === sanitize_text_field( wp_unslash( $_POST['confirm_all'] ) ) ) {
+			$users = get_users( array( 'fields' => array( 'ID' ), 'number' => -1 ) );
+			foreach ( $users as $user ) {
+				bzj_pp_reset_user_suppression( $user->ID );
+			}
+			$message = 'Profile Prompter suppression state reset for all users.';
+		} else {
+			$message = 'Type RESET ALL to perform the global reset.';
+		}
+	}
+	?>
+	<div class="wrap">
+		<h1>Profile Prompter Reset</h1>
+		<?php if ( $message ) : ?><div class="notice notice-info is-dismissible"><p><?php echo esc_html( $message ); ?></p></div><?php endif; ?>
+		<h2>Reset One User</h2>
+		<form method="post"><?php wp_nonce_field( 'bzj_pp_reset_user' ); ?>
+			<p><label>User ID:</label> <input type="number" min="1" name="user_id" required></p>
+			<p><button type="submit" name="bzj_pp_reset_user" class="button">Reset User</button></p>
+		</form>
+		<hr>
+		<h2>Reset All Users</h2>
+		<p>This removes temporary skips, "Don't ask me again" suppression, and completed-by-never flags for every user. It does not alter profile values.</p>
+		<form method="post"><?php wp_nonce_field( 'bzj_pp_reset_all' ); ?>
+			<p><label>Type <strong>RESET ALL</strong> to confirm:</label> <input type="text" name="confirm_all" autocomplete="off"></p>
+			<p><button type="submit" name="bzj_pp_reset_all" class="button button-secondary">Reset All Users</button></p>
+		</form>
+	</div>
+	<?php
+}
+
+/* Admin notice if metadata missing */
 add_action( 'admin_notices', function() {
 	if ( ! current_user_can( 'manage_options' ) ) return;
 	$map = bzj_pp_read_metadata();
-	if ( empty( $map ) ) echo '<div class="notice notice-warning"><p>Buzzjuice Profile Prompter: metadata file not found. The plugin will still function using xProfile fields. For best results, add shared/buzz_metadata.json and enable metadata discovery.</p></div>';
+	if ( empty( $map ) ) echo '<div class="notice notice-warning"><p>Buzzjuice Profile Prompter: shared/buzz_metadata.json not found. xProfile fields still work but metadata registry fields will not be available.</p></div>';
 } );
 
 /* End of plugin */
-?>

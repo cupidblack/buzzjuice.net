@@ -213,6 +213,7 @@ function give_donors_list() {
 /**
  * Renders the donor view wrapper.
  *
+ * @since  4.16.8 Relinking donors is handled only through the nonce-protected edit action.
  * @since  1.0
  *
  * @param  string $view The View being requested.
@@ -237,13 +238,7 @@ function give_render_donor_view( $view, $callbacks ) {
 	}
 
 	$donor_id          = (int) $_GET['id'];
-	$reconnect_user_id = ! empty( $_GET['user_id'] ) ? (int) $_GET['user_id'] : '';
 	$donor             = new Give_Donor( $donor_id );
-
-	// Reconnect User with Donor profile.
-	if ( $reconnect_user_id ) {
-		give_connect_user_donor_profile( $donor, array( 'user_id' => $reconnect_user_id ), array() );
-	}
 
 	if ( empty( $donor->id ) ) {
 		give_set_error( 'give-invalid_donor', __( 'Invalid Donor ID.', 'give' ) );
@@ -830,7 +825,7 @@ function give_donor_view( $donor ) {
 				<?php foreach ( $donor->emails as $key => $email ) : ?>
 					<tr data-key="<?php echo $key; ?>">
 						<td>
-							<?php echo $email; ?>
+							<?php echo esc_html( $email ); ?>
 							<?php if ( 'primary' === $key ) : ?>
 								<span class="dashicons dashicons-star-filled primary-email-icon"></span>
 							<?php endif; ?>
@@ -1041,6 +1036,7 @@ function give_donor_view( $donor ) {
 /**
  * View the notes of a donor.
  *
+ * @since 4.16.6 Escaped the donor name output in the donor notes header.
  * @since 4.6.0 Escape donor note
  * @since  1.0
  *
@@ -1060,7 +1056,7 @@ function give_donor_notes_view( $donor ) {
 
 	<div id="donor-notes-wrapper">
 		<div class="donor-notes-header">
-			<?php echo get_avatar( $donor->email, 30 ); ?> <span><?php echo $donor->name; ?></span>
+			<?php echo get_avatar( $donor->email, 30 ); ?> <span><?php echo esc_html( $donor->name ); ?></span>
 		</div>
 		<h3><?php _e( 'Notes', 'give' ); ?></h3>
 
@@ -1116,6 +1112,7 @@ function give_donor_notes_view( $donor ) {
 /**
  * The donor delete view.
  *
+ * @since 4.16.6 Escaped the donor name output in the delete donor view.
  * @since  1.0
  *
  * @param  object $donor The donor object being displayed.
@@ -1142,7 +1139,7 @@ function give_donor_delete_view( $donor ) {
 			  action="<?php echo admin_url( 'edit.php?post_type=give_forms&page=give-donors&view=delete&id=' . $donor->id ); ?>">
 
 			<div class="donor-notes-header">
-				<?php echo get_avatar( $donor->email, 30 ); ?> <span><?php echo $donor->name; ?></span>
+				<?php echo get_avatar( $donor->email, 30 ); ?> <span><?php echo esc_html( $donor->name ); ?></span>
 			</div>
 
 

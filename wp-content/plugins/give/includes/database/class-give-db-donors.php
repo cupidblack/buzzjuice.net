@@ -395,6 +395,7 @@ class Give_DB_Donors extends Give_DB {
 	/**
 	 * Retrieves a single donor from the database
 	 *
+	 * @since 4.16.8.1 Reject an email lookup value that sanitize_text_field() would rewrite, instead of matching against the rewritten form.
 	 * @since  1.0
 	 * @access public
 	 *
@@ -404,7 +405,8 @@ class Give_DB_Donors extends Give_DB {
 	 * @return mixed         Upon success, an object of the donor. Upon failure, NULL
 	 */
 	public function get_donor_by( $field = 'id', $value = 0 ) {
-		$value = sanitize_text_field( $value );
+		$submitted_value = is_string( $value ) ? trim( $value ) : $value;
+		$value           = sanitize_text_field( $value );
 
 		// Bailout.
 		if ( empty( $field ) || empty( $value ) ) {
@@ -427,6 +429,15 @@ class Give_DB_Donors extends Give_DB {
 		} elseif ( 'email' === $field ) {
 
 			if ( ! is_email( $value ) ) {
+				return false;
+			}
+
+			// The column this looks up is unique on its raw, stored bytes. Matching
+			// against a form that sanitize_text_field() rewrote (e.g. by removing
+			// percent-hex sequences) would compare a different string than what is
+			// actually stored, letting one row's raw value resolve to another row's
+			// plain value. Require the two to already agree.
+			if ( $value !== $submitted_value ) {
 				return false;
 			}
 
@@ -488,12 +499,18 @@ class Give_DB_Donors extends Give_DB {
 	 * Note: This function is for internal purposes only. Don't use this function as it will be deprecated soon.
 	 *
 	 * @param int $id Email Access Token ID.
-	 *
+	 * @since 4.16.6 Require a non-empty, scalar string token before querying.
 	 * @since 2.3.1
 	 *
 	 * @return object
 	 */
 	public function get_donor_by_token( $id ) {
+		// Require a non-empty, scalar string token: every donor row defaults to
+		// verify_key = '' until they request their own access link.
+		if ( ! is_string( $id ) || '' === $id ) {
+			return null;
+		}
+
 		global $wpdb;
 		$row = $wpdb->get_row(
 			$wpdb->prepare( "SELECT * FROM {$wpdb->donors} WHERE verify_key = %s LIMIT 1", $id )

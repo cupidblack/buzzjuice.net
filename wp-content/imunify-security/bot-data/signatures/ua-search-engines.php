@@ -4,8 +4,8 @@ defined( 'ABSPATH' ) || exit;
 
 return array(
     'source_url' => 'MANUAL (provider docs)',
-    'fetched_at' => '2026-07-28T10:06:38+00:00',
-    'checksum' => 'sha256:660be2882a50e6ca66d51d304426e53a56620a920dc47a467974458b26e680e8',
+    'fetched_at' => '2026-09-03T10:53:55+00:00',
+    'checksum' => 'sha256:14f84ef96bcc1402f68779422306d2a2dd7ea9e25a4593ca80d1f4192f1ec670',
     'signatures' => array(
         'AdIdxBot',
         'AdsBot-Google',
@@ -15,7 +15,6 @@ return array(
         'Baiduspider-image',
         'BingPreview',
         'Bingbot',
-        'DuckAssistBot',
         'DuckDuckBot',
         'Google-InspectionTool',
         'Googlebot',

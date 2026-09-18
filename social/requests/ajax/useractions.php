@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../../shared/wwqd_bridge.php';
 require_once __DIR__ . '/../../../shared/palmier/palmier_logger.php';
 
 Class UserActions extends Aj {
@@ -1154,6 +1155,8 @@ Class UserActions extends Aj {
             );
         }
     }
+    
+    
     function block() {
         global $db;
         if (self::ActiveUser() == NULL) {
@@ -1193,6 +1196,20 @@ Class UserActions extends Aj {
             ));
         }
         if ($saved) {
+            
+
+//BCR&D
+            if (function_exists('bzj_connections_sync_report_to_wordpress')) {
+                bzj_connections_sync_report_to_wordpress(
+                    'socials',
+                    (int)self::ActiveUser()->id,
+                    (int)$userid,
+                    'block'
+                );
+            }
+
+            
+            
             if (isset($_SESSION[ 'blocked_users' ])) {
                 unset($_SESSION[ 'blocked_users' ]);
                 $_SESSION[ 'blocked_users_expiry' ] = time();
@@ -1209,6 +1226,9 @@ Class UserActions extends Aj {
             );
         }
     }
+    
+    
+    
     function unblock() {
         global $db;
         if (self::ActiveUser() == NULL) {
@@ -1248,12 +1268,25 @@ Class UserActions extends Aj {
         }
         $deleted = $db->where('user_id', $target_id)->where('block_userid', $userid)->delete('blocks');
         if ($deleted) {
+            
             if ($target_id == self::ActiveUser()->id) {
                 if (isset($_SESSION[ 'blocked_users' ])) {
                     unset($_SESSION[ 'blocked_users' ]);
                     $_SESSION[ 'blocked_users_expiry' ] = time();
                 }
             }
+            
+            
+            if (function_exists('bzj_connections_sync_report_to_wordpress')) {
+                bzj_connections_sync_report_to_wordpress(
+                    'socials',
+                    (int)$target_id,
+                    (int)$userid,
+                    'unblock'
+                );
+            }
+            
+            
             return array(
                 'status' => 200,
                 'id' => $userid,
@@ -1267,6 +1300,9 @@ Class UserActions extends Aj {
             );
         }
     }
+    
+    
+    
     function report() {
         global $db;
         if (self::ActiveUser() == NULL) {

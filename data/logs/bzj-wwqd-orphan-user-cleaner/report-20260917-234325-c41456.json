@@ -1,0 +1,200 @@
+{
+    "tool": "Buzzjuice WoWonder + QuickDate Orphan User Auditor/Cleaner",
+    "version": "2026-09-17.1",
+    "mode": "dry-run",
+    "generated_at_utc": "2026-09-17T23:43:25+00:00",
+    "filter_platform": "quickdate",
+    "filter_user_id": null,
+    "filter_table": null,
+    "sample_limit": 25,
+    "include_advisory_discovery": false,
+    "scan": {
+        "generated_at_utc": "2026-09-17T23:43:25+00:00",
+        "wowonder": null,
+        "quickdate": {
+            "platform": "quickdate",
+            "database": "koware_buzzjuice_social",
+            "users_table": "users",
+            "user_id_column": "id",
+            "existing_user_count": 74,
+            "scanned_table_count": 47,
+            "resolved_references": {
+                "blocks": [
+                    "user_id",
+                    "block_userid"
+                ],
+                "conversations": [
+                    "sender_id",
+                    "receiver_id"
+                ],
+                "likes": [
+                    "user_id",
+                    "like_userid"
+                ],
+                "mediafiles": [
+                    "user_id"
+                ],
+                "messages": [
+                    "from",
+                    "to"
+                ],
+                "notifications": [
+                    "notifier_id",
+                    "recipient_id"
+                ],
+                "reports": [
+                    "user_id",
+                    "report_userid"
+                ],
+                "user_gifts": [
+                    "from",
+                    "to"
+                ],
+                "views": [
+                    "user_id",
+                    "view_userid"
+                ],
+                "sessions": [
+                    "user_id"
+                ],
+                "payments": [
+                    "user_id"
+                ],
+                "verification_requests": [
+                    "user_id"
+                ]
+            },
+            "confirmed_findings": [
+                {
+                    "table": "conversations",
+                    "columns": [
+                        {
+                            "column": "sender_id",
+                            "count": 30,
+                            "sample_user_ids": [
+                                "86",
+                                "92",
+                                "113",
+                                "114",
+                                "117",
+                                "122",
+                                "127",
+                                "128"
+                            ]
+                        },
+                        {
+                            "column": "receiver_id",
+                            "count": 30,
+                            "sample_user_ids": [
+                                "86",
+                                "92",
+                                "113",
+                                "114",
+                                "117",
+                                "122",
+                                "127",
+                                "128"
+                            ]
+                        }
+                    ],
+                    "condition": "(\r\n        `sender_id` IS NOT NULL\r\n        AND TRIM(CAST(`sender_id` AS CHAR))\r\n            REGEXP '^[0-9]+$'\r\n        AND CAST(\r\n            TRIM(CAST(`sender_id` AS CHAR))\r\n            AS UNSIGNED\r\n        ) > 0\r\n        AND NOT EXISTS (\r\n            SELECT 1\r\n            FROM `bzj_existing_qd_user_ids` AS e\r\n            WHERE e.`user_id` =\r\n                CAST(\r\n                    TRIM(CAST(`sender_id` AS CHAR))\r\n                    AS UNSIGNED\r\n                )\r\n        )\r\n    ) OR (\r\n        `receiver_id` IS NOT NULL\r\n        AND TRIM(CAST(`receiver_id` AS CHAR))\r\n            REGEXP '^[0-9]+$'\r\n        AND CAST(\r\n            TRIM(CAST(`receiver_id` AS CHAR))\r\n            AS UNSIGNED\r\n        ) > 0\r\n        AND NOT EXISTS (\r\n            SELECT 1\r\n            FROM `bzj_existing_qd_user_ids` AS e\r\n            WHERE e.`user_id` =\r\n                CAST(\r\n                    TRIM(CAST(`receiver_id` AS CHAR))\r\n                    AS UNSIGNED\r\n                )\r\n        )\r\n    )",
+                    "orphan_row_count": 38
+                },
+                {
+                    "table": "likes",
+                    "columns": [
+                        {
+                            "column": "like_userid",
+                            "count": 5,
+                            "sample_user_ids": [
+                                "86",
+                                "92",
+                                "113",
+                                "114"
+                            ]
+                        }
+                    ],
+                    "condition": "(\r\n        `like_userid` IS NOT NULL\r\n        AND TRIM(CAST(`like_userid` AS CHAR))\r\n            REGEXP '^[0-9]+$'\r\n        AND CAST(\r\n            TRIM(CAST(`like_userid` AS CHAR))\r\n            AS UNSIGNED\r\n        ) > 0\r\n        AND NOT EXISTS (\r\n            SELECT 1\r\n            FROM `bzj_existing_qd_user_ids` AS e\r\n            WHERE e.`user_id` =\r\n                CAST(\r\n                    TRIM(CAST(`like_userid` AS CHAR))\r\n                    AS UNSIGNED\r\n                )\r\n        )\r\n    )",
+                    "orphan_row_count": 5
+                },
+                {
+                    "table": "messages",
+                    "columns": [
+                        {
+                            "column": "from",
+                            "count": 45,
+                            "sample_user_ids": [
+                                "86",
+                                "92",
+                                "113",
+                                "117",
+                                "122",
+                                "127",
+                                "128"
+                            ]
+                        },
+                        {
+                            "column": "to",
+                            "count": 33,
+                            "sample_user_ids": [
+                                "86",
+                                "92",
+                                "113",
+                                "114",
+                                "127",
+                                "128"
+                            ]
+                        }
+                    ],
+                    "condition": "(\r\n        `from` IS NOT NULL\r\n        AND TRIM(CAST(`from` AS CHAR))\r\n            REGEXP '^[0-9]+$'\r\n        AND CAST(\r\n            TRIM(CAST(`from` AS CHAR))\r\n            AS UNSIGNED\r\n        ) > 0\r\n        AND NOT EXISTS (\r\n            SELECT 1\r\n            FROM `bzj_existing_qd_user_ids` AS e\r\n            WHERE e.`user_id` =\r\n                CAST(\r\n                    TRIM(CAST(`from` AS CHAR))\r\n                    AS UNSIGNED\r\n                )\r\n        )\r\n    ) OR (\r\n        `to` IS NOT NULL\r\n        AND TRIM(CAST(`to` AS CHAR))\r\n            REGEXP '^[0-9]+$'\r\n        AND CAST(\r\n            TRIM(CAST(`to` AS CHAR))\r\n            AS UNSIGNED\r\n        ) > 0\r\n        AND NOT EXISTS (\r\n            SELECT 1\r\n            FROM `bzj_existing_qd_user_ids` AS e\r\n            WHERE e.`user_id` =\r\n                CAST(\r\n                    TRIM(CAST(`to` AS CHAR))\r\n                    AS UNSIGNED\r\n                )\r\n        )\r\n    )",
+                    "orphan_row_count": 48
+                },
+                {
+                    "table": "notifications",
+                    "columns": [
+                        {
+                            "column": "notifier_id",
+                            "count": 9,
+                            "sample_user_ids": [
+                                "92",
+                                "122"
+                            ]
+                        },
+                        {
+                            "column": "recipient_id",
+                            "count": 7,
+                            "sample_user_ids": [
+                                "92"
+                            ]
+                        }
+                    ],
+                    "condition": "(\r\n        `notifier_id` IS NOT NULL\r\n        AND TRIM(CAST(`notifier_id` AS CHAR))\r\n            REGEXP '^[0-9]+$'\r\n        AND CAST(\r\n            TRIM(CAST(`notifier_id` AS CHAR))\r\n            AS UNSIGNED\r\n        ) > 0\r\n        AND NOT EXISTS (\r\n            SELECT 1\r\n            FROM `bzj_existing_qd_user_ids` AS e\r\n            WHERE e.`user_id` =\r\n                CAST(\r\n                    TRIM(CAST(`notifier_id` AS CHAR))\r\n                    AS UNSIGNED\r\n                )\r\n        )\r\n    ) OR (\r\n        `recipient_id` IS NOT NULL\r\n        AND TRIM(CAST(`recipient_id` AS CHAR))\r\n            REGEXP '^[0-9]+$'\r\n        AND CAST(\r\n            TRIM(CAST(`recipient_id` AS CHAR))\r\n            AS UNSIGNED\r\n        ) > 0\r\n        AND NOT EXISTS (\r\n            SELECT 1\r\n            FROM `bzj_existing_qd_user_ids` AS e\r\n            WHERE e.`user_id` =\r\n                CAST(\r\n                    TRIM(CAST(`recipient_id` AS CHAR))\r\n                    AS UNSIGNED\r\n                )\r\n        )\r\n    )",
+                    "orphan_row_count": 14
+                },
+                {
+                    "table": "views",
+                    "columns": [
+                        {
+                            "column": "view_userid",
+                            "count": 15,
+                            "sample_user_ids": [
+                                "86",
+                                "92",
+                                "113",
+                                "114",
+                                "116",
+                                "126",
+                                "127",
+                                "128",
+                                "130"
+                            ]
+                        }
+                    ],
+                    "condition": "(\r\n        `view_userid` IS NOT NULL\r\n        AND TRIM(CAST(`view_userid` AS CHAR))\r\n            REGEXP '^[0-9]+$'\r\n        AND CAST(\r\n            TRIM(CAST(`view_userid` AS CHAR))\r\n            AS UNSIGNED\r\n        ) > 0\r\n        AND NOT EXISTS (\r\n            SELECT 1\r\n            FROM `bzj_existing_qd_user_ids` AS e\r\n            WHERE e.`user_id` =\r\n                CAST(\r\n                    TRIM(CAST(`view_userid` AS CHAR))\r\n                    AS UNSIGNED\r\n                )\r\n        )\r\n    )",
+                    "orphan_row_count": 15
+                }
+            ],
+            "discovered_findings": []
+        }
+    }
+}

@@ -34,12 +34,11 @@
                           }
                         }
 
-                        var isMobile = /Android/i.test(navigator.userAgent);   if(isMobile){                                                    
-                                            var a2hsdesk = document.getElementById("pwaforwp-add-to-home-click");
-                                                    if(a2hsdesk !== null  && checkbarClosedOrNot()){
-                                                        a2hsdesk.style.display = "block";
-                                                    }   
-                                        }var closeclicked = false; var addtohomeCloseBtn = document.getElementById("pwaforwp-prompt-close");
+                        var a2hsdesk = document.getElementById("pwaforwp-add-to-home-click");
+                                    var isMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                                    if(a2hsdesk !== null && checkbarClosedOrNot() && !isMobile){
+                                        a2hsdesk.style.display = "block";
+                                    }var closeclicked = false; var addtohomeCloseBtn = document.getElementById("pwaforwp-prompt-close");
                                 if(addtohomeCloseBtn !==null){
                                   addtohomeCloseBtn.addEventListener("click", (e) => {
                                       closeclicked = true;

@@ -5,6 +5,7 @@ namespace Give\PaymentGateways\PayPalCommerce;
 use Exception;
 use Give\Donations\Models\Donation;
 use Give\Donations\Models\DonationNote;
+use Give\Donations\Repositories\DonationRepository;
 use Give\Framework\PaymentGateways\Commands\GatewayCommand;
 use Give\Framework\PaymentGateways\Commands\PaymentComplete;
 use Give\Framework\PaymentGateways\Commands\PaymentRefunded;
@@ -81,6 +82,7 @@ class PayPalCommerce extends PaymentGateway implements PaymentGatewayRefundable
     }
 
     /**
+     * @since 4.16.8.1 Reject a completed order whose amount doesn't match the donation, or whose capture is already recorded against a different donation.
      * @since 4.2.1 updated to use updateOrderFromDonation
      * @since 4.1.0 updated to include 3D Secure validation
      * @since 4.0.0 updated to update and capture payment
@@ -100,8 +102,11 @@ class PayPalCommerce extends PaymentGateway implements PaymentGatewayRefundable
 
         if ($payPalOrder->status === 'COMPLETED') {
             $this->validatePayPalOrder($payPalOrder);
+            $this->validateCompletedOrderAmountMatchesDonation($payPalOrder, $donation);
 
             $transactionId = $payPalOrder->purchase_units[0]->payments->captures[0]->id;
+
+            $this->validateCaptureNotAlreadyRecorded($transactionId, $donation);
 
         } elseif ($payPalOrder->status === 'APPROVED' || $payPalOrder->status === 'CREATED') {
             $this->validate3dSecure($payPalOrder);
@@ -291,12 +296,21 @@ class PayPalCommerce extends PaymentGateway implements PaymentGatewayRefundable
     }
 
     /**
+     * @since 4.16.8.1 Guard against a truncated PayPal response that would otherwise fatal on property access.
      * @since 4.0.0
+     *
+     * @throws PaymentGatewayException
      */
     private function shouldUpdateOrder(Donation $donation, $payPalOrder): bool
     {
-        $orderAmount = $payPalOrder->purchase_units[0]->amount->value;
-        $orderCurrency = $payPalOrder->purchase_units[0]->amount->currency_code;
+        $purchaseUnit = $payPalOrder->purchase_units[0] ?? null;
+
+        if (! isset($purchaseUnit->amount->value, $purchaseUnit->amount->currency_code)) {
+            throw new PaymentGatewayException('PayPal Order does not have an amount.');
+        }
+
+        $orderAmount = $purchaseUnit->amount->value;
+        $orderCurrency = $purchaseUnit->amount->currency_code;
         $currentOrderAmount = Money::fromDecimal($orderAmount, $orderCurrency);
 
         if (!$currentOrderAmount->equals($donation->amount)) {
@@ -312,6 +326,71 @@ class PayPalCommerce extends PaymentGateway implements PaymentGatewayRefundable
         }
 
         return false;
+    }
+
+    /**
+     * A completed order's amount cannot be reconciled the way shouldUpdateOrder() does for an
+     * order still pending capture, so a mismatch here is rejected outright.
+     *
+     * @since 4.16.8.1
+     *
+     * @throws PaymentGatewayException
+     */
+    private function validateCompletedOrderAmountMatchesDonation(object $payPalOrder, Donation $donation): void
+    {
+        $purchaseUnit = $payPalOrder->purchase_units[0] ?? null;
+
+        if (! isset($purchaseUnit->amount->value, $purchaseUnit->amount->currency_code)) {
+            throw new PaymentGatewayException('PayPal Order does not have an amount.');
+        }
+
+        $orderAmount = $purchaseUnit->amount->value;
+        $orderCurrency = $purchaseUnit->amount->currency_code;
+        $completedOrderAmount = Money::fromDecimal($orderAmount, $orderCurrency);
+
+        if (!$completedOrderAmount->equals($donation->amount)) {
+            Log::error(
+                sprintf(
+                    'Completed PayPal Order amount does not match donation amount. PayPal Order ID: %s, Donation ID: %s',
+                    $payPalOrder->id,
+                    $donation->id
+                )
+            );
+
+            throw new PaymentGatewayException('PayPal Order amount does not match donation amount.');
+        }
+    }
+
+    /**
+     * @since 4.16.8.1
+     *
+     * @throws PaymentGatewayException
+     */
+    private function validateCaptureNotAlreadyRecorded(string $transactionId, Donation $donation): void
+    {
+        /**
+         * Guard against replaying the same capture for another donation; allow
+         * retry of the same donation. Note: not atomic with PaymentComplete save
+         * — concurrent replays could both pass; a UNIQUE DB constraint is the
+         * future hardening for that race.
+         */
+        $existingDonation = give(DonationRepository::class)
+            ->queryByGatewayTransactionId($transactionId)
+            ->where('ID', $donation->id, '!=')
+            ->get();
+
+        if ($existingDonation) {
+            Log::error(
+                sprintf(
+                    'PayPal capture is already recorded against a different donation. Capture ID: %s, Donation ID: %s, Existing Donation ID: %s',
+                    $transactionId,
+                    $donation->id,
+                    $existingDonation->id
+                )
+            );
+
+            throw new PaymentGatewayException('This PayPal transaction has already been recorded for another donation.');
+        }
     }
 
     /**

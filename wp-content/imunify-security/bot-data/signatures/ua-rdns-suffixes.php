@@ -3,10 +3,19 @@ defined( 'ABSPATH' ) || exit;
 // Auto-generated. Do not edit by hand.
 
 return array(
-    'source_url' => 'MANUAL (provider docs — yandex.com/support/webmaster, baidu.com/spider help, datadome.co/bots, seznam-napoveda, naver developer docs, mojeek.com/bot.html)',
-    'fetched_at' => '2026-06-11T08:45:54+00:00',
-    'checksum' => 'sha256:029a8c4b64f7ce7f94af1a4fdbe4b8c4e66b1a21b8a5f289d94bc9e6890ee744',
+    'source_url' => 'MANUAL (provider docs — support.apple.com/en-us/119829, yandex.com/support/webmaster, baidu.com/spider help, datadome.co/bots, seznam-napoveda, naver developer docs, mojeek.com/bot.html)',
+    'fetched_at' => '2026-09-01T10:03:49+00:00',
+    'checksum' => 'sha256:3ef27e625f24e316ee37deee4f3058ac10618c344ffef07c810112a8a185e01f',
     'providers' => array(
+        'apple' => array(
+            'tokens' => array(
+                'Applebot',
+                'Applebot-Extended',
+            ),
+            'suffixes' => array(
+                '.applebot.apple.com',
+            ),
+        ),
         'baidu' => array(
             'tokens' => array(
                 'Baiduspider',

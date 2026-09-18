@@ -1,10 +1,10 @@
-const CACHE_VERSION = '1.7.86.2';
+const CACHE_VERSION = '1.7.87.7';
 
 const BASE_CACHE_FILES = [
-    'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.03-icon192x192.png',
-'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.03-icon192x192.png',
-'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.03-icon512x512.png',
-'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.03-icon512x512.png',
+    'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.07-icon192x192.png',
+'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.07-icon192x192.png',
+'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.07-icon512x512.png',
+'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.07-icon512x512.png',
 'https://buzzjuice.net/wp-content/uploads/pwa-splash-screen/splashscreens/icon_1136x640.png',
 'https://buzzjuice.net/wp-content/uploads/pwa-splash-screen/splashscreens/icon_640x1136.png',
 'https://buzzjuice.net/wp-content/uploads/pwa-splash-screen/splashscreens/icon_2688x1242.png',
@@ -33,7 +33,7 @@ const BASE_CACHE_FILES = [
 'https://buzzjuice.net/wp-content/uploads/pwa-splash-screen/splashscreens/icon_1179x2556.png',
 'https://buzzjuice.net/wp-content/uploads/pwa-splash-screen/splashscreens/icon_2796x1290.png',
 'https://buzzjuice.net/wp-content/uploads/pwa-splash-screen/splashscreens/icon_1290x2796.png',
-'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.03-icon512x512.png',
+'https://buzzjuice.net/wp-content/uploads/2026/04/BuzzJuice-Logo-2.07-icon512x512.png',
 'https://buzzjuice.net/2026/02/06/classies-chronicles-the-foundation-phase/',
 'https://buzzjuice.net/2025/11/15/patient-infatuation/',
 'https://buzzjuice.net/about-us/',

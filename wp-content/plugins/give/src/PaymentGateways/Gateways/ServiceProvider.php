@@ -12,6 +12,7 @@ use Give\PaymentGateways\Gateways\Offline\Actions\DisableGatewayWhenDisabledPerF
 use Give\PaymentGateways\Gateways\Offline\Actions\EnqueueOfflineFormBuilderScripts;
 use Give\PaymentGateways\Gateways\Offline\Actions\UpdateOfflineMetaFromFormBuilder;
 use Give\PaymentGateways\Gateways\PayPalCommerce\PayPalCommerceGateway;
+use Give\PaymentGateways\Gateways\Stripe\Actions\AddExtraMetadataToPaymentIntent;
 use Give\PaymentGateways\Gateways\Stripe\LegacyStripeAdapter;
 use Give\PaymentGateways\Gateways\Stripe\StripePaymentElementGateway\Actions\AddStripeAttributesToNewForms;
 use Give\PaymentGateways\Gateways\Stripe\StripePaymentElementGateway\Actions\EnqueueStripeFormBuilderScripts;
@@ -20,6 +21,8 @@ use Give\PaymentGateways\Gateways\Stripe\StripePaymentElementGateway\StripePayme
 use Give\PaymentGateways\Gateways\Stripe\StripePaymentElementGateway\Webhooks\Listeners\ChargeRefunded;
 use Give\PaymentGateways\Gateways\Stripe\StripePaymentElementGateway\Webhooks\Listeners\CustomerSubscriptionCreated;
 use Give\PaymentGateways\Gateways\Stripe\StripePaymentElementGateway\Webhooks\Listeners\CustomerSubscriptionDeleted;
+use Give\PaymentGateways\Gateways\Stripe\StripePaymentElementGateway\Webhooks\Listeners\CustomerSubscriptionResumed;
+use Give\PaymentGateways\Gateways\Stripe\StripePaymentElementGateway\Webhooks\Listeners\CustomerSubscriptionUpdated;
 use Give\PaymentGateways\Gateways\Stripe\StripePaymentElementGateway\Webhooks\Listeners\InvoicePaymentFailed;
 use Give\PaymentGateways\Gateways\Stripe\StripePaymentElementGateway\Webhooks\Listeners\InvoicePaymentSucceeded;
 use Give\PaymentGateways\Gateways\Stripe\StripePaymentElementGateway\Webhooks\Listeners\PaymentIntentPaymentFailed;
@@ -55,6 +58,7 @@ class ServiceProvider implements ServiceProviderInterface
     }
 
     /**
+     * @since 4.16.8 register TestOffsiteGateway when GIVEWP_ENABLE_TEST_OFFSITE_GATEWAY is set
      * @since 3.0.0
      *
      * @throws Exception
@@ -63,8 +67,11 @@ class ServiceProvider implements ServiceProviderInterface
     private function registerGateways()
     {
         add_action('givewp_register_payment_gateway', static function (PaymentGatewayRegister $registrar) {
-            // Enable as needed for testing but do not push to production
-            // $registrar->registerGateway(TestOffsiteGateway::class);
+            // Not for production: it completes donations without charging anyone. The e2e suite turns it
+            // on through .wp-env.json to walk an offsite redirect end to end.
+            if (defined('GIVEWP_ENABLE_TEST_OFFSITE_GATEWAY') && GIVEWP_ENABLE_TEST_OFFSITE_GATEWAY) {
+                $registrar->registerGateway(TestOffsiteGateway::class);
+            }
 
             $registrar->registerGateway(StripePaymentElementGateway::class);
 
@@ -74,7 +81,16 @@ class ServiceProvider implements ServiceProviderInterface
         $this->addLegacyStripeAdapter();
         $this->addStripeWebhookListeners();
         $this->addStripeFormBuilderHooks();
+        $this->addStripeTransactionMetadata();
         $this->bootOfflineDonations();
+    }
+
+    /**
+     * @since 4.16.7
+     */
+    private function addStripeTransactionMetadata()
+    {
+        Hooks::addFilter('give_stripe_prepare_metadata', AddExtraMetadataToPaymentIntent::class, '__invoke', 10, 2);
     }
 
     /**
@@ -115,6 +131,16 @@ class ServiceProvider implements ServiceProviderInterface
         Hooks::addAction(
             'give_recurring_stripe_processing_customer_subscription_deleted',
             CustomerSubscriptionDeleted::class
+        );
+
+        Hooks::addAction(
+            'give_recurring_stripe_processing_customer_subscription_updated',
+            CustomerSubscriptionUpdated::class
+        );
+
+        Hooks::addAction(
+            'give_recurring_stripe_processing_customer_subscription_resumed',
+            CustomerSubscriptionResumed::class
         );
     }
 

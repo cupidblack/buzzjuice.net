@@ -28,7 +28,10 @@ class ConvertDonationAmountBlockToFieldsApi
 {
 
     /**
-     * @since 4.10.0: Replaced generic 'currency' rule with custom CurrencyRule that uses GiveWP's currency list
+     * @since 4.16.8 Exempt admin-defined amounts from the custom amount minimum and maximum, and fall back
+     *            to the lowest admin-defined amount when no custom amount minimum applies.
+     * @since 4.16.5 Set default value for the levelId hidden field.
+     * @since 4.10.0 Replaced generic 'currency' rule with custom CurrencyRule that uses GiveWP's currency list
      * @since 3.0.0
      *
      * @throws EmptyNameException
@@ -38,22 +41,23 @@ class ConvertDonationAmountBlockToFieldsApi
     {
         $amountField = DonationAmount::make('donationAmount')->tap(function (Group $group) use ($block, $currency) {
             $amountRules = ['required', 'numeric'];
+            $exemptAmounts = $block->getAdminDefinedAmounts();
 
             if (!$block->isCustomAmountEnabled() &&
                 $block->getPriceOption() === 'set') {
                 $size = $block->getSetPrice();
 
                 $amountRules[] = new Size($size);
+            } else {
+                $minimum = $block->getMinimumAmount();
+
+                if ($minimum !== null) {
+                    $amountRules[] = (new Min($minimum))->exemptAmounts(...$exemptAmounts);
+                }
             }
 
-            if ($block->isCustomAmountEnabled()) {
-                if ($block->hasAttribute('customAmountMin')) {
-                    $amountRules[] = new Min($block->getAttribute('customAmountMin'));
-                }
-
-                if ($block->hasAttribute('customAmountMax') && $block->getAttribute('customAmountMax') > 0) {
-                    $amountRules[] = new Max($block->getAttribute('customAmountMax'));
-                }
+            if ($block->isCustomAmountEnabled() && $block->getCustomAmountMax() > 0) {
+                $amountRules[] = (new Max($block->getCustomAmountMax()))->exemptAmounts(...$exemptAmounts);
             }
 
             /** @var Amount $amountNode */
@@ -64,6 +68,7 @@ class ConvertDonationAmountBlockToFieldsApi
                 ->rules(...$amountRules);
 
             $priceOptions = $block->getPriceOption();
+            $defaultLevelId = '';
             if ($priceOptions === 'multi') {
                 ['levels' => $levels, 'checked' => $checked] = $this->prepareLevelsArray($block);
 
@@ -71,11 +76,22 @@ class ConvertDonationAmountBlockToFieldsApi
                     ->allowLevels()
                     ->levels(...$levels)
                     ->defaultValue($checked);
+
+                foreach ($levels as $index => $level) {
+                    if ($level['checked']) {
+                        $defaultLevelId = (string)$index;
+                        break;
+                    }
+                }
             } else {
                 $amountNode
                     ->fixedAmountValue($block->getSetPrice())
                     ->defaultValue($block->getSetPrice());
             }
+
+            /** @var Hidden $levelIdNode */
+            $levelIdNode = $group->getNodeByName('levelId');
+            $levelIdNode->defaultValue($defaultLevelId);
 
             /** @var Hidden $currencyNode */
             $currencyNode = $group->getNodeByName('currency');
@@ -176,9 +192,10 @@ class ConvertDonationAmountBlockToFieldsApi
     /**
      * Prepares the options array to be used in the field.
      *
+     * @since 4.16.5 Add per-level "checked" flag.
      * @since 3.12.0
      *
-     * @return array ['options' => ['label' => string, 'value' => string][], 'checked' => string]
+     * @return array ['levels' => ['label' => string, 'value' => string, 'checked' => bool][], 'checked' => string|null]
      */
     private function prepareLevelsArray(DonationAmountBlockModel $block): array
     {
@@ -194,6 +211,7 @@ class ConvertDonationAmountBlockToFieldsApi
                         return [
                             'value' => $item['value'] ?? '',
                             'label' => $block->isDescriptionEnabled() ? $item['label'] : '',
+                            'checked' => isset($item['checked']) && $item['checked'],
                         ];
                     },
                     $block->getLevels()
