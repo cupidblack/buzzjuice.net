@@ -237,13 +237,68 @@ add_filter('http_request_timeout', function($timeout) { return 30; });
 add_filter('gettext', function($translated, $text, $domain) {
     // Only affect BuddyBoss messages
     if ($domain === 'buddyboss' && trim($text) === 'Before you can login, you need to confirm your email address via the email we just sent to you.') {
-        return "To login, check your inbox/junk/spam for our email then tap on the link to activate your account. Please mark as 'Not Spam' if found in junk/spam folder.";
+        return "Check your inbox/junk/spam for our email to activate your account. Please mark as 'Not Spam' if found in junk/spam folder.";
     }
     return $translated;
 }, 20, 3);
 
 
+/**
+ * Customize BuddyBoss activation email messages.
+ */
 
+// Change the resend activation link text and style it as a yellow button.
+add_filter( 'gettext', function ( $translated, $text, $domain ) {
+	if (
+		'buddyboss' === $domain &&
+		'If you have not received an email yet, <a href="%s">click here to resend it</a>.' === trim( $text )
+	) {
+		return '<a class="bzj-resend-activation-button" href="%s">Resend Activation Email</a>';
+	}
+
+	if (
+		'buddyboss' === $domain &&
+		'Activation email resent! Please check your inbox or spam folder.' === trim( $text )
+	) {
+		return 'Activation email resent! Please check your email inbox/junk/spam folder.';
+	}
+
+	return $translated;
+}, 21, 3 );
+
+/**
+ * Style the resend activation link as a yellow button.
+ */
+add_action( 'login_head', function () {
+	?>
+	<style>
+		.bzj-resend-activation-button {
+			background-color: #f4c542;
+			border: 1px solid #d6a900;
+			border-radius: 12px;
+			color: #222 !important;
+			display: inline-block;
+			float: right;
+			font-size: 17px !important;
+			font-weight: 600;
+			line-height: 1.4;
+			margin: 8px 0 0 12px;
+			padding: 5px 14px;
+			text-decoration: none !important;
+		}
+		
+		div#login div#login_error p {
+            font-size: 17px !important;
+        }
+
+		.bzj-resend-activation-button:hover,
+		.bzj-resend-activation-button:focus {
+			background-color: #eab900;
+			color: #222 !important;
+		}
+	</style>
+	<?php
+} );
 
 
 /**

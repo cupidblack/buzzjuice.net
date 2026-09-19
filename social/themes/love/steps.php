@@ -163,7 +163,7 @@
                   <?php }//elseif ($step == 1) { ?>
                      <form class="slider-form slider-one <?php if ($step != 1) { ?> hide <?php } ?> second_slider" id="profile_image_upload">
                      <div class="choose_photo">
-                        <h6 class="bold"><?php echo ( $profile->full_name !== "" ? $profile->full_name.$profile->pro_icon : $profile->username ) ;?>, <?php echo __( 'people want to see what you look like!' );?></h6>
+                        <h6 class="bold"><?php echo ( $profile->full_name !== "" ? $profile->full_name.$profile->pro_icon : $profile->username ) ;?>, <?php echo __( 'your profile needs a picture!' );?></h6>
                         <p><?php echo __( 'Upload Images to set your Profile Picture Image.' );?></p>
                         <?php if( $profile->avatar->full !== '' ){?>
                         <span class="dt_selct_avatar" onclick="document.getElementById('avatar_img').click(); return false" style="background-image: url(<?php echo $profile->avatar->full ;?>);background-repeat: no-repeat;background-size: cover;background-position: center center;">
@@ -309,13 +309,13 @@
                      <div class="row">
                         <div class="input-field col s6">
                            <select id="height" name="height" data-errmsg="<?php echo __( 'Your height is required.');?>">
-                           <?php echo DatasetGetSelect( null, "height", __("Height") );?>
+                           <?php echo DatasetGetSelect( null, "height", __("cm or ft") );?>
                            </select>
                            <label for="height"><?php echo __( 'Height' );?></label>
                         </div>
                         <div class="input-field col s6">
                            <select id="hair" name="hair">
-                           <?php echo DatasetGetSelect( null, "hair_color", __("Choose your Hair Color") );?>
+                           <?php echo DatasetGetSelect( null, "hair_color", __("Favorite Color") );?>
                            </select>
                            <label for="hair"><?php echo __( 'Hair Color' );?></label>
                         </div>
@@ -328,7 +328,7 @@
                         <?php }?>
                         <div class="input-field col s6">
                            <select id="country" data-errmsg="<?php echo __( 'Select your country.');?>" required>
-                              <option value="" disabled selected><?php echo __( 'Choose your country' );?></option>
+                              <option value="" disabled selected><?php echo __( 'Birthplace' );?></option>
                               <?php
                                  foreach( Dataset::load('countries') as $key => $val ){
                                      echo '<option value="'. $key .'" data-code="'. $val['isd'] .'">'. $val['name'] .'</option>';
@@ -339,7 +339,7 @@
                         </div>
                         <div class="input-field col s6">
                            <select id="gender" name="gender" data-errmsg="<?php echo __( 'Choose your Gender');?>" required>
-                           <?php echo DatasetGetSelect( null, "gender", __("Choose your Gender") );?>
+                           <?php echo DatasetGetSelect( null, "gender", __("Biological Sex") );?>
                            </select>
                            <label for="gender"><?php echo __( 'Gender' );?></label>
                         </div>
@@ -348,7 +348,7 @@
                            <label for="birthdate"><?php echo __( 'Birthdate' );?></label>
                         </div>
                      <div class="step_footer">
-                        <p><?php echo __( '2 of 3 steps to complete to access PRO upgrade, features' );?></p>
+                        <p><?php echo __( '2 of 3 steps to complete Basic Profile' );?></p>
                         <button class="waves-effect waves-light btn btn_primary bold second next" data-src="<?php echo $profile->src;?>" data-emailvalidation="<?php echo $config->emailValidation;?>">
                            <?php echo __( 'Next' );?> 
                            <svg viewBox="0 0 19 14" xmlns="http://www.w3.org/2000/svg" width="18" height="18">

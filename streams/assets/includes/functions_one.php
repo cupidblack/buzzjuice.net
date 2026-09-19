@@ -9,7 +9,7 @@
 // | Copyright (c) 2022 WoWonder. All rights reserved.
 // +------------------------------------------------------------------------+
 /* Script Main Functions (File 1) */
-require_once __DIR__ . '/../../../shared/bzj-connection-client.php';
+require_once dirname(__DIR__, 3) . '/shared/bzj-connection-client.php';
 
 function Wo_GetTerms()
 {
@@ -946,7 +946,38 @@ function Wo_UserData($user_id, $password = true)
     if (!empty($fetched_data['details'])) {
         $fetched_data['details'] = (array)json_decode($fetched_data['details']);
     }
-    $fetched_data['API_notification_settings'] = (array)json_decode(html_entity_decode($fetched_data['notification_settings']));
+//    $fetched_data['API_notification_settings'] = (array)json_decode(html_entity_decode($fetched_data['notification_settings']));
+
+    $notification_defaults = array(
+        'e_liked'             => 1,
+        'e_shared'            => 1,
+        'e_wondered'          => 0,
+        'e_commented'         => 1,
+        'e_followed'          => 1,
+        'e_accepted'          => 1,
+        'e_mentioned'         => 1,
+        'e_joined_group'      => 1,
+        'e_liked_page'        => 1,
+        'e_visited'           => 1,
+        'e_profile_wall_post' => 1,
+        'e_memory'            => 1,
+        'e_sentme_msg'        => 0
+    );
+    
+    $decoded_notification_settings = json_decode(
+        html_entity_decode((string)($fetched_data['notification_settings'] ?? '')),
+        true
+    );
+    
+    if (!is_array($decoded_notification_settings)) {
+        $decoded_notification_settings = array();
+    }
+    
+    $fetched_data['API_notification_settings'] = array_merge(
+        $notification_defaults,
+        $decoded_notification_settings
+    );
+
     if ($wo['loggedin']) {
         $fetched_data['is_notify_stopped'] = $db->where('following_id', $user_id)->where('follower_id', $wo['user']['user_id'])->where('notify', 1)->getValue(T_FOLLOWERS, 'COUNT(*)');
     }
@@ -3695,6 +3726,8 @@ function Wo_GetFollowNotifyUsers($user_id = 0)
     return $data;
 }
 
+/*
+
 function Wo_RegisterNotification($data = array())
 {
     global $wo, $sqlConnect;
@@ -3818,6 +3851,366 @@ function Wo_RegisterNotification($data = array())
         $send_notification = false;
     }
     if ($data['type'] == 'liked_page' && $recipient['notification_settings']['e_liked_page'] = !1) {
+        $send_notification = false;
+    }
+    if ($data['type'] == 'profile_wall_post' && $recipient['notification_settings']['e_profile_wall_post'] != 1) {
+        $send_notification = false;
+    }
+    if ($send_notification == false) {
+        return false;
+    }
+    if (!empty($data['page_id']) && $data['page_id'] > 0) {
+        $page = Wo_PageData($data['page_id']);
+        if (!isset($page['page_id'])) {
+            return false;
+        }
+        $page_id = Wo_Secure($page['page_id']);
+        if (isset($data['page_enable'])) {
+            if ($data['page_enable'] !== false) {
+                $notifier['user_id'] = 0;
+            }
+        } else {
+            $notifier['user_id'] = 0;
+        }
+        $page_notifcation_query = '`page_id`,';
+        $page_notifcation_query2 = "{$page_id}, ";
+    }
+    $group_notifcation_query = '';
+    $group_notifcation_query2 = '';
+    if (!empty($data['group_id']) && $data['group_id'] > 0) {
+        $group = Wo_GroupData($data['group_id']);
+        if (!isset($group['id'])) {
+        }
+        $group_id = Wo_Secure($group['id']);
+        $group_notifcation_query = '`group_id`,';
+        $group_notifcation_query2 = "{$group_id}, ";
+    }
+    $event_notifcation_query = '';
+    $event_notifcation_query2 = '';
+    if (!empty($data['event_id']) && $data['event_id'] > 0) {
+        $event = Wo_EventData($data['event_id']);
+        $event_id = Wo_Secure($event['id']);
+        $event_notifcation_query = '`event_id`,';
+        $event_notifcation_query2 = "{$event_id}, ";
+    }
+    $thread_notifcation_query = '';
+    $thread_notifcation_query2 = '';
+    if (!empty($data['thread_id']) && $data['thread_id'] > 0) {
+        $thread_id = Wo_Secure($data['thread_id']);
+        $thread_notifcation_query = '`thread_id`,';
+        $thread_notifcation_query2 = "{$thread_id}, ";
+    }
+    $story_notifcation_query = '';
+    $story_notifcation_query2 = '';
+    if (!empty($data['story_id']) && $data['story_id'] > 0) {
+        $story_id = Wo_Secure($data['story_id']);
+        $story_notifcation_query = '`story_id`,';
+        $story_notifcation_query2 = "{$story_id}, ";
+    }
+    $blog_notifcation_query = '';
+    $blog_notifcation_query2 = '';
+    if (!empty($data['blog_id']) && $data['blog_id'] > 0) {
+        $blog_id = Wo_Secure($data['blog_id']);
+        $blog_notifcation_query = '`blog_id`,';
+        $blog_notifcation_query2 = "{$blog_id}, ";
+    }
+    $group_chat_notifcation_query = '';
+    $group_chat_notifcation_query2 = '';
+    if (!empty($data['group_chat_id']) && $data['group_chat_id'] > 0) {
+        $group_chat_id = Wo_Secure($data['group_chat_id']);
+        $group_chat_notifcation_query = ',`group_chat_id`';
+        $group_chat_notifcation_query2 = ",{$group_chat_id} ";
+    }
+    $query_one = " SELECT `id` FROM " . T_NOTIFICATION . " WHERE `recipient_id` = " . $recipient['user_id'] . " AND `post_id` = " . $data['post_id'] . " AND `type` = '" . $data['type'] . "'";
+    $sql_query_one = mysqli_query($sqlConnect, $query_one);
+    if (mysqli_num_rows($sql_query_one) > 0) {
+        if ($data['type'] != "following") {
+            if ($data['type'] != "reaction" && empty($data['story_id'])) {
+                $query_two = " DELETE FROM " . T_NOTIFICATION . " WHERE `recipient_id` = " . $recipient['user_id'] . " AND `post_id` = " . $data['post_id'] . " AND `type` = '" . $data['type'] . "'";
+                $sql_query_two = mysqli_query($sqlConnect, $query_two);
+            } elseif (!empty($data['story_id'])) {
+                $query_two = " DELETE FROM " . T_NOTIFICATION . " WHERE `recipient_id` = " . $recipient['user_id'] . " AND `story_id` = " . $data['story_id'] . " AND `type` = '" . $data['type'] . "'";
+                $sql_query_two = mysqli_query($sqlConnect, $query_two);
+            } elseif ($data['type'] == "reaction" && $data['text'] == "message") {
+                $query_two = " DELETE FROM " . T_NOTIFICATION . " WHERE `recipient_id` = " . $recipient['user_id'] . " AND `type` = '" . $data['type'] . "'";
+                $sql_query_two = mysqli_query($sqlConnect, $query_two);
+            }
+        }
+    }
+    if (!isset($data['undo']) or $data['undo'] != true) {
+        $query_three = "INSERT INTO " . T_NOTIFICATION . " (`recipient_id`, `notifier_id`, {$page_notifcation_query} {$group_notifcation_query} {$story_notifcation_query} {$blog_notifcation_query} {$event_notifcation_query} {$thread_notifcation_query} `post_id`, `comment_id`, `reply_id`, `type`, `type2`, `text`, `url`, `time` {$group_chat_notifcation_query}) VALUES (" . $recipient['user_id'] . "," . $notifier['user_id'] . ",{$page_notifcation_query2} {$group_notifcation_query2} {$story_notifcation_query2} {$blog_notifcation_query2} {$event_notifcation_query2} {$thread_notifcation_query2} " . $data['post_id'] . ",'" . $data['comment_id'] . "','" . $data['reply_id'] . "','" . $data['type'] . "','" . $data['type2'] . "','" . $data['text'] . "','{$url}'," . time() . " {$group_chat_notifcation_query2})";
+        $sql_query_three = mysqli_query($sqlConnect, $query_three);
+        $post_data = array();
+        $admin_ids = array();
+        if (!empty($data['post_id'])) {
+            $post_data = Wo_PostData($data['post_id']);
+        }
+        $my_id = $wo['user']['user_id'];
+        if (!empty($post_data['page_id'])) {
+            $admin_post_id = $post_data['id'];
+            $admins = Wo_GetPageAdmins($post_data['page_id'], 'user_id');
+            // $PageData = Wo_PageData($post_data['page_id']);
+            // if (!empty($PageData)) {
+            //     $admin_notify = array();
+            //     $admin_notify['user_id'] = $PageData['user_id'];
+            //     $admin_notify['page_id'] = $post_data['page_id'];
+            //     $admin_notify['is_page_onwer'] = true;
+            //     $admins[] = $admin_notify;
+            // }
+            if (!empty($admins)) {
+                foreach ($admins as $admin) {
+                    if ($admin['user_id'] != $wo['user']['user_id']) {
+                        $admin_id = $admin['user_id'];
+                        $admin_ids[] = "('$admin_id', '$my_id', '$admin_post_id','" . $data['comment_id'] . "','" . $data['reply_id'] . "','" . $data['type'] . "','" . $data['type2'] . "','" . $data['text'] . "','{$url}'," . time() . ")";
+                    }
+                }
+            }
+        }
+        if (!empty($admin_ids)) {
+            $implode_query = implode(',', $admin_ids);
+            $query_admins = "INSERT INTO " . T_NOTIFICATION . " (`recipient_id`, `notifier_id`, `post_id`, `comment_id`, `reply_id`, `type`, `type2`, `text`, `url`, `time`) VALUES ";
+            $sql_query_three = mysqli_query($sqlConnect, $query_admins . $implode_query);
+        }
+        if ($sql_query_three) {
+            if ($wo['config']['emailNotification'] == 1 && $recipient['emailNotification'] == 1) {
+                $send_mail = false;
+                if (($data['type'] == 'liked_post' || $data['type'] == 'reaction') && $recipient['e_liked'] == 1) {
+                    $send_mail = true;
+                }
+                if (($data['type'] == 'share_post' || $data['type'] == 'shared_your_post' || $data['type'] == 'shared_a_post_in_timeline') && $recipient['e_shared'] == 1) {
+                    $send_mail = true;
+                }
+                if ($data['type'] == 'comment' && $recipient['e_commented'] == 1) {
+                    $send_mail = true;
+                }
+                if ($data['type'] == 'following' && $recipient['e_followed'] == 1) {
+                    $send_mail = true;
+                }
+                if ($data['type'] == 'wondered_post' && $recipient['e_wondered'] == 1) {
+                    $send_mail = true;
+                }
+                if (($data['type'] == 'comment_mention' || $data['type'] == 'post_mention') && $recipient['e_mentioned'] == 1) {
+                    $send_mail = true;
+                }
+                if ($data['type'] == 'accepted_request' && $recipient['e_accepted'] == 1) {
+                    $send_mail = true;
+                }
+                if ($data['type'] == 'visited_profile' && $recipient['e_visited'] == 1) {
+                    $send_mail = true;
+                }
+                if ($data['type'] == 'joined_group' && $recipient['e_joined_group'] == 1) {
+                    $send_mail = true;
+                }
+                if ($data['type'] == 'liked_page' && $recipient['e_liked_page'] == 1) {
+                    $send_mail = true;
+                }
+                if ($data['type'] == 'profile_wall_post' && $recipient['e_profile_wall_post'] == 1) {
+                    $send_mail = true;
+                }
+                if ($send_mail == true) {
+                    $post_data_id = $post_data;
+                    $post_data['text'] = '';
+                    if (!empty($post_data_id['postText'])) {
+                        $post_data['text'] = substr($post_data_id['postText'], 0, 20);
+                    }
+                    $data['notifier'] = $notifier;
+                    $data['url'] = Wo_SeoLink($url);
+                    $data['post_data'] = $post_data;
+                    $wo['emailNotification'] = $data;
+                    $send_message_data = array(
+                        'from_email' => $wo['config']['siteEmail'],
+                        'from_name' => $wo['config']['siteName'],
+                        'to_email' => $recipient['email'],
+                        'to_name' => $recipient['name'],
+                        'subject' => 'New notification',
+                        'charSet' => 'utf-8',
+                        'message_body' => Wo_LoadPage('emails/notifiction-email'),
+                        'is_html' => true,
+                        'notifier' => $notifier
+                    );
+                    if ($wo['config']['smtp_or_mail'] == 'smtp') {
+                        $send_message_data['insert_database'] = 1;
+                    }
+                    $send = Wo_SendMessage($send_message_data);
+                }
+            }
+            if ($wo['config']['android_push_native'] == 1 || $wo['config']['ios_push_native'] == 1 || $wo['config']['web_push'] == 1) {
+                Wo_NotificationWebPushNotifier();
+            }
+            return true;
+        }
+    }
+}
+*/
+
+//BCR&D
+function Wo_RegisterNotification($data = array())
+{
+    global $wo, $sqlConnect;
+    if (empty($data['session_id'])) {
+        if ($wo['loggedin'] == false) {
+            return false;
+        }
+    }
+    if (!isset($data['recipient_id']) or empty($data['recipient_id']) or !is_numeric($data['recipient_id']) or $data['recipient_id'] < 1) {
+        return false;
+    }
+    if (Wo_IsBlocked($data['recipient_id'])) {
+        return false;
+    }
+    if (!isset($data['post_id']) or empty($data['post_id'])) {
+        $data['post_id'] = 0;
+    }
+    if (!is_numeric($data['post_id']) or $data['recipient_id'] < 0) {
+        return false;
+    }
+    if (empty($data['notifier_id']) or $data['notifier_id'] == 0) {
+        $data['notifier_id'] = Wo_Secure($wo['user']['user_id']);
+    }
+    if (!is_numeric($data['notifier_id']) or $data['notifier_id'] < 1) {
+        return false;
+    }
+    if ($data['notifier_id'] == $wo['user']['user_id']) {
+        $notifier = $wo['user'];
+    } else {
+        $data['notifier_id'] = Wo_Secure($data['notifier_id']);
+        $notifier = Wo_UserData($data['notifier_id']);
+        if (!isset($notifier['user_id'])) {
+            return false;
+        }
+    }
+    if (!isset($data['comment_id']) or empty($data['comment_id'])) {
+        $data['comment_id'] = 0;
+    } else {
+        $data['comment_id'] = Wo_Secure($data['comment_id']);
+    }
+    if (!isset($data['reply_id']) or empty($data['reply_id'])) {
+        $data['reply_id'] = 0;
+    } else {
+        $data['reply_id'] = Wo_Secure($data['reply_id']);
+    }
+    // if ($notifier['user_id'] != $wo['user']['user_id']) {
+    //     return false;
+    // }
+    if ($data['recipient_id'] == $data['notifier_id']) {
+        return false;
+    }
+    if (!isset($data['text'])) {
+        $data['text'] = '';
+    }
+    if (!isset($data['type']) or empty($data['type'])) {
+        return false;
+    }
+    if (!isset($data['url']) and empty($data['url']) and !isset($data['full_link']) and empty($data['full_link'])) {
+        return false;
+    }
+    $recipient = Wo_UserData($data['recipient_id']);
+    if (!isset($recipient['user_id'])) {
+        return false;
+    }
+    $url = $data['url'];
+    $recipient['user_id'] = Wo_Secure($recipient['user_id']);
+    $data['post_id'] = Wo_Secure($data['post_id']);
+    $data['type'] = Wo_Secure($data['type']);
+    if (!empty($data['type2'])) {
+        $data['type2'] = Wo_Secure($data['type2']);
+    } else {
+        $data['type2'] = '';
+    }
+    if ($data['text'] != strip_tags($data['text'])) {
+        $data['text'] = '';
+    }
+    $data['text'] = Wo_Secure($data['text']);
+    $notifier['user_id'] = Wo_Secure($notifier['user_id']);
+    $page_notifcation_query = '';
+    $page_notifcation_query2 = '';
+    $send_notification = true;
+    if (!empty($recipient['notification_settings'])) {
+        //$old = unserialize(html_entity_decode($recipient['notification_settings']));
+        $recipient['notification_settings'] = (array)json_decode(html_entity_decode($recipient['notification_settings']));
+        // if (empty($recipient['notification_settings']) && !empty($old)) {
+        //     $impload   = json_encode($old);
+        //     $query_one = " UPDATE " . T_USERS . " SET `notification_settings` = '{$impload}' WHERE `user_id` = '".$recipient['user_id']."' ";
+        //     //$query1    = mysqli_query($sqlConnect, $query_one);
+        //     // Wo_UpdateUserData($recipient['user_id'], array(
+        //     //     'notification_settings' => json_encode(value)
+        //     // ));
+        // }
+    } else {
+        $recipient['notification_settings'] = array();
+    }
+    
+    
+    
+    $notification_defaults = array(
+        'e_liked'             => 1,
+        'e_shared'            => 1,
+        'e_wondered'          => 0,
+        'e_commented'         => 1,
+        'e_followed'          => 1,
+        'e_accepted'          => 1,
+        'e_mentioned'         => 1,
+        'e_joined_group'      => 1,
+        'e_liked_page'        => 1,
+        'e_visited'           => 1,
+        'e_profile_wall_post' => 1,
+        'e_memory'            => 1,
+        'e_sentme_msg'        => 0
+    );
+    
+    $raw_notification_settings = $recipient['notification_settings'] ?? array();
+    
+    if (is_array($raw_notification_settings)) {
+        // Already decoded; do not pass it to html_entity_decode().
+        $decoded_notification_settings = $raw_notification_settings;
+    } elseif (is_string($raw_notification_settings) && $raw_notification_settings !== '') {
+        $decoded_notification_settings = json_decode(
+            html_entity_decode($raw_notification_settings),
+            true
+        );
+    
+        if (!is_array($decoded_notification_settings)) {
+            $decoded_notification_settings = array();
+        }
+    } else {
+        $decoded_notification_settings = array();
+    }
+    
+    $recipient['notification_settings'] = array_merge(
+        $notification_defaults,
+        $decoded_notification_settings
+    );
+    
+    
+    
+    if (($data['type'] == 'liked_post' || $data['type'] == 'reaction') && $recipient['notification_settings']['e_liked'] != 1) {
+        $send_notification = false;
+    }
+    if ($data['type'] == 'share_post' && $recipient['notification_settings']['e_shared'] != 1) {
+        $send_notification = false;
+    }
+    if ($data['type'] == 'comment' && $recipient['notification_settings']['e_commented'] != 1) {
+        $send_notification = false;
+    }
+    if ($data['type'] == 'following' && $recipient['notification_settings']['e_followed'] != 1) {
+        $send_notification = false;
+    }
+    if ($data['type'] == 'wondered_post' && $recipient['notification_settings']['e_wondered'] != 1) {
+        $send_notification = false;
+    }
+    if (($data['type'] == 'comment_mention' || $data['type'] == 'post_mention') && $recipient['notification_settings']['e_mentioned'] != 1) {
+        $send_notification = false;
+    }
+    if ($data['type'] == 'accepted_request' && $recipient['notification_settings']['e_accepted'] != 1) {
+        $send_notification = false;
+    }
+    if ($data['type'] == 'visited_profile' && $recipient['notification_settings']['e_visited'] != 1) {
+        $send_notification = false;
+    }
+    if ($data['type'] == 'joined_group' && $recipient['notification_settings']['e_joined_group'] != 1) {
+        $send_notification = false;
+    }
+    if ($data['type'] == 'liked_page' && $recipient['notification_settings']['e_liked_page'] != 1) {
         $send_notification = false;
     }
     if ($data['type'] == 'profile_wall_post' && $recipient['notification_settings']['e_profile_wall_post'] != 1) {

@@ -47,7 +47,7 @@ $users    = $db->arraybuilder()->orderBy('user_id', 'DESC')->paginate(T_USERS, $
                                         $wo['result']['details'] = (array) $wo['result']['details'];
         
                                         if (!empty($wo['result']['avatar'])) {
-                                            $wo['result']['avatar'] = Wo_GetMedia($wo['result']['avatar_full']);
+                                            $wo['result']['avatar']; // = Wo_GetMedia($wo['result']['avatar_full']);
                                         }
                                         echo Wo_LoadPage('search/user-result');
                                     }

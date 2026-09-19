@@ -52,32 +52,32 @@ else{
 					<?php if ($wo['config']['connectivitySystem'] == 0) {?>
 						<li>
 							<a class="menu_list" href="<?php echo Wo_SeoLink('index.php?link1=timeline&u=' . $wo['user']['username'] . '&type=followers');?>" data-ajax="?link1=timeline&u=<?php echo $wo['user']['username']?>&type=followers">
-								<span><?php echo number_format($wo['user']['details']['followers_count']);?></span> <span class="split-link"><b><?php echo $wo['lang']['followers'];?></b></span>
+								<span><?php echo number_format((int)($wo['user']['details']['followers_count'] ?? 0));?></span> <span class="split-link"><b><?php echo $wo['lang']['followers'];?></b></span>
 							</a>
 						</li>
 						  •  
 					<?php } ?>
 					<li>
 						<a class="menu_list" href="<?php echo Wo_SeoLink('index.php?link1=timeline&u=' . $wo['user']['username']);?>" data-ajax="?link1=timeline&u=<?php echo $wo['user']['username'];?>">
-							<span id="user_post_count"><?php echo number_format($wo['user']['details']['post_count']);?></span> <span class="split-link"><b><?php echo $wo['lang']['posts']; ?></b></span>
+							<span id="user_post_count"><?php echo number_format((int)($wo['user']['details']['post_count'] ?? 0));?></span> <span class="split-link"><b><?php echo $wo['lang']['posts']; ?></b></span>
 						</a>
 					</li>
 					<?php if ($wo['config']['connectivitySystem'] == 1) {?>
 						  •  <li>
 							<a class="menu_list" href="<?php echo Wo_SeoLink('index.php?link1=albums&user=' . $wo['user']['username']);?>" data-ajax="?link1=albums&user=<?php echo $wo['user']['username'];?>">
-								<span><?php echo number_format($wo['user']['details']['album_count']);?></span> <span class="split-link"><b><?php echo $wo['lang']['albums'];?></b></span>
+								<span><?php echo number_format((int)($wo['user']['details']['album_count'] ?? 0));?></span> <span class="split-link"><b><?php echo $wo['lang']['albums'];?></b></span>
 							</a>
 						</li>
 						  •  <li>
 							<a class="menu_list" href="<?php echo Wo_SeoLink('index.php?link1=timeline&u=' . $wo['user']['username'] . '&type=followers');?>" data-ajax="?link1=timeline&u=<?php echo $wo['user']['username']?>&type=followers">
-								<span><?php echo number_format($wo['user']['details']['following_count']);?></span> <span class="split-link"><b><?php echo $wo['lang']['friends_btn'];?></b></span>
+								<span><?php echo number_format((int)($wo['user']['details']['following_count'] ?? 0));?></span> <span class="split-link"><b><?php echo $wo['lang']['friends_btn'];?></b></span>
 							</a>
 						</li>	
 					<?php } ?>
 					<?php if ($wo['config']['connectivitySystem'] == 0) {?>
 						  •  <li>
 							<a class="menu_list" href="<?php echo Wo_SeoLink('index.php?link1=timeline&u=' . $wo['user']['username'] . '&type=following');?>" data-ajax="?link1=timeline&u=<?php echo $wo['user']['username']?>&type=following">
-								<span><?php echo number_format($wo['user']['details']['following_count']);?></span> <span class="split-link"><b><?php echo $wo['lang']['following'];?></b></span>
+								<span><?php echo number_format((int)($wo['user']['details']['following_count'] ?? 0));?></span> <span class="split-link"><b><?php echo $wo['lang']['following'];?></b></span>
 							</a>
 						</li>
 					<?php } ?>

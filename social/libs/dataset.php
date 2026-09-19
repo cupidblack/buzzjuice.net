@@ -110,19 +110,19 @@ $app['context']['gender']               = gender();
 $app['context']['blog_categories']      = blog_categories();
 $app['context']['countries']            = countries();
 $app['context']['hair_color']           = array(
-    '1' => __('Brown'),
-    '2' => __('Black'),
-    '3' => __('White'),
-    '4' => __('Sandy'),
-    '5' => __('Gray or Partially Gray'),
-    '6' => __('Red/Auburn'),
-    '7' => __('Blond/Strawberry'),
-    '8' => __('Blue'),
-    '9' => __('Green'),
-    '10' => __('Orange'),
-    '11' => __('Pink'),
-    '12' => __('Purple'),
-    '13' => __('Partly or Completely Bald'),
+    '1' => __('Black'),
+    '2' => __('Dark Brown'),
+    '3' => __('Brunette'),
+    '4' => __('Light Brown'),
+    '5' => __('Red Auburn'),
+    '6' => __('Burgundy'),
+    '7' => __('Red Orange'),
+    '8' => __('Amber Blonde'),
+    '9' => __('Blonde'),
+    '10' => __('Gray blonde'),
+    '11' => __('Silver Gray'),
+    '12' => __('Colored'),
+    '13' => __('Bald'),
     '14' => __('Other')
 );
 $app['context']['travel']               = array(
@@ -707,19 +707,19 @@ class Dataset{
     }
     public static function hair_color(){
         return array(
-            '1' => __('Brown'),
-            '2' => __('Black'),
-            '3' => __('White'),
-            '4' => __('Sandy'),
-            '5' => __('Gray or Partially Gray'),
-            '6' => __('Red/Auburn'),
-            '7' => __('Blond/Strawberry'),
-            '8' => __('Blue'),
-            '9' => __('Green'),
-            '10' => __('Orange'),
-            '11' => __('Pink'),
-            '12' => __('Purple'),
-            '13' => __('Partly or Completely Bald'),
+            '1' => __('Black'),
+            '2' => __('Dark Brown'),
+            '3' => __('Brunette'),
+            '4' => __('Light Brown'),
+            '5' => __('Red Auburn'),
+            '6' => __('Burgundy'),
+            '7' => __('Red Orange'),
+            '8' => __('Amber Blonde'),
+            '9' => __('Blonde'),
+            '10' => __('Gray blonde'),
+            '11' => __('Silver Gray'),
+            '12' => __('Colored'),
+            '13' => __('Bald'),
             '14' => __('Other')
         );
     }

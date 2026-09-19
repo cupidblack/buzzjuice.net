@@ -56,22 +56,62 @@ jQuery(document).ready(function($) {
 		
 	} else {
 		?>
-		<p><?php esc_html_e( 'Please provide a valid activation key.', 'buddyboss' ); ?></p>
-		<form action="" method="post" class="standard-form" id="activation-form">
-			<label for="key"><?php esc_html_e( 'Activation Key:', 'buddyboss' ); ?></label>
-			<input type="text" name="key" id="key" value="<?php echo esc_attr( bp_get_current_activation_key() ); ?>" />
-			<?php
-			/**
-			 * Fires before the activation submit button.
-			 *
-			 * @since BuddyBoss 2.5.60
-			 */
-			do_action( 'bb_before_activate_submit_buttons' );
-			?>
-			<p class="submit">
-				<input type="submit" name="submit" value="<?php esc_attr_e( 'Activate', 'buddyboss' ); ?>" />
-			</p>
-		</form>
+		
+		
+		
+        <?php
+        $activation_key = bp_get_current_activation_key();
+        ?>
+        
+        <p><?php esc_html_e( 'Please provide a valid activation key.', 'buddyboss' ); ?></p>
+        
+        <form action="" method="post" class="standard-form" id="activation-form">
+        	<label for="key"><?php esc_html_e( 'Activation Key:', 'buddyboss' ); ?></label>
+        
+        	<input
+        		type="text"
+        		name="key"
+        		id="key"
+        		value="<?php echo esc_attr( $activation_key ); ?>"
+        	/>
+        
+        	<?php
+        	/**
+        	 * Fires before the activation submit button.
+        	 *
+        	 * @since BuddyBoss 2.5.60
+        	 */
+        	do_action( 'bb_before_activate_submit_buttons' );
+        	?>
+        
+        	<p class="submit">
+        		<input
+        			type="submit"
+        			name="submit"
+        			value="<?php esc_attr_e( 'Activate', 'buddyboss' ); ?>"
+        		/>
+        	</p>
+        
+        	<?php if ( empty( $activation_key ) ) : ?>
+        		<div class="bzj-activation-login-notice" style="margin-top: 15px; text-align: center;">
+        			<p style="margin-bottom: 10px;">
+        				<?php esc_html_e( "Your account might already be active if the 'Activation Key' field is blank.", 'buddyboss' ); ?>
+        			</p>
+        
+        			<a
+        				href="<?php echo esc_url( home_url( '/wp-login.php' ) ); ?>"
+        				class="button"
+        				style="display: inline-block; background-color: #0066cc; color: #ffffff; padding: 5px 20px; border-radius: 20px; text-decoration: none;"
+        			>
+        				<?php esc_html_e( 'Login Here', 'buddyboss' ); ?>
+        			</a>
+        		</div>
+        	<?php endif; ?>
+        
+        </form>
+
+
+
 		<?php
 	}
 

@@ -1780,7 +1780,7 @@ body .dt_signup_steps h5.empty_state {
     padding: 14px 25px 5px;
     height: 120px;
     display: flex;
-    justify-content: center;
+    justify-content: space-evenly;
     align-items: center;}
 .slider-form .step_footer p {
 	font: normal normal normal 16px/32px Montserrat;
