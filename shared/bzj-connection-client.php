@@ -51,9 +51,51 @@ if (!defined('BZJ_CONNECTION_CLIENT_LOADED')) {
             CURLOPT_HTTPHEADER=>array('Content-Type: application/json','Accept: application/json','X-BZJ-Platform: '.$origin,'X-BZJ-Timestamp: '.$ts,'X-BZJ-Signature: '.$sig),
             CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>20
         ));
-        $response=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$err=curl_error($ch);curl_close($ch);
+//        $response=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$err=curl_error($ch);curl_close($ch);
+
+        $header_lines = array();
+
+        curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($curl, $header) use (&$header_lines) {
+            $header = trim($header);
+        
+            if ($header === '') {
+                return strlen($header) + 2;
+            }
+        
+            /*
+             * Keep only diagnostic response headers.
+             * Never log Set-Cookie or authentication-related headers.
+             */
+            if (preg_match('/^(HTTP\/|Server:|Via:|X-.*:|Retry-After:|RateLimit.*:|X-RateLimit.*:|Content-Type:)/i', $header)) {
+                $header_lines[] = $header;
+            }
+        
+            return strlen($header) + 2;
+        });
+        
+        $response = curl_exec($ch);
+        
+        $http = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err  = curl_error($ch);
+        
+        curl_close($ch);
+
         $decoded=is_string($response)?json_decode($response,true):null;
-        bzj_connection_log('Signed sync request',array('origin'=>$origin,'operation'=>$operation,'actor_id'=>$actor_id,'target_id'=>$target_id,'http_code'=>$http,'event_id'=>$event,'error'=>$err,'response'=>$decoded));
+
+//        bzj_connection_log('Signed sync request',array('origin'=>$origin,'operation'=>$operation,'actor_id'=>$actor_id,'target_id'=>$target_id,'http_code'=>$http,'event_id'=>$event,'error'=>$err,'response'=>$decoded));
+  
+        bzj_connection_log('Signed sync request',array(
+            'origin'=>$origin,
+            'operation'=>$operation,
+            'actor_id'=>$actor_id,
+            'target_id'=>$target_id,
+            'http_code'=>$http,
+            'event_id'=>$event,
+            'error'=>$err,
+            'response_headers'=>$header_lines,
+            'response'=>$decoded
+        ));
+  
         if($response===false||$err!=='')return array('success'=>false,'event_id'=>$event,'http_code'=>$http,'error'=>$err?:'HTTP request failed');
         return is_array($decoded)?$decoded:array('success'=>false,'event_id'=>$event,'http_code'=>$http,'raw'=>$response);
     }

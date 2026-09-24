@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../../shared/wwqd_bridge.php';
+require_once __DIR__ . '/../../../shared/bzj-connection-client.php';
 require_once __DIR__ . '/../../../shared/palmier/palmier_logger.php';
 $wpDb = get_wp_db();
 Class Profile extends Aj {
@@ -3439,6 +3440,8 @@ Class Profile extends Aj {
             );
         }
     }
+    
+
     public function add_friend() {
         global $db, $config;
         if (self::ActiveUser() == NULL) {
@@ -3471,6 +3474,38 @@ Class Profile extends Aj {
                 }
                 if( ( Wo_IsFollowing($to, (int) self::ActiveUser()->id) === true || Wo_IsFollowing( (int) self::ActiveUser()->id, $to) === true ) || ( Wo_IsFollowRequested($to, (int) self::ActiveUser()->id) === true || Wo_IsFollowRequested((int) self::ActiveUser()->id, $to) === true ) ){
                     if (Wo_DeleteFollow($to, (int) self::ActiveUser()->id) || Wo_DeleteFollow((int) self::ActiveUser()->id, $to)) {
+                        
+                        $sync = bzj_connection_client(
+                            'socials',
+                            'connection_withdraw',
+                            (int) self::ActiveUser()->id,
+                            (int) $to
+                        );
+        
+                        /*
+                         * The QuickDate operation remains successful even if
+                         * the external synchronization temporarily fails.
+                         *
+                         * The synchronization client records the failure in
+                         * its log. The canonical BuddyBoss control plane must
+                         * therefore remain idempotent and capable of receiving
+                         * a retry.
+                         */
+                        if (
+                            !is_array($sync) ||
+                            empty($sync['success'])
+                        ) {
+                            bzj_connection_log(
+                                'QuickDate Add Friend withdrawal synchronization failed',
+                                array(
+                                    'actor_id'   => (int) self::ActiveUser()->id,
+                                    'target_id'  => $to,
+                                    'operation'  => 'connection_withdraw',
+                                    'sync'       => $sync
+                                )
+                            );
+                        }
+                        
                         return array(
                             'status' => 200,
                             'message' => 'Request deleted',
@@ -3484,6 +3519,35 @@ Class Profile extends Aj {
         }
         if ($error == '') {
             if (Wo_RegisterFollow($to, (int) self::ActiveUser()->id)) {
+                
+                $sync = bzj_connection_client(
+                    'socials',
+                    'connection_request',
+                    (int) self::ActiveUser()->id,
+                    (int) $to
+                );
+                
+                /*
+                 * Do not undo the successful QuickDate operation simply because
+                 * the cross-platform request temporarily failed.
+                 *
+                 * The client logs the failed synchronization and the WordPress
+                 * control plane is designed to process the operation idempotently.
+                 */
+                if (
+                    !is_array($sync) ||
+                    empty($sync['success'])
+                ) {
+                    bzj_connection_log(
+                        'QuickDate Add Friend synchronization failed',
+                        array(
+                            'actor_id'  => (int) self::ActiveUser()->id,
+                            'target_id' => $to,
+                            'operation' => 'connection_request',
+                            'sync'      => $sync
+                        )
+                    );
+                }
 
                 return array(
                     'status' => 200,
@@ -3538,6 +3602,29 @@ Class Profile extends Aj {
             if( self::ActiveUser()->id == $friend_request_userid ) {
                 $query = mysqli_query($conn, "DELETE FROM `followers` WHERE `following_id` = {$friend_request_userid} AND `follower_id` = {$friend_request_to_userid} AND `active` = '0'");
                 if ($query) {
+                    
+                    $sync = bzj_connection_client(
+                        'socials',
+                        'connection_reject',
+                        (int) self::ActiveUser()->id,
+                        (int) $friend_request_to_userid
+                    );
+                    
+                        if (
+                            !is_array($sync) ||
+                            empty($sync['success'])
+                        ) {
+                            bzj_connection_log(
+                                'QuickDate friend request rejection synchronization failed',
+                                array(
+                                    'actor_id'  => (int) self::ActiveUser()->id,
+                                    'target_id' => (int) $friend_request_to_userid,
+                                    'operation' => 'connection_reject',
+                                    'sync'      => $sync
+                                )
+                            );
+                        }
+                    
                     $Notif = LoadEndPointResource('Notifications');
                     if ($Notif) {
                         $n = $Notif->createNotification($follower_data['web_device_id'], $friend_request_userid, $friend_request_to_userid, 'friend_request_rejected', '', '/@' . $following_data['username']);
@@ -3620,6 +3707,29 @@ Class Profile extends Aj {
             if( self::ActiveUser()->id == $friend_request_userid ) {
                 $query = mysqli_query($conn, "UPDATE `followers` SET `active` = '1' WHERE `following_id` = {$friend_request_userid} AND `follower_id` = {$friend_request_to_userid} AND `active` = '0'");
                 if ($query) {
+                    
+                    $sync = bzj_connection_client(
+                        'socials',
+                        'connection_accept',
+                        (int) $friend_request_userid,
+                        (int) $friend_request_to_userid
+                    );
+                    
+                    if (
+                        !is_array($sync) ||
+                        empty($sync['success'])
+                    ) {
+                        bzj_connection_log(
+                            'QuickDate friend acceptance synchronization failed',
+                            array(
+                                'actor_id'  => $friend_request_userid,
+                                'target_id' => $friend_request_to_userid,
+                                'operation' => 'connection_accept',
+                                'sync'      => $sync
+                            )
+                        );
+                    }
+                    
                     $Notif = LoadEndPointResource('Notifications');
                     if ($Notif) {
                         $n = $Notif->createNotification($following_data['web_device_id'], $friend_request_to_userid, $friend_request_userid, 'friend_request_accepted', '', '/@' . $follower_data['username']);
@@ -3663,6 +3773,8 @@ Class Profile extends Aj {
             );
         }
     }
+
+
     public function my_info()
     {
         global $_BASEPATH, $_DS,$db,$site_url,$config,$_AJAX,$theme_url;

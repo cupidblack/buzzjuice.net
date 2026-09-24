@@ -278,12 +278,273 @@ final class BZJ_Connections_Sync {
         $id=(int)friends_get_friendship_id($a,$b);
         return $id?: (int)friends_get_friendship_id($b,$a);
     }
-    private function bb_accept($a,$b){
+/*    private function bb_accept($b,$a){
         if(!function_exists('friends_accept_friendship'))return new WP_Error('bzj_bb','BuddyBoss acceptance unavailable.');
         $id=$this->friendship_id($a,$b);if(!$id)return new WP_Error('bzj_missing','No pending connection found.');
         $ok=friends_accept_friendship($id);
         return ($ok||$this->bb_status($a,$b)==='is_friend')?true:new WP_Error('bzj_accept','BuddyBoss could not accept the request.');
+    } */
+    
+    private function bb_accept($acceptor_id, $requester_id) {
+        if (!function_exists('friends_accept_friendship')) {
+            return new WP_Error(
+                'bzj_bb',
+                'BuddyBoss acceptance unavailable.'
+            );
+        }
+    
+        $acceptor_id  = absint($acceptor_id);
+        $requester_id = absint($requester_id);
+    
+        if (
+            !$acceptor_id ||
+            !$requester_id ||
+            $acceptor_id === $requester_id
+        ) {
+            return new WP_Error(
+                'bzj_accept_identity',
+                'Invalid BuddyBoss acceptance identities.'
+            );
+        }
+    
+        /*
+         * For connection_accept:
+         *
+         * requester_id = user who originally sent the request
+         * acceptor_id  = user who is accepting it
+         *
+         * BuddyBoss friendship direction:
+         *
+         *   initiator_user_id = requester
+         *   friend_user_id    = acceptor
+         */
+    
+        if (!class_exists('BP_Friends_Friendship')) {
+            return new WP_Error(
+                'bzj_bb_class',
+                'BuddyBoss friendship class unavailable.'
+            );
+        }
+    
+        /*
+         * Resolve the friendship explicitly in the requester -> acceptor
+         * direction. Do not use a generic pair lookup for acceptance.
+         */
+        $friendship_id = (int) BP_Friends_Friendship::get_friendship_id(
+            $requester_id,
+            $acceptor_id
+        );
+    
+        if (!$friendship_id) {
+            return new WP_Error(
+                'bzj_missing',
+                'No BuddyBoss connection request found.'
+            );
+        }
+    
+        /*
+         * Load the friendship and verify its direction.
+         */
+        $friendship = new BP_Friends_Friendship(
+            $friendship_id,
+            true,
+            false
+        );
+    
+        if (
+            empty($friendship->id) ||
+            (int) $friendship->initiator_user_id !== $requester_id ||
+            (int) $friendship->friend_user_id !== $acceptor_id
+        ) {
+            return new WP_Error(
+                'bzj_accept_direction',
+                'BuddyBoss connection request direction could not be verified.'
+            );
+        }
+    
+        /*
+         * Idempotency:
+         *
+         * If another process already accepted the request, there is nothing
+         * left to do.
+         */
+        if (!empty($friendship->is_confirmed)) {
+            return true;
+        }
+    
+        /*
+         * Preserve the original WordPress user context.
+         */
+        $previous_user_id = function_exists('get_current_user_id')
+            ? (int) get_current_user_id()
+            : 0;
+    
+        /*
+         * BuddyPress maintains its own logged-in-user context. Changing
+         * WordPress's current user alone is not sufficient because
+         * friends_accept_friendship() ultimately relies on
+         * bp_loggedin_user_id().
+         *
+         * Temporarily force that BuddyPress value to the actual acceptor.
+         */
+        $bp_context_filter = function($user_id) use ($acceptor_id) {
+            return $acceptor_id;
+        };
+    
+        $ok = false;
+    
+        try {
+            /*
+             * Establish WordPress current-user context.
+             */
+            wp_set_current_user($acceptor_id);
+    
+            /*
+             * Establish BuddyPress current-user context.
+             */
+            add_filter(
+                'bp_loggedin_user_id',
+                $bp_context_filter,
+                PHP_INT_MAX
+            );
+    
+            /*
+             * Verify that the effective contexts agree before performing
+             * the native BuddyBoss acceptance.
+             */
+            $wp_context = function_exists('get_current_user_id')
+                ? (int) get_current_user_id()
+                : 0;
+    
+            $bp_context = function_exists('bp_loggedin_user_id')
+                ? (int) bp_loggedin_user_id()
+                : 0;
+    
+            if ($wp_context !== $acceptor_id || $bp_context !== $acceptor_id) {
+                $this->log(
+                    'BuddyBoss acceptance context failed',
+                    array(
+                        'friendship_id'    => $friendship_id,
+                        'requester_id'     => $requester_id,
+                        'acceptor_id'      => $acceptor_id,
+                        'wp_context'       => $wp_context,
+                        'bp_context'       => $bp_context,
+                        'previous_user_id' => $previous_user_id,
+                    )
+                );
+    
+                return new WP_Error(
+                    'bzj_accept_context',
+                    'BuddyBoss accepting-user context could not be established.'
+                );
+            }
+    
+            /*
+             * Native BuddyBoss acceptance.
+             *
+             * Do NOT replace this with a direct database update. The native
+             * function is required so BuddyBoss's normal acceptance hooks and
+             * downstream synchronization remain intact.
+             */
+            $ok = (bool) friends_accept_friendship($friendship_id);
+    
+            /*
+             * A concurrent process may have completed the acceptance even if
+             * the native function returned false.
+             */
+            if (!$ok) {
+                $status = $this->bb_status(
+                    $requester_id,
+                    $acceptor_id
+                );
+    
+                if ($status === 'is_friend') {
+                    $ok = true;
+                }
+            }
+    
+        } finally {
+            /*
+             * Remove our temporary BuddyPress context override first.
+             */
+            remove_filter(
+                'bp_loggedin_user_id',
+                $bp_context_filter,
+                PHP_INT_MAX
+            );
+    
+            /*
+             * Restore the original WordPress user.
+             */
+            wp_set_current_user($previous_user_id);
+        }
+    
+        /*
+         * Final authoritative verification.
+         */
+        if (!$ok) {
+            $verify = $this->bb_status(
+                $requester_id,
+                $acceptor_id
+            );
+    
+            $this->log(
+                'BuddyBoss connection acceptance failed',
+                array(
+                    'friendship_id' => $friendship_id,
+                    'requester_id'  => $requester_id,
+                    'acceptor_id'   => $acceptor_id,
+                    'status_after'  => $verify,
+                    'current_user'  => function_exists('get_current_user_id')
+                        ? (int) get_current_user_id()
+                        : 0,
+                )
+            );
+    
+            return new WP_Error(
+                'bzj_accept',
+                'BuddyBoss could not accept the request.'
+            );
+        }
+    
+        /*
+         * Confirm the actual BuddyBoss relationship state after acceptance.
+         */
+        $final_status = $this->bb_status(
+            $requester_id,
+            $acceptor_id
+        );
+    
+        if ($final_status !== 'is_friend') {
+            $this->log(
+                'BuddyBoss acceptance verification failed',
+                array(
+                    'friendship_id' => $friendship_id,
+                    'requester_id'  => $requester_id,
+                    'acceptor_id'   => $acceptor_id,
+                    'status_after'  => $final_status,
+                )
+            );
+    
+            return new WP_Error(
+                'bzj_accept_verify',
+                'BuddyBoss acceptance could not be verified.'
+            );
+        }
+    
+        $this->log(
+            'BuddyBoss connection accepted',
+            array(
+                'friendship_id' => $friendship_id,
+                'requester_id'  => $requester_id,
+                'acceptor_id'   => $acceptor_id,
+                'status_after'  => $final_status,
+            )
+        );
+    
+        return true;
     }
+    
     private function bb_reject($a,$b){
         if(!function_exists('friends_reject_friendship'))return new WP_Error('bzj_bb','BuddyBoss rejection unavailable.');
         $id=$this->friendship_id($a,$b);if(!$id)return true;

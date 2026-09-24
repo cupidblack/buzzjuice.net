@@ -286,7 +286,7 @@ function Wo_RegisterFollowNotify(id, type) {
 
 
 
-
+/*
 function Wo_RegisterFollow(id, is_confirm,show_modal= false) {
   var _follow_con = $('[id=Follow-' + id + ']');
   is_confirm_f    = 0;
@@ -377,6 +377,439 @@ function Wo_RegisterFollow(id, is_confirm,show_modal= false) {
   });
 
 }
+*/
+
+function Wo_RegisterFollow(id, is_confirm, show_modal) {
+
+    var _follow_con = $('[id="Follow-' + id + '"]');
+
+    if (!_follow_con.length) {
+        return false;
+    }
+
+    if (typeof is_confirm === 'undefined') {
+        is_confirm = 0;
+    }
+
+    if (typeof show_modal === 'undefined') {
+        show_modal = false;
+    }
+
+    if (show_modal === true) {
+        $('#unfriend_btn').attr(
+            'onclick',
+            'Wo_RegisterFollow(' + id + ')'
+        );
+
+        $('#un_friend_modal').modal('show');
+
+        return false;
+    }
+
+    $('#un_friend_modal').modal('hide');
+
+
+    /*
+     * Prevent duplicate clicks while the request is being
+     * processed.
+     */
+    var button = _follow_con.find('button').first();
+
+    if (!button.length) {
+        return false;
+    }
+
+    if (button.prop('disabled') === true) {
+        return false;
+    }
+
+    button.prop('disabled', true);
+    button.attr('aria-busy', 'true');
+
+
+    /*
+     * The current Streams requests.php router uses
+     * GET parameter "f" to determine the endpoint.
+     *
+     * Therefore:
+     *
+     *     ?f=follow_user
+     *
+     * remains in the URL.
+     *
+     * The relationship data and main session hash are
+     * sent through POST.
+     */
+    var main_session = $('.main_session').first().val();
+
+    if (
+        typeof main_session !== 'string' ||
+        !/^[a-f0-9]{20}$/i.test(main_session)
+    ) {
+
+        button.prop('disabled', false);
+        button.removeAttr('aria-busy');
+
+        $('#modal-alert').modal('show');
+
+        if (
+            typeof $('#modal-alert').find('.modal-body').text ===
+            'function'
+        ) {
+            $('#modal-alert')
+                .find('.modal-body')
+                .first()
+                .text(
+                    'Your session is not ready. Please refresh the page.'
+                );
+        }
+
+        Wo_Delay(function() {
+            $('#modal-alert').modal('hide');
+        }, 3000);
+
+        return false;
+    }
+
+
+    /*
+     * Perform the actual server operation.
+     */
+    $.ajax({
+        url: Wo_Ajax_Requests_File() + '?f=follow_user',
+        type: 'POST',
+        dataType: 'json',
+        cache: false,
+
+        data: {
+            following_id: id,
+            hash_id: main_session,
+            is_confirm: is_confirm
+        }
+    })
+
+
+    .done(function(data) {
+
+        var status = 0;
+
+        if (
+            data &&
+            typeof data.status !== 'undefined'
+        ) {
+            status = parseInt(data.status, 10);
+        }
+
+
+        var follow_state = '';
+
+        if (
+            data &&
+            typeof data.follow_state !== 'undefined'
+        ) {
+            follow_state = String(data.follow_state);
+        }
+
+
+        var limit_reached = 0;
+
+        if (
+            data &&
+            typeof data.limit_reached !== 'undefined'
+        ) {
+            limit_reached =
+                parseInt(data.limit_reached, 10);
+        }
+
+
+        /*
+         * --------------------------------------------------
+         * SUCCESS
+         * --------------------------------------------------
+         *
+         * The server has already:
+         *
+         * 1. validated the session
+         * 2. performed the follow/unfollow
+         * 3. verified the resulting database state
+         *
+         * Only now do we change the visible state.
+         */
+        if (status === 200) {
+
+
+            /*
+             * Notify through the existing socket mechanism
+             * only after the server has confirmed success.
+             */
+            if (
+                typeof node_socket_flow !== 'undefined' &&
+                node_socket_flow == "1" &&
+                typeof socket !== 'undefined'
+            ) {
+
+                if (follow_state === 'following') {
+
+                    socket.emit(
+                        "user_notification",
+                        {
+                            to_id: id,
+                            user_id: _getCookie("user_id"),
+                            type: "request"
+                        }
+                    );
+
+                } else if (follow_state === 'follow') {
+
+                    socket.emit(
+                        "user_notification",
+                        {
+                            to_id: id,
+                            user_id: _getCookie("user_id"),
+                            type: "request_removed"
+                        }
+                    );
+                }
+            }
+
+
+            /*
+             * Give the browser a very short moment to render
+             * the confirmed state, then reload.
+             *
+             * The reload is intentionally quick.
+             */
+            if (follow_state === 'following') {
+
+                _follow_con
+                    .find('button')
+                    .prop('disabled', true);
+
+                setTimeout(function() {
+                    window.location.reload();
+                }, 150);
+
+                return;
+
+            }
+
+
+            if (follow_state === 'follow') {
+
+                _follow_con
+                    .find('button')
+                    .prop('disabled', true);
+
+                setTimeout(function() {
+                    window.location.reload();
+                }, 150);
+
+                return;
+            }
+
+
+            /*
+             * Successful response without a known state.
+             * Reload anyway so the server-rendered button
+             * becomes authoritative.
+             */
+            setTimeout(function() {
+                window.location.reload();
+            }, 150);
+
+            return;
+        }
+
+
+        /*
+         * --------------------------------------------------
+         * FOLLOW LIMIT
+         * --------------------------------------------------
+         *
+         * This is a genuine server-side rejection.
+         *
+         * IMPORTANT:
+         * There is NO reload and NO optimistic state change.
+         */
+        if (
+            status === 400 &&
+            limit_reached === 1
+        ) {
+
+            button.prop('disabled', false);
+            button.removeAttr('aria-busy');
+
+
+            var limit_message =
+                'You have reached the maximum follow limit.';
+
+            if (
+                data &&
+                typeof data.message === 'string' &&
+                data.message !== ''
+            ) {
+                limit_message = data.message;
+            }
+
+
+            /*
+             * Put the actual server message into the
+             * existing modal.
+             */
+            var modal_body = $('#modal-alert')
+                .find('.modal-body')
+                .first();
+
+            if (modal_body.length) {
+                modal_body.text(limit_message);
+            }
+
+
+            $('#modal-alert').modal('show');
+
+            Wo_Delay(function() {
+                $('#modal-alert').modal('hide');
+            }, 3000);
+
+            return;
+        }
+
+
+        /*
+         * --------------------------------------------------
+         * SESSION FAILURE
+         * --------------------------------------------------
+         */
+        if (status === 403) {
+
+            button.prop('disabled', false);
+            button.removeAttr('aria-busy');
+
+
+            var session_message =
+                'Your session has expired. Please refresh the page.';
+
+            if (
+                data &&
+                typeof data.message === 'string' &&
+                data.message !== ''
+            ) {
+                session_message = data.message;
+            }
+
+
+            var session_modal_body = $('#modal-alert')
+                .find('.modal-body')
+                .first();
+
+            if (session_modal_body.length) {
+                session_modal_body.text(session_message);
+            }
+
+
+            $('#modal-alert').modal('show');
+
+            Wo_Delay(function() {
+                $('#modal-alert').modal('hide');
+            }, 3000);
+
+            return;
+        }
+
+
+        /*
+         * --------------------------------------------------
+         * OTHER SERVER FAILURE
+         * --------------------------------------------------
+         */
+        button.prop('disabled', false);
+        button.removeAttr('aria-busy');
+
+
+        var error_message =
+            'Unable to process the request.';
+
+        if (
+            data &&
+            typeof data.message === 'string' &&
+            data.message !== ''
+        ) {
+            error_message = data.message;
+        }
+
+
+        var error_modal_body = $('#modal-alert')
+            .find('.modal-body')
+            .first();
+
+        if (error_modal_body.length) {
+            error_modal_body.text(error_message);
+        }
+
+
+        $('#modal-alert').modal('show');
+
+        Wo_Delay(function() {
+            $('#modal-alert').modal('hide');
+        }, 3000);
+    })
+
+
+    .fail(function(xhr) {
+
+        button.prop('disabled', false);
+        button.removeAttr('aria-busy');
+
+
+        var message =
+            'Unable to process the follow request. Please try again.';
+
+
+        if (
+            xhr &&
+            xhr.responseJSON &&
+            typeof xhr.responseJSON.message === 'string' &&
+            xhr.responseJSON.message !== ''
+        ) {
+            message = xhr.responseJSON.message;
+        }
+
+
+        var fail_modal_body = $('#modal-alert')
+            .find('.modal-body')
+            .first();
+
+        if (fail_modal_body.length) {
+            fail_modal_body.text(message);
+        }
+
+
+        $('#modal-alert').modal('show');
+
+        Wo_Delay(function() {
+            $('#modal-alert').modal('hide');
+        }, 3000);
+    })
+
+
+    .always(function() {
+
+        /*
+         * If the page is not already being reloaded,
+         * restore the button's ability to be clicked.
+         */
+        _follow_con
+            .find('button')
+            .prop('disabled', false)
+            .removeAttr('aria-busy');
+    });
+
+
+    return false;
+}
+
+
+
 
 function Wo_RegisterGroupJoin(id, is_confirm) {
   var _join_con = $('[id=join-' + id + ']');

@@ -10,6 +10,8 @@ if (isset($_GET['f'])) {
 if (isset($_GET['s'])) {
     $s = Wo_Secure($_GET['s'], 0);
 }
+
+/*
 $hash_id = '';
 if (!empty($_POST['hash_id'])) {
     $hash_id = $_POST['hash_id'];
@@ -20,6 +22,30 @@ if (!empty($_POST['hash_id'])) {
 } else if (!empty($_POST['hash'])) {
     $hash_id = $_POST['hash'];
 }
+*/
+
+$hash_id = '';
+
+$hash_candidates = array(
+    isset($_POST['hash_id']) ? $_POST['hash_id'] : '',
+    isset($_GET['hash_id']) ? $_GET['hash_id'] : '',
+    isset($_GET['hash']) ? $_GET['hash'] : '',
+    isset($_POST['hash']) ? $_POST['hash'] : ''
+);
+
+foreach ($hash_candidates as $hash_candidate) {
+    if (!is_string($hash_candidate)) {
+        continue;
+    }
+
+    $hash_candidate = trim($hash_candidate);
+
+    if ($hash_candidate !== '') {
+        $hash_id = $hash_candidate;
+        break;
+    }
+}
+
 $data = array();
 
 /*BlueCrownR&D: WoW-PGB*/

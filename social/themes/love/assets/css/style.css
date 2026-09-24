@@ -5058,7 +5058,7 @@ color: #FFFFFF;
     vertical-align: middle;
     border-radius: 15px;
     aspect-ratio: 0.95;
-    object-fit: cover;
+    object-fit: contain;
     max-height: 60vh;
 }
 

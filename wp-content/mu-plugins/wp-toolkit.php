@@ -5,7 +5,7 @@
  * Plugin Name:       WP Toolkit plugin
  * Plugin URI:        https://www.plesk.com/wp-toolkit/
  * Description:       WP Toolkit plugin is installed by WP Toolkit or WP Guardian to provide functionality that can only work within WordPress itself
- * Version:           6.11.2-10794
+ * Version:           6.11.3-10850
  * Requires at least: 4.0
  * Requires PHP:      5.6
  */

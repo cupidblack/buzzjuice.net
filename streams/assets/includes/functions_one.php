@@ -275,138 +275,42 @@ function Wo_SaveConfig($update_name, $value)
     }
 }
 
-//BlueCrownR&D -- Periodically check updates on WordPress Password Hash
 function Wo_Login($username, $password)
 {
     global $sqlConnect;
-    $cookie_name   = 'buzz_sso';
-    $secret        = getenv('BUZZ_SSO_SECRET') ?: (defined('BUZZ_SSO_SECRET') ? BUZZ_SSO_SECRET : null);
-    $log_prefix    = "[BuzzSSO:Wo_Login]";
-
-    // Utility: base64url decode with padding
-    $b64url_decode = function($str) {
-        $s = strtr($str, '-_', '+/');
-        $mod4 = strlen($s) % 4;
-        if ($mod4) $s .= str_repeat('=', 4 - $mod4);
-        return base64_decode($s);
-    };
-
-    // Utility: verify token
-    $verify_token = function($token, $secret) use ($b64url_decode, $log_prefix) {
-        if (!$token || !$secret) return false;
-        $parts = explode('.', $token, 2);
-        if (count($parts) !== 2) return false;
-        list($b64json, $b64sig) = $parts;
-        $json = $b64url_decode($b64json);
-        $sig  = $b64url_decode($b64sig);
-        if ($json === false || $sig === false) return false;
-        $calc = hash_hmac('sha256', $json, (string)$secret, true);
-        if (!hash_equals($calc, (string)$sig)) return false;
-        $payload = json_decode($json, true);
-        if (!is_array($payload)) return false;
-        if (empty($payload['exp']) || time() > (int)$payload['exp']) return false;
-        return $payload;
-    };
-
-    // ---------------------------------------------------------
-    // 1) Primary: buzz_sso cookie mode
-    // ---------------------------------------------------------
-    if (!empty($_COOKIE[$cookie_name]) && $secret) {
-        $payload = $verify_token($_COOKIE[$cookie_name], $secret);
-        if ($payload && !empty($payload['wo_user_id'])) {
-            $wo_id = (int)$payload['wo_user_id'];
-            $q = mysqli_query($sqlConnect, "SELECT user_id, username, email, wp_user_id FROM " . T_USERS . " WHERE user_id = {$wo_id} LIMIT 1");
-            if ($q && $row = mysqli_fetch_assoc($q)) {
-                $match = true;
-                if (!empty($payload['wp_user_login']) && strcasecmp($row['username'], $payload['wp_user_login']) !== 0) $match = false;
-                if (!empty($payload['wp_user_email']) && strcasecmp($row['email'], $payload['wp_user_email']) !== 0) $match = false;
-                if (!empty($payload['wp_user_id']) && (int)$row['wp_user_id'] !== (int)$payload['wp_user_id']) $match = false;
-
-                if ($match) {
-                    $_SESSION['wo_user_id']    = $wo_id;
-                    $_SESSION['wp_user_id']    = $payload['wp_user_id'] ?? null;
-                    $_SESSION['wp_user_login'] = $payload['wp_user_login'] ?? null;
-                    $_SESSION['wp_user_email'] = $payload['wp_user_email'] ?? null;
-                    return true;
-                }
-            }
-        }
+    if (empty($username) || empty($password)) {
         return false;
     }
-
-    // ---------------------------------------------------------
-    // 2) Secondary: WPSSO password token mode
-    // ---------------------------------------------------------
-    if (is_string($password) && strpos($password, 'WPSSO.v1.') === 0 && $secret) {
-        $body  = substr($password, strlen('WPSSO.v1.'));
-        $parts = explode('.', $body, 2);
-        if (count($parts) === 2) {
-            $json = $b64url_decode($parts[0]);
-            $sig  = $b64url_decode($parts[1]);
-            if ($json !== false && $sig !== false) {
-                $calc = hash_hmac('sha256', $json, (string)$secret, true);
-                if (hash_equals($calc, (string)$sig)) {
-                    $claims = json_decode($json, true);
-                    if (is_array($claims) && !empty($claims['wo_user_id'])) {
-                        $wo_id = (int)$claims['wo_user_id'];
-                        $q = mysqli_query($sqlConnect, "SELECT user_id, username, email, wp_user_id FROM " . T_USERS . " WHERE user_id = {$wo_id} LIMIT 1");
-                        if ($q && $row = mysqli_fetch_assoc($q)) {
-                            $ok = ($row['user_id'] == $wo_id
-                                && strcasecmp($row['username'], $claims['wp_user_login']) === 0
-                                && strcasecmp($row['email'], $claims['wp_user_email']) === 0
-                                && (int)$row['wp_user_id'] === (int)$claims['wp_user_id']);
-                            if ($ok) {
-                                $_SESSION['wo_user_id']    = $row['user_id'];
-                                $_SESSION['wp_user_id']    = $claims['wp_user_id'];
-                                $_SESSION['wp_user_login'] = $claims['wp_user_login'];
-                                $_SESSION['wp_user_email'] = $claims['wp_user_email'];
-                                return true;
-                            }
-                        }
-                    }
-                }
+    $username = Wo_Secure($username);
+    $query_hash = mysqli_query($sqlConnect, "SELECT * FROM " . T_USERS . " WHERE (`username` = '{$username}' OR `email` = '{$username}' OR `phone_number` = '{$username}')");
+    if (mysqli_num_rows($query_hash)) {
+        $mysqli_hash_upgrade = mysqli_fetch_assoc($query_hash);
+        $login_password = '';
+        $hash = 'md5';
+        if (preg_match('/^[a-f0-9]{32}$/', $mysqli_hash_upgrade['password'])) {
+            $hash = 'md5';
+        } else if (preg_match('/^[0-9a-f]{40}$/i', $mysqli_hash_upgrade['password'])) {
+            $hash = 'sha1';
+        } else if (strlen($mysqli_hash_upgrade['password']) == 60) {
+            $hash = 'password_hash';
+        }
+        if ($hash == 'password_hash') {
+            if (password_verify($password, $mysqli_hash_upgrade['password'])) {
+                return true;
             }
+        } else {
+            $login_password = Wo_Secure($hash($password));
         }
-        return false;
-    }
-
-    // ---------------------------------------------------------
-    // 3) Fallback: classic username+password mode
-    // ---------------------------------------------------------
-    if (empty($username) || empty($password)) return false;
-
-    $username_safe = Wo_Secure($username);
-    $q = mysqli_query(
-        $sqlConnect,
-        "SELECT * FROM " . T_USERS . " 
-         WHERE (`username`='{$username_safe}' OR `email`='{$username_safe}' OR `phone_number`='{$username_safe}') LIMIT 1"
-    );
-    if ($q && $row = mysqli_fetch_assoc($q)) {
-        $stored = $row['password'];
-
-        // WordPress-style phpass?
-        $wp_prefixes = array('$P$', '$H$', '$S$', '$2y$', '$2a$', '$2b$', '$argon2i$', '$argon2id$', '$wp$', '$2$');
-        foreach ($wp_prefixes as $prefix) {
-            if (strpos($stored, $prefix) === 0) {
-                if (!class_exists('PasswordHash')) {
-                    require_once __DIR__ . '/../../../wp-includes/class-phpass.php';
-                }
-                $wp_hasher = new PasswordHash(8, true);
-                return $wp_hasher->CheckPassword($password, $stored);
+        $query = mysqli_query($sqlConnect, "SELECT COUNT(`user_id`) FROM " . T_USERS . " WHERE (`username` = '{$username}' OR `email` = '{$username}' OR `phone_number` = '{$username}') AND `password` = '{$login_password}'");
+        if (Wo_Sql_Result($query, 0) == 1) {
+            if ($hash == 'sha1' || $hash == 'md5') {
+                $new_password = Wo_Secure(password_hash($password, PASSWORD_DEFAULT));
+                $query_ = mysqli_query($sqlConnect, "UPDATE " . T_USERS . " SET password = '$new_password' WHERE (`username` = '{$username}' OR `email` = '{$username}' OR `phone_number` = '{$username}')");
+                cache($mysqli_hash_upgrade['password'], 'users', 'delete');
             }
-        }
-
-        // Modern PHP password_hash
-        if (strlen($stored) == 60 && substr($stored, 0, 1) == '$') {
-            return password_verify($password, $stored);
-        }
-
-        // Legacy md5/sha1
-        if ($stored === md5($password) || $stored === sha1($password)) {
             return true;
         }
     }
-
     return false;
 }
 
@@ -2979,130 +2883,87 @@ function Wo_RegisterFollow($following_id = 0, $followers_id = 0)
 function Wo_RegisterFollow($following_id = 0, $followers_id = 0)
 {
     global $wo, $sqlConnect;
-
     if ($wo['loggedin'] == false) {
         return false;
     }
-
-    if (!isset($following_id) || empty($following_id) || !is_numeric($following_id) || $following_id < 1) {
+    if (!isset($following_id) or empty($following_id) or !is_numeric($following_id) or $following_id < 1) {
         return false;
     }
-
     if (!is_array($followers_id)) {
         $followers_id = array(
             $followers_id
         );
     }
-
     foreach ($followers_id as $follower_id) {
-
-        if (!isset($follower_id) || empty($follower_id) || !is_numeric($follower_id) || $follower_id < 1) {
+        if (!isset($follower_id) or empty($follower_id) or !is_numeric($follower_id) or $follower_id < 1) {
             continue;
         }
-
         if (Wo_IsBlocked($following_id)) {
             continue;
         }
-
-        $following_id_safe = Wo_Secure($following_id);
-        $follower_id_safe  = Wo_Secure($follower_id);
-
-        /*
-         * Buzzjuice Streams uses an immediate-follow model.
-         *
-         * Do NOT allow WoWonder's normal privacy/confirmation/
-         * connectivity settings to convert this into a pending
-         * follow request.
-         */
+        $following_id = Wo_Secure($following_id);
+        $follower_id = Wo_Secure($follower_id);
         $active = 1;
-
-        if (Wo_IsFollowing($following_id_safe, $follower_id_safe) === true) {
+        if (Wo_IsFollowing($following_id, $follower_id) === true) {
             continue;
         }
-
-        $follower_data = Wo_UserData($follower_id_safe);
-        $following_data = Wo_UserData($following_id_safe);
-
+        $follower_data = Wo_UserData($follower_id);
+        $following_data = Wo_UserData($following_id);
         if (empty($follower_data['user_id']) || empty($following_data['user_id'])) {
             continue;
         }
 
-        /*
-         * Preserve WoWonder's existing follow-privacy restriction.
-         *
-         * This does NOT create a pending request. If the target's
-         * privacy configuration prevents the follow, the operation
-         * simply fails.
-         */
         if ($following_data['follow_privacy'] == 1) {
-            if (Wo_IsFollowing($follower_id_safe, $following_id_safe) === false) {
+            if (Wo_IsFollowing($follower_id, $following_id) === false) {
                 return false;
             }
         }
 
-        /*
-         * IMPORTANT:
-         * Do not apply confirm_followers or connectivitySystem here.
-         *
-         * Buzzjuice Streams follows must always be active immediately.
-         */
-        $query = mysqli_query(
-            $sqlConnect,
-            "INSERT INTO " . T_FOLLOWERS . "
-            (`following_id`, `follower_id`, `active`)
-            VALUES ({$following_id_safe}, {$follower_id_safe}, '1')"
-        );
-
-        /*
-         * Confirm that the INSERT itself succeeded.
-         */
-        if (!$query) {
-            return false;
+/*        if ($following_data['confirm_followers'] == 1) {
+            $active = 0;
         }
-
-        /*
-         * Verify the exact relationship was persisted as an
-         * active follow.
-         */
-        $verify = mysqli_query(
-            $sqlConnect,
-            "SELECT `id`
-             FROM " . T_FOLLOWERS . "
-             WHERE `following_id` = {$following_id_safe}
-               AND `follower_id` = {$follower_id_safe}
-               AND `active` = '1'
-             LIMIT 1"
-        );
-
-        if (!$verify || mysqli_num_rows($verify) < 1) {
-            return false;
+        if ($wo['config']['connectivitySystem'] == 1) {
+            $active = 0;
+        } */
+        
+        $query = mysqli_query($sqlConnect, " INSERT INTO " . T_FOLLOWERS . " (`following_id`,`follower_id`,`active`) VALUES ({$following_id},{$follower_id},'{$active}')");
+        if ($query) {
+            
+            bzj_connection_client(
+                'streams',
+                'follow',
+                (int) $follower_id,
+                (int) $following_id
+            );
+            
+            cache($following_id, 'users', 'delete');
+            cache($follower_id, 'users', 'delete');
+            if ($active == 1) {
+                $notification_data = array(
+                    'recipient_id' => $following_id,
+                    'notifier_id' => $follower_id,
+                    'type' => 'following',
+                    'url' => 'index.php?link1=timeline&u=' . $follower_data['username']
+                );
+                Wo_RegisterNotification($notification_data);
+                $activity_data = array(
+                    'user_id' => $follower_id,
+                    'follow_id' => $following_id,
+                    'activity_type' => 'following'
+                );
+                $add_activity = Wo_RegisterActivity($activity_data);
+            }
+            else{
+                $notification_data = array(
+                    'recipient_id' => $following_id,
+                    'notifier_id' => $follower_id,
+                    'type' => 'friends_request',
+                    'url' => ''
+                );
+                Wo_RegisterNotification($notification_data);
+            }
         }
-
-        cache($following_id_safe, 'users', 'delete');
-        cache($follower_id_safe, 'users', 'delete');
-
-        /*
-         * Because $active is always 1, this is always the normal
-         * "following" notification/activity path.
-         */
-        $notification_data = array(
-            'recipient_id' => $following_id_safe,
-            'notifier_id' => $follower_id_safe,
-            'type' => 'following',
-            'url' => 'index.php?link1=timeline&u=' . $follower_data['username']
-        );
-
-        Wo_RegisterNotification($notification_data);
-
-        $activity_data = array(
-            'user_id' => $follower_id_safe,
-            'follow_id' => $following_id_safe,
-            'activity_type' => 'following'
-        );
-
-        Wo_RegisterActivity($activity_data);
     }
-
     return true;
 }
 

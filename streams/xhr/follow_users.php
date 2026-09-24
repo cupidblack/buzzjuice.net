@@ -1,4 +1,4 @@
-<?php 
+<?php
 if ($f == 'follow_users') {
     if (!empty($_POST['user'])) {
         $continue = false;

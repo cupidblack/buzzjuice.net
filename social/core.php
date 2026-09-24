@@ -35,6 +35,7 @@ function bz_safe_session_start() {
 }
 SessionStart();
 
+require_once __DIR__ . '/../shared/bzj-connection-client.php';
 require_once __DIR__ . '/../shared/palmier/palmier_logger.php';
 
 $config = new stdClass();
@@ -6554,10 +6555,19 @@ function Wo_DeleteFollow($following_id = 0, $follower_id = 0) {
             $sql_query_two1 = mysqli_query($conn, $query_two1);
 
         }
-        if ($query) {
 
+        if ($query) {
+        
+            bzj_connection_client(
+                'socials',
+                'connection_remove',
+                (int) $follower_id,
+                (int) $following_id
+            );
+        
             return true;
         }
+
     }
 }
 //done

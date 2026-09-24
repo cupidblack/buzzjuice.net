@@ -1061,16 +1061,92 @@ function QD_SSO_Login() {
         echo json_encode(['status'=>401,'errors'=>['No matching QuickDate account for SSO.']]); exit;
     }
 
-    // Set QuickDate session values — preserve PHPSESSID (do NOT regenerate)
-    if (session_status() !== PHP_SESSION_ACTIVE) @session_start();
+/*
+ * ---------------------------------------------------------
+ * QUICKDATE SESSION INITIALIZATION
+ * ---------------------------------------------------------
+ *
+ * social/core.php must already have established:
+ *
+ *     BUZZSOCIALSESSID
+ *
+ * Do not use PHPSESSID here.
+ */
 
-    // Important: do NOT call session_regenerate_id(true) — WordPress manages PHPSESSID
-    $_SESSION['qd_user_id']    = (int)$accepted_user['id'];
-    $_SESSION['user_id']       = $accepted_user['web_token'] ?? (int)$accepted_user['id'];
-    $_SESSION['wp_sso_login']  = true;
-    $_SESSION['wp_user_id']    = $exp_wp;
-    $_SESSION['wp_user_email'] = $exp_email;
-    if (!isset($_SESSION['wp_user_login'])) $_SESSION['wp_user_login'] = $exp_login;
+if (session_status() !== PHP_SESSION_ACTIVE) {
+
+    try {
+
+        session_start();
+
+    } catch (Throwable $exception) {
+
+        bz_bridge_log(
+            'QD session start failed',
+            array(
+                'exception_class' =>
+                    get_class($exception),
+
+                'exception_message' =>
+                    $exception->getMessage()
+            )
+        );
+
+        echo json_encode(
+            array(
+                'status' => 500,
+                'errors' => array(
+                    'Unable to initialize QuickDate session.'
+                )
+            )
+        );
+
+        exit;
+    }
+}
+
+bz_bridge_log(
+    'QD session active',
+    array(
+        'session_name' =>
+            session_name(),
+
+        'expected_session_name' =>
+            'BUZZSOCIALSESSID',
+
+        'session_id_fingerprint' =>
+            session_id() !== ''
+                ? hash(
+                    'sha256',
+                    session_id()
+                )
+                : '',
+
+        'qd_user_id' =>
+            isset($accepted_user['id'])
+                ? (int) $accepted_user['id']
+                : 0
+    )
+);
+
+$_SESSION['qd_user_id'] =
+    (int) $accepted_user['id'];
+
+$_SESSION['user_id'] =
+    $accepted_user['web_token']
+        ?? (int) $accepted_user['id'];
+
+$_SESSION['wp_sso_login'] =
+    true;
+
+$_SESSION['wp_user_id'] =
+    $exp_wp;
+
+$_SESSION['wp_user_email'] =
+    $exp_email;
+
+$_SESSION['wp_user_login'] =
+    $exp_login;
 
     // Trigger QuickDate's SetLoginWithSession if available to complete framework login actions
     if (function_exists('LoadEndPointResource')) {

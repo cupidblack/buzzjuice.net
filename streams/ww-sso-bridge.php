@@ -10,6 +10,7 @@
  */
  
 require_once __DIR__ . '/assets/init.php';
+
 if (file_exists(__DIR__ . '/../shared/wwqd_bridge.php')) require_once __DIR__ . '/../shared/wwqd_bridge.php';
 require_once __DIR__ . '/../shared/sso_bridge_helpers.php';
 
@@ -1077,11 +1078,46 @@ function Wo_SSO_Login() {
         }
         $data['location'] = !empty($_SESSION['last_url']) && strpos($_SESSION['last_url'], $base_streams_url) === 0 ? $_SESSION['last_url'] : ($base_streams_url . '/?cache=' . time());
         $is_ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
-        bz_bridge_log('Wo_SSO_Login: success', [
-            'user_id'=>$accepted_user_id,'session'=>$session_token,
-            'reason'=>$accepted_reason,'matches'=>$accepted_matches,
-            'final redirect'=>$data['location']
-        ]);
+        bz_bridge_log(
+            'Wo_SSO_Login: success',
+            [
+                'user_id' =>
+                    (int) $accepted_user_id,
+        
+                'session_initialized' =>
+                    (
+                        !empty($_SESSION['hash_id']) &&
+                        !empty($_SESSION['main_hash_id'])
+                    ),
+        
+                'hash_id' =>
+                    function_exists(
+                        'Wo_SessionValueDiagnostics'
+                    )
+                        ? Wo_SessionValueDiagnostics(
+                            $_SESSION['hash_id'] ?? ''
+                        )
+                        : array(),
+        
+                'main_hash_id' =>
+                    function_exists(
+                        'Wo_SessionValueDiagnostics'
+                    )
+                        ? Wo_SessionValueDiagnostics(
+                            $_SESSION['main_hash_id'] ?? ''
+                        )
+                        : array(),
+        
+                'reason' =>
+                    $accepted_reason,
+        
+                'matches' =>
+                    $accepted_matches,
+        
+                'final redirect' =>
+                    $data['location']
+            ]
+        );
         echo json_encode($data);
         error_reporting($old_err);
         exit;

@@ -223,10 +223,66 @@ if (!function_exists('bz_bridge_loop_count')) {
 }
 
 if (!function_exists('bz_bridge_log')) {
-    function bz_bridge_log($msg, $ctx = []) {
-        $log = defined('BUZZ_SSO_BRIDGE_LOG') ? BUZZ_SSO_BRIDGE_LOG : (sys_get_temp_dir() . '/ww_sso_bridge.log');
-        $line = '[' . gmdate('Y-m-d H:i:s') . '] ' . $msg . ' | ' . json_encode($ctx, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE) . PHP_EOL;
-        @file_put_contents($log, $line, FILE_APPEND);
+    function bz_bridge_log($msg, $ctx = [])
+    {
+        $log = defined('BUZZ_SSO_BRIDGE_LOG')
+            ? BUZZ_SSO_BRIDGE_LOG
+            : (
+                dirname(__DIR__)
+                . '/data/logs/buzzjuice-streams.log'
+            );
+
+        $safe_context = array(
+            'message' => (string) $msg,
+            'ip' => isset($_SERVER['REMOTE_ADDR'])
+                ? (string) $_SERVER['REMOTE_ADDR']
+                : '',
+            'uri' => isset($_SERVER['REQUEST_URI'])
+                ? (string) $_SERVER['REQUEST_URI']
+                : '',
+            'method' => isset($_SERVER['REQUEST_METHOD'])
+                ? (string) $_SERVER['REQUEST_METHOD']
+                : '',
+            'session_active' => (
+                function_exists('session_status') &&
+                session_status() === PHP_SESSION_ACTIVE
+            ) ? 1 : 0,
+            'session_name' => function_exists('session_name')
+                ? session_name()
+                : '',
+            'context' => is_array($ctx)
+                ? $ctx
+                : array(
+                    'value' => (string) $ctx
+                )
+        );
+
+        /*
+         * Deliberately DO NOT log:
+         *
+         * - session_id()
+         * - $_SESSION
+         * - $_COOKIE
+         * - JWTs
+         * - buzz_access
+         * - buzz_refresh
+         * - buzz_sso
+         * - BUZZ_SSO_SECRET
+         * - hash_id
+         * - main_hash_id
+         */
+
+        @file_put_contents(
+            $log,
+            '[' . gmdate('Y-m-d H:i:s') . '] '
+            . json_encode(
+                $safe_context,
+                JSON_UNESCAPED_SLASHES |
+                JSON_UNESCAPED_UNICODE
+            )
+            . PHP_EOL,
+            FILE_APPEND | LOCK_EX
+        );
     }
 }
 
