@@ -13,3 +13,13 @@ Disallow: /api.php
 Disallow: /xml
 Disallow: /system_status.php
 Disallow: /nodejs
+# Give Claude permission to search and fetch links
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+# Opt-out of training but keep the search benefits (Common Setup)
+User-agent: ClaudeBot
+Disallow: /
