@@ -48,6 +48,12 @@ if (!defined('BUZZ_SSO_SECRET')) define('BUZZ_SSO_SECRET', getenv('BUZZ_SSO_SECR
 
 if (!defined('WP_BASE_SITE_URL')) define('WP_BASE_SITE_URL', getenv('WP_BASE_SITE_URL'));
 
+// IAPD DB
+if (!defined('IAPD_DB_HOST')) define('IAPD_DB_HOST', getenv('IAPD_DB_HOST'));
+if (!defined('IAPD_DB_USER')) define('IAPD_DB_USER', getenv('IAPD_DB_USER'));
+if (!defined('IAPD_DB_PASS')) define('IAPD_DB_PASS', getenv('IAPD_DB_PASS'));
+if (!defined('IAPD_DB_NAME')) define('IAPD_DB_NAME', getenv('IAPD_DB_NAME'));
+
 // WORDPRESS DB
 if (!defined('WP_DB_HOST')) define('WP_DB_HOST', getenv('WORDPRESS_DB_HOST'));
 if (!defined('WP_DB_USER')) define('WP_DB_USER', getenv('WORDPRESS_DB_USER'));
@@ -70,6 +76,15 @@ if (!defined('WOWONDER_DB_PASS')) define('WOWONDER_DB_PASS', getenv('WOWONDER_DB
 if (!defined('WOWONDER_DB_NAME')) define('WOWONDER_DB_NAME', getenv('WOWONDER_DB_NAME'));
 
 // Connection helpers
+function get_iapd_db_conn() {
+    static $conn = null;
+    if ($conn) return $conn;
+    $conn = new mysqli(IAPD_DB_HOST, IAPD_DB_USER, IAPD_DB_PASS, IAPD_DB_NAME);
+    if ($conn->connect_errno) return false;
+    $conn->set_charset('utf8mb4');
+    return $conn;
+}
+
 function get_palmier_db_conn() {
     static $conn = null;
     if ($conn) return $conn;
