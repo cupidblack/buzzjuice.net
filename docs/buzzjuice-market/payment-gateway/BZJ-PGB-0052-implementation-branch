@@ -1,1 +1,157 @@
+# Codex Task — BZJ-PGB-003
 
+You are the primary implementation agent for the Buzzjuice Payment Gateway Bridge redesign.
+
+Implement **only the scope defined by BZJ-PGB-003**.
+
+Read the repository's `AGENTS.md` and relevant project documentation first.
+
+Also inspect the existing payment bridge before modifying anything.
+
+## Authoritative design documents
+
+Use these as the architecture contract:
+
+* BZJ-PGB-001 — Architecture Decision & Approval
+* BZJ-PGB-002 — Payment Gateway Bridge Implementation Specification v1
+* BZJ-PGB-003 — this issue
+
+If repository code conflicts with the specification:
+
+1. do not silently choose one;
+2. document the conflict;
+3. identify the exact file/function;
+4. explain the consequence;
+5. stop at the appropriate gate if the conflict changes architecture.
+
+## Current task
+
+Implement:
+
+1. evidence inventory;
+2. payment-intent schema proposal;
+3. IAPD database abstraction;
+4. payment-intent core;
+5. state machine;
+6. idempotency foundation;
+7. currency abstraction;
+8. tests.
+
+## Database requirement
+
+All new payment-intent storage belongs in:
+
+`koware_iapd_db`
+
+Use:
+
+`get_iapd_db_conn()`
+
+from:
+
+`buzzjuice.net/shared/db_helpers/`
+
+Do not create another database connection mechanism.
+
+Do not put the new payment-intent table in the WordPress database.
+
+## Currency requirement
+
+The Streams product currency may differ from WooCommerce's GHS base currency.
+
+Example:
+
+```text
+Streams product = ZAR
+WooCommerce base = GHS
+Customer checkout = EUR
+```
+
+The implementation must preserve the original ZAR price and correctly derive the checkout currency amount using the deployed WOOCS configuration.
+
+Do not interpret a ZAR amount as GHS.
+
+Do not introduce an unrelated exchange-rate provider.
+
+## Important
+
+Do not yet:
+
+* replace `wow-pgb_init.php`;
+* replace `wow-pgb_sync.php`;
+* replace existing webhooks;
+* change production checkout;
+* change redirects;
+* alter AffiliateWP business rules;
+* alter Jewel Affiliate production behavior;
+* activate subscriptions manually.
+
+This is foundation work only.
+
+## Required output
+
+Produce:
+
+### 1. Code
+
+Only code required for this phase.
+
+### 2. Tests
+
+Include tests for:
+
+* idempotency;
+* state transitions;
+* expiry;
+* duplicate processing;
+* currency conversion;
+* database connection;
+* invalid currency;
+* rounding.
+
+### 3. Evidence report
+
+Create a concise report identifying:
+
+* current payment bridge files;
+* current transaction tables;
+* current hooks;
+* current redirects;
+* current currency logic;
+* AffiliateWP path;
+* Jewel Affiliate path;
+* subscription path;
+* unresolved unknowns.
+
+### 4. Deviation report
+
+If implementation differs from BZJ-PGB-002, document:
+
+```text
+Requirement
+Observed repository condition
+Proposed deviation
+Reason
+Risk
+Required approval
+```
+
+### 5. Validation
+
+Run all applicable:
+
+* PHP syntax checks;
+* PHPUnit;
+* static analysis;
+* existing repository tests;
+* security checks.
+
+Do not claim tests passed unless they actually ran.
+
+## Stop condition
+
+After completing BZJ-PGB-003, stop.
+
+Do not begin WooCommerce order creation.
+
+The implementation will be independently reviewed by Jules and Claude before the next phase.
