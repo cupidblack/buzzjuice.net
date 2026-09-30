@@ -1,0 +1,1484 @@
+# BZJ-PGB-002 — Buzzjuice Payment Gateway Bridge
+
+## Implementation Specification v1
+
+**Date:** 30 September 2026
+**Status:** DRAFT FOR HUMAN APPROVAL
+**Architecture:** BZJ-PGB-001 Approved
+**Implementation:** NOT YET APPROVED
+
+---
+
+# 1. Purpose
+
+This specification converts the approved BZJ-PGB-001 architecture into an implementation contract for the Buzzjuice Streams (WoWonder) Payment Gateway Bridge.
+
+The implementation must solve the existing dropped-order and synchronization problems without breaking:
+
+* existing WooCommerce orders;
+* WooCommerce Subscriptions;
+* AffiliateWP;
+* Jewel Affiliate;
+* WOOCS/currency handling;
+* existing Streams transaction records;
+* existing customer redirects;
+* in-flight legacy transactions.
+
+The implementation must be durable, idempotent, recoverable and observable.
+
+---
+
+# 2. Non-Negotiable Database Requirement
+
+## 2.1 Database
+
+All **new Buzzjuice Payment Gateway tables** shall be created in:
+
+```text
+koware_iapd_db
+```
+
+unless a later approved architecture decision explicitly specifies another database.
+
+They must NOT be created in:
+
+```text
+koware_buzzjuice
+```
+
+or the WordPress database merely because the MU plugin executes inside WordPress.
+
+---
+
+## 2.2 Database Connection
+
+The implementation must use:
+
+```php
+get_iapd_db_conn()
+```
+
+from:
+
+```text
+buzzjuice.net/shared/db_helpers/
+```
+
+for connections to `koware_iapd_db`.
+
+No new independent database credentials may be introduced.
+
+No duplicate database connection mechanism may be created if the existing helper already provides the required connection.
+
+---
+
+# 3. New Durable Payment Intent
+
+Create a dedicated payment-intent table in `koware_iapd_db`.
+
+Proposed name:
+
+```text
+bzj_payment_intents
+```
+
+The exact SQL definition must be approved before deployment.
+
+The table must contain, at minimum:
+
+### Identity
+
+```text
+id
+intent_uuid
+idempotency_key
+correlation_id
+```
+
+### Buzzjuice identity
+
+```text
+streams_user_id
+wp_user_id
+wo_user_id
+```
+
+Only identifiers actually required by the deployed integration should be retained.
+
+### Transaction
+
+```text
+transaction_kind
+product_id
+product_reference
+plan_reference
+```
+
+### Currency/pricing
+
+```text
+source_currency
+source_amount
+base_currency
+base_amount
+checkout_currency
+checkout_amount
+exchange_rate
+exchange_rate_source
+```
+
+### WooCommerce
+
+```text
+wc_order_id
+wc_order_key
+wc_payment_url
+```
+
+### State
+
+```text
+intent_status
+payment_status
+fulfilment_status
+redirect_status
+```
+
+### Effect state
+
+```text
+subscription_status
+affiliate_status
+jewel_affiliate_status
+streams_fulfilment_status
+```
+
+### Recovery
+
+```text
+attempt_count
+last_attempt_at
+next_retry_at
+last_error_code
+last_error_message
+```
+
+### Lifecycle
+
+```text
+created_at
+validated_at
+handoff_at
+order_created_at
+payment_completed_at
+fulfilment_completed_at
+completed_at
+expires_at
+updated_at
+```
+
+The schema must include appropriate unique indexes, particularly around:
+
+```text
+intent_uuid
+idempotency_key
+```
+
+and any other business key required to prevent duplicate order creation.
+
+---
+
+# 4. Existing WoWonder Transaction Records
+
+The existing WoWonder payment transaction mechanism must NOT be discarded.
+
+The new payment intent becomes the bridge's durable orchestration record.
+
+Existing:
+
+```text
+Wo_Payment_Transactions
+```
+
+remains a compatibility/integration record where required by Streams.
+
+The implementation must establish an explicit relationship:
+
+```text
+bzj_payment_intents.intent_uuid
+        ↕
+WoWonder transaction identifier
+        ↕
+WooCommerce order ID
+```
+
+The exact metadata mapping must be documented.
+
+---
+
+# 5. Transaction State Machine
+
+The implementation shall distinguish payment state from fulfilment state.
+
+## 5.1 Intent state
+
+```text
+CREATED
+VALIDATED
+HANDOFF_PENDING
+WC_ORDER_CREATED
+PAYMENT_PENDING
+PAYMENT_PROCESSING
+PAYMENT_COMPLETED
+CANCELLED
+EXPIRED
+FAILED
+```
+
+## 5.2 Fulfilment state
+
+```text
+NOT_STARTED
+PROCESSING
+PARTIAL
+COMPLETED
+RECOVERY_REQUIRED
+```
+
+## 5.3 Redirect state
+
+```text
+PENDING
+READY
+REDIRECTED
+NOT_REQUIRED
+FAILED
+```
+
+This separation is mandatory.
+
+A paid order with failed downstream synchronization must be representable as:
+
+```text
+payment_status = COMPLETED
+fulfilment_status = RECOVERY_REQUIRED
+```
+
+It must never be incorrectly represented as an unpaid/failed transaction merely because a downstream integration failed.
+
+---
+
+# 6. Payment Intent Creation
+
+Streams shall initiate a payment intent using server-side information.
+
+The client/browser must not be trusted for:
+
+* final amount;
+* final price;
+* commission;
+* subscription entitlement;
+* affiliate commission;
+* Jewel rebate;
+* final currency conversion.
+
+The browser may identify the requested transaction/product/plan, but the server must resolve the authoritative commercial data.
+
+---
+
+# 7. Currency Architecture
+
+## 7.1 Source Currency
+
+The payment intent must preserve the currency in which the Streams product is defined.
+
+Example:
+
+```text
+Streams product:
+    Currency = ZAR
+    Price = R500
+```
+
+The payment intent records:
+
+```text
+source_currency = ZAR
+source_amount   = 500.00
+```
+
+This original value must never be overwritten.
+
+---
+
+# 7.2 WooCommerce Base Currency
+
+WooCommerce's base currency is:
+
+```text
+GHS
+```
+
+The system must retain:
+
+```text
+base_currency = GHS
+```
+
+WooCommerce itself supports one base currency; multi-currency conversion is provided by an extension such as WOOCS.
+
+---
+
+# 7.3 Customer Checkout Currency
+
+The active customer currency must be determined from the actual WooCommerce/WOOCS session/context.
+
+Example:
+
+```text
+Customer location:
+    Europe
+
+Active checkout currency:
+    EUR
+```
+
+The intent records:
+
+```text
+checkout_currency = EUR
+```
+
+---
+
+# 7.4 Required Conversion
+
+For:
+
+```text
+Streams source = ZAR
+WooCommerce base = GHS
+Customer checkout = EUR
+```
+
+the bridge must logically perform:
+
+```text
+ZAR
+ ↓
+GHS
+ ↓
+EUR
+```
+
+or an equivalent mathematically correct cross-rate calculation using the same authoritative WOOCS rate set.
+
+The implementation must NOT treat:
+
+```text
+500 ZAR
+```
+
+as:
+
+```text
+500 GHS
+```
+
+and then call a base-currency conversion function.
+
+---
+
+# 7.5 WOOCS Integration
+
+The implementation must use the installed WOOCS APIs/data rather than introducing a second unrelated exchange-rate system.
+
+WOOCS exposes its currency data and PHP API through the `$WOOCS` object, including currency rates and conversion functionality.
+
+The implementation must verify the exact installed WOOCS version and configuration before selecting the final conversion method.
+
+The conversion service should therefore conceptually expose:
+
+```php
+convertSourceAmount(
+    $amount,
+    $source_currency,
+    $target_currency
+)
+```
+
+and return:
+
+```text
+converted_amount
+source_currency
+target_currency
+effective_rate
+rate_source
+timestamp
+```
+
+The implementation may use GHS as the mathematical bridge currency when the configured WOOCS rates are base-relative.
+
+---
+
+# 8. Currency Auditability
+
+Every payment intent must retain enough information to reconstruct the conversion.
+
+Example:
+
+```text
+Source:
+    ZAR 500.00
+
+Woo base:
+    GHS 7,xxx.xx
+
+Checkout:
+    EUR xx.xx
+
+Rate:
+    recorded effective rate
+
+Rate source:
+    WOOCS
+
+Rate timestamp:
+    UTC timestamp
+```
+
+The final WooCommerce order currency must correspond to the currency actually presented/charged at checkout.
+
+WOOCS supports carrying selected currencies through checkout and, when configured for multi-currency payment, recording the order in the selected currency.
+
+---
+
+# 9. Currency Rounding
+
+The implementation must define rounding rules before order creation.
+
+Do not repeatedly round during intermediate conversions.
+
+Preferred process:
+
+```text
+ZAR source amount
+        ↓
+high-precision conversion
+        ↓
+target checkout amount
+        ↓
+WooCommerce currency precision
+        ↓
+final order line/total
+```
+
+The stored intent should preserve both:
+
+```text
+source_amount
+checkout_amount
+```
+
+and the effective conversion data.
+
+---
+
+# 10. WooCommerce Order Creation
+
+WordPress shall receive the signed payment-intent handoff.
+
+The MU bridge must:
+
+1. validate the handoff;
+2. locate the payment intent;
+3. verify it is not expired/cancelled;
+4. authenticate/bind the user;
+5. acquire a transaction lock;
+6. check whether a WooCommerce order already exists;
+7. create the order only if necessary;
+8. associate the order with the intent;
+9. calculate/assign the correct checkout currency;
+10. calculate authoritative line pricing;
+11. save required metadata;
+12. generate the payment URL;
+13. release the lock.
+
+Repeated requests must return the existing order.
+
+---
+
+# 11. Order Idempotency
+
+This sequence must be safe:
+
+```text
+Browser request #1
+    ↓
+Create WC order 1234
+
+Browser request #2
+    ↓
+Find intent
+    ↓
+Find WC order 1234
+    ↓
+DO NOT create order 1235
+```
+
+The same rule applies after:
+
+* browser refresh;
+* network timeout;
+* back button;
+* duplicate callback;
+* repeated payment link access.
+
+---
+
+# 12. Checkout Authority
+
+WooCommerce owns the final checkout/payment process.
+
+The bridge should not duplicate:
+
+* billing collection;
+* payment gateway UI;
+* checkout validation;
+* payment confirmation;
+* order payment processing.
+
+The bridge creates or retrieves the appropriate order and sends the customer into the normal WooCommerce payment process.
+
+---
+
+# 13. Subscription Handling
+
+WooCommerce Subscriptions remains authoritative.
+
+When a subscription product is purchased through checkout, WooCommerce Subscriptions creates the pending subscription associated with the parent order before payment and activates it after the required payment succeeds.
+
+Therefore the bridge must NOT:
+
+```text
+create payment intent
+    ↓
+manually activate subscription
+```
+
+Instead:
+
+```text
+Payment Intent
+    ↓
+WooCommerce Order / Checkout
+    ↓
+WooCommerce Subscriptions
+    ↓
+Pending subscription
+    ↓
+Payment
+    ↓
+Subscription lifecycle
+```
+
+The implementation must use the deployed subscription product configuration rather than assuming all products behave identically.
+
+---
+
+# 14. WooCommerce Subscription Hooks
+
+The implementation should evaluate the appropriate lifecycle hooks, including:
+
+```text
+woocommerce_checkout_subscription_created
+subscriptions_created_for_order
+woocommerce_subscription_payment_complete
+woocommerce_subscription_renewal_payment_complete
+```
+
+The first two occur around creation of pending subscriptions before payment, while `woocommerce_subscription_payment_complete` represents payment completion for a subscription.
+
+The exact hook used for Buzzjuice fulfilment must be selected based on transaction type.
+
+---
+
+# 15. AffiliateWP
+
+Existing AffiliateWP behavior is protected.
+
+The new system must preserve:
+
+* attribution;
+* customer resolution;
+* referral creation;
+* commission calculation;
+* duplicate prevention;
+* processing marker;
+* retry behavior.
+
+The existing implementation should be extracted/refactored only after its current behavior has been captured in tests.
+
+No business-rule rewrite is authorized by this specification.
+
+---
+
+# 16. Jewel Affiliate
+
+Jewel Affiliate must be processed as an independent fulfilment effect.
+
+State:
+
+```text
+PENDING
+PROCESSING
+COMPLETED
+FAILED
+RECOVERY_REQUIRED
+```
+
+The implementation must first establish the actual production invocation chain.
+
+No assumption may be made about whether the current invocation is:
+
+```text
+WooCommerce webhook
+```
+
+or:
+
+```text
+WooCommerce order-complete hook
+```
+
+or another mechanism.
+
+The verified invocation chain becomes part of the implementation contract.
+
+Duplicate Jewel credits/rebates must be impossible.
+
+---
+
+# 17. Streams Fulfilment
+
+Streams-specific fulfilment must also be independently idempotent.
+
+Examples may include:
+
+* PRO/subscription activation;
+* wallet credit;
+* product entitlement;
+* transaction completion;
+* user role/permission changes.
+
+Every financial side effect must have a durable first-success condition.
+
+For example, this pattern is insufficient by itself:
+
+```php
+if ($transaction->processed) {
+    return;
+}
+
+$wallet += $amount;
+```
+
+The implementation must ensure that duplicate execution cannot duplicate the financial effect.
+
+---
+
+# 18. Thank You Page
+
+The existing WooCommerce Thank You page becomes an important customer-facing status surface.
+
+The page must display a basic one-line status summary such as:
+
+```text
+Subscriptions: None | Affiliate: Completed | Jewel Affiliate/Credits/Rebates: Processing | Fulfilment: Processing | Redirect: Pending
+```
+
+The exact wording may be improved during UI implementation, but the concept is approved.
+
+---
+
+# 19. Dynamic Thank You Status
+
+The status should reflect the durable transaction/fulfilment state.
+
+Example initial state:
+
+```text
+Subscriptions: Processing |
+Affiliate: Pending |
+Jewel Affiliate/Credits/Rebates: Pending |
+Fulfilment: Processing |
+Redirect: Pending
+```
+
+After processing:
+
+```text
+Subscriptions: Active |
+Affiliate: Completed |
+Jewel Affiliate/Credits/Rebates: Completed |
+Fulfilment: Completed |
+Redirect: Ready
+```
+
+If a downstream process fails:
+
+```text
+Subscriptions: Active |
+Affiliate: Completed |
+Jewel Affiliate/Credits/Rebates: Processing |
+Fulfilment: Processing |
+Redirect: Pending
+```
+
+The customer should not see internal exception details, database identifiers or sensitive diagnostic information.
+
+---
+
+# 20. Status Refresh
+
+The implementation should support lightweight status refresh while the Thank You page remains open.
+
+Preferred mechanism:
+
+```text
+Thank You page
+      ↓
+signed/status-bound request
+      ↓
+payment intent status
+      ↓
+return minimal public status
+      ↓
+update one-line display
+```
+
+Polling must be:
+
+* bounded;
+* rate limited;
+* authenticated or signed;
+* restricted to the customer's order/intent;
+* free of sensitive information.
+
+WebSocket infrastructure is not required for the first implementation.
+
+---
+
+# 21. Thank You Page Redirects
+
+The redirects currently defined by:
+
+```text
+wow-pgb_sync.php
+```
+
+are a **required compatibility contract**.
+
+They must not be silently removed during migration.
+
+The implementation must inventory every existing redirect condition and reproduce its intended behavior.
+
+The final redirect must occur only after the necessary processing for that transaction type has reached its defined redirect-ready state.
+
+---
+
+# 22. Redirect State
+
+The bridge shall maintain:
+
+```text
+redirect_status
+```
+
+with:
+
+```text
+PENDING
+READY
+REDIRECTED
+FAILED
+NOT_REQUIRED
+```
+
+The Thank You page may initially show:
+
+```text
+Redirect: Pending
+```
+
+and later:
+
+```text
+Redirect: Ready
+```
+
+The actual browser redirect can then occur.
+
+---
+
+# 23. Browser-Open Scenario
+
+If the user remains on the WooCommerce Thank You page:
+
+```text
+Payment completed
+       ↓
+background fulfilment
+       ↓
+status changes
+       ↓
+redirect becomes READY
+       ↓
+browser redirects
+```
+
+This is specifically required to preserve the behavior previously handled by `wow-pgb_sync.php`.
+
+The implementation must therefore not assume that the customer has already left the Thank You page.
+
+---
+
+# 24. Browser-Closed Scenario
+
+If the browser closes before fulfilment finishes:
+
+```text
+Payment completed
+       ↓
+durable fulfilment state remains
+       ↓
+background/retry processing continues
+       ↓
+fulfilment eventually completes
+```
+
+Reopening the order/appropriate Buzzjuice destination must not cause duplicate processing.
+
+---
+
+# 25. WooCommerce Thank You Integration
+
+The implementation may use the WooCommerce Thank You lifecycle to render the customer-facing status. WooCommerce documents the `woocommerce_thankyou` action as running after checkout completion, and the order-received template exposes the order to the confirmation view.
+
+The bridge must not rely on the Thank You page itself as the durable processing mechanism.
+
+The Thank You page is a **view**, not the transaction engine.
+
+---
+
+# 26. Processing Architecture
+
+Post-payment processing should be represented as independent effects:
+
+```text
+Payment Completed
+      │
+      ├── Subscription Effect
+      ├── AffiliateWP Effect
+      ├── Jewel Affiliate Effect
+      └── Streams Fulfilment Effect
+```
+
+Each effect must be independently retryable.
+
+One failure must not cause successful effects to run again.
+
+---
+
+# 27. Effect Idempotency
+
+Each effect must have a unique logical key.
+
+Examples:
+
+```text
+subscription:{intent_uuid}
+affiliate:{intent_uuid}
+jewel:{intent_uuid}
+streams_fulfilment:{intent_uuid}
+```
+
+The exact implementation may use a dedicated effect table or equivalent durable mechanism.
+
+This must be decided during final schema review.
+
+---
+
+# 28. Recovery
+
+A transaction enters:
+
+```text
+RECOVERY_REQUIRED
+```
+
+when:
+
+* payment succeeded;
+* but one or more downstream effects did not complete.
+
+Recovery must be possible without requiring the customer to pay again.
+
+Example:
+
+```text
+Order 1234 = PAID
+
+AffiliateWP = COMPLETE
+Subscription = COMPLETE
+Jewel = FAILED
+Streams = COMPLETE
+
+Recovery:
+    retry Jewel only
+```
+
+---
+
+# 29. Reconciliation
+
+A reconciliation process must identify:
+
+### Case A
+
+```text
+Payment intent exists
+WC order missing
+```
+
+### Case B
+
+```text
+WC order exists
+Payment intent missing
+```
+
+### Case C
+
+```text
+WC order paid
+Streams fulfilment missing
+```
+
+### Case D
+
+```text
+WC order paid
+AffiliateWP missing
+```
+
+### Case E
+
+```text
+WC order paid
+Jewel Affiliate missing
+```
+
+### Case F
+
+```text
+Subscription active
+Streams entitlement missing
+```
+
+Each case must have a safe recovery path.
+
+---
+
+# 30. Logging
+
+Logging remains extensive but toggleable.
+
+Logs must contain:
+
+```text
+timestamp
+intent_uuid
+correlation_id
+transaction_kind
+user/reference ID where appropriate
+state
+transition
+operation
+attempt
+result
+error code
+```
+
+Logs must NOT contain:
+
+* passwords;
+* access tokens;
+* refresh tokens;
+* webhook secrets;
+* payment credentials;
+* complete sensitive POST bodies;
+* unnecessary personal data.
+
+---
+
+# 31. Security Requirements
+
+The new bridge must address the identified legacy weaknesses.
+
+Mandatory:
+
+### TLS
+
+Certificate verification must remain enabled.
+
+No production:
+
+```php
+CURLOPT_SSL_VERIFYPEER => false
+```
+
+style bypasses.
+
+### Secrets
+
+Webhook/API secrets must not be hard-coded into source code.
+
+### Replay protection
+
+Signed handoffs must include:
+
+```text
+intent_uuid
+timestamp
+nonce
+signature
+```
+
+with expiry and replay prevention.
+
+### Identity binding
+
+The payment intent must be bound to the intended user.
+
+### Authorization
+
+A customer may only retrieve:
+
+```text
+their own
+```
+
+payment/fulfilment status.
+
+### SQL
+
+Use prepared statements/parameterized queries through the approved DB helper.
+
+---
+
+# 32. MU Plugin Architecture
+
+Primary entry point:
+
+```text
+wp-content/mu-plugins/bzj-payment-gateway.php
+```
+
+Supporting implementation:
+
+```text
+shared/payment-gateway/
+```
+
+Potential structure:
+
+```text
+shared/payment-gateway/
+    bootstrap/
+    core/
+    currency/
+    checkout/
+    fulfilment/
+    integrations/
+    recovery/
+    logging/
+```
+
+The exact structure must remain small.
+
+Do not create classes solely to satisfy an architectural pattern.
+
+---
+
+# 33. No Filesystem-Driven Schema Rebuilds
+
+The payment bridge must NOT scan source files and automatically recreate/alter production database tables whenever files change.
+
+Schema changes must be:
+
+```text
+versioned
+reviewed
+explicit
+idempotent
+migration-controlled
+```
+
+---
+
+# 34. Migration
+
+The old bridge remains operational while the new system is introduced.
+
+Migration must support:
+
+```text
+legacy transactions
+new transactions
+```
+
+without confusing their states.
+
+A transaction must be permanently identifiable as:
+
+```text
+legacy
+```
+
+or:
+
+```text
+new
+```
+
+during the transition.
+
+---
+
+# 35. Redirect Compatibility During Migration
+
+Every existing `wow-pgb_sync.php` redirect branch must be mapped.
+
+Required mapping:
+
+```text
+Old condition
+    ↓
+Old destination
+    ↓
+Transaction type
+    ↓
+New readiness condition
+    ↓
+New redirect mechanism
+```
+
+No redirect may be removed because it appears unrelated to payment processing until its production behavior is verified.
+
+---
+
+# 36. Testing Requirements
+
+Before production:
+
+## Unit
+
+Test:
+
+* transaction state transitions;
+* idempotency;
+* currency conversion;
+* signature validation;
+* expiry;
+* duplicate requests;
+* duplicate callbacks;
+* redirect determination.
+
+## Integration
+
+Test:
+
+* Streams → payment intent;
+* payment intent → WordPress;
+* WordPress → WooCommerce;
+* WooCommerce → payment gateway;
+* WooCommerce → Subscriptions;
+* WooCommerce → AffiliateWP;
+* WooCommerce → Jewel Affiliate;
+* WooCommerce → Streams fulfilment.
+
+## Failure tests
+
+Simulate:
+
+```text
+cURL unavailable
+DNS unavailable
+browser timeout
+browser refresh
+duplicate handoff
+duplicate webhook
+WooCommerce order creation timeout
+payment succeeds but response is lost
+AffiliateWP failure
+Jewel failure
+Streams failure
+database temporary failure
+```
+
+## Currency tests
+
+At minimum:
+
+```text
+ZAR → GHS
+ZAR → EUR
+ZAR → USD
+GHS → EUR
+GHS → ZAR
+```
+
+where configured currencies exist.
+
+Verify that:
+
+```text
+displayed amount
+checkout amount
+order currency
+payment gateway currency
+```
+
+remain consistent.
+
+---
+
+# 37. Acceptance Criteria
+
+The implementation is not accepted unless:
+
+1. A transaction can survive a browser/network interruption.
+2. A duplicate handoff cannot create duplicate orders.
+3. A duplicate callback cannot duplicate financial effects.
+4. A paid order cannot become falsely marked failed because fulfilment failed.
+5. Failed downstream effects can be retried independently.
+6. Existing AffiliateWP behavior remains compatible.
+7. Existing redirects continue to work.
+8. The Thank You page displays current basic processing state.
+9. A still-open Thank You page can redirect after processing becomes ready.
+10. Closing the browser does not stop fulfilment.
+11. New tables reside in `koware_iapd_db`.
+12. `get_iapd_db_conn()` is used for those tables.
+13. ZAR source prices are not treated as GHS.
+14. WOOCS is used as the authoritative configured currency-rate system.
+15. The final WooCommerce order currency matches the actual checkout currency.
+16. Sensitive credentials/secrets are not logged or hard-coded.
+17. TLS verification remains enabled.
+18. Production rollback is possible.
+19. Existing in-flight legacy transactions remain recoverable.
+20. Automated tests cover the critical failure paths.
+
+---
+
+# 38. Implementation Sequence
+
+Implementation shall occur in this order:
+
+### Phase 1 — Evidence Lock
+
+* verify production/repository versions;
+* inventory existing redirects;
+* inventory transaction types;
+* verify WOOCS configuration;
+* verify subscription products;
+* verify AffiliateWP;
+* verify Jewel Affiliate invocation;
+* verify existing database records.
+
+### Phase 2 — Schema
+
+* create `bzj_payment_intents`;
+* add required indexes;
+* establish schema versioning;
+* test `get_iapd_db_conn()`.
+
+### Phase 3 — Core Intent Engine
+
+* intent creation;
+* validation;
+* idempotency;
+* state transitions;
+* locking.
+
+### Phase 4 — Currency Engine
+
+* source currency handling;
+* WOOCS rate integration;
+* ZAR→GHS→target conversion;
+* rounding;
+* audit data.
+
+### Phase 5 — WordPress Handoff
+
+* signed handoff;
+* intent retrieval;
+* identity binding;
+* WooCommerce order creation;
+* payment URL.
+
+### Phase 6 — Thank You Status
+
+* status rendering;
+* bounded refresh;
+* effect status display;
+* redirect readiness.
+
+### Phase 7 — Fulfilment
+
+* Subscriptions;
+* AffiliateWP;
+* Jewel Affiliate;
+* Streams.
+
+### Phase 8 — Recovery
+
+* retries;
+* reconciliation;
+* failed-effect processing.
+
+### Phase 9 — Migration
+
+* controlled transaction-type migration;
+* monitoring;
+* rollback.
+
+### Phase 10 — Legacy Retirement
+
+Only after sufficient production evidence.
+
+---
+
+# 39. Human Approval Gates
+
+The following must be separately approved before production:
+
+### Gate A
+
+Database schema.
+
+### Gate B
+
+Currency conversion implementation.
+
+### Gate C
+
+WooCommerce order creation implementation.
+
+### Gate D
+
+Subscription lifecycle implementation.
+
+### Gate E
+
+AffiliateWP compatibility.
+
+### Gate F
+
+Jewel Affiliate implementation.
+
+### Gate G
+
+Thank You status/redirect mechanism.
+
+### Gate H
+
+Migration and rollback.
+
+---
+
+# 40. Agent Execution Contract
+
+Once this specification is approved:
+
+### Codex
+
+Primary implementation agent.
+
+Responsibilities:
+
+* implement the approved specification;
+* write tests;
+* preserve existing functionality;
+* document deviations.
+
+### Jules
+
+Independent implementation/CI/reliability review.
+
+Responsibilities:
+
+* inspect implementation;
+* run tests;
+* identify CI failures;
+* identify edge cases;
+* verify migration safety.
+
+### Claude
+
+Adversarial/security review.
+
+Responsibilities:
+
+* attack transaction boundaries;
+* inspect idempotency;
+* inspect authentication/signing;
+* inspect currency manipulation;
+* inspect duplicate financial effects;
+* inspect redirect abuse;
+* inspect logging/secrets;
+* identify race conditions.
+
+### GitHub Actions
+
+Deterministic validation.
+
+Required checks should include, as appropriate:
+
+```text
+PHP syntax
+PHPUnit
+static analysis
+security checks
+schema/migration checks
+```
+
+No agent's approval substitutes for the automated tests.
+
+---
+
+# 41. Final Implementation Principle
+
+The new Payment Gateway Bridge must be designed around this invariant:
+
+```text
+A payment may be interrupted at any point,
+but it must never become untraceable.
+```
+
+And:
+
+```text
+A successful financial effect may be retried,
+but it must never be applied twice.
+```
+
+Finally:
+
+```text
+The browser may disappear,
+but the transaction must continue to exist.
+```
+
+These three invariants are the core reliability requirements of BZJ-PGB-002.
