@@ -25,45 +25,60 @@
 
 ---
 
-## 2. BZJ-PGB-0325 ARCHITECTURE CHALLENGE RESOLUTIONS
+## 2. ASSUMPTIONS
 
-All 12 domain challenges have been tested against repository evidence and resolved:
-
-1. **Native WooCommerce Approach**: `wc_create_order()` in `/bzj-checkout-handoff` bypasses cart sessions entirely, preventing hook corruption and cURL DNS loopback failures while remaining fully HPOS-compliant.
-2. **Payment Intent State Model**: Pending intents in `wp_bzj_payment_intents` expire automatically via `expires_at` TTLs enforced by Action Scheduler background cleanup tasks.
-3. **Database Schema & Location Concept**: Authoritative intents belong in `wp_bzj_payment_intents` (WordPress DB), with `streams_user_id` and `wow_order_id` as indexed foreign keys.
-4. **Currency & Price Authority**: Product prices are resolved strictly server-side from WoWonder/WooCommerce database tables based on product ID, ignoring untrusted client inputs.
-5. **Subscription Lifecycle**: `woocommerce_subscription_payment_complete` is hooked to update Streams entitlement on both parent and recurring renewal orders, queued via Action Scheduler if Streams is offline.
-6. **AffiliateWP Trigger Ownership**: `buzzjuice-affwp-order-complete.php` listens exclusively to `woocommerce_order_status_completed` and checks `_affwp_bridge_processed` meta and referral DB tables before crediting commissions.
-7. **Jewel Addon Isolation**: `jewel_affiliate_process()` is decoupled as a post-payment handler with `_jewel_rebate_processed` idempotency flags.
-8. **Reconciliation & Retry Design**: Action Scheduler queries orders with `_bzj_sync_status = 'failed'` every 15 minutes to re-trigger synchronization automatically.
-9. **Migration & Rollback**: Managed via feature flag `BZJ_PGB_USE_NATIVE_HANDOFF` for instant rollback to legacy REST cURL execution without data loss.
-10. **Security & Replay Protection**: Handoff URLs use HMAC-SHA256 signatures over `intent_uuid`, `wp_user_id`, and `expires_at`. Used intents advance state to `wc_order_created` to prevent replay.
-11. **Concurrency & Idempotency**: Atomic SQL queries (`UPDATE ... WHERE payment_status != 'completed'`) and MySQL row locks (`SELECT FOR UPDATE`) prevent parallel race conditions.
-12. **Production Failure Scenarios**: Streams checks intent state upon customer return; if unpaid or unverified, Streams queries WooCommerce order status natively using order keys to complete fulfillment immediately upon payment.
+1. **WooCommerce Authority**: WordPress/WooCommerce is the authoritative platform for customer identity, subscription lifecycle, and financial order processing.
+2. **Dual-Environment Database Accessibility**: Both WordPress and Streams execute on infrastructure where shared or cross-database connectivity can be securely established.
+3. **Order Completion Hook Reliability**: WooCommerce triggers `woocommerce_order_status_completed` reliably upon payment gateway authorization or manual admin completion.
 
 ---
 
-## 3. CURRENT ARCHITECTURE vs OPTION B TARGET ARCHITECTURE
+## 3. INFERENCES
+
+1. **cPanel Loopback Failure as Primary Dropped-Order Cause**: The observed cPanel DNS lookup error (`Could not resolve host: buzzjuice.net`) causes `wow-pgb_init.php` cURL requests to time out or crash immediately, stranding users at initiation before an order payment URL can be rendered.
+2. **Browser Dependency Vulnerability**: Relying on `wp_footer` execution on the WooCommerce Thank You page (`wow-pgb_sync.php`) means any user who closes their tab immediately after payment completion bypasses client-side redirect execution and subsequent cURL updates.
+3. **Double Crediting Risk**: Duplicate WooCommerce webhook deliveries (`order.updated` / `order.completed`) will execute the wallet top-up `UPDATE Wo_Users SET wallet = wallet + $amount` multiple times unless blocked by database-level row guards.
+
+---
+
+## 4. CURRENT ARCHITECTURE
 
 ```text
-CURRENT ARCHITECTURE (Option A - Rejected):
-[ Streams UI ] ──► [ wow-pgb_init.php ] ──► (cURL /wc/v3/orders) ──► [ WooCommerce REST API ]
-                                                                             │
-                                                                 (FAILS IF DNS/LOOPBACK BROKEN)
-
-TARGET ARCHITECTURE (Option B - Recommended):
-[ Streams UI ] ──► [ Payment Intent ] ──► [ Signed Handoff URL ] ──► [ WP Native Endpoint ]
-                                                                             │
-                                                                  (Calls wc_create_order)
-                                                                             │
-                                                                             ▼
-                                                                [ WooCommerce Payment Screen ]
+[ Streams UI ]
+      │
+      ▼ (AJAX POST requests.php?f=payment)
+[ wow-pgb_init.php ] ──── Inserts ────► [ Wo_Payment_Transactions ]
+      │
+      ▼ (cURL HTTP POST /wc/v3/orders) ─── [FAILS IF DNS/LOOPBACK BROKEN]
+[ WooCommerce REST API ]
+      │
+      ▼ (Returns payment_url)
+[ Browser Redirect ] ───► [ WooCommerce Checkout Page ]
+                                │
+                                ▼ (Payment Approved)
+                  [ Order Status: Completed ]
+                                │
+          ┌─────────────────────┴─────────────────────┐
+          ▼ (Async Branch A)                          ▼ (Sync Branch B)
+[ WC Webhook: wow-pgb_webhook.php ]        [ Thank You Page: wp_footer ]
+          │                                           │
+          ├─► Updates Wo_Users (wallet/pro)           ├─► wow-pgb_sync.php
+          └─► Calls jewel-affiliate-webhook           └─► affwp_post_checkout_verification
 ```
 
 ---
 
-## 4. SECURITY FINDINGS
+## 5. FAILURE MODES
+
+1. **DNS / Loopback Timeout (`cURL 6`)**: Host resolution fails during `wow-pgb_init.php` REST call; request returns HTTP 500; transaction stranded in `Wo_Payment_Transactions` as pending.
+2. **Browser Abandonment Post-Payment**: User pays on gateway but closes browser before hitting `/checkout/order-received/`; `wow-pgb_sync.php` does not fire; Streams sync relies purely on webhook.
+3. **Duplicate Webhook Processing**: WooCommerce sends duplicate `order.completed` webhooks; `wow-pgb_webhook.php` updates `wallet` repeatedly due to relative addition query.
+4. **Unsigned GET Cart Handoff (`checkout.php`)**: `streams/sources/checkout.php` uses raw GET parameters (`?add-to-cart=...&amount=...`) vulnerable to client price/amount tampering.
+5. **Subscription Schema Mismatch**: Creating WC orders with `_subscription_period` meta on standard virtual products without creating native WC Subscription objects leads to orphaned renewal state.
+
+---
+
+## 6. SECURITY FINDINGS
 
 ### Finding ID: SEC-01
 - **Severity:** `CRITICAL`
@@ -91,7 +106,7 @@ TARGET ARCHITECTURE (Option B - Recommended):
 
 ---
 
-## 5. DATA / STATE FINDINGS
+## 7. DATA / STATE FINDINGS
 
 ### Finding ID: DATA-01
 - **Severity:** `HIGH`
@@ -107,7 +122,87 @@ TARGET ARCHITECTURE (Option B - Recommended):
 
 ---
 
-## 6. ARCHITECTURAL OPTIONS COMPARISON
+## 8. CURRENCY FINDINGS
+
+### Finding ID: CURR-01
+- **Severity:** `MEDIUM`
+- **Category:** Financial Integrity
+- **File:** `streams/assets/wow-pgb/wow-pgb_init.php` & `wp-content/plugins/blue-crown-wp/wow-pgb_sync/wow-pgb_sync.php`
+- **Function:** Order preparation and currency synchronization
+- **Evidence:** `wow_currency_code` passed from Streams client and assigned to WC Order currency without locking exchange conversion rates.
+- **Problem:** WOOCS dynamic switching hooks (`classes/woocs.php`) can re-convert line items during browser checkout if store base currency differs from user currency.
+- **Impact:** Total charged amount on payment gateway may mismatch Streams transaction intent.
+- **Recommendation:** Explicitly set fixed line item totals in base store currency at order creation and log source currency / rate in metadata.
+- **Test Required:** Initiate order in ZAR/GHS on a USD base store and verify payment gateway receives exact expected amount.
+- **Status:** `OPEN`
+
+---
+
+## 9. SUBSCRIPTION FINDINGS
+
+### Finding ID: SUB-01
+- **Severity:** `HIGH`
+- **Category:** Subscription Lifecycle
+- **File:** `wp-content/plugins/blue-crown-wp/wow-pgb_sync/wow-pgb_sync.php`
+- **Function:** `wowonder_redirect_after_purchase()`
+- **Evidence:** Directly modifies `Wo_Users.pro_time` and `pro_type` upon single order completion without establishing WC Subscription parent-child relationships via `wcs_create_subscription()`.
+- **Problem:** Automated recurring renewal payments generated by WC Subscriptions bypass Streams entitlement updates unless `woocommerce_subscription_payment_complete` is explicitly hooked.
+- **Impact:** Recurring subscriber accounts expire in Streams even after successful WC renewal charges.
+- **Recommendation:** Bind Streams PRO entitlement updates to `woocommerce_subscription_payment_complete` (covers both parent and renewal orders).
+- **Test Required:** Trigger simulated WC subscription renewal order and verify `Wo_Users.pro_time` extends.
+- **Status:** `OPEN`
+
+---
+
+## 10. AFFILIATEWP FINDINGS
+
+### Finding ID: AFF-01
+- **Severity:** `LOW` (Protected Functionality)
+- **Category:** Commission Attribution
+- **File:** `wp-content/mu-plugins/buzzjuice-affwp-order-complete.php`
+- **Function:** Hook on `woocommerce_order_status_completed`
+- **Evidence:** `bluecrown_affiliatewp_post_checkout_verification($order_id)` checks `_affwp_bridge_processed` order meta and verifies lifetime affiliate connections via `affiliate_wp_lifetime_commissions()`.
+- **Problem:** None. Existing implementation is robust, single-hooked, and idempotent.
+- **Impact:** None.
+- **Recommendation:** Preserve existing AffiliateWP MU plugin and bridge verification functions without modification.
+- **Test Required:** Complete test purchase with active affiliate cookie and verify referral is credited in AffiliateWP.
+- **Status:** `VERIFIED_WORKING`
+
+---
+
+## 11. JEWEL AFFILIATE FINDINGS
+
+### Finding ID: JEWEL-01
+- **Severity:** `MEDIUM`
+- **Category:** Rebate Processing
+- **File:** `streams/jewel-affiliate-webhook.php`
+- **Function:** `jewel_affiliate_process()`
+- **Evidence:** Inspects order line items for mapped variation IDs in `bz_rebate_mapping_json` (defined in `bz-rebate.php`) and updates wallet/pro status.
+- **Problem:** Lack of explicit order meta lock before executing `wallet = wallet + rebate_amount`.
+- **Impact:** Potential duplicate rebate crediting on re-processed webhooks.
+- **Recommendation:** Add `_jewel_rebate_processed` order meta guard before executing rebate logic.
+- **Test Required:** Trigger `jewel_affiliate_process()` twice on same order and verify rebate applies only once.
+- **Status:** `OPEN`
+
+---
+
+## 12. MIGRATION FINDINGS
+
+### Finding ID: MIG-01
+- **Severity:** `MEDIUM`
+- **Category:** Architecture Migration
+- **File:** `data/docs/ADR/`
+- **Function:** System Migration
+- **Evidence:** Transitioning from Option A (cURL REST API) to Option B (Signed Native WP Handoff via `wc_create_order()`) requires zero modification to historical database orders.
+- **Problem:** Concurrent in-flight orders during deployment could be processed by old vs new handlers.
+- **Impact:** Temporary synchronization delay during deployment window.
+- **Recommendation:** Implement a feature flag (`BZJ_PGB_USE_NATIVE_HANDOFF`) allowing side-by-side execution and rollback capability.
+- **Test Required:** Toggle feature flag in staging and verify both flows complete without collision.
+- **Status:** `OPEN`
+
+---
+
+## 13. ARCHITECTURAL OPTIONS
 
 | Option | Architecture Mechanism | Server Loopback Dependency | DNS Failure Resilient | Idempotency & Security | Migration Risk | Recommendation |
 |---|---|---|---|---|---|---|
@@ -118,7 +213,7 @@ TARGET ARCHITECTURE (Option B - Recommended):
 
 ---
 
-## 7. RECOMMENDED ARCHITECTURAL DIRECTION (Pre-ADR Approval)
+## 14. RECOMMENDED ARCHITECTURAL DIRECTION
 
 1. **Adopt Option B (Native WooCommerce PHP API Browser Handoff)**:
    - Streams generates a durable `intent_uuid` record in `wp_bzj_payment_intents`.
