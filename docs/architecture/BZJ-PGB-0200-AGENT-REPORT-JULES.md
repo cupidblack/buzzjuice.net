@@ -14,11 +14,14 @@
 2. **Synchronous REST Order Creation**: `streams/assets/wow-pgb/wow-pgb_init.php` invokes `send_woocommerce_request()` (cURL) targeting `$wo['config']['wow_api_url'] . '/wc/v3/orders'` before creating a verified order context or returning a payment URL.
 3. **Disabled TLS Verification in Source**: `streams/assets/wow-pgb/wow-pgb_init.php` lines 428–429 explicitly sets `CURLOPT_SSL_VERIFYHOST => 0` and `CURLOPT_SSL_VERIFYPEER => 0`.
 4. **Observed cPanel DNS Resolution Failure**: Running `curl -I https://buzzjuice.net` inside the server/cPanel environment returns `curl: (6) Could not resolve host: buzzjuice.net`.
-5. **Hardcoded Webhook Secret**: `streams/wow-pgb_webhook.php` line 35 contains a hardcoded HMAC signature secret string: `'qk[MV0;n^D;m%PZ@{XeFM.G=||aGI@pyK|Ud5Z,`a>2D3S.f^M'`.
-6. **Non-Idempotent Wallet Credit**: `streams/wow-pgb_webhook.php` line 168 executes `UPDATE Wo_Users SET wallet = wallet + $amount WHERE user_id = $user_id` without checking if the transaction was previously credited.
-7. **AffiliateWP Order Completion MU Plugin**: `wp-content/mu-plugins/buzzjuice-affwp-order-complete.php` listens to `woocommerce_order_status_completed` (priority 999) and calls `bluecrown_affiliatewp_post_checkout_verification($order_id)` in `wp-content/plugins/blue-crown-wp/wow-pgb_sync/wow-pgb_sync.php`.
-8. **Client-Side Cookie Snapshotting**: `streams/assets/wow-pgb/wow-pgb_init.php` captures client cookies (`affwp_ref`, `affwp_visit`, `affwp_affiliate_id`, etc.) and stores them as JSON in WooCommerce order meta key `_buzzjuice_affwp_context_snapshot`.
-9. **Thank You Page Footer Redirect**: `wp-content/plugins/blue-crown-wp/wow-pgb_sync/wow-pgb_sync.php` hooks `wp_footer` on `order-received` endpoints to invoke `wowonder_redirect_after_purchase($order_id)` and redirect browser back to Streams.
+5. **Installed Native WooCommerce Order Creation Functions**: Verified `wc_create_order($args)` in `wp-content/plugins/woocommerce/includes/wc-core-functions.php` (Line 89) and `$order->get_checkout_payment_url()` in `wp-content/plugins/woocommerce/includes/class-wc-order.php` (Line 1924).
+6. **Installed WooCommerce Subscriptions Core Functions**: Verified `wcs_create_subscription($args)` in `wp-content/plugins/woocommerce-subscriptions/includes/core/wcs-functions.php` (Line 157).
+7. **Installed WOOCS Currency Switcher Interface**: Verified `class WOOCS` in `wp-content/plugins/woocommerce-currency-switcher/classes/woocs.php` (Line 7) managing exchange rates and `woocs_exchange_value` filters.
+8. **Enterprise SSO Authority**: Verified `wp-content/mu-plugins/sso-session-sync.php` manages stateless JWT cross-domain authentication across `.buzzjuice.net`.
+9. **Action Scheduler Infrastructure**: Verified Action Scheduler is installed and active via WooCommerce package at `wp-content/plugins/woocommerce/packages/action-scheduler/`.
+10. **Hardcoded Webhook Secret**: `streams/wow-pgb_webhook.php` line 35 contains a hardcoded HMAC signature secret string: `'qk[MV0;n^D;m%PZ@{XeFM.G=||aGI@pyK|Ud5Z,`a>2D3S.f^M'`.
+11. **Non-Idempotent Wallet Credit**: `streams/wow-pgb_webhook.php` line 168 executes `UPDATE Wo_Users SET wallet = wallet + $amount WHERE user_id = $user_id` without checking if the transaction was previously credited.
+12. **AffiliateWP Order Completion MU Plugin**: `wp-content/mu-plugins/buzzjuice-affwp-order-complete.php` listens to `woocommerce_order_status_completed` (priority 999) and calls `bluecrown_affiliatewp_post_checkout_verification($order_id)` in `wp-content/plugins/blue-crown-wp/wow-pgb_sync/wow-pgb_sync.php`.
 
 ---
 
@@ -127,7 +130,7 @@
 - **File:** `streams/assets/wow-pgb/wow-pgb_init.php` & `wp-content/plugins/blue-crown-wp/wow-pgb_sync/wow-pgb_sync.php`
 - **Function:** Order preparation and currency synchronization
 - **Evidence:** `wow_currency_code` passed from Streams client and assigned to WC Order currency without locking exchange conversion rates.
-- **Problem:** WOOCS dynamic switching hooks can re-convert line items during browser checkout if store base currency differs from user currency.
+- **Problem:** WOOCS dynamic switching hooks (`classes/woocs.php`) can re-convert line items during browser checkout if store base currency differs from user currency.
 - **Impact:** Total charged amount on payment gateway may mismatch Streams transaction intent.
 - **Recommendation:** Explicitly set fixed line item totals in base store currency at order creation and log source currency / rate in metadata.
 - **Test Required:** Initiate order in ZAR/GHS on a USD base store and verify payment gateway receives exact expected amount.
@@ -142,7 +145,7 @@
 - **Category:** Subscription Lifecycle
 - **File:** `wp-content/plugins/blue-crown-wp/wow-pgb_sync/wow-pgb_sync.php`
 - **Function:** `wowonder_redirect_after_purchase()`
-- **Evidence:** Directly modifies `Wo_Users.pro_time` and `pro_type` upon single order completion without establishing WC Subscription parent-child relationships.
+- **Evidence:** Directly modifies `Wo_Users.pro_time` and `pro_type` upon single order completion without establishing WC Subscription parent-child relationships via `wcs_create_subscription()`.
 - **Problem:** Automated recurring renewal payments generated by WC Subscriptions bypass Streams entitlement updates unless `woocommerce_subscription_payment_complete` is explicitly hooked.
 - **Impact:** Recurring subscriber accounts expire in Streams even after successful WC renewal charges.
 - **Recommendation:** Bind Streams PRO entitlement updates to `woocommerce_subscription_payment_complete` (covers both parent and renewal orders).
@@ -158,7 +161,7 @@
 - **Category:** Commission Attribution
 - **File:** `wp-content/mu-plugins/buzzjuice-affwp-order-complete.php`
 - **Function:** Hook on `woocommerce_order_status_completed`
-- **Evidence:** `bluecrown_affiliatewp_post_checkout_verification($order_id)` checks `_affwp_bridge_processed` order meta and verifies lifetime affiliate connections.
+- **Evidence:** `bluecrown_affiliatewp_post_checkout_verification($order_id)` checks `_affwp_bridge_processed` order meta and verifies lifetime affiliate connections via `affiliate_wp_lifetime_commissions()`.
 - **Problem:** None. Existing implementation is robust, single-hooked, and idempotent.
 - **Impact:** None.
 - **Recommendation:** Preserve existing AffiliateWP MU plugin and bridge verification functions without modification.
@@ -174,7 +177,7 @@
 - **Category:** Rebate Processing
 - **File:** `streams/jewel-affiliate-webhook.php`
 - **Function:** `jewel_affiliate_process()`
-- **Evidence:** Inspects order line items for mapped variation IDs in `bz_rebate_mapping_json` and updates wallet/pro status.
+- **Evidence:** Inspects order line items for mapped variation IDs in `bz_rebate_mapping_json` (defined in `bz-rebate.php`) and updates wallet/pro status.
 - **Problem:** Lack of explicit order meta lock before executing `wallet = wallet + rebate_amount`.
 - **Impact:** Potential duplicate rebate crediting on re-processed webhooks.
 - **Recommendation:** Add `_jewel_rebate_processed` order meta guard before executing rebate logic.
@@ -190,7 +193,7 @@
 - **Category:** Architecture Migration
 - **File:** `data/docs/ADR/`
 - **Function:** System Migration
-- **Evidence:** Transitioning from Option A (cURL REST API) to Option B (Signed Native WP Handoff) requires zero modification to historical database orders.
+- **Evidence:** Transitioning from Option A (cURL REST API) to Option B (Signed Native WP Handoff via `wc_create_order()`) requires zero modification to historical database orders.
 - **Problem:** Concurrent in-flight orders during deployment could be processed by old vs new handlers.
 - **Impact:** Temporary synchronization delay during deployment window.
 - **Recommendation:** Implement a feature flag (`BZJ_PGB_USE_NATIVE_HANDOFF`) allowing side-by-side execution and rollback capability.
@@ -204,7 +207,7 @@
 | Option | Architecture Mechanism | Server Loopback Dependency | DNS Failure Resilient | Idempotency & Security | Migration Risk | Recommendation |
 |---|---|---|---|---|---|---|
 | **Option A** | Streams cURL -> WC REST API | High (`/wc/v3/orders`) | No (Fails on `cURL 6`) | Low (Hardcoded secrets, SSL verify disabled) | Low (Current) | **REJECTED** |
-| **Option B** | Signed Intent -> WP Native Endpoint | None (Local WP Execution) | Yes (100% Immune) | High (HMAC Signed, Atomic DB Locks) | Low (Feature Flag) | **RECOMMENDED** |
+| **Option B** | Signed Intent -> WP Native Endpoint (`wc_create_order`) | None (Local WP Execution) | Yes (100% Immune) | High (HMAC Signed, Atomic DB Locks) | Low (Feature Flag) | **RECOMMENDED** |
 | **Option C** | Browser GET Direct Cart Redirect | None | Yes | Very Low (Parameter Tampering Risk) | Low | **REJECTED** |
 | **Option D** | Option A + Local cURL Workarounds | High (`127.0.0.1` cURL) | Partial | Medium | Low | **REJECTED** |
 
@@ -213,14 +216,14 @@
 ## 14. RECOMMENDED ARCHITECTURAL DIRECTION
 
 1. **Adopt Option B (Native WooCommerce PHP API Browser Handoff)**:
-   - Streams generates a durable `intent_uuid` record in `Wo_Payment_Transactions` (or `bzj_payment_intents`).
+   - Streams generates a durable `intent_uuid` record in `Wo_Payment_Transactions` (or `wp_bzj_payment_intents`).
    - Streams redirects browser to a lightweight WordPress handoff endpoint with an HMAC-signed token:
      `https://buzzjuice.net/bzj-checkout-handoff?intent=UUID&sig=HMAC`.
-   - The WordPress endpoint validates the signature, invokes native WooCommerce PHP APIs (`wc_create_order()`) locally in the WP process context (zero cURL HTTP call), attaches order meta (`_buzzjuice_origin`, `_buzzjuice_affwp_context_snapshot`), and redirects directly to the native WooCommerce checkout payment URL.
+   - The WordPress endpoint validates the signature, invokes native WooCommerce PHP APIs (`wc_create_order()`, `$order->get_checkout_payment_url()`) locally in the WP process context (zero cURL HTTP call), attaches order meta (`_buzzjuice_origin`, `_buzzjuice_affwp_context_snapshot`), and redirects directly to the native WooCommerce checkout payment URL.
 2. **Harden Post-Payment Webhooks & Idempotency**:
    - Enforce atomic conditional updates (`WHERE order_id = ? AND payment_status != 'completed'`) before incrementing wallets or activating entitlements.
    - Move all secrets (`WC_WEBHOOK_SECRET`, `BUZZ_SSO_SECRET`) to `.env`.
 3. **Preserve Proven Integrations**:
    - Retain `wp-content/mu-plugins/buzzjuice-affwp-order-complete.php` and `bluecrown_affiliatewp_post_checkout_verification()` for AffiliateWP processing without modification.
 4. **Deploy Asynchronous Reconciliation Worker**:
-   - Add a scheduled WP Cron job to query orders with `_bzj_sync_status = 'failed'` and re-trigger entitlement/affiliate synchronization automatically.
+   - Utilize active Action Scheduler (`wp-content/plugins/woocommerce/packages/action-scheduler/`) to query orders with `_bzj_sync_status = 'failed'` and re-trigger entitlement/affiliate synchronization automatically.
